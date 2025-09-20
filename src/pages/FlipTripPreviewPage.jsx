@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { generatePreview, generateSmartItinerary, createCheckoutSession } from '../services/api';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
-import './FlipTripPreviewPage.css'; // RESTORED VERSION
+import './FlipTripPreviewPage.css'; // v2.0 PERFECT VERSION
 
 // =============================================================================
 // 🎨 УНИВЕРСАЛЬНАЯ ГЕНЕРАЦИЯ ПОДЗАГОЛОВКОВ ДЛЯ ЛЮБОГО ГОРОДА
