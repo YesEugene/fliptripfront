@@ -498,7 +498,7 @@ export default function HomePage() {
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>
                 Pick the vibe
               </label>
-              <div style={{ 
+              <div className="interests-grid" style={{ 
                 display: 'grid',
                 gridTemplateColumns: 'repeat(3, 1fr)',
                 gap: '12px',

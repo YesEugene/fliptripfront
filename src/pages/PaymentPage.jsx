@@ -14,8 +14,8 @@ export default function PaymentPage() {
     audience: searchParams.get('audience') || 'him',
     interests: searchParams.get('interests')?.split(',') || [],
     date: searchParams.get('date') || new Date().toISOString().slice(0, 10),
-    budgetFrom: searchParams.get('budgetFrom') || '',
-    budgetTo: searchParams.get('budgetTo') || ''
+    budget: searchParams.get('budget') || '',
+    email: searchParams.get('email') || ''
   };
 
   const handlePayment = async () => {

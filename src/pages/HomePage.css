@@ -46,3 +46,12 @@ body {
 .red-header-section {
   height: 330px !important;
 }
+
+/* Interests grid styles - responsive for mobile */
+@media (max-width: 768px) {
+  .interests-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    padding-right: 4px !important;
+  }
+}
