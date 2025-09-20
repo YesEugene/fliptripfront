@@ -51,6 +51,54 @@ const generateUniversalSubtitle = (city, interests, date) => {
   return subtitle;
 };
 
+const generateUniversalTitle = (city, interests) => {
+  // Определяем основной интерес для заголовка
+  if (!interests || interests.length === 0) {
+    return `${city} Discovery`;
+  }
+
+  // Фильтруем служебные интересы
+  const cleanInterests = interests.filter(interest => 
+    interest && 
+    interest !== 'budget' && 
+    interest !== 'luxury' && 
+    interest !== 'family'
+  );
+
+  if (cleanInterests.length === 0) {
+    return `${city} Discovery`;
+  }
+
+  // Берем первый основной интерес для заголовка
+  const mainInterest = cleanInterests[0];
+  
+  // Создаем красивые заголовки по интересам
+  const titleTemplates = {
+    'romantic': `${city} Romance`,
+    'foodie': `${city} Culinary Journey`, 
+    'culture': `${city} Cultural Heritage`,
+    'adventure': `${city} Adventure`,
+    'relaxation': `${city} Tranquil Escape`,
+    'nightlife': `${city} Night Experience`,
+    'shopping': `${city} Shopping Discovery`,
+    'nature': `${city} Natural Beauty`,
+    'history': `${city} Historical Journey`,
+    'art': `${city} Artistic Journey`,
+    'museums': `${city} Museum Experience`
+  };
+
+  // Ищем подходящий шаблон или используем универсальный
+  const lowerInterest = mainInterest.toLowerCase();
+  for (const [key, template] of Object.entries(titleTemplates)) {
+    if (lowerInterest.includes(key)) {
+      return template;
+    }
+  }
+
+  // Если не нашли подходящий, используем первый интерес
+  return `${city} ${mainInterest}`;
+};
+
 export default function FlipTripPreviewPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -412,7 +460,7 @@ export default function FlipTripPreviewPage() {
             />
             <div style={previewOverlayStyle}>
               <div style={previewTitleStyle}>
-                {preview?.meta?.creative_title || `${formData.city} Adventure`}
+                {preview?.meta?.creative_title || generateUniversalTitle(formData.city, formData.interests)}
               </div>
               <div style={tagsStyle}>
                 <span style={{...tagStyle, backgroundColor: 'rgba(225, 29, 72, 0.8)'}}>
