@@ -20,11 +20,12 @@ export default function SuccessPage() {
     session_id: searchParams.get('session_id') || ''
   };
 
+  // НЕ вызываем API на success странице - это делает ее быстрой и надежной
+  // Email будет отправлен на странице итинерария
   useEffect(() => {
-    if (formData.email && !emailSent) {
-      sendEmailWithItinerary();
-    }
-  }, [formData.email, emailSent]);
+    // Просто показываем success без API вызовов
+    setEmailSent(false); // Email будет отправлен позже
+  }, []);
 
   const sendEmailWithItinerary = async () => {
     try {
@@ -210,10 +211,7 @@ export default function SuccessPage() {
           marginBottom: '24px',
           lineHeight: '1.4'
         }}>
-          {emailSent 
-            ? `Thank you! We've sent your ${formData.city} itinerary to ${formData.email}. Check your inbox!`
-            : `Your personalized ${formData.city} plan is ready! We're sending it to your email...`
-          }
+          {`Thank you! Your personalized ${formData.city} plan is being prepared. Click below to view your itinerary and we'll send it to ${formData.email || 'your email'}.`}
         </p>
 
         <button
@@ -254,7 +252,7 @@ export default function SuccessPage() {
           <div><strong>Date:</strong> {formData.date}</div>
           <div><strong>Interests:</strong> {formData.interests.join(', ')}</div>
           <div style={{ marginTop: '8px', fontSize: '12px' }}>
-            An email with a link to the plan has been sent to your email
+            Click "Open my plan" to view your itinerary and receive it by email
           </div>
         </div>
       </div>
