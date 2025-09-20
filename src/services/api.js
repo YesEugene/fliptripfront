@@ -177,9 +177,6 @@ export const createCheckoutSession = async (formData) => {
   }
 };
 
-// Send email with itinerary
-};
-
 // Get examples list
 export const getExamples = async () => {
   try {
