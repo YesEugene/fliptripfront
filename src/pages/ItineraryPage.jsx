@@ -314,36 +314,8 @@ export default function ItineraryPage() {
   };
 
   const handleDownloadPDF = async () => {
-    try {
-      const response = await fetch('http://localhost:3000/api/generate-pdf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          itinerary,
-          formData
-        }),
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `fliptrip-itinerary-${formData.city}-${formData.date}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      } else {
-        console.error('PDF generation failed');
-        alert('Failed to generate PDF. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
-    }
+    // Временно отключаем PDF генерацию
+    alert('PDF download will be available soon! For now, you can take a screenshot or print this page.');
   };
 
 
