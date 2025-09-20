@@ -578,72 +578,24 @@ export default function HomePage() {
                   </label>
                   <div style={{ position: 'relative' }}>
                     <input
-                      type="text"
-                      value={formData.date ? new Date(formData.date).toLocaleDateString('en-US', { 
-                        month: 'short', 
-                        day: 'numeric' 
-                      }) : ''}
-                      placeholder="09 Feb"
-                      readOnly
-                      onClick={(e) => {
-                        const dateInput = document.createElement('input');
-                        dateInput.type = 'date';
-                        dateInput.min = new Date().toISOString().slice(0, 10);
-                        dateInput.value = formData.date;
-                        
-                        // Position the date picker near the clicked element
-                        const rect = e.target.getBoundingClientRect();
-                        dateInput.style.position = 'fixed';
-                        dateInput.style.left = rect.left + 'px';
-                        dateInput.style.top = (rect.bottom + 5) + 'px';
-                        dateInput.style.zIndex = '9999';
-                        dateInput.style.opacity = '0';
-                        dateInput.style.pointerEvents = 'auto';
-                        dateInput.style.width = '1px';
-                        dateInput.style.height = '1px';
-                        
-                        document.body.appendChild(dateInput);
-                        
-                        // Small delay to ensure element is rendered
-                        setTimeout(() => {
-                          dateInput.showPicker();
-                        }, 10);
-                        
-                        dateInput.onchange = (e) => {
-                          setFormData(prev => ({ ...prev, date: e.target.value }));
-                          document.body.removeChild(dateInput);
-                        };
-                        
-                        // Clean up if user clicks away without selecting
-                        dateInput.onblur = () => {
-                          setTimeout(() => {
-                            if (document.body.contains(dateInput)) {
-                              document.body.removeChild(dateInput);
-                            }
-                          }, 100);
-                        };
-                      }}
+                      type="date"
+                      value={formData.date}
+                      onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                      min={new Date().toISOString().slice(0, 10)}
                       style={{
                         width: '100%',
-                        padding: '12px 40px 12px 16px',
+                        padding: '12px 16px',
                         border: `2px solid ${errors.date ? '#ef4444' : '#e5e7eb'}`,
                         borderRadius: '12px',
-                        fontSize: '16px',
+                        fontSize: '14px',
                         color: '#374151',
                         cursor: 'pointer',
-                        backgroundColor: 'white'
+                        backgroundColor: 'white',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                        WebkitAppearance: 'none',
+                        MozAppearance: 'textfield'
                       }}
                     />
-                    <span style={{
-                      position: 'absolute',
-                      right: '12px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      color: '#6b7280',
-                      fontSize: '16px'
-                    }}>
-                      📅
-                    </span>
                   </div>
                   {errors.date && <p style={{ color: '#ef4444', fontSize: '14px', marginTop: '8px' }}>{errors.date}</p>}
                 </div>
@@ -714,6 +666,8 @@ export default function HomePage() {
               }}
               onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
               onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              onTouchStart={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onTouchEnd={(e) => e.currentTarget.style.transform = 'translateY(0)'}
               onClick={() => handleExampleTripClick(trip)}
             >
               {/* Background Image */}
