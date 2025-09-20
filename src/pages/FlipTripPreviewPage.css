@@ -1,0 +1,103 @@
+/* FlipTripPreviewPage Styles */
+.fliptrip-preview-container {
+  min-height: 100vh;
+  background-color: white;
+  margin: 0;
+  padding: 0 0 50px 0; /* Добавляем отступ снизу 50px */
+  position: relative;
+  max-width: 750px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.fliptrip-preview-header {
+  background-color: white;
+  padding: 20px;
+  max-width: 750px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.fliptrip-preview-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fliptrip-preview-back-button {
+  display: inline-flex;
+  align-items: center;
+  color: #3E85FC;
+  font-weight: 500;
+  transition: color 0.2s ease;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.fliptrip-preview-back-button:hover {
+  color: #2563eb;
+}
+
+.fliptrip-preview-back-arrow {
+  margin-right: 8px;
+}
+
+.fliptrip-preview-logo {
+  height: 55px;
+  width: 88px;
+}
+
+.fliptrip-preview-spacer {
+  width: 100px; /* Примерная ширина кнопки Back для симметрии */
+}
+
+.fliptrip-preview-content {
+  padding: 20px;
+  max-width: 750px;
+  margin: 0 auto;
+}
+
+/* Mobile styles - оставляем логотип того же размера */
+@media (max-width: 768px) {
+  .fliptrip-preview-logo {
+    height: 55px;   /* Тот же размер что и на десктопе */
+    width: 88px;    /* Тот же размер что и на десктопе */
+    max-width: 90vw; /* Ограничиваем максимальную ширину */
+  }
+
+  .fliptrip-preview-header {
+    padding: 15px;
+  }
+
+  .fliptrip-preview-header-row {
+    flex-direction: row; /* Сохраняем горизонтальное расположение */
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .fliptrip-preview-spacer {
+    width: 80px; /* Меньше на мобильных */
+  }
+
+  .fliptrip-preview-content {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .fliptrip-preview-logo {
+    width: 88px;      /* Тот же размер что и на десктопе */
+    height: 55px;     /* Тот же размер что и на десктопе */
+    max-width: 90vw;  /* Ограничиваем максимальную ширину */
+  }
+
+  .fliptrip-preview-header {
+    padding: 10px;
+  }
+
+  .fliptrip-preview-content {
+    padding: 10px;
+  }
+}

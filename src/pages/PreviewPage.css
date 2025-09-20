@@ -1,0 +1,175 @@
+/* PreviewPage Styles */
+.preview-container {
+  min-height: 100vh;
+  background-color: white;
+  margin: 0;
+  padding: 0 0 50px 0; /* Добавляем отступ снизу 50px */
+  position: relative;
+  max-width: 750px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.preview-header {
+  background-color: white;
+  padding: 20px;
+  max-width: 750px;
+  margin: 0 auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.preview-logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+}
+
+.preview-spacer {
+  width: 100px; /* Примерная ширина кнопки Back для симметрии */
+}
+
+.preview-logo {
+  height: 55px;
+  width: 88px;
+}
+
+.preview-back-button {
+  display: inline-flex;
+  align-items: center;
+  color: #3E85FC;
+  font-weight: 500;
+  transition: color 0.2s ease;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.preview-back-button:hover {
+  color: #2563eb;
+}
+
+.preview-back-arrow {
+  margin-right: 8px;
+}
+
+.preview-card {
+  width: 100%;
+  max-width: 750px;
+  background-color: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  margin-top: 20px;
+  position: relative;
+  z-index: 10;
+  overflow: hidden;
+}
+
+.preview-city-image-container {
+  position: relative;
+  height: 320px;
+  overflow: hidden;
+}
+
+.preview-city-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-image-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0.2), transparent);
+}
+
+.preview-content-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 32px;
+  color: white;
+}
+
+.preview-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.preview-tag {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  backdrop-filter: blur(4px);
+}
+
+.preview-tag-city {
+  background-color: rgba(59, 130, 246, 0.8);
+}
+
+.preview-tag-date {
+  background-color: rgba(147, 51, 234, 0.8);
+}
+
+.preview-tag-interests {
+  background-color: rgba(34, 197, 94, 0.8);
+}
+
+.preview-tag-budget {
+  background-color: rgba(251, 146, 60, 0.8);
+}
+
+/* Mobile styles - оставляем логотип того же размера */
+@media (max-width: 768px) {
+  .preview-logo {
+    height: 55px;   /* Тот же размер что и на десктопе */
+    width: 88px;    /* Тот же размер что и на десктопе */
+    max-width: 90vw; /* Ограничиваем максимальную ширину */
+  }
+
+  .preview-header {
+    padding: 15px;
+    flex-direction: row; /* Сохраняем горизонтальное расположение */
+  }
+
+  .preview-content-overlay {
+    padding: 20px;
+  }
+
+  .preview-city-image-container {
+    height: 250px;
+  }
+}
+
+@media (max-width: 480px) {
+  .preview-logo {
+    width: 88px;      /* Тот же размер что и на десктопе */
+    height: 55px;     /* Тот же размер что и на десктопе */
+    max-width: 90vw;  /* Ограничиваем максимальную ширину */
+  }
+
+  .preview-header {
+    padding: 10px;
+    flex-direction: row; /* Сохраняем горизонтальное расположение */
+  }
+  
+  .preview-spacer {
+    width: 80px; /* Меньше на мобильных */
+  }
+
+  .preview-content-overlay {
+    padding: 16px;
+  }
+
+  .preview-city-image-container {
+    height: 200px;
+  }
+}

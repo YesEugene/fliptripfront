@@ -1,0 +1,499 @@
+/* Mobile-first responsive styles for ItineraryPage */
+
+.itinerary-container {
+  min-height: 100vh;
+  background-color: white;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  max-width: 750px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.header-section {
+  background-color: white;
+  padding: 20px;
+  max-width: 750px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.logo-image {
+  height: 55px;
+  width: 88px;
+  cursor: pointer;
+}
+
+/* Mobile responsiveness for logo - увеличиваем для лучшей видимости */
+
+.content-section {
+  padding: 0 20px;
+}
+
+.card {
+  background-color: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  padding: 32px;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 36px;
+  font-weight: bold;
+  color: #1f2937;
+  margin-bottom: 16px;
+}
+
+.subtitle {
+  font-size: 20px;
+  color: #6b7280;
+  margin-bottom: 24px;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-start;
+  margin-bottom: 24px;
+}
+
+.badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.time-block {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  background-color: #3b82f6;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+.item-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #1f2937;
+  margin-bottom: 20px;
+}
+
+.item-description {
+  color: #6b7280;
+  margin-bottom: 20px;
+}
+
+.item-details {
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+.map-container {
+  width: 100%;
+  height: 400px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.photo-gallery {
+  margin-bottom: 20px;
+}
+
+.photo-thumbnail {
+  min-width: 80px;
+  height: 60px;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .itinerary-container {
+    max-width: 100%;
+    padding: 0 16px;
+  }
+  
+  .header-section {
+    padding: 16px !important;
+  }
+  
+  .logo-container {
+    flex-direction: column !important;
+    gap: 16px !important;
+    align-items: center !important;
+  }
+  
+  .logo-image {
+    height: 55px !important;
+    width: 88px !important;
+    max-width: 90vw !important;
+  }
+  
+  .content-section {
+    padding: 0 16px !important;
+  }
+  
+  .card {
+    padding: 20px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .title {
+    font-size: 28px !important;
+    line-height: 1.2 !important;
+  }
+  
+  .subtitle {
+    font-size: 16px !important;
+    line-height: 1.4 !important;
+  }
+  
+  .badges {
+    justify-content: flex-start !important;
+    gap: 8px !important;
+  }
+  
+  .badge {
+    width: 100% !important;
+    text-align: center !important;
+  }
+  
+  .time-block {
+    font-size: 16px !important;
+    padding: 6px 12px !important;
+  }
+  
+  .item-title {
+    font-size: 16px !important;
+    line-height: 1.3 !important;
+  }
+  
+  .item-description {
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+  
+  .item-details {
+    font-size: 12px !important;
+  }
+  
+  .map-container {
+    height: 300px !important;
+  }
+  
+  .photo-gallery {
+    margin-bottom: 16px !important;
+  }
+  
+  .photo-thumbnail {
+    min-width: 60px !important;
+    height: 45px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .itinerary-container {
+    padding: 0 8px;
+  }
+  
+  .header-section {
+    padding: 12px !important;
+  }
+  
+  .logo-image {
+    height: 55px !important;
+    width: 88px !important;
+    max-width: 90vw !important;
+  }
+  
+  .card {
+    padding: 16px !important;
+    border-radius: 12px !important;
+  }
+  
+  .title {
+    font-size: 24px !important;
+  }
+  
+  .subtitle {
+    font-size: 14px !important;
+  }
+  
+  .time-block {
+    font-size: 14px !important;
+    padding: 4px 8px !important;
+  }
+  
+  .item-title {
+    font-size: 14px !important;
+  }
+  
+  .item-description {
+    font-size: 13px !important;
+  }
+  
+  .item-details {
+    font-size: 11px !important;
+  }
+  
+  .map-container {
+    height: 250px !important;
+  }
+  
+  .photo-thumbnail {
+    min-width: 50px !important;
+    height: 40px !important;
+  }
+}
+
+/* Loading and error states */
+.loading-container {
+  min-height: 100vh;
+  background-color: #eff6ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-container {
+  min-height: 100vh;
+  background-color: #eff6ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-content {
+  text-align: center;
+}
+
+.loading-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.loading-text {
+  font-size: 20px;
+  color: #6b7280;
+}
+
+.error-icon {
+  color: #ef4444;
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+
+.error-text {
+  color: #6b7280;
+  margin-bottom: 24px;
+}
+
+.back-button {
+  padding: 12px 24px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.back-button:hover {
+  background-color: #2563eb;
+}
+
+/* Improved button styles */
+.download-button {
+  padding: 12px 24px;
+  background-color: #3E85FC;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  display: block;
+  margin: 0 auto;
+}
+
+.download-button:hover {
+  background-color: #2563eb;
+}
+
+/* Enhanced card styles */
+.enhanced-card {
+  background-color: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 20px 0;
+  margin-bottom: 24px;
+  transition: none;
+}
+
+.enhanced-card:hover {
+  box-shadow: none;
+}
+
+/* Improved time block styles */
+.time-block-enhanced {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  background-color: #3b82f6;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  display: inline-block;
+  transition: background-color 0.2s ease;
+}
+
+.time-block-enhanced:hover {
+  background-color: #2563eb;
+}
+
+/* Enhanced item styles */
+.item-enhanced {
+  background-color: #f9fafb;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  transition: background-color 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.item-enhanced:hover {
+  background-color: #f3f4f6;
+  border-color: #e5e7eb;
+}
+
+/* Improved link styles */
+.enhanced-link {
+  color: #1f2937;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.enhanced-link:hover {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+/* Weather section improvements */
+.weather-enhanced {
+  background-color: #f0f9ff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+  border: 1px solid #bae6fd;
+  text-align: left;
+}
+
+.weather-main {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.weather-icon {
+  font-size: 24px;
+}
+
+.weather-temp {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0369a1;
+}
+
+.weather-description {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.weather-tips {
+  font-size: 10px;
+  color: #666;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* Badge improvements */
+.badge-enhanced {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: transform 0.2s ease;
+}
+
+.badge-enhanced:hover {
+  transform: translateY(-1px);
+}
+
+/* Photo gallery improvements */
+.photo-gallery-enhanced {
+  margin-bottom: 20px;
+}
+
+.photo-thumbnail-enhanced {
+  min-width: 80px;
+  height: 60px;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease;
+  position: relative;
+}
+
+.photo-thumbnail-enhanced:hover {
+  border-color: #3b82f6;
+}
+
+/* Map improvements */
+.map-container-enhanced {
+  width: 100%;
+  height: 400px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+/* Footer improvements */
+.footer-enhanced {
+  text-align: center;
+  margin-top: 32px;
+  margin-bottom: 50px;
+  color: #9ca3af;
+  font-size: 14px;
+  padding: 20px;
+  background-color: #f9fafb;
+  border-radius: 12px;
+}
