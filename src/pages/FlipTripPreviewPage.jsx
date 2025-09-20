@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { generatePreview, generateSmartItinerary, createCheckoutSession } from '../services/api';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
-import './FlipTripPreviewPage.css';
+import './FlipTripPreviewPage.css'; // RESTORED VERSION
 
 export default function FlipTripPreviewPage() {
   const navigate = useNavigate();
