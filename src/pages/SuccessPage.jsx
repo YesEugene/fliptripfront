@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
-import { generateRealPlacesItinerary, sendEmail } from '../services/api';
+import { generateSmartItinerary, sendEmail } from '../services/api';
 
 export default function SuccessPage() {
   const navigate = useNavigate();
@@ -30,8 +30,8 @@ export default function SuccessPage() {
     try {
       console.log('🌍 Generating real places itinerary for success page...');
       
-      // First, generate the real places itinerary
-      const itineraryData = await generateRealPlacesItinerary({
+      // First, generate the smart itinerary
+      const itineraryData = await generateSmartItinerary({
         city: formData.city,
         audience: formData.audience,
         interests: formData.interests,
