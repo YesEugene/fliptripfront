@@ -359,8 +359,8 @@ export default function ItineraryPage() {
             src={SkateboardingGif} 
             alt="Loading..." 
             style={{ 
-              width: '120px', 
-              height: '120px', 
+              width: '60px', 
+              height: '60px', 
               marginBottom: '16px',
               borderRadius: '8px'
             }} 
