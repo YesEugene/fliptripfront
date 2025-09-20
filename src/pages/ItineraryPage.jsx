@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail } from '../services/api';
 import PhotoGallery from '../components/PhotoGallery';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
+import SkateboardingGif from '../assets/Skateboarding.gif';
 import './ItineraryPage.css';
 
 export default function ItineraryPage() {
@@ -354,7 +355,16 @@ export default function ItineraryPage() {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+          <img 
+            src={SkateboardingGif} 
+            alt="Loading..." 
+            style={{ 
+              width: '120px', 
+              height: '120px', 
+              marginBottom: '16px',
+              borderRadius: '8px'
+            }} 
+          />
           <div style={{ fontSize: '20px', color: '#374151' }}>Curating your perfect day experience...</div>
         </div>
       </div>
