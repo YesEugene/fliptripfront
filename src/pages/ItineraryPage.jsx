@@ -134,7 +134,28 @@ export default function ItineraryPage() {
         const hasActivities = data.activities && data.activities.length > 0;
         
         if (hasActivities) {
-          setItinerary(data);
+          // Конвертируем данные в нужный формат для отображения
+          const convertedData = {
+            ...data,
+            daily_plan: [{
+              date: data.date,
+              blocks: data.activities.map(activity => ({
+                time: activity.time,
+                items: [{
+                  title: activity.name || activity.title,
+                  why: activity.description,
+                  photos: activity.photos || [],
+                  address: activity.location,
+                  approx_cost: activity.priceRange || `€${activity.price}`,
+                  duration: `${activity.duration} min`,
+                  tips: activity.recommendations,
+                  rating: activity.rating
+                }]
+              }))
+            }]
+          };
+          console.log('✅ Converted data for display:', convertedData);
+          setItinerary(convertedData);
           return;
         } else {
           console.log('⚠️ Smart itinerary API returned empty itinerary');
