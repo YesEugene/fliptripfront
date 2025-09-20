@@ -126,7 +126,15 @@ export const generateRealPlacesItinerary = async (formData) => {
             price: activity.price,
             location: activity.location || `${formData.city} City Center`,
             address: activity.location || `${formData.city} City Center`,
-            photos: activity.photos || ['https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&q=80'],
+            photos: activity.photos ? activity.photos.map(photoUrl => ({
+              url: photoUrl,
+              thumbnail: photoUrl.replace('maxwidth=800', 'maxwidth=200'), // Создаем thumbnail
+              source: photoUrl.includes('googleapis.com') ? 'google_places' : 'unsplash'
+            })) : [{
+              url: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&q=80',
+              thumbnail: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=200&h=150&fit=crop&q=80',
+              source: 'unsplash'
+            }],
             tips: activity.recommendations || `Perfect for ${formData.audience}. Enjoy the experience!`, // Frontend ожидает 'tips'
             approx_cost: activity.priceRange || `${activity.price}€`, // Frontend ожидает 'approx_cost'
             rating: activity.rating || 4.0
