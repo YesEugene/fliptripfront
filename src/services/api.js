@@ -212,4 +212,19 @@ export const getExample = async (exampleId) => {
   }
 };
 
+// Send email with itinerary link
+export const sendEmail = async ({ email, formData }) => {
+  try {
+    console.log('📧 Sending email with itinerary link to:', email);
+    const response = await api.post('/api/send-email', {
+      email,
+      formData
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Email sending error:', error);
+    throw error;
+  }
+};
+
 export default api;

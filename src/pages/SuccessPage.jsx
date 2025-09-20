@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
-import { generateSmartItinerary, sendEmail } from '../services/api';
+import { sendEmail } from '../services/api';
 
 export default function SuccessPage() {
   const navigate = useNavigate();
@@ -20,12 +20,29 @@ export default function SuccessPage() {
     session_id: searchParams.get('session_id') || ''
   };
 
-  // НЕ вызываем API на success странице - это делает ее быстрой и надежной
-  // Email будет отправлен на странице итинерария
+  // Отправляем email со ссылкой на страницу итинерария
   useEffect(() => {
-    // Просто показываем success без API вызовов
-    setEmailSent(false); // Email будет отправлен позже
-  }, []);
+    if (formData.email && !emailSent) {
+      sendSimpleEmail();
+    }
+  }, [formData.email, emailSent]);
+
+  const sendSimpleEmail = async () => {
+    try {
+      console.log('📧 Sending email with itinerary link...');
+      
+      await sendEmail({
+        email: formData.email,
+        formData: formData
+      });
+      
+      console.log('✅ Email sent successfully!');
+      setEmailSent(true);
+    } catch (error) {
+      console.error('❌ Email sending failed:', error);
+      // Не показываем ошибку пользователю, просто логируем
+    }
+  };
 
   const sendEmailWithItinerary = async () => {
     try {

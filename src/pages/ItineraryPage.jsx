@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF } from '../services/api';
+import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail } from '../services/api';
 import PhotoGallery from '../components/PhotoGallery';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import './ItineraryPage.css';
@@ -127,18 +127,18 @@ export default function ItineraryPage() {
       
       try {
         // ОСНОВНАЯ система с реальными местами
-        const data = await generateRealPlacesItinerary(formData);
-        console.log('✅ Received real places itinerary data:', data);
+        const data = await generateSmartItinerary(formData);
+        console.log('✅ Received smart itinerary data:', data);
         
-        // Проверяем, есть ли места в плане
-        const hasPlaces = data.daily_plan?.[0]?.blocks?.length > 0;
+        // Проверяем, есть ли активности в плане
+        const hasActivities = data.activities && data.activities.length > 0;
         
-        if (hasPlaces) {
+        if (hasActivities) {
           setItinerary(data);
           return;
         } else {
-          console.log('⚠️ Real places API returned empty itinerary');
-          throw new Error('No places found in real places itinerary');
+          console.log('⚠️ Smart itinerary API returned empty itinerary');
+          throw new Error('No activities found in smart itinerary');
         }
       } catch (apiError) {
         console.error('❌ Real places API failed:', apiError);
