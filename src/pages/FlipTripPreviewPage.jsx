@@ -28,12 +28,10 @@ export default function FlipTripPreviewPage() {
   const generatePreviewData = async () => {
     try {
       setLoading(true);
-      // Use smart itinerary for preview to get consistent titles
-      const data = await generateSmartItinerary(formData);
-      setPreview(data);
-    } catch (err) {
-      console.error('Preview generation error:', err);
-      setError('Error generating preview');
+      // БЫСТРЫЙ PREVIEW БЕЗ API - используем сразу fallback для скорости
+      console.log('🚀 Генерируем быстрый preview без API вызовов');
+      // Не вызываем API, сразу используем fallback
+      throw new Error('Using fast fallback preview');
       // Fallback data based on form parameters
       const generateFallbackContent = () => {
         const city = formData.city;
@@ -41,33 +39,39 @@ export default function FlipTripPreviewPage() {
         const interests = formData.interests;
         
         // Generate title based on interests and audience
-        let title = `${city} Adventure`;
-        if (interests.includes('Romantic')) {
-          title = `Romantic Day in ${city}`;
-        } else if (interests.includes('Foodie')) {
-          title = `${city} Foodie Experience`;
-        } else if (interests.includes('Culture & Arts')) {
-          title = `Cultural Journey in ${city}`;
-        } else if (interests.includes('Adventure')) {
-          title = `Adventure in ${city}`;
-        } else if (interests.includes('Relaxation')) {
-          title = `Relaxing Day in ${city}`;
+        let title = `Your Perfect Day in ${city} is Ready!`;
+        if (interests.includes('Romantic') || interests.includes('romantic')) {
+          title = `${city} Romance: Your Perfect Day Awaits!`;
+        } else if (interests.includes('Foodie') || interests.includes('foodie')) {
+          title = `${city} Culinary Adventure: Your Day is Planned!`;
+        } else if (interests.includes('Culture & Arts') || interests.includes('culture')) {
+          title = `${city} Cultural Journey: Your Day is Ready!`;
+        } else if (interests.includes('Adventure') || interests.includes('adventure')) {
+          title = `${city} Adventure: Your Epic Day Awaits!`;
+        } else if (interests.includes('Relaxation') || interests.includes('relaxation')) {
+          title = `${city} Relaxation: Your Perfect Day is Planned!`;
         }
         
-        // Generate subtitle based on audience and interests
-        let subtitle = `A perfect day in ${city} tailored for ${audience}. `;
-        if (interests.includes('Romantic')) {
-          subtitle += `Romantic strolls, intimate dining, and magical moments await.`;
-        } else if (interests.includes('Foodie')) {
-          subtitle += `Culinary delights, local flavors, and gastronomic adventures.`;
-        } else if (interests.includes('Culture & Arts')) {
-          subtitle += `Museums, galleries, and cultural landmarks to explore.`;
-        } else if (interests.includes('Adventure')) {
-          subtitle += `Thrilling activities and exciting experiences await.`;
-        } else if (interests.includes('Relaxation')) {
-          subtitle += `Peaceful moments, spa treatments, and serene experiences.`;
+        // Generate subtitle based on city and interests with date
+        const dateText = new Date(formData.date).toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+        
+        let subtitle = `${dateText} in ${city} — `;
+        if (interests.includes('Romantic') || interests.includes('romantic')) {
+          subtitle += `morning intimate moments, afternoon discoveries together, and evening where romance meets adventure in perfect harmony.`;
+        } else if (interests.includes('Foodie') || interests.includes('foodie')) {
+          subtitle += `dawn with local flavors, midday culinary adventures, and twilight where authentic cuisine creates unforgettable memories.`;
+        } else if (interests.includes('Culture & Arts') || interests.includes('culture')) {
+          subtitle += `morning cultural treasures, afternoon artistic discoveries, and evening where local heritage inspires your journey.`;
+        } else if (interests.includes('Adventure') || interests.includes('adventure')) {
+          subtitle += `sunrise explorations, afternoon bold discoveries, and evening where the city's spirit fuels your greatest adventures.`;
+        } else if (interests.includes('Relaxation') || interests.includes('relaxation')) {
+          subtitle += `morning peaceful moments, afternoon rejuvenating experiences, and evening where tranquility meets authentic local life.`;
         } else {
-          subtitle += `Personalized itinerary crafted just for you.`;
+          subtitle += `morning discoveries, afternoon authentic experiences, and evening where every moment becomes an unforgettable memory.`;
         }
         
         return { title, subtitle };
