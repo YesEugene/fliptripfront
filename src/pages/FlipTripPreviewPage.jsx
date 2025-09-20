@@ -4,6 +4,53 @@ import { generatePreview, generateSmartItinerary, createCheckoutSession } from '
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import './FlipTripPreviewPage.css'; // RESTORED VERSION
 
+// =============================================================================
+// 🎨 УНИВЕРСАЛЬНАЯ ГЕНЕРАЦИЯ ПОДЗАГОЛОВКОВ ДЛЯ ЛЮБОГО ГОРОДА
+// =============================================================================
+
+const generateUniversalSubtitle = (city, interests, date) => {
+  const dateText = new Date(date).toLocaleDateString('en-US', { 
+    weekday: 'long', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+
+  // Создаем список интересов для текста
+  let interestsText = '';
+  if (interests && interests.length > 0) {
+    const cleanInterests = interests.filter(interest => 
+      interest && 
+      interest !== 'budget' && 
+      interest !== 'luxury' && 
+      interest !== 'family'
+    );
+    
+    if (cleanInterests.length > 0) {
+      if (cleanInterests.length === 1) {
+        interestsText = cleanInterests[0].toLowerCase();
+      } else if (cleanInterests.length === 2) {
+        interestsText = cleanInterests.join(' and ').toLowerCase();
+      } else {
+        const last = cleanInterests.pop();
+        interestsText = cleanInterests.join(', ').toLowerCase() + ', and ' + last.toLowerCase();
+      }
+    }
+  }
+
+  // Универсальный шаблон который работает для любого города и интересов
+  let subtitle = `${dateText} in ${city} — `;
+  
+  if (interestsText) {
+    subtitle += `discover the magic through ${interestsText}. `;
+  } else {
+    subtitle += `discover the city's magic. `;
+  }
+  
+  subtitle += `Experience authentic moments, create lasting memories, and let the city's unique charm captivate your heart. An extraordinary adventure awaits your arrival.`;
+
+  return subtitle;
+};
+
 export default function FlipTripPreviewPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -353,7 +400,7 @@ export default function FlipTripPreviewPage() {
       </div>
 
       <div className="fliptrip-preview-content">
-        <h1 style={titleStyle}>Your unique day plan is ready!</h1>
+        <h1 style={titleStyle}>Your day plan in {formData.city} is ready!</h1>
 
         {/* Preview Card */}
         <div style={previewCardStyle}>
@@ -384,7 +431,7 @@ export default function FlipTripPreviewPage() {
             </div>
           </div>
           <div style={previewDescriptionStyle}>
-            {preview?.meta?.creative_subtitle || `Morning with aromatic espresso in the old quarter, light rhythm of cycling along the sea and evening with a glass of wine — a day where ${formData.city} reveals itself from its cozy and lively side.`}
+            {preview?.meta?.creative_subtitle || generateUniversalSubtitle(formData.city, formData.interests, formData.date)}
           </div>
         </div>
 
