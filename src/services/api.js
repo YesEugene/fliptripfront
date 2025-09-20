@@ -178,16 +178,6 @@ export const createCheckoutSession = async (formData) => {
 };
 
 // Send email with itinerary
-export const sendEmail = async (emailData) => {
-  try {
-    console.log('📧 Sending email with:', emailData);
-    const response = await api.post('/api/send-email', emailData);
-    console.log('✅ Email sent successfully:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('Email sending error:', error);
-    throw error;
-  }
 };
 
 // Get examples list
