@@ -144,7 +144,11 @@ export default function ItineraryPage() {
                 items: [{
                   title: activity.name || activity.title,
                   why: activity.description,
-                  photos: activity.photos || [],
+                  photos: activity.photos ? activity.photos.map(photoUrl => ({
+                    url: photoUrl,
+                    thumbnail: photoUrl,
+                    source: 'google_places'
+                  })) : [],
                   address: activity.location,
                   approx_cost: activity.priceRange || `€${activity.price}`,
                   duration: `${activity.duration} min`,
