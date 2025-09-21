@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail } from '../services/api';
+import html2pdf from 'html2pdf.js';
 import PhotoGallery from '../components/PhotoGallery';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import SkateboardingGif from '../assets/Skateboarding.gif';
@@ -314,8 +315,60 @@ export default function ItineraryPage() {
   };
 
   const handleDownloadPDF = async () => {
-    // Временно отключаем PDF генерацию
-    alert('PDF download will be available soon! For now, you can take a screenshot or print this page.');
+    try {
+      // Находим элемент для конвертации в PDF
+      const element = document.querySelector('.itinerary-container');
+      if (!element) {
+        alert('Unable to find content for PDF generation');
+        return;
+      }
+
+      // Настройки PDF
+      const options = {
+        margin: 0.5,
+        filename: `FlipTrip-${itinerary?.city || 'Itinerary'}-${new Date().toISOString().slice(0, 10)}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff'
+        },
+        jsPDF: { 
+          unit: 'in', 
+          format: 'letter', 
+          orientation: 'portrait' 
+        }
+      };
+
+      // Показываем индикатор загрузки
+      const originalButtonText = 'Download PDF';
+      const button = document.querySelector('.download-button');
+      if (button) {
+        button.textContent = '📄 Generating PDF...';
+        button.disabled = true;
+      }
+
+      // Генерируем и скачиваем PDF
+      await html2pdf().set(options).from(element).save();
+
+      // Восстанавливаем кнопку
+      if (button) {
+        button.textContent = '📱 Download PDF';
+        button.disabled = false;
+      }
+
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      alert('Error generating PDF. Please try again.');
+      
+      // Восстанавливаем кнопку при ошибке
+      const button = document.querySelector('.download-button');
+      if (button) {
+        button.textContent = '📱 Download PDF';
+        button.disabled = false;
+      }
+    }
   };
 
 
