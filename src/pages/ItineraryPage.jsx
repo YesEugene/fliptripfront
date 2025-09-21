@@ -577,11 +577,11 @@ export default function ItineraryPage() {
                 <div className="weather-icon">🌤️</div>
                 <div className="weather-temp">{itinerary.weather.temperature}°C</div>
               </div>
-              <div className="weather-description" style={{ fontSize: '10px', color: '#666' }}>
+              <div className="weather-description">
                 {itinerary.weather.forecast} {itinerary.weather.clothing}
               </div>
               {itinerary.weather.tips && (
-                <div className="weather-tips" style={{ fontSize: '10px', color: '#666' }}>
+                <div className="weather-tips">
                   💡 {itinerary.weather.tips}
                 </div>
               )}
