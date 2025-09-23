@@ -12,7 +12,7 @@ import './HomePage.css';
 // Top 20 most popular travel destinations
 const TOP_CITIES = [
   'Barcelona', 'Paris', 'Amsterdam', 'Berlin', 'London', 
-  'Rome', 'Madrid', 'Lisbon', 'New York', 'Tokyo',
+  'Rome', 'Madrid', 'Lisbon', 'Porto', 'New York', 'Tokyo',
   'Prague', 'Vienna', 'Venice', 'Florence', 'Moscow',
   'Istanbul', 'Dubai', 'Sydney', 'Singapore', 'Copenhagen'
 ];
