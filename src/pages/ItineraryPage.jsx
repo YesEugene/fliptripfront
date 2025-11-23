@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail, createCheckoutSession } from '../services/api';
+import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail, createCheckoutSession, saveItinerary, getItinerary, completeItinerary } from '../services/api';
 import html2pdf from 'html2pdf.js';
 import PhotoGallery from '../components/PhotoGallery';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
@@ -114,27 +114,88 @@ export default function ItineraryPage() {
 
   // Check if full plan should be shown (after payment)
   const showFullPlan = searchParams.get('full') === 'true';
+  // Get itinerary ID from URL if exists
+  const itineraryId = searchParams.get('id');
 
   useEffect(() => {
     if (isExample && exampleItinerary) {
       // Use example data directly
       setItinerary(exampleItinerary);
       setLoading(false);
+    } else if (itineraryId) {
+      // Load existing itinerary by ID
+      loadItineraryById(itineraryId);
     } else {
       // Generate new itinerary
       generateItineraryData();
     }
-  }, [isExample, exampleItinerary]);
+  }, [isExample, exampleItinerary, itineraryId]);
+
+  const loadItineraryById = async (id) => {
+    try {
+      setLoading(true);
+      console.log(`📖 Loading itinerary ${id}...`);
+      
+      const response = await getItinerary(id);
+      if (response.success && response.itinerary) {
+        const savedItinerary = response.itinerary;
+        
+        // Convert to display format
+        const convertedData = {
+          ...savedItinerary,
+          daily_plan: [{
+            date: savedItinerary.date,
+            blocks: savedItinerary.activities.map(activity => ({
+              time: activity.time,
+              items: [{
+                title: activity.name || activity.title,
+                why: activity.description,
+                photos: activity.photos ? activity.photos.map(photoUrl => ({
+                  url: photoUrl,
+                  thumbnail: photoUrl,
+                  source: 'google_places'
+                })) : [],
+                address: activity.location,
+                approx_cost: activity.priceRange || `€${activity.price}`,
+                duration: `${activity.duration} min`,
+                tips: activity.recommendations,
+                rating: activity.rating
+              }]
+            }))
+          }]
+        };
+        
+        console.log('✅ Loaded itinerary from storage:', convertedData);
+        setItinerary(convertedData);
+        
+        // Update URL to include ID if not present
+        if (!itineraryId) {
+          const newParams = new URLSearchParams(searchParams);
+          newParams.set('id', id);
+          navigate(`/itinerary?${newParams.toString()}`, { replace: true });
+        }
+      } else {
+        throw new Error('Itinerary not found');
+      }
+    } catch (error) {
+      console.error('❌ Failed to load itinerary:', error);
+      setError('Failed to load itinerary. Generating new one...');
+      // Fallback to generating new itinerary
+      generateItineraryData();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const generateItineraryData = async () => {
     try {
       setLoading(true);
-      console.log('🌍 Starting REAL PLACES itinerary generation...');
+      console.log('🌍 Starting REAL PLACES itinerary generation (preview mode)...');
       
       try {
-        // ОСНОВНАЯ система с реальными местами
-        const data = await generateSmartItinerary(formData);
-        console.log('✅ Received smart itinerary data:', data);
+        // Генерируем только первые 2 локации для preview
+        const data = await generateSmartItinerary(formData, true); // previewOnly=true
+        console.log('✅ Received smart itinerary data (preview):', data);
         
         // Проверяем, есть ли активности в плане
         const hasActivities = data.activities && data.activities.length > 0;
@@ -166,6 +227,22 @@ export default function ItineraryPage() {
           };
           console.log('✅ Converted data for display:', convertedData);
           setItinerary(convertedData);
+          
+          // Save itinerary to storage
+          try {
+            const saveResponse = await saveItinerary(data);
+            if (saveResponse.success) {
+              console.log(`✅ Saved itinerary with ID: ${saveResponse.itineraryId}`);
+              // Update URL to include ID
+              const newParams = new URLSearchParams(searchParams);
+              newParams.set('id', saveResponse.itineraryId);
+              navigate(`/itinerary?${newParams.toString()}`, { replace: true });
+            }
+          } catch (saveError) {
+            console.error('⚠️ Failed to save itinerary:', saveError);
+            // Continue anyway, plan is still displayed
+          }
+          
           return;
         } else {
           console.log('⚠️ Smart itinerary API returned empty itinerary');
@@ -386,12 +463,18 @@ export default function ItineraryPage() {
       return;
     }
     
+    if (!itineraryId) {
+      setError('Itinerary ID is missing. Please refresh the page and try again.');
+      return;
+    }
+    
     try {
       setLoading(true);
       setError('');
       const paymentData = {
         ...formData,
-        email: email
+        email: email,
+        itineraryId: itineraryId // Pass itinerary ID to payment
       };
       const response = await createCheckoutSession(paymentData);
       // Redirect to Stripe Checkout

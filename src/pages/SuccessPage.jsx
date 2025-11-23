@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
-import { sendEmail } from '../services/api';
+import { sendEmail, completeItinerary } from '../services/api';
 
 export default function SuccessPage() {
   const navigate = useNavigate();
@@ -17,15 +17,45 @@ export default function SuccessPage() {
     date: searchParams.get('date') || new Date().toISOString().slice(0, 10),
     budget: searchParams.get('budget') || '800',
     email: searchParams.get('email') || '',
-    session_id: searchParams.get('session_id') || ''
+    session_id: searchParams.get('session_id') || '',
+    itineraryId: searchParams.get('itineraryId') || ''
   };
 
-  // Отправляем email со ссылкой на страницу итинерария
+  // Генерируем полный план и отправляем email
   useEffect(() => {
-    if (formData.email && !emailSent) {
+    if (formData.itineraryId && !emailSent) {
+      completeItineraryAndSendEmail();
+    } else if (formData.email && !emailSent) {
       sendSimpleEmail();
     }
-  }, [formData.email, emailSent]);
+  }, [formData.itineraryId, formData.email, emailSent]);
+
+  const completeItineraryAndSendEmail = async () => {
+    try {
+      console.log('🚀 Completing itinerary and sending email...');
+      
+      // Generate full itinerary
+      if (formData.itineraryId) {
+        const completeResponse = await completeItinerary(formData.itineraryId);
+        console.log('✅ Full itinerary generated:', completeResponse);
+      }
+      
+      // Send email with itinerary link
+      if (formData.email) {
+        await sendEmail({
+          email: formData.email,
+          formData: formData,
+          itineraryId: formData.itineraryId
+        });
+        console.log('✅ Email sent successfully!');
+        setEmailSent(true);
+      }
+    } catch (error) {
+      console.error('❌ Error completing itinerary or sending email:', error);
+      // Still mark as sent to avoid retries
+      setEmailSent(true);
+    }
+  };
 
   const sendSimpleEmail = async () => {
     try {
@@ -83,9 +113,15 @@ export default function SuccessPage() {
   };
 
   const handleOpenPlan = () => {
-    const queryParams = new URLSearchParams(formData);
-    queryParams.set('full', 'true'); // Add full=true to show complete plan
-    navigate(`/itinerary?${queryParams.toString()}`);
+    if (formData.itineraryId) {
+      // Navigate to itinerary with ID and full=true
+      navigate(`/itinerary?id=${formData.itineraryId}&full=true`);
+    } else {
+      // Fallback to old method
+      const queryParams = new URLSearchParams(formData);
+      queryParams.set('full', 'true');
+      navigate(`/itinerary?${queryParams.toString()}`);
+    }
   };
 
   const containerStyle = {

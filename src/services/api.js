@@ -58,9 +58,12 @@ export const generateItinerary = async (formData) => {
 };
 
 // Generate smart itinerary with budget optimization
-export const generateSmartItinerary = async (formData) => {
+export const generateSmartItinerary = async (formData, previewOnly = false) => {
   try {
-    const response = await api.post('/api/smart-itinerary', formData);
+    const response = await api.post('/api/smart-itinerary', {
+      ...formData,
+      previewOnly
+    });
     return response.data;
   } catch (error) {
     console.error('Smart itinerary generation error:', error);
@@ -199,13 +202,52 @@ export const getExample = async (exampleId) => {
   }
 };
 
+// Save itinerary
+export const saveItinerary = async (itinerary, itineraryId = null) => {
+  try {
+    const response = await api.post('/api/save-itinerary', {
+      itinerary,
+      itineraryId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Save itinerary error:', error);
+    throw error;
+  }
+};
+
+// Get itinerary by ID
+export const getItinerary = async (itineraryId) => {
+  try {
+    const response = await api.get(`/api/get-itinerary?id=${itineraryId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Get itinerary error:', error);
+    throw error;
+  }
+};
+
+// Complete itinerary (generate full plan after payment)
+export const completeItinerary = async (itineraryId) => {
+  try {
+    const response = await api.post('/api/complete-itinerary', {
+      itineraryId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Complete itinerary error:', error);
+    throw error;
+  }
+};
+
 // Send email with itinerary link
-export const sendEmail = async ({ email, formData }) => {
+export const sendEmail = async ({ email, formData, itineraryId }) => {
   try {
     console.log('📧 Sending email with itinerary link to:', email);
     const response = await api.post('/api/send-email', {
       email,
-      formData
+      formData,
+      itineraryId
     });
     return response.data;
   } catch (error) {
