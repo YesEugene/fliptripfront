@@ -84,6 +84,7 @@ export default function SuccessPage() {
 
   const handleOpenPlan = () => {
     const queryParams = new URLSearchParams(formData);
+    queryParams.set('full', 'true'); // Add full=true to show complete plan
     navigate(`/itinerary?${queryParams.toString()}`);
   };
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail } from '../services/api';
+import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail, createCheckoutSession } from '../services/api';
 import html2pdf from 'html2pdf.js';
 import PhotoGallery from '../components/PhotoGallery';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
@@ -14,6 +14,7 @@ export default function ItineraryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [itinerary, setItinerary] = useState(null);
+  const [email, setEmail] = useState('');
 
   // Генерация fallback заголовков согласно промптам
   const generateFallbackTitle = (formData) => {
@@ -110,6 +111,9 @@ export default function ItineraryPage() {
     date: searchParams.get('date') || new Date().toISOString().slice(0, 10),
     budget: searchParams.get('budget') || '500'
   };
+
+  // Check if full plan should be shown (after payment)
+  const showFullPlan = searchParams.get('full') === 'true';
 
   useEffect(() => {
     if (isExample && exampleItinerary) {
@@ -376,6 +380,29 @@ export default function ItineraryPage() {
     navigate('/');
   };
 
+  const handlePayment = async () => {
+    if (!email || !email.includes('@')) {
+      setError('Please enter a valid email address');
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      setError('');
+      const paymentData = {
+        ...formData,
+        email: email
+      };
+      const response = await createCheckoutSession(paymentData);
+      // Redirect to Stripe Checkout
+      window.location.href = response.url;
+    } catch (err) {
+      console.error('Payment error:', err);
+      setError('Ошибка при создании платежа. Пожалуйста, попробуйте еще раз.');
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -603,57 +630,156 @@ export default function ItineraryPage() {
             📅 Day Plan
           </h2>
           
-          {itinerary?.daily_plan?.[0]?.blocks?.map((block, blockIndex) => (
-            <div key={blockIndex} style={blockStyle}>
-              <div className="time-block-enhanced">{block.time}</div>
-              {block.items?.map((item, itemIndex) => (
-                <div key={itemIndex} className="item-enhanced">
-                  <h3 className="item-title">
-                    <a 
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title + ' ' + item.address)}`} 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      className="enhanced-link"
-                    >
-                      {item.title}
-                    </a>
-                  </h3>
-                  {item.why && (
-                    <p className="item-description">{item.why}</p>
-                  )}
-                  {item.photos && item.photos.length > 0 && (
-                    <div className="photo-gallery-enhanced">
-                      <PhotoGallery photos={item.photos} placeName={item.title} />
-                    </div>
-                  )}
-                  <div className="item-details">
-                    {item.address && (
-                      <div style={{ marginBottom: '10px' }}>
-                        📍 <a 
-                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.address)}`} 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          className="enhanced-link"
-                        >
-                          {item.address}
-                        </a>
+          {(() => {
+            const blocks = itinerary?.daily_plan?.[0]?.blocks || [];
+            const displayedBlocks = showFullPlan ? blocks : blocks.slice(0, 2);
+            const hasMoreBlocks = blocks.length > 2 && !showFullPlan;
+            
+            return (
+              <>
+                {displayedBlocks.map((block, blockIndex) => (
+                  <div key={blockIndex} style={blockStyle}>
+                    <div className="time-block-enhanced">{block.time}</div>
+                    {block.items?.map((item, itemIndex) => (
+                      <div key={itemIndex} className="item-enhanced">
+                        <h3 className="item-title">
+                          <a 
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title + ' ' + item.address)}`} 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            className="enhanced-link"
+                          >
+                            {item.title}
+                          </a>
+                        </h3>
+                        {item.why && (
+                          <p className="item-description">{item.why}</p>
+                        )}
+                        {item.photos && item.photos.length > 0 && (
+                          <div className="photo-gallery-enhanced">
+                            <PhotoGallery photos={item.photos} placeName={item.title} />
+                          </div>
+                        )}
+                        <div className="item-details">
+                          {item.address && (
+                            <div style={{ marginBottom: '10px' }}>
+                              📍 <a 
+                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.address)}`} 
+                                target="_blank" 
+                                rel="noreferrer" 
+                                className="enhanced-link"
+                              >
+                                {item.address}
+                              </a>
+                            </div>
+                          )}
+                          {item.approx_cost && <div style={{ marginBottom: '10px' }}>💰 {item.approx_cost}</div>}
+                          {item.duration && <div style={{ marginBottom: '10px' }}>⏱️ {item.duration}</div>}
+                          {item.tips && <div>💡 {item.tips}</div>}
+                          {item.url && (
+                            <div style={{ marginTop: '20px' }}>
+                              🔗 <a href={item.url} target="_blank" rel="noreferrer" className="enhanced-link">
+                                Learn More
+                              </a>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    )}
-                    {item.approx_cost && <div style={{ marginBottom: '10px' }}>💰 {item.approx_cost}</div>}
-                    {item.duration && <div style={{ marginBottom: '10px' }}>⏱️ {item.duration}</div>}
-                    {item.tips && <div>💡 {item.tips}</div>}
-                    {item.url && (
-                      <div style={{ marginTop: '20px' }}>
-                        🔗 <a href={item.url} target="_blank" rel="noreferrer" className="enhanced-link">
-                          Learn More
-                        </a>
-                      </div>
-                    )}
+                    ))}
                   </div>
-                </div>
-              ))}
-            </div>
-          ))}
+                ))}
+                
+                {/* Payment Button - Show if not full plan and there are more blocks */}
+                {hasMoreBlocks && (
+                  <div style={{
+                    marginTop: '32px',
+                    padding: '32px',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '16px',
+                    textAlign: 'center',
+                    border: '2px dashed #e5e7eb'
+                  }}>
+                    <div style={{
+                      fontSize: '20px',
+                      fontWeight: 'bold',
+                      color: '#1f2937',
+                      marginBottom: '12px'
+                    }}>
+                      🔒 Unlock Full Itinerary
+                    </div>
+                    <div style={{
+                      fontSize: '16px',
+                      color: '#6b7280',
+                      marginBottom: '24px'
+                    }}>
+                      Pay $16 to see the complete day plan with all {blocks.length} locations
+                    </div>
+                    
+                    {/* Email Input */}
+                    <div style={{ marginBottom: '20px', textAlign: 'left' }}>
+                      <label style={{ 
+                        display: 'block', 
+                        marginBottom: '8px', 
+                        fontWeight: 'bold', 
+                        color: '#374151',
+                        fontSize: '14px'
+                      }}>
+                        Email (to receive your full itinerary)
+                      </label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="your@email.com"
+                        style={{
+                          width: '100%',
+                          padding: '12px 16px',
+                          border: `2px solid ${error && !email ? '#ef4444' : '#e5e7eb'}`,
+                          borderRadius: '12px',
+                          fontSize: '16px',
+                          color: '#374151'
+                        }}
+                      />
+                      {error && !email && (
+                        <p style={{ color: '#ef4444', fontSize: '14px', marginTop: '8px' }}>{error}</p>
+                      )}
+                    </div>
+                    
+                    <button
+                      onClick={handlePayment}
+                      disabled={loading}
+                      style={{
+                        width: '100%',
+                        maxWidth: '400px',
+                        padding: '16px 32px',
+                        backgroundColor: '#3E85FC',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '12px',
+                        fontSize: '18px',
+                        fontWeight: 'bold',
+                        cursor: loading ? 'not-allowed' : 'pointer',
+                        transition: 'background-color 0.2s ease',
+                        opacity: loading ? 0.7 : 1
+                      }}
+                      onMouseOver={(e) => {
+                        if (!loading) {
+                          e.target.style.backgroundColor = '#2563eb';
+                        }
+                      }}
+                      onMouseOut={(e) => {
+                        if (!loading) {
+                          e.target.style.backgroundColor = '#3E85FC';
+                        }
+                      }}
+                    >
+                      {loading ? 'Processing...' : '💳 Pay $16 to Unlock'}
+                    </button>
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
 
         {/* Footer */}
