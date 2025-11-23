@@ -18,9 +18,9 @@ const TOP_CITIES = [
 ];
 
 const AUDIENCES = [
-  { value: 'him', label: 'Him' },
-  { value: 'her', label: 'Her' },
-  { value: 'couples', label: 'Couples' },
+  { value: 'solo', label: 'Solo' },
+  { value: 'couple', label: 'Couple' },
+  { value: 'family', label: 'Family' },
   { value: 'kids', label: 'Kids' }
 ];
 
@@ -82,7 +82,7 @@ const POPULAR_TRIPS = [
     image: ParisImage,
     interests: "Spa, Relaxation",
     city: "Paris",
-    audience: "her",
+    audience: "solo",
     interestsList: ["relaxation", "spa"],
     budget: "500",
     exampleId: "paris-spa-relaxation"
@@ -93,7 +93,7 @@ const POPULAR_TRIPS = [
     image: BarcelonaImage,
     interests: "Cycling, Architecture",
     city: "Barcelona",
-    audience: "him",
+    audience: "solo",
     interestsList: ["sports", "art"],
     budget: "300",
     exampleId: "barcelona-cycling-architecture"
@@ -104,7 +104,7 @@ const POPULAR_TRIPS = [
     image: RomeImage,
     interests: "Day of Emma Watson",
     city: "Rome",
-    audience: "her",
+    audience: "solo",
     interestsList: ["culture", "art"],
     budget: "400",
     exampleId: "rome-family-city-gems"
@@ -115,7 +115,7 @@ const POPULAR_TRIPS = [
     image: LisbonImage,
     interests: "Romantic, Culture",
     city: "Lisbon",
-    audience: "couples",
+    audience: "couple",
     interestsList: ["culture", "food"],
     budget: "350",
     exampleId: "lisbon-romantic-culture"
@@ -149,7 +149,7 @@ export default function HomePage() {
     setFormData(prev => ({ 
       ...prev, 
       audience: newAudience,
-      // Clear interests when switching to/from kids
+      // Clear interests when switching audience type
       interests: []
     }));
   };
@@ -506,7 +506,7 @@ export default function HomePage() {
                 overflowY: 'auto',
                 paddingRight: '8px'
               }}>
-                {(formData.audience === 'kids' ? KIDS_INTERESTS : INTERESTS).map((interest) => (
+                {(formData.audience === 'kids' || formData.audience === 'family' ? KIDS_INTERESTS : INTERESTS).map((interest) => (
                   <button
                     key={interest.value}
                     type="button"
