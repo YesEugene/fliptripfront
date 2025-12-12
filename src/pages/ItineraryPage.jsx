@@ -122,14 +122,14 @@ export default function ItineraryPage() {
     }
   }, [isExample, exampleItinerary]);
 
-  const generateItineraryData = async () => {
+  const generateItineraryData = async (previewOnly = false) => {
     try {
       setLoading(true);
-      console.log('🌍 Starting REAL PLACES itinerary generation...');
+      console.log(`🌍 Starting REAL PLACES itinerary generation (previewOnly: ${previewOnly})...`);
       
       try {
         // ОСНОВНАЯ система с реальными местами
-        const data = await generateSmartItinerary(formData);
+        const data = await generateSmartItinerary(formData, previewOnly);
         console.log('✅ Received smart itinerary data:', data);
         
         // Проверяем, есть ли активности в плане
