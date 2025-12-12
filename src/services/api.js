@@ -60,10 +60,15 @@ export const generateItinerary = async (formData) => {
 // Generate smart itinerary with budget optimization
 export const generateSmartItinerary = async (formData, previewOnly = false) => {
   try {
-    const response = await api.post('/api/smart-itinerary', {
+    const requestData = {
       ...formData,
-      previewOnly
-    });
+      previewOnly: previewOnly === true || previewOnly === 'true' // Явно преобразуем в boolean
+    };
+    console.log('📤 API CALL: generateSmartItinerary with previewOnly:', requestData.previewOnly);
+    console.log('📤 Full request data:', requestData);
+    const response = await api.post('/api/smart-itinerary', requestData);
+    console.log('📥 API RESPONSE: activities count:', response.data?.activities?.length);
+    console.log('📥 API RESPONSE: previewOnly flag:', response.data?.previewOnly);
     return response.data;
   } catch (error) {
     console.error('Smart itinerary generation error:', error);

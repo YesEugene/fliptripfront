@@ -248,8 +248,11 @@ export default function ItineraryPage() {
       
       try {
         // ОСНОВНАЯ система с реальными местами
+        console.log('📞 CALLING generateSmartItinerary with previewOnly:', previewOnly, 'type:', typeof previewOnly);
         const data = await generateSmartItinerary(formData, previewOnly);
         console.log('✅ Received smart itinerary data:', data);
+        console.log('📊 Data previewOnly flag:', data.previewOnly);
+        console.log('📊 Data activities count:', data.activities?.length);
         
         // Проверяем, есть ли активности в плане
         const hasActivities = data.activities && data.activities.length > 0;
