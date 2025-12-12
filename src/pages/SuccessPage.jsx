@@ -17,7 +17,8 @@ export default function SuccessPage() {
     date: searchParams.get('date') || new Date().toISOString().slice(0, 10),
     budget: searchParams.get('budget') || '800',
     email: searchParams.get('email') || '',
-    session_id: searchParams.get('session_id') || ''
+    session_id: searchParams.get('session_id') || '',
+    itineraryId: searchParams.get('id') || ''
   };
 
   useEffect(() => {
@@ -65,7 +66,20 @@ export default function SuccessPage() {
   };
 
   const handleOpenPlan = () => {
-    const queryParams = new URLSearchParams(formData);
+    const queryParams = new URLSearchParams({
+      city: formData.city,
+      audience: formData.audience,
+      interests: Array.isArray(formData.interests) ? formData.interests.join(',') : formData.interests,
+      date: formData.date,
+      budget: formData.budget
+    });
+    
+    // Add itineraryId and full=true if we have an ID
+    if (formData.itineraryId) {
+      queryParams.set('id', formData.itineraryId);
+      queryParams.set('full', 'true');
+    }
+    
     navigate(`/itinerary?${queryParams.toString()}`);
   };
 
