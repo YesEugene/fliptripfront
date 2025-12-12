@@ -179,9 +179,12 @@ export default function ItineraryPage() {
         setItinerary(convertedData);
         
         // If full plan requested and current plan is preview, generate full plan
-        if (showFullPlan && savedItinerary.previewOnly) {
+        if ((showFullPlan || urlShowFullPlan) && savedItinerary.previewOnly) {
           console.log('🔄 Full plan requested, generating complete itinerary...');
+          console.log('📊 showFullPlan:', showFullPlan, 'urlShowFullPlan:', urlShowFullPlan, 'previewOnly:', savedItinerary.previewOnly);
           await generateFullItinerary(id);
+        } else {
+          console.log('ℹ️ Not generating full plan:', { showFullPlan, urlShowFullPlan, previewOnly: savedItinerary.previewOnly });
         }
       } else {
         throw new Error('Itinerary not found');
