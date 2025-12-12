@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF } from '../services/api';
+import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail } from '../services/api';
+import html2pdf from 'html2pdf.js';
 import PhotoGallery from '../components/PhotoGallery';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
+import SkateboardingGif from '../assets/Skateboarding.gif';
 import './ItineraryPage.css';
 
 export default function ItineraryPage() {
@@ -127,18 +129,43 @@ export default function ItineraryPage() {
       
       try {
         // ОСНОВНАЯ система с реальными местами
-        const data = await generateRealPlacesItinerary(formData);
-        console.log('✅ Received real places itinerary data:', data);
+        const data = await generateSmartItinerary(formData);
+        console.log('✅ Received smart itinerary data:', data);
         
-        // Проверяем, есть ли места в плане
-        const hasPlaces = data.daily_plan?.[0]?.blocks?.length > 0;
+        // Проверяем, есть ли активности в плане
+        const hasActivities = data.activities && data.activities.length > 0;
         
-        if (hasPlaces) {
-          setItinerary(data);
+        if (hasActivities) {
+          // Конвертируем данные в нужный формат для отображения
+          const convertedData = {
+            ...data,
+            daily_plan: [{
+              date: data.date,
+              blocks: data.activities.map(activity => ({
+                time: activity.time,
+                items: [{
+                  title: activity.name || activity.title,
+                  why: activity.description,
+                  photos: activity.photos ? activity.photos.map(photoUrl => ({
+                    url: photoUrl,
+                    thumbnail: photoUrl,
+                    source: 'google_places'
+                  })) : [],
+                  address: activity.location,
+                  approx_cost: activity.priceRange || `€${activity.price}`,
+                  duration: `${activity.duration} min`,
+                  tips: activity.recommendations,
+                  rating: activity.rating
+                }]
+              }))
+            }]
+          };
+          console.log('✅ Converted data for display:', convertedData);
+          setItinerary(convertedData);
           return;
         } else {
-          console.log('⚠️ Real places API returned empty itinerary');
-          throw new Error('No places found in real places itinerary');
+          console.log('⚠️ Smart itinerary API returned empty itinerary');
+          throw new Error('No activities found in smart itinerary');
         }
       } catch (apiError) {
         console.error('❌ Real places API failed:', apiError);
@@ -289,34 +316,58 @@ export default function ItineraryPage() {
 
   const handleDownloadPDF = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/generate-pdf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          itinerary,
-          formData
-        }),
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `fliptrip-itinerary-${formData.city}-${formData.date}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      } else {
-        console.error('PDF generation failed');
-        alert('Failed to generate PDF. Please try again.');
+      // Находим элемент для конвертации в PDF
+      const element = document.querySelector('.itinerary-container');
+      if (!element) {
+        alert('Unable to find content for PDF generation');
+        return;
       }
+
+      // Настройки PDF
+      const options = {
+        margin: 0.5,
+        filename: `FlipTrip-${itinerary?.city || 'Itinerary'}-${new Date().toISOString().slice(0, 10)}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff'
+        },
+        jsPDF: { 
+          unit: 'in', 
+          format: 'letter', 
+          orientation: 'portrait' 
+        }
+      };
+
+      // Показываем индикатор загрузки
+      const originalButtonText = 'Download PDF';
+      const button = document.querySelector('.download-button');
+      if (button) {
+        button.textContent = '📄 Generating PDF...';
+        button.disabled = true;
+      }
+
+      // Генерируем и скачиваем PDF
+      await html2pdf().set(options).from(element).save();
+
+      // Восстанавливаем кнопку
+      if (button) {
+        button.textContent = '📱 Download PDF';
+        button.disabled = false;
+      }
+
     } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
+      console.error('PDF generation error:', error);
+      alert('Error generating PDF. Please try again.');
+      
+      // Восстанавливаем кнопку при ошибке
+      const button = document.querySelector('.download-button');
+      if (button) {
+        button.textContent = '📱 Download PDF';
+        button.disabled = false;
+      }
     }
   };
 
@@ -329,7 +380,16 @@ export default function ItineraryPage() {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+          <img 
+            src={SkateboardingGif} 
+            alt="Loading..." 
+            style={{ 
+              width: '60px', 
+              height: '60px', 
+              marginBottom: '16px',
+              borderRadius: '8px'
+            }} 
+          />
           <div style={{ fontSize: '20px', color: '#374151' }}>Curating your perfect day experience...</div>
         </div>
       </div>
@@ -517,11 +577,11 @@ export default function ItineraryPage() {
                 <div className="weather-icon">🌤️</div>
                 <div className="weather-temp">{itinerary.weather.temperature}°C</div>
               </div>
-              <div className="weather-description" style={{ fontSize: '10px', color: '#666' }}>
+              <div className="weather-description">
                 {itinerary.weather.forecast} {itinerary.weather.clothing}
               </div>
               {itinerary.weather.tips && (
-                <div className="weather-tips" style={{ fontSize: '10px', color: '#666' }}>
+                <div className="weather-tips">
                   💡 {itinerary.weather.tips}
                 </div>
               )}
