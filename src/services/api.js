@@ -58,12 +58,48 @@ export const generateItinerary = async (formData) => {
 };
 
 // Generate smart itinerary with budget optimization
-export const generateSmartItinerary = async (formData) => {
+export const generateSmartItinerary = async (formData, previewOnly = false) => {
   try {
-    const response = await api.post('/api/smart-itinerary', formData);
+    const response = await api.post('/api/smart-itinerary', {
+      ...formData,
+      previewOnly
+    });
     return response.data;
   } catch (error) {
     console.error('Smart itinerary generation error:', error);
+    throw error;
+  }
+};
+
+// Save itinerary to Redis
+export const saveItinerary = async (itinerary, itineraryId = null) => {
+  try {
+    const response = await api.post('/api/save-itinerary', { itinerary, itineraryId });
+    return response.data;
+  } catch (error) {
+    console.error('Save itinerary error:', error);
+    throw error;
+  }
+};
+
+// Get itinerary from Redis by ID
+export const getItinerary = async (id) => {
+  try {
+    const response = await api.get(`/api/get-itinerary?id=${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Get itinerary error:', error);
+    throw error;
+  }
+};
+
+// Complete itinerary (generate full plan from preview)
+export const completeItinerary = async (itineraryId, formData) => {
+  try {
+    const response = await api.post('/api/complete-itinerary', { itineraryId, formData });
+    return response.data;
+  } catch (error) {
+    console.error('Complete itinerary error:', error);
     throw error;
   }
 };
