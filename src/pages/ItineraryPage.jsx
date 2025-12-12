@@ -4,7 +4,6 @@ import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, ge
 import html2pdf from 'html2pdf.js';
 import PhotoGallery from '../components/PhotoGallery';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
-import SkateboardingGif from '../assets/Skateboarding.gif';
 import './ItineraryPage.css';
 
 export default function ItineraryPage() {
@@ -526,16 +525,21 @@ export default function ItineraryPage() {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
-          <img 
-            src={SkateboardingGif} 
-            alt="Loading..." 
-            style={{ 
-              width: '60px', 
-              height: '60px', 
-              marginBottom: '16px',
-              borderRadius: '8px'
-            }} 
-          />
+          <div style={{
+            width: '60px',
+            height: '60px',
+            margin: '0 auto 16px',
+            border: '4px solid #f3f4f6',
+            borderTop: '4px solid #3E85FC',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }}></div>
+          <style>{`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
           <div style={{ fontSize: '20px', color: '#374151' }}>Curating your perfect day experience...</div>
         </div>
       </div>
