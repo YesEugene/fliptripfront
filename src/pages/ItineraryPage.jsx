@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail, saveItinerary, getItinerary, completeItinerary, createCheckoutSession } from '../services/api';
+import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail, saveItinerary, getItinerary, completeItinerary } from '../services/api';
 import html2pdf from 'html2pdf.js';
 import PhotoGallery from '../components/PhotoGallery';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
+import SkateboardingGif from '../assets/Skateboarding.gif';
 import './ItineraryPage.css';
 
 export default function ItineraryPage() {
@@ -15,7 +16,6 @@ export default function ItineraryPage() {
   const [itinerary, setItinerary] = useState(null);
   const [itineraryId, setItineraryId] = useState(null);
   const [showFullPlan, setShowFullPlan] = useState(false);
-  const [email, setEmail] = useState('');
 
   // Генерация fallback заголовков согласно промптам
   const generateFallbackTitle = (formData) => {
@@ -113,7 +113,7 @@ export default function ItineraryPage() {
     budget: searchParams.get('budget') || '500'
   };
 
-  // Get itineraryId and showFullPlan from URL directly (not from state)
+  // Get itineraryId and showFullPlan from URL directly
   const urlItineraryId = searchParams.get('id');
   const urlShowFullPlan = searchParams.get('full') === 'true';
 
@@ -149,6 +149,7 @@ export default function ItineraryPage() {
       if (response.success && response.itinerary) {
         const savedItinerary = response.itinerary;
         console.log('✅ Loaded itinerary:', savedItinerary);
+        console.log('📊 PreviewOnly:', savedItinerary.previewOnly, 'ShowFullPlan:', showFullPlan);
         
         // Convert to display format
         const convertedData = {
@@ -204,6 +205,7 @@ export default function ItineraryPage() {
       
       if (response.success && response.itinerary) {
         const fullItinerary = response.itinerary;
+        console.log('✅ Full itinerary generated:', fullItinerary);
         
         // Convert to display format
         const convertedData = {
@@ -251,8 +253,6 @@ export default function ItineraryPage() {
         console.log('📞 CALLING generateSmartItinerary with previewOnly:', previewOnly, 'type:', typeof previewOnly);
         const data = await generateSmartItinerary(formData, previewOnly);
         console.log('✅ Received smart itinerary data:', data);
-        console.log('📊 Data previewOnly flag:', data.previewOnly);
-        console.log('📊 Data activities count:', data.activities?.length);
         
         // Проверяем, есть ли активности в плане
         const hasActivities = data.activities && data.activities.length > 0;
@@ -261,7 +261,6 @@ export default function ItineraryPage() {
           // Конвертируем данные в нужный формат для отображения
           const convertedData = {
             ...data,
-            previewOnly: data.previewOnly || previewOnly, // Сохраняем флаг previewOnly
             daily_plan: [{
               date: data.date,
               blocks: data.activities.map(activity => ({
@@ -284,27 +283,7 @@ export default function ItineraryPage() {
             }]
           };
           console.log('✅ Converted data for display:', convertedData);
-          console.log('📊 Preview mode:', convertedData.previewOnly, 'Activities count:', convertedData.daily_plan[0].blocks.length);
           setItinerary(convertedData);
-          
-          // Save preview to Redis if it's a new generation (no itineraryId in URL)
-          if (previewOnly && !urlItineraryId) {
-            console.log('💾 Saving preview itinerary to Redis...');
-            try {
-              const dataToSave = { ...data, previewOnly: true };
-              const saveResponse = await saveItinerary(dataToSave);
-              if (saveResponse.success && saveResponse.itineraryId) {
-                console.log('✅ Preview saved with ID:', saveResponse.itineraryId);
-                // Update URL with itinerary ID
-                const newParams = new URLSearchParams(searchParams);
-                newParams.set('id', saveResponse.itineraryId);
-                navigate(`/itinerary?${newParams.toString()}`, { replace: true });
-              }
-            } catch (saveError) {
-              console.error('❌ Failed to save itinerary:', saveError);
-            }
-          }
-          
           return;
         } else {
           console.log('⚠️ Smart itinerary API returned empty itinerary');
@@ -325,28 +304,6 @@ export default function ItineraryPage() {
       setError(`Failed to generate itinerary for ${formData.city}. Please try again later.`);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handlePayment = async () => {
-    if (!email || !itineraryId) {
-      alert('Please enter your email');
-      return;
-    }
-    
-    try {
-      const response = await createCheckoutSession({
-        ...formData,
-        email,
-        itineraryId
-      });
-      
-      if (response.url) {
-        window.location.href = response.url;
-      }
-    } catch (error) {
-      console.error('❌ Payment error:', error);
-      alert('Failed to initiate payment. Please try again.');
     }
   };
 
@@ -545,21 +502,16 @@ export default function ItineraryPage() {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{
-            width: '60px',
-            height: '60px',
-            margin: '0 auto 16px',
-            border: '4px solid #f3f4f6',
-            borderTop: '4px solid #3E85FC',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite'
-          }}></div>
-          <style>{`
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          `}</style>
+          <img 
+            src={SkateboardingGif} 
+            alt="Loading..." 
+            style={{ 
+              width: '60px', 
+              height: '60px', 
+              marginBottom: '16px',
+              borderRadius: '8px'
+            }} 
+          />
           <div style={{ fontSize: '20px', color: '#374151' }}>Curating your perfect day experience...</div>
         </div>
       </div>
@@ -773,7 +725,7 @@ export default function ItineraryPage() {
             📅 Day Plan
           </h2>
           
-          {itinerary?.daily_plan?.[0]?.blocks?.slice(0, showFullPlan || !itinerary?.previewOnly ? itinerary.daily_plan[0].blocks.length : 2).map((block, blockIndex) => (
+          {itinerary?.daily_plan?.[0]?.blocks?.map((block, blockIndex) => (
             <div key={blockIndex} style={blockStyle}>
               <div className="time-block-enhanced">{block.time}</div>
               {block.items?.map((item, itemIndex) => (
@@ -824,56 +776,6 @@ export default function ItineraryPage() {
               ))}
             </div>
           ))}
-          
-          {/* Pay to Unlock Section - показываем только в preview режиме */}
-          {itinerary?.previewOnly && !showFullPlan && itinerary?.daily_plan?.[0]?.blocks && itinerary.daily_plan[0].blocks.length >= 2 && (
-            <div style={{
-              marginTop: '40px',
-              padding: '30px',
-              backgroundColor: '#f8f9fa',
-              borderRadius: '12px',
-              border: '2px solid #007bff',
-              textAlign: 'center'
-            }}>
-              <h3 style={{ marginBottom: '16px', color: '#007bff' }}>🔒 Unlock Full Itinerary</h3>
-              <p style={{ marginBottom: '24px', color: '#666' }}>
-                Get access to the complete day plan with all activities
-              </p>
-              <div style={{ marginBottom: '24px' }}>
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  style={{
-                    padding: '12px 16px',
-                    fontSize: '16px',
-                    border: '1px solid #ddd',
-                    borderRadius: '8px',
-                    width: '300px',
-                    maxWidth: '100%'
-                  }}
-                />
-              </div>
-              <button
-                onClick={handlePayment}
-                disabled={!email || !itineraryId}
-                style={{
-                  padding: '14px 32px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: !email || !itineraryId ? 'not-allowed' : 'pointer',
-                  opacity: !email || !itineraryId ? 0.6 : 1
-                }}
-              >
-                💳 Pay to Unlock Full Plan
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Footer */}
