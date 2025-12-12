@@ -113,32 +113,31 @@ export default function ItineraryPage() {
     budget: searchParams.get('budget') || '500'
   };
 
-  // Get itineraryId and showFullPlan from URL
+  // Get itineraryId and showFullPlan from URL directly (not from state)
   const urlItineraryId = searchParams.get('id');
   const urlShowFullPlan = searchParams.get('full') === 'true';
 
   useEffect(() => {
-    if (urlItineraryId) {
-      setItineraryId(urlItineraryId);
-    }
-    if (urlShowFullPlan) {
-      setShowFullPlan(true);
-    }
-  }, [urlItineraryId, urlShowFullPlan]);
-
-  useEffect(() => {
+    console.log('🔄 useEffect triggered:', { isExample, hasExampleItinerary: !!exampleItinerary, urlItineraryId, urlShowFullPlan });
+    
     if (isExample && exampleItinerary) {
       // Use example data directly
       setItinerary(exampleItinerary);
       setLoading(false);
-    } else if (itineraryId) {
-      // Load existing itinerary by ID
-      loadItineraryById(itineraryId);
+    } else if (urlItineraryId) {
+      // Load existing itinerary by ID from URL
+      console.log('📥 Loading itinerary by ID from URL:', urlItineraryId);
+      setItineraryId(urlItineraryId);
+      if (urlShowFullPlan) {
+        setShowFullPlan(true);
+      }
+      loadItineraryById(urlItineraryId);
     } else {
       // Generate new preview itinerary (2 locations)
+      console.log('🆕 Generating new preview itinerary (2 locations)');
       generateItineraryData(true);
     }
-  }, [isExample, exampleItinerary, itineraryId, showFullPlan]);
+  }, [isExample, exampleItinerary, urlItineraryId, urlShowFullPlan]);
 
   const loadItineraryById = async (id) => {
     try {
@@ -259,6 +258,7 @@ export default function ItineraryPage() {
           // Конвертируем данные в нужный формат для отображения
           const convertedData = {
             ...data,
+            previewOnly: data.previewOnly || previewOnly, // Сохраняем флаг previewOnly
             daily_plan: [{
               date: data.date,
               blocks: data.activities.map(activity => ({
@@ -281,16 +281,17 @@ export default function ItineraryPage() {
             }]
           };
           console.log('✅ Converted data for display:', convertedData);
+          console.log('📊 Preview mode:', convertedData.previewOnly, 'Activities count:', convertedData.daily_plan[0].blocks.length);
           setItinerary(convertedData);
           
-          // Save preview to Redis if it's a new generation (no itineraryId)
-          if (previewOnly && !itineraryId) {
+          // Save preview to Redis if it's a new generation (no itineraryId in URL)
+          if (previewOnly && !urlItineraryId) {
             console.log('💾 Saving preview itinerary to Redis...');
             try {
               const dataToSave = { ...data, previewOnly: true };
               const saveResponse = await saveItinerary(dataToSave);
               if (saveResponse.success && saveResponse.itineraryId) {
-                setItineraryId(saveResponse.itineraryId);
+                console.log('✅ Preview saved with ID:', saveResponse.itineraryId);
                 // Update URL with itinerary ID
                 const newParams = new URLSearchParams(searchParams);
                 newParams.set('id', saveResponse.itineraryId);
