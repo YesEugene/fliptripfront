@@ -261,6 +261,7 @@ export default function ItineraryPage() {
           // Конвертируем данные в нужный формат для отображения
           const convertedData = {
             ...data,
+            previewOnly: data.previewOnly || previewOnly, // Сохраняем флаг previewOnly
             daily_plan: [{
               date: data.date,
               blocks: data.activities.map(activity => ({
@@ -283,7 +284,27 @@ export default function ItineraryPage() {
             }]
           };
           console.log('✅ Converted data for display:', convertedData);
+          console.log('📊 Preview mode:', convertedData.previewOnly, 'Activities count:', convertedData.daily_plan[0].blocks.length);
           setItinerary(convertedData);
+          
+          // Save preview to Redis if it's a new generation (no itineraryId in URL)
+          if (previewOnly && !urlItineraryId) {
+            console.log('💾 Saving preview itinerary to Redis...');
+            try {
+              const dataToSave = { ...data, previewOnly: true };
+              const saveResponse = await saveItinerary(dataToSave);
+              if (saveResponse.success && saveResponse.itineraryId) {
+                console.log('✅ Preview saved with ID:', saveResponse.itineraryId);
+                // Update URL with itinerary ID
+                const newParams = new URLSearchParams(searchParams);
+                newParams.set('id', saveResponse.itineraryId);
+                navigate(`/itinerary?${newParams.toString()}`, { replace: true });
+              }
+            } catch (saveError) {
+              console.error('❌ Failed to save itinerary:', saveError);
+            }
+          }
+          
           return;
         } else {
           console.log('⚠️ Smart itinerary API returned empty itinerary');
