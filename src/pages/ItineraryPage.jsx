@@ -1024,7 +1024,7 @@ export default function ItineraryPage() {
         </div>
 
         {/* Content below image */}
-        <div className="enhanced-card">
+        <div className="enhanced-card" style={{ marginTop: '24px' }}>
           <p className="subtitle" style={{ marginTop: 0 }}>
             {itinerary?.subtitle || generateFallbackSubtitle(formData)}
           </p>
