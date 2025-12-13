@@ -976,8 +976,8 @@ export default function ItineraryPage() {
             <span className="badge-enhanced" style={{ 
               backgroundColor: '#dbeafe', 
               color: '#1e40af',
-              padding: '6px 12px',
-              fontSize: '12px',
+              padding: '6px 13px',
+              fontSize: '11px',
               borderRadius: '16px'
             }}>
               🌍 {formData.city}
@@ -985,8 +985,8 @@ export default function ItineraryPage() {
             <span className="badge-enhanced" style={{ 
               backgroundColor: '#f3e8ff', 
               color: '#7c3aed',
-              padding: '6px 12px',
-              fontSize: '12px',
+              padding: '6px 13px',
+              fontSize: '11px',
               borderRadius: '16px'
             }}>
               📅 {formData.date}
@@ -994,8 +994,8 @@ export default function ItineraryPage() {
             <span className="badge-enhanced" style={{ 
               backgroundColor: '#dcfce7', 
               color: '#166534',
-              padding: '6px 12px',
-              fontSize: '12px',
+              padding: '6px 13px',
+              fontSize: '11px',
               borderRadius: '16px'
             }}>
               For: {formData.audience}
@@ -1003,8 +1003,8 @@ export default function ItineraryPage() {
             <span className="badge-enhanced" style={{ 
               backgroundColor: '#fef3c7', 
               color: '#92400e',
-              padding: '6px 12px',
-              fontSize: '12px',
+              padding: '6px 13px',
+              fontSize: '11px',
               borderRadius: '16px'
             }}>
               Budget: {itinerary?.meta?.total_estimated_cost || `${formData.budget}€`}
@@ -1013,8 +1013,8 @@ export default function ItineraryPage() {
               <span key={index} className="badge-enhanced" style={{ 
                 backgroundColor: '#fde7e7', 
                 color: '#b91c1c',
-                padding: '6px 12px',
-                fontSize: '12px',
+                padding: '6px 13px',
+                fontSize: '11px',
                 borderRadius: '16px'
               }}>
                 🎯 {interest}
