@@ -606,10 +606,23 @@ export default function HomePage() {
                       placeholder="09 Feb"
                       readOnly
                       onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         // Use the hidden date input for all devices - it works on both mobile and desktop
                         const hiddenInput = e.target.previousElementSibling;
                         if (hiddenInput && hiddenInput.type === 'date') {
+                          // Focus and click the hidden input to trigger native date picker
+                          hiddenInput.focus();
                           hiddenInput.click();
+                          // Also try showPicker if available (for desktop browsers that support it)
+                          if (hiddenInput.showPicker) {
+                            try {
+                              hiddenInput.showPicker();
+                            } catch (err) {
+                              // If showPicker fails, click is already triggered above
+                              console.log('showPicker not available, using click');
+                            }
+                          }
                         }
                       }}
                       style={{
