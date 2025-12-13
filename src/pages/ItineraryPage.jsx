@@ -352,7 +352,17 @@ export default function ItineraryPage() {
       } catch (apiError) {
         console.error('❌ Real places API failed:', apiError);
         
-        // Используем локальный fallback с правильной структурой
+        // Проверяем тип ошибки
+        const errorMessage = apiError?.response?.data?.message || apiError?.message || 'Unknown error';
+        
+        // Если это ошибка квоты OpenAI
+        if (errorMessage.includes('429') || errorMessage.includes('quota') || errorMessage.includes('billing')) {
+          setError('OpenAI API quota exceeded. Please check your OpenAI account billing and quota. The service will resume once the quota is restored.');
+          setLoading(false);
+          return;
+        }
+        
+        // Для других ошибок используем fallback
         console.log('🔄 Using local fallback itinerary...');
         const fallbackData = generateFallbackItinerary(formData);
         setItinerary(fallbackData);
