@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
-import { generateRealPlacesItinerary, sendEmail } from '../services/api';
+import { completeItinerary, sendEmail } from '../services/api';
 
 export default function SuccessPage() {
   const navigate = useNavigate();
@@ -17,41 +17,38 @@ export default function SuccessPage() {
     date: searchParams.get('date') || new Date().toISOString().slice(0, 10),
     budget: searchParams.get('budget') || '800',
     email: searchParams.get('email') || '',
-    session_id: searchParams.get('session_id') || '',
-    itineraryId: searchParams.get('id') || ''
+    itineraryId: searchParams.get('id') || searchParams.get('itineraryId') || '',
+    session_id: searchParams.get('session_id') || ''
   };
 
   useEffect(() => {
-    if (formData.email && !emailSent) {
+    if (formData.itineraryId && formData.email && !emailSent) {
       sendEmailWithItinerary();
     }
-  }, [formData.email, emailSent]);
+  }, [formData.itineraryId, formData.email, emailSent]);
 
   const sendEmailWithItinerary = async () => {
     try {
-      console.log('🌍 Generating real places itinerary for success page...');
+      console.log('🔄 Completing itinerary and sending email...', { itineraryId: formData.itineraryId });
       
-      // First, generate the real places itinerary
-      const itineraryData = await generateRealPlacesItinerary({
-        city: formData.city,
-        audience: formData.audience,
-        interests: formData.interests,
-        budget: formData.budget,
-        date: formData.date
-      });
-
-      console.log('✅ Real places itinerary generated:', itineraryData);
-      setItinerary(itineraryData);
+      // First, complete the itinerary (generate full plan from preview)
+      let itineraryData = null;
+      if (formData.itineraryId) {
+        const completeResult = await completeItinerary(formData.itineraryId, formData);
+        if (completeResult.success && completeResult.itinerary) {
+          itineraryData = completeResult.itinerary;
+          console.log('✅ Full itinerary generated:', itineraryData);
+          setItinerary(itineraryData);
+        }
+      }
 
       // Then send the email
-      if (formData.email) {
+      if (formData.email && formData.itineraryId) {
         const emailResult = await sendEmail({
           email: formData.email,
           itinerary: itineraryData,
-          formData: {
-            ...formData,
-            itineraryId: formData.itineraryId || formData.id // Ensure itineraryId is passed
-          }
+          formData: formData,
+          itineraryId: formData.itineraryId // Pass itineraryId
         });
 
         console.log('📧 Email result:', emailResult);
@@ -69,16 +66,10 @@ export default function SuccessPage() {
   };
 
   const handleOpenPlan = () => {
-    const queryParams = new URLSearchParams({
-      city: formData.city,
-      audience: formData.audience,
-      interests: Array.isArray(formData.interests) ? formData.interests.join(',') : formData.interests,
-      date: formData.date,
-      budget: formData.budget
-    });
+    const queryParams = new URLSearchParams(formData);
     if (formData.itineraryId) {
       queryParams.set('id', formData.itineraryId);
-      queryParams.set('full', 'true'); // Указываем, что нужен полный план
+      queryParams.set('full', 'true');
     }
     navigate(`/itinerary?${queryParams.toString()}`);
   };
