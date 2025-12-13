@@ -340,7 +340,7 @@ export default function HomePage() {
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                             style={{
                               backgroundColor: 'white',
-                              border: '2px solid #F04C31',
+                              border: 'none',
                               borderRadius: '12px',
                               padding: '12px 20px',
                               fontSize: '16px',
