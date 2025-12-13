@@ -187,7 +187,7 @@ export default function HomePage() {
     e.preventDefault();
     if (validateForm()) {
       const queryParams = new URLSearchParams(formData);
-      navigate(`/preview?${queryParams.toString()}`);
+      navigate(`/itinerary?${queryParams.toString()}`);
     }
   };
 
