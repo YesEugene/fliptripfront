@@ -248,8 +248,17 @@ export default function ItineraryPage() {
   };
 
   const handlePayment = async () => {
-    if (!email || !itineraryId) {
+    // Use itineraryId from state or URL
+    const currentItineraryId = itineraryId || urlItineraryId;
+    
+    if (!email) {
       alert('Please enter your email');
+      return;
+    }
+    
+    if (!currentItineraryId) {
+      alert('Itinerary ID is missing. Please refresh the page and try again.');
+      console.error('❌ No itinerary ID available for payment');
       return;
     }
     
@@ -884,16 +893,16 @@ export default function ItineraryPage() {
               </div>
               <button
                 onClick={handlePayment}
-                disabled={!email || !itineraryId}
+                disabled={!email || (!itineraryId && !urlItineraryId)}
                 style={{
                   padding: '14px 32px',
                   fontSize: '16px',
                   fontWeight: 'bold',
-                  backgroundColor: '#007bff',
+                  backgroundColor: (!email || (!itineraryId && !urlItineraryId)) ? '#ccc' : '#007bff',
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
-                  cursor: !email || !itineraryId ? 'not-allowed' : 'pointer',
+                  cursor: (!email || (!itineraryId && !urlItineraryId)) ? 'not-allowed' : 'pointer',
                   opacity: !email || !itineraryId ? 0.6 : 1
                 }}
               >
