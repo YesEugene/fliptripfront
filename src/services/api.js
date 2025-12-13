@@ -65,46 +65,12 @@ export const generateSmartItinerary = async (formData, previewOnly = false) => {
       previewOnly: previewOnly === true || previewOnly === 'true' // Явно преобразуем в boolean
     };
     console.log('📤 API CALL: generateSmartItinerary with previewOnly:', requestData.previewOnly);
-    console.log('📤 Full request data:', requestData);
     const response = await api.post('/api/smart-itinerary', requestData);
     console.log('📥 API RESPONSE: activities count:', response.data?.activities?.length);
     console.log('📥 API RESPONSE: previewOnly flag:', response.data?.previewOnly);
     return response.data;
   } catch (error) {
     console.error('Smart itinerary generation error:', error);
-    throw error;
-  }
-};
-
-// Save itinerary to Redis
-export const saveItinerary = async (itinerary, itineraryId = null) => {
-  try {
-    const response = await api.post('/api/save-itinerary', { itinerary, itineraryId });
-    return response.data;
-  } catch (error) {
-    console.error('Save itinerary error:', error);
-    throw error;
-  }
-};
-
-// Get itinerary from Redis by ID
-export const getItinerary = async (id) => {
-  try {
-    const response = await api.get(`/api/get-itinerary?id=${id}`);
-    return response.data;
-  } catch (error) {
-    console.error('Get itinerary error:', error);
-    throw error;
-  }
-};
-
-// Complete itinerary (generate full plan from preview)
-export const completeItinerary = async (itineraryId, formData) => {
-  try {
-    const response = await api.post('/api/complete-itinerary', { itineraryId, formData });
-    return response.data;
-  } catch (error) {
-    console.error('Complete itinerary error:', error);
     throw error;
   }
 };
