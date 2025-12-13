@@ -758,7 +758,7 @@ export default function ItineraryPage() {
             return (
               <div style={{
                 width: '100%',
-                height: '250px',
+                height: '100px',
                 backgroundImage: `url(${cityImage})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
@@ -777,13 +777,13 @@ export default function ItineraryPage() {
                 {/* Title overlay on image */}
                 <div style={{
                   position: 'absolute',
-                  top: '24px',
-                  left: '24px',
-                  right: '24px',
+                  top: '12px',
+                  left: '16px',
+                  right: '16px',
                   zIndex: 2
                 }}>
                   <h1 style={{
-                    fontSize: '28px',
+                    fontSize: '20px',
                     fontWeight: 'bold',
                     color: 'white',
                     textShadow: '0 2px 8px rgba(0,0,0,0.5)',
@@ -797,8 +797,8 @@ export default function ItineraryPage() {
                 {/* Download PDF Button at bottom of image */}
                 <div style={{
                   position: 'absolute',
-                  bottom: '16px',
-                  left: '24px',
+                  bottom: '8px',
+                  left: '16px',
                   zIndex: 2
                 }}>
                   <button
@@ -807,29 +807,29 @@ export default function ItineraryPage() {
                       backgroundColor: 'white',
                       color: '#1f2937',
                       border: 'none',
-                      borderRadius: '8px',
-                      padding: '8px 16px',
-                      fontSize: '14px',
+                      borderRadius: '4px',
+                      padding: '4px 8px',
+                      fontSize: '10px',
                       fontWeight: '600',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '6px',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                      gap: '3px',
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
                       transition: 'all 0.2s'
                     }}
                     onMouseOver={(e) => {
                       e.target.style.backgroundColor = '#f9fafb';
-                      e.target.style.transform = 'translateY(-2px)';
-                      e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
+                      e.target.style.transform = 'translateY(-1px)';
+                      e.target.style.boxShadow = '0 2px 6px rgba(0,0,0,0.4)';
                     }}
                     onMouseOut={(e) => {
                       e.target.style.backgroundColor = 'white';
                       e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+                      e.target.style.boxShadow = '0 1px 4px rgba(0,0,0,0.3)';
                     }}
                   >
-                    <span style={{ fontSize: '16px' }}>📄</span>
+                    <span style={{ fontSize: '10px' }}>📄</span>
                     Download PDF
                   </button>
                 </div>
