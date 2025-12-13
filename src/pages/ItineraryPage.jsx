@@ -962,31 +962,72 @@ export default function ItineraryPage() {
           })()}
         </div>
 
+        {/* Tags below image */}
+        <div style={{ 
+          marginBottom: '24px',
+          padding: '0 20px'
+        }}>
+          <div className="badges" style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '8px',
+            justifyContent: 'flex-start'
+          }}>
+            <span className="badge-enhanced" style={{ 
+              backgroundColor: '#dbeafe', 
+              color: '#1e40af',
+              padding: '6px 12px',
+              fontSize: '12px',
+              borderRadius: '16px'
+            }}>
+              🌍 {formData.city}
+            </span>
+            <span className="badge-enhanced" style={{ 
+              backgroundColor: '#f3e8ff', 
+              color: '#7c3aed',
+              padding: '6px 12px',
+              fontSize: '12px',
+              borderRadius: '16px'
+            }}>
+              📅 {formData.date}
+            </span>
+            <span className="badge-enhanced" style={{ 
+              backgroundColor: '#dcfce7', 
+              color: '#166534',
+              padding: '6px 12px',
+              fontSize: '12px',
+              borderRadius: '16px'
+            }}>
+              For: {formData.audience}
+            </span>
+            <span className="badge-enhanced" style={{ 
+              backgroundColor: '#fef3c7', 
+              color: '#92400e',
+              padding: '6px 12px',
+              fontSize: '12px',
+              borderRadius: '16px'
+            }}>
+              Budget: {itinerary?.meta?.total_estimated_cost || `${formData.budget}€`}
+            </span>
+            {formData.interests && formData.interests.map((interest, index) => (
+              <span key={index} className="badge-enhanced" style={{ 
+                backgroundColor: '#fde7e7', 
+                color: '#b91c1c',
+                padding: '6px 12px',
+                fontSize: '12px',
+                borderRadius: '16px'
+              }}>
+                🎯 {interest}
+              </span>
+            ))}
+          </div>
+        </div>
+
         {/* Content below image */}
         <div className="enhanced-card">
           <p className="subtitle" style={{ marginTop: 0 }}>
             {itinerary?.subtitle || generateFallbackSubtitle(formData)}
           </p>
-          
-          <div className="badges">
-            <span className="badge-enhanced" style={{ backgroundColor: '#dbeafe', color: '#1e40af' }}>
-              🌍 {formData.city}
-            </span>
-            <span className="badge-enhanced" style={{ backgroundColor: '#f3e8ff', color: '#7c3aed' }}>
-              📅 {formData.date}
-            </span>
-            <span className="badge-enhanced" style={{ backgroundColor: '#dcfce7', color: '#166534' }}>
-              For: {formData.audience}
-            </span>
-            <span className="badge-enhanced" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>
-              Budget: {itinerary?.meta?.total_estimated_cost || `${formData.budget}€`}
-            </span>
-            {formData.interests && formData.interests.map((interest, index) => (
-              <span key={index} className="badge-enhanced" style={{ backgroundColor: '#fde7e7', color: '#b91c1c' }}>
-                🎯 {interest}
-              </span>
-            ))}
-          </div>
 
           {itinerary?.weather && (
             <div className="weather-enhanced">
