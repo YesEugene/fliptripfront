@@ -791,13 +791,13 @@ export default function ItineraryPage() {
   };
 
   const timeStyle = {
-    fontSize: '20px',
+    fontSize: '14px',
     fontWeight: 'bold',
     marginBottom: '16px',
     backgroundColor: '#3b82f6',
     color: 'white',
-    padding: '8px 16px',
-    borderRadius: '20px',
+    padding: '6px 11px',
+    borderRadius: '14px',
     display: 'inline-block'
   };
 
