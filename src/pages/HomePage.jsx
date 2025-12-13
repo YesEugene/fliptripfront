@@ -329,12 +329,12 @@ export default function HomePage() {
             bottom: '20px',
             left: '20px',
             right: '20px',
-            zIndex: 2,
+            zIndex: 1000,
             display: 'block',
             maxWidth: '750px',
             margin: '0 auto'
           }}>
-            <div style={{ position: 'relative' }}>
+            <div style={{ position: 'relative', zIndex: 1000 }}>
                           <button
                             type="button"
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -366,7 +366,7 @@ export default function HomePage() {
                   backgroundColor: 'white',
                   borderRadius: '12px',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  zIndex: 1000,
+                  zIndex: 1001,
                   marginTop: '4px',
                   maxHeight: '320px',
                   overflowY: 'auto'
@@ -433,7 +433,7 @@ export default function HomePage() {
             justifyContent: 'center',
             alignItems: 'center'
           }}>
-            <div style={{ position: 'relative', width: '100%', maxWidth: '750px' }}>
+            <div style={{ position: 'relative', width: '100%', maxWidth: '750px', zIndex: 1000 }}>
               <button
                 type="button"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -465,7 +465,7 @@ export default function HomePage() {
                   backgroundColor: 'white',
                   borderRadius: '12px',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  zIndex: 1000,
+                  zIndex: 1001,
                   marginTop: '4px',
                   maxHeight: '320px',
                   overflowY: 'auto'
@@ -734,7 +734,9 @@ export default function HomePage() {
         backgroundColor: 'white', 
         padding: '30px 20px',
         maxWidth: '750px',
-        margin: '0 auto'
+        margin: '0 auto',
+        position: 'relative',
+        zIndex: 1
       }}>
         <h2 style={{
           fontSize: '20px',
