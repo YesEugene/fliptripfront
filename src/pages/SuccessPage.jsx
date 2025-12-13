@@ -48,7 +48,10 @@ export default function SuccessPage() {
         const emailResult = await sendEmail({
           email: formData.email,
           itinerary: itineraryData,
-          formData: formData
+          formData: {
+            ...formData,
+            itineraryId: formData.itineraryId || formData.id // Ensure itineraryId is passed
+          }
         });
 
         console.log('📧 Email result:', emailResult);
