@@ -921,8 +921,8 @@ export default function ItineraryPage() {
                 {/* Download PDF Button at bottom of image */}
                 <div style={{
                   position: 'absolute',
-                  bottom: '8px',
-                  left: '16px',
+                  bottom: '24px',
+                  left: '24px',
                   zIndex: 2
                 }}>
                   <button
@@ -931,29 +931,29 @@ export default function ItineraryPage() {
                       backgroundColor: 'white',
                       color: '#1f2937',
                       border: 'none',
-                      borderRadius: '4px',
-                      padding: '4px 8px',
-                      fontSize: '10px',
+                      borderRadius: '5px',
+                      padding: '5px 10px',
+                      fontSize: '13px',
                       fontWeight: '600',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '3px',
-                      boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                      gap: '4px',
+                      boxShadow: '0 2px 5px rgba(0,0,0,0.3)',
                       transition: 'all 0.2s'
                     }}
                     onMouseOver={(e) => {
                       e.target.style.backgroundColor = '#f9fafb';
                       e.target.style.transform = 'translateY(-1px)';
-                      e.target.style.boxShadow = '0 2px 6px rgba(0,0,0,0.4)';
+                      e.target.style.boxShadow = '0 3px 8px rgba(0,0,0,0.4)';
                     }}
                     onMouseOut={(e) => {
                       e.target.style.backgroundColor = 'white';
                       e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 1px 4px rgba(0,0,0,0.3)';
+                      e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
                     }}
                   >
-                    <span style={{ fontSize: '10px' }}>📄</span>
+                    <span style={{ fontSize: '13px' }}>📄</span>
                     Download PDF
                   </button>
                 </div>
