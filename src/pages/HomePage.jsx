@@ -187,7 +187,7 @@ export default function HomePage() {
     e.preventDefault();
     if (validateForm()) {
       const queryParams = new URLSearchParams(formData);
-      navigate(`/itinerary?${queryParams.toString()}`);
+      navigate(`/preview?${queryParams.toString()}`);
     }
   };
 
@@ -577,26 +577,6 @@ export default function HomePage() {
                     When?
                   </label>
                   <div style={{ position: 'relative' }}>
-                    {/* Hidden date input for mobile devices */}
-                    <input
-                      type="date"
-                      value={formData.date || ''}
-                      min={new Date().toISOString().slice(0, 10)}
-                      onChange={(e) => {
-                        setFormData(prev => ({ ...prev, date: e.target.value }));
-                      }}
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        opacity: 0,
-                        cursor: 'pointer',
-                        zIndex: 1
-                      }}
-                    />
-                    {/* Visible display input for desktop */}
                     <input
                       type="text"
                       value={formData.date ? new Date(formData.date).toLocaleDateString('en-US', { 
@@ -606,24 +586,42 @@ export default function HomePage() {
                       placeholder="09 Feb"
                       readOnly
                       onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        // Use the hidden date input for all devices - it works on both mobile and desktop
-                        const hiddenInput = e.target.previousElementSibling;
-                        if (hiddenInput && hiddenInput.type === 'date') {
-                          // Focus and click the hidden input to trigger native date picker
-                          hiddenInput.focus();
-                          hiddenInput.click();
-                          // Also try showPicker if available (for desktop browsers that support it)
-                          if (hiddenInput.showPicker) {
-                            try {
-                              hiddenInput.showPicker();
-                            } catch (err) {
-                              // If showPicker fails, click is already triggered above
-                              console.log('showPicker not available, using click');
+                        const dateInput = document.createElement('input');
+                        dateInput.type = 'date';
+                        dateInput.min = new Date().toISOString().slice(0, 10);
+                        dateInput.value = formData.date;
+                        
+                        // Position the date picker near the clicked element
+                        const rect = e.target.getBoundingClientRect();
+                        dateInput.style.position = 'fixed';
+                        dateInput.style.left = rect.left + 'px';
+                        dateInput.style.top = (rect.bottom + 5) + 'px';
+                        dateInput.style.zIndex = '9999';
+                        dateInput.style.opacity = '0';
+                        dateInput.style.pointerEvents = 'auto';
+                        dateInput.style.width = '1px';
+                        dateInput.style.height = '1px';
+                        
+                        document.body.appendChild(dateInput);
+                        
+                        // Small delay to ensure element is rendered
+                        setTimeout(() => {
+                          dateInput.showPicker();
+                        }, 10);
+                        
+                        dateInput.onchange = (e) => {
+                          setFormData(prev => ({ ...prev, date: e.target.value }));
+                          document.body.removeChild(dateInput);
+                        };
+                        
+                        // Clean up if user clicks away without selecting
+                        dateInput.onblur = () => {
+                          setTimeout(() => {
+                            if (document.body.contains(dateInput)) {
+                              document.body.removeChild(dateInput);
                             }
-                          }
-                        }
+                          }, 100);
+                        };
                       }}
                       style={{
                         width: '100%',
@@ -633,8 +631,7 @@ export default function HomePage() {
                         fontSize: '16px',
                         color: '#374151',
                         cursor: 'pointer',
-                        backgroundColor: 'white',
-                        pointerEvents: 'auto'
+                        backgroundColor: 'white'
                       }}
                     />
                     <span style={{
