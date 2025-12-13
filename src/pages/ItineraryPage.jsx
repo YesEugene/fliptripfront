@@ -726,89 +726,116 @@ export default function ItineraryPage() {
           marginBottom: '24px',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
         }}>
-          {/* Background Image */}
-          <div style={{
-            width: '100%',
-            height: '400px',
-            backgroundImage: `url(${
-              itinerary?.daily_plan?.[0]?.blocks?.[0]?.items?.[0]?.photos?.[0]?.url || 
-              itinerary?.daily_plan?.[0]?.blocks?.[0]?.items?.[0]?.photos?.[0] ||
-              'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&h=600&fit=crop&q=80'
-            })`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            position: 'relative'
-          }}>
-            {/* Dark overlay for better text readability */}
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.5) 100%)'
-            }} />
+          {/* Background Image - City-specific */}
+          {(() => {
+            // Get city-specific image
+            const cityImages = {
+              'Paris': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&h=600&fit=crop&q=80',
+              'Barcelona': 'https://images.unsplash.com/photo-1539037116277-4db20889f2d2?w=1200&h=600&fit=crop&q=80',
+              'Amsterdam': 'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=1200&h=600&fit=crop&q=80',
+              'Berlin': 'https://images.unsplash.com/photo-1587330979470-3595ac045ab0?w=1200&h=600&fit=crop&q=80',
+              'London': 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&h=600&fit=crop&q=80',
+              'Rome': 'https://images.unsplash.com/photo-1529260830199-42c24126f198?w=1200&h=600&fit=crop&q=80',
+              'Madrid': 'https://images.unsplash.com/photo-1539037116277-4db20889f2d2?w=1200&h=600&fit=crop&q=80',
+              'Lisbon': 'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=1200&h=600&fit=crop&q=80',
+              'New York': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=1200&h=600&fit=crop&q=80',
+              'Tokyo': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1200&h=600&fit=crop&q=80',
+              'Prague': 'https://images.unsplash.com/photo-1541849546-216549ae216d?w=1200&h=600&fit=crop&q=80',
+              'Vienna': 'https://images.unsplash.com/photo-1516550893923-42d28e5677af?w=1200&h=600&fit=crop&q=80',
+              'Venice': 'https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?w=1200&h=600&fit=crop&q=80',
+              'Florence': 'https://images.unsplash.com/photo-1520175480921-4edfa2983e0f?w=1200&h=600&fit=crop&q=80',
+              'Moscow': 'https://images.unsplash.com/photo-1513326738677-b964603b136d?w=1200&h=600&fit=crop&q=80',
+              'Istanbul': 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=1200&h=600&fit=crop&q=80',
+              'Dubai': 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&h=600&fit=crop&q=80',
+              'Sydney': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=600&fit=crop&q=80',
+              'Singapore': 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=1200&h=600&fit=crop&q=80',
+              'Copenhagen': 'https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?w=1200&h=600&fit=crop&q=80'
+            };
             
-            {/* Title overlay on image */}
-            <div style={{
-              position: 'absolute',
-              top: '40px',
-              left: '32px',
-              right: '32px',
-              zIndex: 2
-            }}>
-              <h1 style={{
-                fontSize: '36px',
-                fontWeight: 'bold',
-                color: 'white',
-                textShadow: '0 2px 8px rgba(0,0,0,0.5)',
-                margin: 0,
-                lineHeight: '1.2'
+            const cityName = formData.city || 'Barcelona';
+            const cityImage = cityImages[cityName] || `https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&h=600&fit=crop&q=80&auto=format`;
+            
+            return (
+              <div style={{
+                width: '100%',
+                height: '400px',
+                backgroundImage: `url(${cityImage})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                position: 'relative'
               }}>
-                {itinerary?.title || generateFallbackTitle(formData)}
-              </h1>
-            </div>
+                {/* Dark overlay for better text readability */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.5) 100%)'
+                }} />
+                
+                {/* Title overlay on image */}
+                <div style={{
+                  position: 'absolute',
+                  top: '40px',
+                  left: '32px',
+                  right: '32px',
+                  zIndex: 2
+                }}>
+                  <h1 style={{
+                    fontSize: '28px',
+                    fontWeight: 'bold',
+                    color: 'white',
+                    textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+                    margin: 0,
+                    lineHeight: '1.2'
+                  }}>
+                    {itinerary?.title || generateFallbackTitle(formData)}
+                  </h1>
+                </div>
 
-            {/* Download PDF Button at bottom of image */}
-            <div style={{
-              position: 'absolute',
-              bottom: '24px',
-              left: '32px',
-              zIndex: 2
-            }}>
-              <button
-                onClick={handleDownloadPDF}
-                style={{
-                  backgroundColor: 'white',
-                  color: '#1f2937',
-                  border: 'none',
-                  borderRadius: '12px',
-                  padding: '12px 24px',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                  transition: 'all 0.2s'
-                }}
-                onMouseOver={(e) => {
-                  e.target.style.backgroundColor = '#f9fafb';
-                  e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = '0 6px 16px rgba(0,0,0,0.4)';
-                }}
-                onMouseOut={(e) => {
-                  e.target.style.backgroundColor = 'white';
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
-                }}
-              >
-                <span style={{ fontSize: '20px' }}>📄</span>
-                Download PDF
-              </button>
-            </div>
-          </div>
+                {/* Download PDF Button at bottom of image */}
+                <div style={{
+                  position: 'absolute',
+                  bottom: '24px',
+                  left: '32px',
+                  zIndex: 2
+                }}>
+                  <button
+                    onClick={handleDownloadPDF}
+                    style={{
+                      backgroundColor: 'white',
+                      color: '#1f2937',
+                      border: 'none',
+                      borderRadius: '12px',
+                      padding: '12px 24px',
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseOver={(e) => {
+                      e.target.style.backgroundColor = '#f9fafb';
+                      e.target.style.transform = 'translateY(-2px)';
+                      e.target.style.boxShadow = '0 6px 16px rgba(0,0,0,0.4)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.backgroundColor = 'white';
+                      e.target.style.transform = 'translateY(0)';
+                      e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+                    }}
+                  >
+                    <span style={{ fontSize: '20px' }}>📄</span>
+                    Download PDF
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Content below image */}
