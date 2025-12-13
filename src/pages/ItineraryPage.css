@@ -376,17 +376,17 @@
 
 /* Enhanced item styles */
 .item-enhanced {
-  background-color: #f9fafb;
-  border-radius: 12px;
-  padding: 20px;
+  background-color: transparent;
+  border-radius: 0;
+  padding: 0;
   margin-bottom: 16px;
-  transition: background-color 0.2s ease;
-  border: 1px solid transparent;
+  transition: none;
+  border: none;
 }
 
 .item-enhanced:hover {
-  background-color: #f3f4f6;
-  border-color: #e5e7eb;
+  background-color: transparent;
+  border-color: transparent;
 }
 
 /* Improved link styles */
