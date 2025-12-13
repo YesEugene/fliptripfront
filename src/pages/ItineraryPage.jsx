@@ -831,7 +831,17 @@ export default function ItineraryPage() {
             📅 Day Plan
           </h2>
           
-          {itinerary?.daily_plan?.[0]?.blocks?.map((block, blockIndex) => (
+          {/* Show only 2 blocks for preview, all blocks for full plan */}
+          {itinerary?.daily_plan?.[0]?.blocks
+            ?.filter((block, blockIndex) => {
+              // Если это preview и не показываем полный план, показываем только первые 2 блока
+              if (itinerary.previewOnly && !showFullPlan) {
+                return blockIndex < 2;
+              }
+              // Если это полный план, показываем все блоки
+              return true;
+            })
+            ?.map((block, blockIndex) => (
             <div key={blockIndex} style={blockStyle}>
               <div className="time-block-enhanced">{block.time}</div>
               {block.items?.map((item, itemIndex) => (
@@ -882,6 +892,20 @@ export default function ItineraryPage() {
               ))}
             </div>
           ))}
+          
+          {/* Show message if preview and more blocks available */}
+          {itinerary?.previewOnly && !showFullPlan && itinerary?.daily_plan?.[0]?.blocks?.length > 2 && (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '20px', 
+              color: '#6b7280',
+              fontSize: '14px',
+              borderTop: '1px solid #e5e7eb',
+              marginTop: '20px'
+            }}>
+              🔒 {itinerary.daily_plan[0].blocks.length - 2} more activities available after payment
+            </div>
+          )}
         </div>
 
         {/* Footer */}
