@@ -882,7 +882,7 @@ export default function ItineraryPage() {
             return (
               <div style={{
                 width: '100%',
-                height: '100px',
+                height: '400px',
                 backgroundImage: `url(${cityImage})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
@@ -901,13 +901,13 @@ export default function ItineraryPage() {
                 {/* Title overlay on image */}
                 <div style={{
                   position: 'absolute',
-                  top: '12px',
-                  left: '16px',
-                  right: '16px',
+                  top: '40px',
+                  left: '32px',
+                  right: '32px',
                   zIndex: 2
                 }}>
                   <h1 style={{
-                    fontSize: '20px',
+                    fontSize: '28px',
                     fontWeight: 'bold',
                     color: 'white',
                     textShadow: '0 2px 8px rgba(0,0,0,0.5)',
