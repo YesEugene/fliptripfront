@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail, saveItinerary, getItinerary, completeItinerary, createCheckoutSession } from '../services/api';
+import { generateSmartItinerary, saveItinerary, getItinerary, completeItinerary, createCheckoutSession } from '../services/api';
 import html2pdf from 'html2pdf.js';
 import PhotoGallery from '../components/PhotoGallery';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
@@ -9,13 +9,13 @@ import './ItineraryPage.css';
 export default function ItineraryPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [itinerary, setItinerary] = useState(null);
   const [itineraryId, setItineraryId] = useState(null);
-  const [showFullPlan, setShowFullPlan] = useState(false);
   const [email, setEmail] = useState('');
+  const [showFullPlan, setShowFullPlan] = useState(false);
 
   // Генерация fallback заголовков согласно промптам
   const generateFallbackTitle = (formData) => {
@@ -113,7 +113,7 @@ export default function ItineraryPage() {
     budget: searchParams.get('budget') || '500'
   };
 
-  // Get itineraryId and showFullPlan from URL directly
+  // Extract itineraryId and full flag from URL
   const urlItineraryId = searchParams.get('id');
   const urlShowFullPlan = searchParams.get('full') === 'true';
 
@@ -121,11 +121,9 @@ export default function ItineraryPage() {
     console.log('🔄 useEffect triggered:', { isExample, hasExampleItinerary: !!exampleItinerary, urlItineraryId, urlShowFullPlan });
     
     if (isExample && exampleItinerary) {
-      // Use example data directly
       setItinerary(exampleItinerary);
       setLoading(false);
     } else if (urlItineraryId) {
-      // Load existing itinerary by ID from URL
       console.log('📥 Loading itinerary by ID from URL:', urlItineraryId);
       setItineraryId(urlItineraryId);
       if (urlShowFullPlan) {
@@ -133,160 +131,20 @@ export default function ItineraryPage() {
       }
       loadItineraryById(urlItineraryId);
     } else {
-      // Generate new preview itinerary (2 locations) - ONLY if no ID in URL
       console.log('🆕 Generating new preview itinerary (2 locations)');
       console.log('📊 Form data:', formData);
-      generateItineraryData(true);
+      generateItineraryData(true); // previewOnly = true
     }
   }, [isExample, exampleItinerary, urlItineraryId, urlShowFullPlan]);
-
-  const loadItineraryById = async (id) => {
-    try {
-      setLoading(true);
-      console.log(`📥 Loading itinerary by ID: ${id}`);
-      
-      const response = await getItinerary(id);
-      
-      if (response.success && response.itinerary) {
-        const savedItinerary = response.itinerary;
-        console.log('✅ Loaded itinerary:', savedItinerary);
-        console.log('📊 PreviewOnly:', savedItinerary.previewOnly, 'ShowFullPlan:', showFullPlan);
-        
-        // Convert to display format
-        const convertedData = {
-          ...savedItinerary,
-          daily_plan: [{
-            date: savedItinerary.date,
-            blocks: savedItinerary.activities.map(activity => ({
-              time: activity.time,
-              items: [{
-                title: activity.name || activity.title,
-                why: activity.description,
-                photos: activity.photos ? activity.photos.map(photoUrl => ({
-                  url: photoUrl,
-                  thumbnail: photoUrl,
-                  source: 'google_places'
-                })) : [],
-                address: activity.location,
-                approx_cost: activity.priceRange || `€${activity.price}`,
-                duration: `${activity.duration} min`,
-                tips: activity.recommendations,
-                rating: activity.rating
-              }]
-            }))
-          }]
-        };
-        
-        setItinerary(convertedData);
-        
-        // If full plan requested and current plan is preview, generate full plan
-        if ((showFullPlan || urlShowFullPlan) && savedItinerary.previewOnly) {
-          console.log('🔄 Full plan requested, generating complete itinerary...');
-          console.log('📊 showFullPlan:', showFullPlan, 'urlShowFullPlan:', urlShowFullPlan, 'previewOnly:', savedItinerary.previewOnly);
-          await generateFullItinerary(id);
-        } else {
-          console.log('ℹ️ Not generating full plan:', { showFullPlan, urlShowFullPlan, previewOnly: savedItinerary.previewOnly });
-        }
-      } else {
-        throw new Error('Itinerary not found');
-      }
-    } catch (error) {
-      console.error('❌ Error loading itinerary:', error);
-      setError('Failed to load itinerary. Generating new preview...');
-      // Fallback to generating new preview
-      generateItineraryData(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const generateFullItinerary = async (id) => {
-    try {
-      setLoading(true);
-      console.log(`🔄 Generating full itinerary for ID: ${id}`);
-      
-      const response = await completeItinerary(id, formData);
-      
-      if (response.success && response.itinerary) {
-        const fullItinerary = response.itinerary;
-        console.log('✅ Full itinerary generated:', fullItinerary);
-        
-        // Convert to display format
-        const convertedData = {
-          ...fullItinerary,
-          daily_plan: [{
-            date: fullItinerary.date,
-            blocks: fullItinerary.activities.map(activity => ({
-              time: activity.time,
-              items: [{
-                title: activity.name || activity.title,
-                why: activity.description,
-                photos: activity.photos ? activity.photos.map(photoUrl => ({
-                  url: photoUrl,
-                  thumbnail: photoUrl,
-                  source: 'google_places'
-                })) : [],
-                address: activity.location,
-                approx_cost: activity.priceRange || `€${activity.price}`,
-                duration: `${activity.duration} min`,
-                tips: activity.recommendations,
-                rating: activity.rating
-              }]
-            }))
-          }]
-        };
-        
-        setItinerary(convertedData);
-        setShowFullPlan(true);
-      }
-    } catch (error) {
-      console.error('❌ Error generating full itinerary:', error);
-      setError('Failed to generate full itinerary. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePayment = async () => {
-    // Use itineraryId from state or URL
-    const currentItineraryId = itineraryId || urlItineraryId;
-    
-    if (!email) {
-      alert('Please enter your email');
-      return;
-    }
-    
-    if (!currentItineraryId) {
-      alert('Itinerary ID is missing. Please refresh the page and try again.');
-      console.error('❌ No itinerary ID available for payment');
-      return;
-    }
-    
-    try {
-      console.log('💳 Initiating payment with:', { email, itineraryId: currentItineraryId, formData });
-      const response = await createCheckoutSession({
-        ...formData,
-        email,
-        itineraryId: currentItineraryId
-      });
-      
-      if (response.url) {
-        window.location.href = response.url;
-      }
-    } catch (error) {
-      console.error('❌ Payment error:', error);
-      alert('Failed to initiate payment. Please try again.');
-    }
-  };
 
   const generateItineraryData = async (previewOnly = false) => {
     try {
       setLoading(true);
-      console.log(`🌍 Starting REAL PLACES itinerary generation (previewOnly: ${previewOnly})...`);
+      console.log('🌍 Starting REAL PLACES itinerary generation (previewOnly:', previewOnly, ')...');
       
       try {
         // ОСНОВНАЯ система с реальными местами
-        console.log('📞 CALLING generateSmartItinerary with previewOnly:', previewOnly, 'type:', typeof previewOnly);
+        console.log('CALLING generateSmartItinerary with previewOnly:', previewOnly, 'type:', typeof previewOnly);
         const data = await generateSmartItinerary(formData, previewOnly);
         console.log('✅ Received smart itinerary data:', data);
         
@@ -297,7 +155,7 @@ export default function ItineraryPage() {
           // Конвертируем данные в нужный формат для отображения
           const convertedData = {
             ...data,
-            previewOnly: data.previewOnly || previewOnly, // Сохраняем флаг previewOnly
+            previewOnly: data.previewOnly || previewOnly, // Preserve previewOnly flag
             daily_plan: [{
               date: data.date,
               blocks: data.activities.map(activity => ({
@@ -320,36 +178,32 @@ export default function ItineraryPage() {
             }]
           };
           console.log('✅ Converted data for display:', convertedData);
-          console.log('📊 Preview mode:', convertedData.previewOnly, 'Activities count:', convertedData.daily_plan[0].blocks.length);
+          console.log('Preview mode:', convertedData.previewOnly, 'Activities count:', convertedData.daily_plan[0].blocks.length);
+          setItinerary(convertedData);
           
-          // Save preview to Redis FIRST if it's a new generation (no itineraryId in URL or state)
+          // Если это preview и нет itineraryId, сохраняем в Redis
           if (previewOnly && !urlItineraryId && !itineraryId) {
-            console.log('💾 Saving preview itinerary to Redis...');
+            console.log('Saving preview itinerary to Redis...');
             try {
-              const dataToSave = { ...data, previewOnly: true };
-              console.log('💾 Data to save:', { previewOnly: dataToSave.previewOnly, activitiesCount: dataToSave.activities?.length });
-              const saveResponse = await saveItinerary(dataToSave);
-              if (saveResponse.success && saveResponse.itineraryId) {
-                console.log('✅ Preview saved with ID:', saveResponse.itineraryId);
-                setItineraryId(saveResponse.itineraryId);
+              const saveResult = await saveItinerary({
+                itinerary: convertedData,
+                itineraryId: null // Let backend generate ID
+              });
+              console.log('Data to save:', { previewOnly: convertedData.previewOnly, activitiesCount: convertedData.daily_plan[0].blocks.length });
+              
+              if (saveResult.success && saveResult.itineraryId) {
+                const newId = saveResult.itineraryId;
+                setItineraryId(newId);
                 // Update URL with itinerary ID
                 const newParams = new URLSearchParams(searchParams);
-                newParams.set('id', saveResponse.itineraryId);
-                navigate(`/itinerary?${newParams.toString()}`, { replace: true });
-                // Set itinerary after saving
-                setItinerary(convertedData);
-              } else {
-                console.error('❌ Save response failed:', saveResponse);
-                setItinerary(convertedData);
+                newParams.set('id', newId);
+                setSearchParams(newParams, { replace: true });
+                console.log('✅ Preview saved with ID:', newId);
               }
             } catch (saveError) {
               console.error('❌ Failed to save itinerary:', saveError);
-              // Still show itinerary even if save fails
-              setItinerary(convertedData);
+              // Don't block the UI if save fails
             }
-          } else {
-            // If already has ID or not preview, just set itinerary
-            setItinerary(convertedData);
           }
           
           return;
@@ -360,21 +214,12 @@ export default function ItineraryPage() {
       } catch (apiError) {
         console.error('❌ Real places API failed:', apiError);
         
-        // Проверяем тип ошибки
-        const errorMessage = apiError?.response?.data?.message || apiError?.message || 'Unknown error';
-        
-        // Если это ошибка квоты OpenAI
-        if (errorMessage.includes('429') || errorMessage.includes('quota') || errorMessage.includes('billing')) {
-          setError('OpenAI API quota exceeded. Please check your OpenAI account billing and quota. The service will resume once the quota is restored.');
-          setLoading(false);
-          return;
+        // Если это ошибка квоты OpenAI, показываем понятное сообщение
+        if (apiError.response?.data?.error?.includes('quota') || apiError.message?.includes('quota')) {
+          setError('OpenAI API quota exceeded. Please try again later or contact support.');
+        } else {
+          setError(`Failed to generate itinerary for ${formData.city}. Please try again later.`);
         }
-        
-        // Для других ошибок используем fallback
-        console.log('🔄 Using local fallback itinerary...');
-        const fallbackData = generateFallbackItinerary(formData);
-        setItinerary(fallbackData);
-        return;
       }
       
     } catch (error) {
@@ -382,6 +227,131 @@ export default function ItineraryPage() {
       setError(`Failed to generate itinerary for ${formData.city}. Please try again later.`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadItineraryById = async (id) => {
+    try {
+      setLoading(true);
+      console.log('📥 Loading itinerary from Redis:', id);
+      
+      const response = await getItinerary(id);
+      
+      if (response.success && response.itinerary) {
+        const savedItinerary = response.itinerary;
+        console.log('✅ Loaded itinerary:', { previewOnly: savedItinerary.previewOnly, activitiesCount: savedItinerary.activities?.length });
+        
+        // Convert to display format
+        const convertedData = {
+          ...savedItinerary,
+          daily_plan: [{
+            date: savedItinerary.date,
+            blocks: (savedItinerary.activities || []).map(activity => ({
+              time: activity.time,
+              items: [{
+                title: activity.name || activity.title,
+                why: activity.description,
+                photos: activity.photos ? activity.photos.map(photoUrl => ({
+                  url: photoUrl,
+                  thumbnail: photoUrl,
+                  source: 'google_places'
+                })) : [],
+                address: activity.location,
+                approx_cost: activity.priceRange || `€${activity.price}`,
+                duration: `${activity.duration} min`,
+                tips: activity.recommendations,
+                rating: activity.rating
+              }]
+            }))
+          }]
+        };
+        
+        setItinerary(convertedData);
+        
+        // If we need to show full plan and it's still a preview, generate full plan
+        if ((showFullPlan || urlShowFullPlan) && savedItinerary.previewOnly) {
+          console.log('🔄 Generating full itinerary from preview...');
+          await generateFullItinerary(id);
+        }
+      } else {
+        setError('Itinerary not found. Please generate a new one.');
+      }
+    } catch (error) {
+      console.error('❌ Error loading itinerary:', error);
+      setError('Failed to load itinerary. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateFullItinerary = async (id) => {
+    try {
+      setLoading(true);
+      console.log('🔄 Completing itinerary:', id);
+      
+      const response = await completeItinerary(id, formData);
+      
+      if (response.success && response.itinerary) {
+        const fullItinerary = response.itinerary;
+        
+        // Convert to display format
+        const convertedData = {
+          ...fullItinerary,
+          daily_plan: [{
+            date: fullItinerary.date,
+            blocks: (fullItinerary.activities || []).map(activity => ({
+              time: activity.time,
+              items: [{
+                title: activity.name || activity.title,
+                why: activity.description,
+                photos: activity.photos ? activity.photos.map(photoUrl => ({
+                  url: photoUrl,
+                  thumbnail: photoUrl,
+                  source: 'google_places'
+                })) : [],
+                address: activity.location,
+                approx_cost: activity.priceRange || `€${activity.price}`,
+                duration: `${activity.duration} min`,
+                tips: activity.recommendations,
+                rating: activity.rating
+              }]
+            }))
+          }]
+        };
+        
+        setItinerary(convertedData);
+        setShowFullPlan(true);
+        console.log('✅ Full itinerary loaded:', convertedData.daily_plan[0].blocks.length, 'activities');
+      }
+    } catch (error) {
+      console.error('❌ Error completing itinerary:', error);
+      setError('Failed to generate full itinerary. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePayment = async () => {
+    const currentItineraryId = itineraryId || urlItineraryId;
+    if (!email || !currentItineraryId) {
+      alert('Please enter your email and ensure itinerary ID is present.');
+      return;
+    }
+    
+    try {
+      console.log('💳 Creating checkout session:', { email, itineraryId: currentItineraryId });
+      const session = await createCheckoutSession({
+        ...formData,
+        email,
+        itineraryId: currentItineraryId
+      });
+      
+      if (session.url) {
+        window.location.href = session.url;
+      }
+    } catch (error) {
+      console.error('❌ Payment error:', error);
+      alert('Failed to initiate payment. Please try again.');
     }
   };
 
@@ -585,10 +555,10 @@ export default function ItineraryPage() {
             height: '60px',
             margin: '0 auto 16px',
             border: '4px solid #f3f4f6',
-            borderTop: '4px solid #3E85FC',
+            borderTop: '4px solid #3b82f6',
             borderRadius: '50%',
             animation: 'spin 1s linear infinite'
-          }}></div>
+          }} />
           <style>{`
             @keyframes spin {
               0% { transform: rotate(0deg); }
@@ -801,6 +771,59 @@ export default function ItineraryPage() {
           </button>
         </div>
 
+        {/* Pay to Unlock Section */}
+        {itinerary?.previewOnly && !showFullPlan && itinerary?.daily_plan?.[0]?.blocks && itinerary.daily_plan[0].blocks.length >= 2 && (
+          <div className="enhanced-card" style={{ 
+            backgroundColor: '#eff6ff', 
+            border: '2px solid #3b82f6',
+            marginBottom: '24px'
+          }}>
+            <div style={{ textAlign: 'center', padding: '24px' }}>
+              <div style={{ fontSize: '32px', marginBottom: '16px' }}>🔒</div>
+              <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937', marginBottom: '12px' }}>
+                Unlock Full Itinerary
+              </h2>
+              <p style={{ color: '#6b7280', marginBottom: '24px' }}>
+                Get access to the complete day plan with all activities
+              </p>
+              
+              <div style={{ maxWidth: '400px', margin: '0 auto 20px' }}>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    borderRadius: '8px',
+                    border: '1px solid #d1d5db',
+                    fontSize: '16px',
+                    marginBottom: '16px'
+                  }}
+                />
+                <button
+                  onClick={handlePayment}
+                  disabled={!email || !(itineraryId || urlItineraryId)}
+                  style={{
+                    width: '100%',
+                    padding: '14px 24px',
+                    backgroundColor: (itineraryId || urlItineraryId) && email ? '#3b82f6' : '#9ca3af',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    cursor: (itineraryId || urlItineraryId) && email ? 'pointer' : 'not-allowed',
+                    transition: 'background-color 0.2s'
+                  }}
+                >
+                  Pay to Unlock Full Plan
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Itinerary Plan */}
         <div className="enhanced-card">
@@ -808,7 +831,7 @@ export default function ItineraryPage() {
             📅 Day Plan
           </h2>
           
-          {itinerary?.daily_plan?.[0]?.blocks?.slice(0, (showFullPlan || !itinerary?.previewOnly) ? itinerary.daily_plan[0].blocks.length : 2).map((block, blockIndex) => (
+          {itinerary?.daily_plan?.[0]?.blocks?.map((block, blockIndex) => (
             <div key={blockIndex} style={blockStyle}>
               <div className="time-block-enhanced">{block.time}</div>
               {block.items?.map((item, itemIndex) => (
@@ -859,56 +882,6 @@ export default function ItineraryPage() {
               ))}
             </div>
           ))}
-          
-          {/* Pay to Unlock Section - показываем только в preview режиме */}
-          {itinerary?.previewOnly && !showFullPlan && itinerary?.daily_plan?.[0]?.blocks && itinerary.daily_plan[0].blocks.length >= 2 && (
-            <div style={{
-              marginTop: '40px',
-              padding: '30px',
-              backgroundColor: '#f8f9fa',
-              borderRadius: '12px',
-              border: '2px solid #007bff',
-              textAlign: 'center'
-            }}>
-              <h3 style={{ marginBottom: '16px', color: '#007bff' }}>🔒 Unlock Full Itinerary</h3>
-              <p style={{ marginBottom: '24px', color: '#666' }}>
-                Get access to the complete day plan with all activities
-              </p>
-              <div style={{ marginBottom: '24px' }}>
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  style={{
-                    padding: '12px 16px',
-                    fontSize: '16px',
-                    border: '1px solid #ddd',
-                    borderRadius: '8px',
-                    width: '300px',
-                    maxWidth: '100%'
-                  }}
-                />
-              </div>
-              <button
-                onClick={handlePayment}
-                disabled={!email || (!itineraryId && !urlItineraryId)}
-                style={{
-                  padding: '14px 32px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  backgroundColor: (!email || (!itineraryId && !urlItineraryId)) ? '#ccc' : '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: (!email || (!itineraryId && !urlItineraryId)) ? 'not-allowed' : 'pointer',
-                  opacity: !email || !itineraryId ? 0.6 : 1
-                }}
-              >
-                💳 Pay to Unlock Full Plan
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Footer */}

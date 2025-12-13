@@ -62,7 +62,7 @@ export const generateSmartItinerary = async (formData, previewOnly = false) => {
   try {
     const requestData = {
       ...formData,
-      previewOnly: previewOnly === true || previewOnly === 'true' // Явно преобразуем в boolean
+      previewOnly: previewOnly === true || previewOnly === 'true' // Normalize to boolean
     };
     console.log('📤 API CALL: generateSmartItinerary with previewOnly:', requestData.previewOnly);
     const response = await api.post('/api/smart-itinerary', requestData);
@@ -220,9 +220,11 @@ export const getExample = async (exampleId) => {
 };
 
 // Save itinerary to Redis
-export const saveItinerary = async (itinerary, itineraryId = null) => {
+export const saveItinerary = async (itineraryData) => {
   try {
-    const response = await api.post('/api/save-itinerary', { itinerary, itineraryId });
+    console.log('💾 Saving itinerary to Redis:', { previewOnly: itineraryData.previewOnly, activitiesCount: itineraryData.activities?.length });
+    const response = await api.post('/api/save-itinerary', itineraryData);
+    console.log('✅ Itinerary saved successfully:', response.data);
     return response.data;
   } catch (error) {
     console.error('Save itinerary error:', error);
@@ -233,7 +235,9 @@ export const saveItinerary = async (itinerary, itineraryId = null) => {
 // Get itinerary from Redis by ID
 export const getItinerary = async (id) => {
   try {
+    console.log('📥 Loading itinerary from Redis:', id);
     const response = await api.get(`/api/get-itinerary?id=${id}`);
+    console.log('✅ Itinerary loaded:', response.data);
     return response.data;
   } catch (error) {
     console.error('Get itinerary error:', error);
@@ -241,10 +245,15 @@ export const getItinerary = async (id) => {
   }
 };
 
-// Complete itinerary generation (generate full plan from preview)
+// Complete itinerary (generate full plan from preview)
 export const completeItinerary = async (itineraryId, formData) => {
   try {
-    const response = await api.post('/api/complete-itinerary', { itineraryId, formData });
+    console.log('🔄 Completing itinerary:', itineraryId);
+    const response = await api.post('/api/complete-itinerary', {
+      itineraryId,
+      ...formData
+    });
+    console.log('✅ Itinerary completed:', response.data);
     return response.data;
   } catch (error) {
     console.error('Complete itinerary error:', error);
