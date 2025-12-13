@@ -133,8 +133,9 @@ export default function ItineraryPage() {
       }
       loadItineraryById(urlItineraryId);
     } else {
-      // Generate new preview itinerary (2 locations)
+      // Generate new preview itinerary (2 locations) - ONLY if no ID in URL
       console.log('🆕 Generating new preview itinerary (2 locations)');
+      console.log('📊 Form data:', formData);
       generateItineraryData(true);
     }
   }, [isExample, exampleItinerary, urlItineraryId, urlShowFullPlan]);
@@ -311,24 +312,35 @@ export default function ItineraryPage() {
           };
           console.log('✅ Converted data for display:', convertedData);
           console.log('📊 Preview mode:', convertedData.previewOnly, 'Activities count:', convertedData.daily_plan[0].blocks.length);
-          setItinerary(convertedData);
           
-          // Save preview to Redis if it's a new generation (no itineraryId in URL)
-          if (previewOnly && !urlItineraryId) {
+          // Save preview to Redis FIRST if it's a new generation (no itineraryId in URL or state)
+          if (previewOnly && !urlItineraryId && !itineraryId) {
             console.log('💾 Saving preview itinerary to Redis...');
             try {
               const dataToSave = { ...data, previewOnly: true };
+              console.log('💾 Data to save:', { previewOnly: dataToSave.previewOnly, activitiesCount: dataToSave.activities?.length });
               const saveResponse = await saveItinerary(dataToSave);
               if (saveResponse.success && saveResponse.itineraryId) {
                 console.log('✅ Preview saved with ID:', saveResponse.itineraryId);
+                setItineraryId(saveResponse.itineraryId);
                 // Update URL with itinerary ID
                 const newParams = new URLSearchParams(searchParams);
                 newParams.set('id', saveResponse.itineraryId);
                 navigate(`/itinerary?${newParams.toString()}`, { replace: true });
+                // Set itinerary after saving
+                setItinerary(convertedData);
+              } else {
+                console.error('❌ Save response failed:', saveResponse);
+                setItinerary(convertedData);
               }
             } catch (saveError) {
               console.error('❌ Failed to save itinerary:', saveError);
+              // Still show itinerary even if save fails
+              setItinerary(convertedData);
             }
+          } else {
+            // If already has ID or not preview, just set itinerary
+            setItinerary(convertedData);
           }
           
           return;
