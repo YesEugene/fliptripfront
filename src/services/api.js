@@ -261,4 +261,24 @@ export const completeItinerary = async (itineraryId, formData) => {
   }
 };
 
+// Get alternative places
+export const getAlternatives = async (category, city, currentPlaceName, currentAddress) => {
+  try {
+    console.log('🔍 Getting alternatives:', { category, city, currentPlaceName });
+    const response = await api.get('/api/get-alternatives', {
+      params: {
+        category,
+        city,
+        currentPlaceName,
+        currentAddress
+      }
+    });
+    console.log('✅ Alternatives loaded:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Get alternatives error:', error);
+    throw error;
+  }
+};
+
 export default api;
