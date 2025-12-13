@@ -366,7 +366,7 @@ export default function HomePage() {
                   backgroundColor: 'white',
                   borderRadius: '12px',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  zIndex: 20,
+                  zIndex: 1000,
                   marginTop: '4px',
                   maxHeight: '320px',
                   overflowY: 'auto'
@@ -465,7 +465,7 @@ export default function HomePage() {
                   backgroundColor: 'white',
                   borderRadius: '12px',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  zIndex: 20,
+                  zIndex: 1000,
                   marginTop: '4px',
                   maxHeight: '320px',
                   overflowY: 'auto'
