@@ -136,6 +136,38 @@ export default function HomePage() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   // Removed '' state - using simple dropdown only
 
+  // Random city images for header background
+  const cityImages = [
+    'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&h=600&fit=crop&q=80', // Paris
+    'https://images.unsplash.com/photo-1539037116277-4db20889f2d2?w=1200&h=600&fit=crop&q=80', // Barcelona
+    'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=1200&h=600&fit=crop&q=80', // Amsterdam
+    'https://images.unsplash.com/photo-1587330979470-3595ac045ab0?w=1200&h=600&fit=crop&q=80', // Berlin
+    'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&h=600&fit=crop&q=80', // London
+    'https://images.unsplash.com/photo-1529260830199-42c24126f198?w=1200&h=600&fit=crop&q=80', // Rome
+    'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=1200&h=600&fit=crop&q=80', // Lisbon
+    'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=1200&h=600&fit=crop&q=80', // New York
+    'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1200&h=600&fit=crop&q=80', // Tokyo
+    'https://images.unsplash.com/photo-1541849546-216549ae216d?w=1200&h=600&fit=crop&q=80', // Prague
+    'https://images.unsplash.com/photo-1516550893923-42d28e5677af?w=1200&h=600&fit=crop&q=80', // Vienna
+    'https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?w=1200&h=600&fit=crop&q=80', // Venice
+    'https://images.unsplash.com/photo-1520175480921-4edfa2983e0f?w=1200&h=600&fit=crop&q=80', // Florence
+    'https://images.unsplash.com/photo-1513326738677-b964603b136d?w=1200&h=600&fit=crop&q=80', // Moscow
+    'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=1200&h=600&fit=crop&q=80', // Istanbul
+    'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&h=600&fit=crop&q=80', // Dubai
+    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=600&fit=crop&q=80', // Sydney
+    'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=1200&h=600&fit=crop&q=80', // Singapore
+    'https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?w=1200&h=600&fit=crop&q=80', // Copenhagen
+    'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&h=600&fit=crop&q=80&auto=format' // Generic beautiful city
+  ];
+
+  const [randomCityImage, setRandomCityImage] = useState('');
+
+  // Select random city image on component mount
+  React.useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * cityImages.length);
+    setRandomCityImage(cityImages[randomIndex]);
+  }, []);
+
   const handleCitySelect = (city) => {
     setFormData(prev => ({ ...prev, city }));
     setIsDropdownOpen(false);
@@ -264,7 +296,9 @@ export default function HomePage() {
             justifyContent: 'flex-start',
             alignItems: 'center',
             paddingTop: '40px',
-            flex: 1
+            flex: 1,
+            position: 'relative',
+            zIndex: 2
           }}>
             <img 
               src={FlipTripLogo} 
@@ -281,7 +315,8 @@ export default function HomePage() {
               fontWeight: 'bold',
               textAlign: 'center',
               lineHeight: '1.3',
-              marginBottom: '40px'
+              marginBottom: '40px',
+              textShadow: '0 2px 8px rgba(0,0,0,0.5)'
             }}>
               Choose a city.<br />
               We'll craft your journey.
