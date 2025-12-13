@@ -965,7 +965,7 @@ export default function ItineraryPage() {
         {/* Tags below image */}
         <div style={{ 
           marginBottom: '24px',
-          padding: '0 20px'
+          padding: 0
         }}>
           <div className="badges" style={{
             display: 'flex',
