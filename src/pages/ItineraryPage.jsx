@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail, saveItinerary, getItinerary, completeItinerary } from '../services/api';
+import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail, saveItinerary, getItinerary, completeItinerary, createCheckoutSession } from '../services/api';
 import html2pdf from 'html2pdf.js';
 import PhotoGallery from '../components/PhotoGallery';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
@@ -15,6 +15,7 @@ export default function ItineraryPage() {
   const [itinerary, setItinerary] = useState(null);
   const [itineraryId, setItineraryId] = useState(null);
   const [showFullPlan, setShowFullPlan] = useState(false);
+  const [email, setEmail] = useState('');
 
   // Генерация fallback заголовков согласно промптам
   const generateFallbackTitle = (formData) => {
@@ -242,6 +243,29 @@ export default function ItineraryPage() {
       setError('Failed to generate full itinerary. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePayment = async () => {
+    if (!email || !itineraryId) {
+      alert('Please enter your email');
+      return;
+    }
+    
+    try {
+      console.log('💳 Initiating payment with:', { email, itineraryId, formData });
+      const response = await createCheckoutSession({
+        ...formData,
+        email,
+        itineraryId
+      });
+      
+      if (response.url) {
+        window.location.href = response.url;
+      }
+    } catch (error) {
+      console.error('❌ Payment error:', error);
+      alert('Failed to initiate payment. Please try again.');
     }
   };
 
@@ -753,7 +777,7 @@ export default function ItineraryPage() {
             📅 Day Plan
           </h2>
           
-          {itinerary?.daily_plan?.[0]?.blocks?.map((block, blockIndex) => (
+          {itinerary?.daily_plan?.[0]?.blocks?.slice(0, (showFullPlan || !itinerary?.previewOnly) ? itinerary.daily_plan[0].blocks.length : 2).map((block, blockIndex) => (
             <div key={blockIndex} style={blockStyle}>
               <div className="time-block-enhanced">{block.time}</div>
               {block.items?.map((item, itemIndex) => (
