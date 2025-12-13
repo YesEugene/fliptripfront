@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { generateSmartItinerary, saveItinerary, getItinerary, completeItinerary, createCheckoutSession } from '../services/api';
-import html2pdf from 'html2pdf.js';
 import PhotoGallery from '../components/PhotoGallery';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import './ItineraryPage.css';
@@ -485,6 +484,8 @@ export default function ItineraryPage() {
   };
 
   const handleDownloadPDF = async () => {
+    // Dynamic import for html2pdf.js to avoid build issues
+    const html2pdf = (await import('html2pdf.js')).default;
     try {
       // Находим элемент для конвертации в PDF
       const element = document.querySelector('.itinerary-container');
