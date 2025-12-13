@@ -267,8 +267,7 @@ export default function ItineraryPage() {
       const response = await createCheckoutSession({
         ...formData,
         email,
-        itineraryId,
-        itineraryId
+        itineraryId: currentItineraryId
       });
       
       if (response.url) {
