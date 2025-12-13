@@ -758,7 +758,7 @@ export default function ItineraryPage() {
             return (
               <div style={{
                 width: '100%',
-                height: '400px',
+                height: '250px',
                 backgroundImage: `url(${cityImage})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
@@ -777,9 +777,9 @@ export default function ItineraryPage() {
                 {/* Title overlay on image */}
                 <div style={{
                   position: 'absolute',
-                  top: '40px',
-                  left: '32px',
-                  right: '32px',
+                  top: '24px',
+                  left: '24px',
+                  right: '24px',
                   zIndex: 2
                 }}>
                   <h1 style={{
@@ -797,8 +797,8 @@ export default function ItineraryPage() {
                 {/* Download PDF Button at bottom of image */}
                 <div style={{
                   position: 'absolute',
-                  bottom: '24px',
-                  left: '32px',
+                  bottom: '16px',
+                  left: '24px',
                   zIndex: 2
                 }}>
                   <button
@@ -807,29 +807,29 @@ export default function ItineraryPage() {
                       backgroundColor: 'white',
                       color: '#1f2937',
                       border: 'none',
-                      borderRadius: '12px',
-                      padding: '12px 24px',
-                      fontSize: '16px',
+                      borderRadius: '8px',
+                      padding: '8px 16px',
+                      fontSize: '14px',
                       fontWeight: '600',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '8px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                      gap: '6px',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
                       transition: 'all 0.2s'
                     }}
                     onMouseOver={(e) => {
                       e.target.style.backgroundColor = '#f9fafb';
                       e.target.style.transform = 'translateY(-2px)';
-                      e.target.style.boxShadow = '0 6px 16px rgba(0,0,0,0.4)';
+                      e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
                     }}
                     onMouseOut={(e) => {
                       e.target.style.backgroundColor = 'white';
                       e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+                      e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
                     }}
                   >
-                    <span style={{ fontSize: '20px' }}>📄</span>
+                    <span style={{ fontSize: '16px' }}>📄</span>
                     Download PDF
                   </button>
                 </div>
