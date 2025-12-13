@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import FlipTripPhoto from '../assets/FlipTripPhoto.svg';
@@ -224,10 +224,13 @@ export default function HomePage() {
                   marginLeft: 'auto',
                   marginRight: 'auto'
                 }}>
-                  {/* Red Header Section - only show when no city selected */}
+                  {/* Header Section with random city image - only show when no city selected */}
                   {!showFilters && (
                     <div className="red-header-section" style={{
-                      backgroundColor: '#F04C31',
+                      backgroundImage: randomCityImage ? `url(${randomCityImage})` : 'none',
+                      backgroundColor: randomCityImage ? 'transparent' : '#F04C31',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
                       height: '330px',
                       position: 'relative',
                       display: 'flex',
@@ -243,6 +246,16 @@ export default function HomePage() {
                       marginRight: '-50vw',
                       top: 0
                     }}>
+                      {/* Dark overlay for better text readability */}
+                      <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                        zIndex: 1
+                      }} />
           
           {/* Mobile Logo - Centered */}
           <div style={{
@@ -281,7 +294,7 @@ export default function HomePage() {
             bottom: '20px',
             left: '20px',
             right: '20px',
-            zIndex: 20,
+            zIndex: 2,
             display: 'block',
             maxWidth: '750px',
             margin: '0 auto'
