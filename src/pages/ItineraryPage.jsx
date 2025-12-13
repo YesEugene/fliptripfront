@@ -718,13 +718,103 @@ export default function ItineraryPage() {
       </div>
 
       <div className="content-section">
-        {/* Header */}
+        {/* Header with Image */}
+        <div style={{ 
+          position: 'relative', 
+          borderRadius: '16px', 
+          overflow: 'hidden',
+          marginBottom: '24px',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+        }}>
+          {/* Background Image */}
+          <div style={{
+            width: '100%',
+            height: '400px',
+            backgroundImage: `url(${
+              itinerary?.daily_plan?.[0]?.blocks?.[0]?.items?.[0]?.photos?.[0]?.url || 
+              itinerary?.daily_plan?.[0]?.blocks?.[0]?.items?.[0]?.photos?.[0] ||
+              'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&h=600&fit=crop&q=80'
+            })`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            position: 'relative'
+          }}>
+            {/* Dark overlay for better text readability */}
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.5) 100%)'
+            }} />
+            
+            {/* Title overlay on image */}
+            <div style={{
+              position: 'absolute',
+              top: '40px',
+              left: '32px',
+              right: '32px',
+              zIndex: 2
+            }}>
+              <h1 style={{
+                fontSize: '36px',
+                fontWeight: 'bold',
+                color: 'white',
+                textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+                margin: 0,
+                lineHeight: '1.2'
+              }}>
+                {itinerary?.title || generateFallbackTitle(formData)}
+              </h1>
+            </div>
+
+            {/* Download PDF Button at bottom of image */}
+            <div style={{
+              position: 'absolute',
+              bottom: '24px',
+              left: '32px',
+              zIndex: 2
+            }}>
+              <button
+                onClick={handleDownloadPDF}
+                style={{
+                  backgroundColor: 'white',
+                  color: '#1f2937',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = '#f9fafb';
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 6px 16px rgba(0,0,0,0.4)';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = 'white';
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+                }}
+              >
+                <span style={{ fontSize: '20px' }}>📄</span>
+                Download PDF
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Content below image */}
         <div className="enhanced-card">
-          <h1 className="title">
-{itinerary?.title || generateFallbackTitle(formData)}
-          </h1>
-          <p className="subtitle">
-{itinerary?.subtitle || generateFallbackSubtitle(formData)}
+          <p className="subtitle" style={{ marginTop: 0 }}>
+            {itinerary?.subtitle || generateFallbackSubtitle(formData)}
           </p>
           
           <div className="badges">
@@ -763,13 +853,6 @@ export default function ItineraryPage() {
               )}
             </div>
           )}
-
-          <button
-            onClick={handleDownloadPDF}
-            className="download-button"
-          >
-            📱 Download PDF
-          </button>
         </div>
 
         {/* Pay to Unlock Section */}
