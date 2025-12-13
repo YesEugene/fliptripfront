@@ -621,7 +621,7 @@ export default function HomePage() {
                         color: '#374151',
                         cursor: 'pointer',
                         backgroundColor: 'white',
-                        pointerEvents: window.innerWidth <= 768 ? 'none' : 'auto'
+                        pointerEvents: 'auto'
                       }}
                     />
                     <span style={{
