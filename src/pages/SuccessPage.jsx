@@ -73,13 +73,10 @@ export default function SuccessPage() {
       date: formData.date,
       budget: formData.budget
     });
-    
-    // Add itineraryId and full=true if we have an ID
     if (formData.itineraryId) {
       queryParams.set('id', formData.itineraryId);
-      queryParams.set('full', 'true');
+      queryParams.set('full', 'true'); // Указываем, что нужен полный план
     }
-    
     navigate(`/itinerary?${queryParams.toString()}`);
   };
 
