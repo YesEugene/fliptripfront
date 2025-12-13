@@ -263,7 +263,7 @@ export default function ItineraryPage() {
     }
     
     try {
-      console.log('💳 Initiating payment with:', { email, itineraryId, formData });
+      console.log('💳 Initiating payment with:', { email, itineraryId: currentItineraryId, formData });
       const response = await createCheckoutSession({
         ...formData,
         email,
