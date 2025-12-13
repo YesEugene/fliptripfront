@@ -1052,7 +1052,8 @@ export default function ItineraryPage() {
           <div className="enhanced-card" style={{ 
             backgroundColor: '#eff6ff', 
             border: '2px solid #3b82f6',
-            marginBottom: '24px'
+            marginBottom: '24px',
+            borderRadius: '12px'
           }}>
             <div style={{ textAlign: 'center', padding: '24px' }}>
               <div style={{ fontSize: '32px', marginBottom: '16px' }}>🔒</div>
