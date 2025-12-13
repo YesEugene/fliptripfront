@@ -1053,6 +1053,7 @@ export default function ItineraryPage() {
             backgroundColor: '#eff6ff', 
             border: '2px solid #3b82f6',
             marginBottom: '24px',
+            marginTop: '20px',
             borderRadius: '12px'
           }}>
             <div style={{ textAlign: 'center', padding: '24px' }}>
