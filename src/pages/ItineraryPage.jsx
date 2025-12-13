@@ -264,7 +264,8 @@ export default function ItineraryPage() {
                 approx_cost: activity.priceRange || `€${activity.price}`,
                 duration: `${activity.duration} min`,
                 tips: activity.recommendations,
-                rating: activity.rating
+                rating: activity.rating,
+                category: activity.category // Сохраняем category
               }]
             }))
           }]
