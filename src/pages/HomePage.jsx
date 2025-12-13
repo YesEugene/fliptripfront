@@ -606,48 +606,10 @@ export default function HomePage() {
                       placeholder="09 Feb"
                       readOnly
                       onClick={(e) => {
-                        // For desktop: use showPicker if available
-                        if (window.innerWidth > 768) {
-                          const dateInput = document.createElement('input');
-                          dateInput.type = 'date';
-                          dateInput.min = new Date().toISOString().slice(0, 10);
-                          dateInput.value = formData.date || '';
-                          
-                          const rect = e.target.getBoundingClientRect();
-                          dateInput.style.position = 'fixed';
-                          dateInput.style.left = rect.left + 'px';
-                          dateInput.style.top = (rect.bottom + 5) + 'px';
-                          dateInput.style.zIndex = '9999';
-                          dateInput.style.opacity = '0';
-                          dateInput.style.pointerEvents = 'auto';
-                          dateInput.style.width = '1px';
-                          dateInput.style.height = '1px';
-                          
-                          document.body.appendChild(dateInput);
-                          
-                          setTimeout(() => {
-                            if (dateInput.showPicker) {
-                              dateInput.showPicker();
-                            } else {
-                              dateInput.click();
-                            }
-                          }, 10);
-                          
-                          dateInput.onchange = (e) => {
-                            setFormData(prev => ({ ...prev, date: e.target.value }));
-                            document.body.removeChild(dateInput);
-                          };
-                          
-                          dateInput.onblur = () => {
-                            setTimeout(() => {
-                              if (document.body.contains(dateInput)) {
-                                document.body.removeChild(dateInput);
-                              }
-                            }, 100);
-                          };
-                        } else {
-                          // For mobile: trigger the hidden date input
-                          e.target.previousElementSibling?.click();
+                        // Use the hidden date input for all devices - it works on both mobile and desktop
+                        const hiddenInput = e.target.previousElementSibling;
+                        if (hiddenInput && hiddenInput.type === 'date') {
+                          hiddenInput.click();
                         }
                       }}
                       style={{
