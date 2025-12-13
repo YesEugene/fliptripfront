@@ -828,6 +828,56 @@ export default function ItineraryPage() {
               ))}
             </div>
           ))}
+          
+          {/* Pay to Unlock Section - показываем только в preview режиме */}
+          {itinerary?.previewOnly && !showFullPlan && itinerary?.daily_plan?.[0]?.blocks && itinerary.daily_plan[0].blocks.length >= 2 && (
+            <div style={{
+              marginTop: '40px',
+              padding: '30px',
+              backgroundColor: '#f8f9fa',
+              borderRadius: '12px',
+              border: '2px solid #007bff',
+              textAlign: 'center'
+            }}>
+              <h3 style={{ marginBottom: '16px', color: '#007bff' }}>🔒 Unlock Full Itinerary</h3>
+              <p style={{ marginBottom: '24px', color: '#666' }}>
+                Get access to the complete day plan with all activities
+              </p>
+              <div style={{ marginBottom: '24px' }}>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  style={{
+                    padding: '12px 16px',
+                    fontSize: '16px',
+                    border: '1px solid #ddd',
+                    borderRadius: '8px',
+                    width: '300px',
+                    maxWidth: '100%'
+                  }}
+                />
+              </div>
+              <button
+                onClick={handlePayment}
+                disabled={!email || !itineraryId}
+                style={{
+                  padding: '14px 32px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: !email || !itineraryId ? 'not-allowed' : 'pointer',
+                  opacity: !email || !itineraryId ? 0.6 : 1
+                }}
+              >
+                💳 Pay to Unlock Full Plan
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
