@@ -882,7 +882,7 @@ export default function ItineraryPage() {
             return (
               <div style={{
                 width: '100%',
-                height: '400px',
+                height: '320px',
                 backgroundImage: `url(${cityImage})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
