@@ -1,6 +1,6 @@
 /**
- * CreateTourPage - Страница создания тура для гидов
- * Модуль: guide-dashboard
+ * CreateTourPage - Tour creation page for guides
+ * Module: guide-dashboard
  */
 
 import { useState, useEffect } from 'react';
@@ -22,6 +22,7 @@ export default function CreateTourPage() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+  
   const [formData, setFormData] = useState({
     title: '',
     city: '',
@@ -31,6 +32,7 @@ export default function CreateTourPage() {
     },
     languages: ['en'],
     format: 'self-guided',
+    additionalOptions: [],
     price: {
       amount: 0,
       currency: 'EUR',
@@ -54,6 +56,26 @@ export default function CreateTourPage() {
       total_estimated_cost: '€0'
     }
   });
+  
+  // Available additional options
+  const additionalOptionsList = [
+    { id: 'food', label: 'Food & Dining' },
+    { id: 'transport', label: 'Transportation' },
+    { id: 'accommodation', label: 'Accommodation' },
+    { id: 'photography', label: 'Photography Service' },
+    { id: 'guide', label: 'Personal Guide' },
+    { id: 'insurance', label: 'Travel Insurance' }
+  ];
+  
+  const handleAdditionalOptionChange = (optionId) => {
+    setFormData(prev => {
+      const currentOptions = prev.additionalOptions || [];
+      const newOptions = currentOptions.includes(optionId)
+        ? currentOptions.filter(id => id !== optionId)
+        : [...currentOptions, optionId];
+      return { ...prev, additionalOptions: newOptions };
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -66,7 +88,7 @@ export default function CreateTourPage() {
         navigate('/guide/dashboard');
       }
     } catch (err) {
-      setError(err.message || 'Ошибка создания тура');
+      setError(err.message || 'Error creating tour');
     } finally {
       setLoading(false);
     }
@@ -145,7 +167,7 @@ export default function CreateTourPage() {
               cursor: 'pointer'
             }}
           >
-            Отмена
+            Cancel
           </button>
         </div>
       </div>
@@ -153,7 +175,7 @@ export default function CreateTourPage() {
       {/* Content */}
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
         <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '24px' }}>
-          Создать новый тур
+          Create New Tour
         </h1>
 
         {error && (
@@ -169,7 +191,7 @@ export default function CreateTourPage() {
         )}
 
         <form onSubmit={handleSubmit}>
-          {/* Основная информация */}
+          {/* Basic Information */}
           <div style={{
             backgroundColor: 'white',
             padding: '24px',
@@ -178,12 +200,12 @@ export default function CreateTourPage() {
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
           }}>
             <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>
-              Основная информация
+              Basic Information
             </h2>
 
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                Название тура *
+                Tour Name *
               </label>
               <input
                 type="text"
@@ -202,7 +224,7 @@ export default function CreateTourPage() {
 
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                Город *
+                City *
               </label>
               <input
                 type="text"
@@ -227,7 +249,7 @@ export default function CreateTourPage() {
             }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                  Длительность
+                  Duration
                 </label>
                 <select
                   value={formData.duration.type}
@@ -243,13 +265,13 @@ export default function CreateTourPage() {
                     fontSize: '16px'
                   }}
                 >
-                  <option value="hours">Часы</option>
-                  <option value="days">Дни</option>
+                  <option value="hours">Hours</option>
+                  <option value="days">Days</option>
                 </select>
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                  Значение
+                  Value
                 </label>
                 <input
                   type="number"
@@ -272,7 +294,7 @@ export default function CreateTourPage() {
 
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                Формат тура
+                Tour Format
               </label>
               <select
                 value={formData.format}
@@ -285,15 +307,56 @@ export default function CreateTourPage() {
                   fontSize: '16px'
                 }}
               >
-                <option value="self-guided">Самостоятельно</option>
-                <option value="guided">С гидом</option>
-                <option value="food">Еда</option>
-                <option value="car">На автомобиле</option>
+                <option value="self-guided">Self-guided</option>
+                <option value="guided">With Guide</option>
               </select>
+            </div>
+            
+            {/* Additional Options */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500' }}>
+                Additional Options
+              </label>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+                gap: '12px'
+              }}>
+                {additionalOptionsList.map((option) => (
+                  <label
+                    key={option.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      backgroundColor: formData.additionalOptions?.includes(option.id) ? '#eff6ff' : 'white',
+                      transition: 'background-color 0.2s'
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={formData.additionalOptions?.includes(option.id) || false}
+                      onChange={() => handleAdditionalOptionChange(option.id)}
+                      style={{
+                        marginRight: '8px',
+                        width: '18px',
+                        height: '18px',
+                        cursor: 'pointer'
+                      }}
+                    />
+                    <span style={{ fontSize: '14px', fontWeight: '500' }}>
+                      {option.label}
+                    </span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* План по дням */}
+          {/* Daily Plan */}
           <div style={{
             backgroundColor: 'white',
             padding: '24px',
@@ -303,7 +366,7 @@ export default function CreateTourPage() {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ fontSize: '20px', fontWeight: 'bold' }}>
-                План по дням
+                Daily Plan
               </h2>
               <button
                 type="button"
@@ -317,7 +380,7 @@ export default function CreateTourPage() {
                   cursor: 'pointer'
                 }}
               >
-                + Добавить день
+                + Add Day
               </button>
             </div>
 
@@ -329,7 +392,7 @@ export default function CreateTourPage() {
                 marginBottom: '20px'
               }}>
                 <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px' }}>
-                  День {day.day}
+                  Day {day.day}
                 </h3>
 
                 {day.blocks.map((block, blockIndex) => (
@@ -358,7 +421,7 @@ export default function CreateTourPage() {
                       }}
                     />
                     
-                    {/* Локации в блоке */}
+                    {/* Locations in block */}
                     {block.items && block.items.length > 0 && (
                       <div style={{ marginBottom: '12px' }}>
                         {block.items.map((item, itemIndex) => (
@@ -370,7 +433,7 @@ export default function CreateTourPage() {
                             backgroundColor: '#f9fafb'
                           }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                              <strong style={{ fontSize: '14px' }}>Локация {itemIndex + 1}</strong>
+                              <strong style={{ fontSize: '14px' }}>Location {itemIndex + 1}</strong>
                               <button
                                 type="button"
                                 onClick={() => {
@@ -388,7 +451,7 @@ export default function CreateTourPage() {
                                   fontSize: '12px'
                                 }}
                               >
-                                Удалить
+                                Delete
                               </button>
                             </div>
                             
@@ -400,7 +463,7 @@ export default function CreateTourPage() {
                                 newPlan[dayIndex].blocks[blockIndex].items[itemIndex].title = e.target.value;
                                 setFormData({ ...formData, daily_plan: newPlan });
                               }}
-                              placeholder="Название локации *"
+                              placeholder="Location Name *"
                               required
                               style={{
                                 width: '100%',
@@ -420,7 +483,7 @@ export default function CreateTourPage() {
                                 newPlan[dayIndex].blocks[blockIndex].items[itemIndex].address = e.target.value;
                                 setFormData({ ...formData, daily_plan: newPlan });
                               }}
-                              placeholder="Адрес"
+                              placeholder="Address"
                               style={{
                                 width: '100%',
                                 padding: '8px',
@@ -438,7 +501,7 @@ export default function CreateTourPage() {
                                 newPlan[dayIndex].blocks[blockIndex].items[itemIndex].description = e.target.value;
                                 setFormData({ ...formData, daily_plan: newPlan });
                               }}
-                              placeholder="Описание локации"
+                              placeholder="Location Description"
                               rows={3}
                               style={{
                                 width: '100%',
@@ -464,7 +527,7 @@ export default function CreateTourPage() {
                                   newPlan[dayIndex].blocks[blockIndex].items[itemIndex].category = e.target.value;
                                   setFormData({ ...formData, daily_plan: newPlan });
                                 }}
-                                placeholder="Категория"
+                                placeholder="Category"
                                 style={{
                                   padding: '8px',
                                   border: '1px solid #d1d5db',
@@ -481,7 +544,7 @@ export default function CreateTourPage() {
                                   newPlan[dayIndex].blocks[blockIndex].items[itemIndex].duration = e.target.value;
                                   setFormData({ ...formData, daily_plan: newPlan });
                                 }}
-                                placeholder="Длительность"
+                                placeholder="Duration"
                                 style={{
                                   padding: '8px',
                                   border: '1px solid #d1d5db',
@@ -498,7 +561,7 @@ export default function CreateTourPage() {
                                   newPlan[dayIndex].blocks[blockIndex].items[itemIndex].approx_cost = e.target.value;
                                   setFormData({ ...formData, daily_plan: newPlan });
                                 }}
-                                placeholder="Примерная стоимость"
+                                placeholder="Approximate Cost"
                                 style={{
                                   padding: '8px',
                                   border: '1px solid #d1d5db',
@@ -526,7 +589,7 @@ export default function CreateTourPage() {
                         fontSize: '14px'
                       }}
                     >
-                      + Добавить локацию
+                      + Add Location
                     </button>
                   </div>
                 ))}
@@ -544,13 +607,13 @@ export default function CreateTourPage() {
                     fontSize: '14px'
                   }}
                 >
-                  + Добавить блок времени
+                  + Add Time Block
                 </button>
               </div>
             ))}
           </div>
 
-          {/* Кнопка сохранения */}
+          {/* Submit Button */}
           <div style={{ marginBottom: '32px' }}>
             <button
               type="submit"
@@ -567,7 +630,7 @@ export default function CreateTourPage() {
                 cursor: loading ? 'not-allowed' : 'pointer'
               }}
             >
-              {loading ? 'Создание тура...' : 'Создать тур'}
+              {loading ? 'Creating Tour...' : 'Create Tour'}
             </button>
           </div>
         </form>
@@ -575,4 +638,3 @@ export default function CreateTourPage() {
     </div>
   );
 }
-

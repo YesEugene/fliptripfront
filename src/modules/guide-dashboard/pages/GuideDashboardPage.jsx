@@ -1,6 +1,6 @@
 /**
- * GuideDashboardPage - Личный кабинет гида (B2B)
- * Модуль: guide-dashboard
+ * GuideDashboardPage - Guide Dashboard (B2B)
+ * Module: guide-dashboard
  */
 
 import { useState, useEffect } from 'react';
@@ -40,7 +40,7 @@ export default function GuideDashboardPage() {
   };
 
   if (!user) {
-    return <div>Загрузка...</div>;
+    return <div>Loading...</div>;
   }
 
   return (
@@ -75,7 +75,7 @@ export default function GuideDashboardPage() {
                 cursor: 'pointer'
               }}
             >
-              Выйти
+              Logout
             </button>
           </div>
         </div>
@@ -85,7 +85,7 @@ export default function GuideDashboardPage() {
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h1 style={{ fontSize: '32px', fontWeight: 'bold' }}>
-            Панель гида
+            Guide Dashboard
           </h1>
           <Link
             to="/guide/tours/create"
@@ -98,7 +98,7 @@ export default function GuideDashboardPage() {
               fontWeight: '600'
             }}
           >
-            + Создать тур
+            + Create Tour
           </Link>
         </div>
 
@@ -108,7 +108,7 @@ export default function GuideDashboardPage() {
           gap: '24px',
           marginBottom: '32px'
         }}>
-          {/* Мои туры */}
+          {/* My Tours */}
           <div style={{
             backgroundColor: 'white',
             padding: '24px',
@@ -116,14 +116,14 @@ export default function GuideDashboardPage() {
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
           }}>
             <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '16px' }}>
-              Мои туры
+              My Tours
             </h2>
             {loading ? (
-              <p style={{ color: '#6b7280' }}>Загрузка...</p>
+              <p style={{ color: '#6b7280' }}>Loading...</p>
             ) : (
               <>
                 <p style={{ color: '#6b7280', marginBottom: '16px' }}>
-                  Всего туров: {tours.length}
+                  Total Tours: {tours.length}
                 </p>
                 {tours.length > 0 && (
                   <div style={{ marginTop: '16px' }}>
@@ -138,7 +138,7 @@ export default function GuideDashboardPage() {
                           {tour.title}
                         </h3>
                         <p style={{ color: '#6b7280', fontSize: '14px' }}>
-                          {tour.city} • {tour.duration.value} {tour.duration.type === 'hours' ? 'часов' : 'дней'}
+                          {tour.city} • {tour.duration.value} {tour.duration.type === 'hours' ? 'hours' : 'days'}
                         </p>
                       </div>
                     ))}
@@ -148,7 +148,7 @@ export default function GuideDashboardPage() {
             )}
           </div>
 
-          {/* Статистика */}
+          {/* Statistics */}
           <div style={{
             backgroundColor: 'white',
             padding: '24px',
@@ -156,12 +156,12 @@ export default function GuideDashboardPage() {
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
           }}>
             <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '16px' }}>
-              Статистика
+              Statistics
             </h2>
-            <p style={{ color: '#6b7280' }}>Здесь будет отображаться статистика продаж</p>
+            <p style={{ color: '#6b7280' }}>Sales statistics will be displayed here</p>
           </div>
 
-          {/* Настройки */}
+          {/* Settings */}
           <div style={{
             backgroundColor: 'white',
             padding: '24px',
@@ -169,7 +169,7 @@ export default function GuideDashboardPage() {
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
           }}>
             <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '16px' }}>
-              Настройки
+              Settings
             </h2>
             <Link
               to="/guide/settings"
@@ -179,7 +179,7 @@ export default function GuideDashboardPage() {
                 fontWeight: '600'
               }}
             >
-              Настройки профиля →
+              Profile Settings →
             </Link>
           </div>
         </div>
@@ -187,4 +187,3 @@ export default function GuideDashboardPage() {
     </div>
   );
 }
-
