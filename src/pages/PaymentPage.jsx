@@ -21,16 +21,6 @@ export default function PaymentPage() {
     email: email
   };
 
-  // Auto-create checkout session if itineraryId and email are present
-  useEffect(() => {
-    if (itineraryId && email) {
-      handlePayment();
-    } else {
-      setLoading(false);
-      setError('Missing itinerary ID or email');
-    }
-  }, [itineraryId, email]);
-
   const handlePayment = async () => {
     setLoading(true);
     setError('');
@@ -47,6 +37,17 @@ export default function PaymentPage() {
       setLoading(false);
     }
   };
+
+  // Auto-create checkout session if itineraryId and email are present
+  useEffect(() => {
+    if (itineraryId && email) {
+      handlePayment();
+    } else {
+      setLoading(false);
+      setError('Missing itinerary ID or email');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itineraryId, email]);
 
   const handleBack = () => {
     navigate(-1);
