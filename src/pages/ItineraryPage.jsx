@@ -167,7 +167,8 @@ export default function ItineraryPage() {
         if (loadedItinerary.daily_plan && loadedItinerary.daily_plan.length > 0) {
           // Already converted, use as is
           console.log('✅ Itinerary already in display format');
-          console.log('📋 Preview mode:', loadedItinerary.previewOnly ? 'YES (2 locations)' : 'NO (full day)');
+          console.log('📋 Preview mode:', loadedItinerary.previewOnly ? 'YES (showing first 2 blocks)' : 'NO (showing all blocks)');
+          console.log('📊 Total blocks in daily_plan:', loadedItinerary.daily_plan[0]?.blocks?.length || 0);
           console.log('📊 Total items in daily_plan:', totalItems);
           setItinerary(loadedItinerary);
         } else if (loadedItinerary.activities && loadedItinerary.activities.length > 0) {
