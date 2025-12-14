@@ -146,11 +146,52 @@ export default function ItineraryPage() {
       console.log('📥 Loaded data:', data);
       if (data && data.success && data.itinerary) {
         console.log('✅ Itinerary loaded from Redis');
-        setItinerary(data.itinerary);
-        // If it's a preview, set the itineraryId state
-        if (data.itinerary.previewOnly || previewOnly) {
-          setItineraryId(itineraryId);
+        const loadedItinerary = data.itinerary;
+        
+        // Check if it's already in the converted format (has daily_plan)
+        if (loadedItinerary.daily_plan && loadedItinerary.daily_plan.length > 0) {
+          // Already converted, use as is
+          console.log('✅ Itinerary already in display format');
+          setItinerary(loadedItinerary);
+        } else if (loadedItinerary.activities && loadedItinerary.activities.length > 0) {
+          // Need to convert from backend format to display format
+          console.log('🔄 Converting itinerary from backend format to display format');
+          const convertedData = {
+            ...loadedItinerary,
+            daily_plan: [{
+              date: loadedItinerary.date,
+              blocks: loadedItinerary.activities.map(activity => ({
+                time: activity.time,
+                items: [{
+                  title: activity.name || activity.title,
+                  why: activity.description,
+                  description: activity.description,
+                  category: activity.category,
+                  duration: `${activity.duration} min`,
+                  price: activity.price,
+                  location: activity.location,
+                  address: activity.location,
+                  photos: activity.photos ? activity.photos.map(photoUrl => ({
+                    url: photoUrl,
+                    thumbnail: photoUrl,
+                    source: 'google_places'
+                  })) : [],
+                  approx_cost: activity.priceRange || `€${activity.price}`,
+                  tips: activity.recommendations,
+                  rating: activity.rating
+                }]
+              }))
+            }]
+          };
+          console.log('✅ Converted itinerary for display');
+          setItinerary(convertedData);
+        } else {
+          console.log('⚠️ Itinerary format not recognized, using as is');
+          setItinerary(loadedItinerary);
         }
+        
+        // Always set itineraryId state
+        setItineraryId(itineraryId);
       } else {
         console.log('⚠️ Itinerary not found in Redis, generating new');
         // If not found, generate new

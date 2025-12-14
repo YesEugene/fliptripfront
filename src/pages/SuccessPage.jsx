@@ -67,7 +67,18 @@ export default function SuccessPage() {
   };
 
   const handleOpenPlan = () => {
-    const queryParams = new URLSearchParams(formData);
+    const queryParams = new URLSearchParams();
+    queryParams.set('city', formData.city);
+    queryParams.set('audience', formData.audience);
+    queryParams.set('interests', Array.isArray(formData.interests) ? formData.interests.join(',') : formData.interests);
+    queryParams.set('date', formData.date);
+    queryParams.set('budget', formData.budget);
+    // CRITICAL: Add itineraryId to load the full plan from Redis
+    if (itineraryId) {
+      queryParams.set('itineraryId', itineraryId);
+    }
+    // Add full=true to indicate this is a full plan (not preview)
+    queryParams.set('full', 'true');
     navigate(`/itinerary?${queryParams.toString()}`);
   };
 
