@@ -39,7 +39,10 @@ console.log('[AuthService] Final API_BASE_URL:', API_BASE_URL);
  */
 export async function register(userData) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/auth-register`, {
+    const url = `${API_BASE_URL}/api/auth-register`;
+    console.log('[AuthService] Register URL:', url);
+    console.log('[AuthService] API_BASE_URL:', API_BASE_URL);
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
