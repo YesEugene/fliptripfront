@@ -310,7 +310,7 @@ export default function HomePage() {
             flexDirection: 'column',
             justifyContent: 'flex-start',
             alignItems: 'stretch', // Changed from 'center' to 'stretch' to allow full width
-            paddingTop: '40px',
+            paddingTop: '30px', // Reduced from 40px to 30px (10px higher)
             flex: 1,
             position: 'relative',
             zIndex: 2,
