@@ -212,4 +212,29 @@ export const getExample = async (exampleId) => {
   }
 };
 
+// Save itinerary to Redis
+export const saveItinerary = async (itinerary, itineraryId = null) => {
+  try {
+    const response = await api.post('/api/save-itinerary', {
+      itinerary,
+      itineraryId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error saving itinerary:', error);
+    throw error;
+  }
+};
+
+// Get itinerary from Redis
+export const getItinerary = async (itineraryId) => {
+  try {
+    const response = await api.get(`/api/get-itinerary?id=${itineraryId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting itinerary:', error);
+    throw error;
+  }
+};
+
 export default api;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail } from '../services/api';
+import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail, saveItinerary, getItinerary } from '../services/api';
 import PhotoGallery from '../components/PhotoGallery';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import './ItineraryPage.css';
@@ -101,12 +101,15 @@ export default function ItineraryPage() {
   const exampleItinerary = location.state?.itinerary;
   
   // Extract form data from URL params
+  const previewOnly = searchParams.get('previewOnly') === 'true';
+  const existingItineraryId = searchParams.get('itineraryId');
   const formData = {
     city: searchParams.get('city') || 'Barcelona',
     audience: searchParams.get('audience') || 'him',
     interests: searchParams.get('interests')?.split(',') || ['Romantic'],
     date: searchParams.get('date') || new Date().toISOString().slice(0, 10),
-    budget: searchParams.get('budget') || '500'
+    budget: searchParams.get('budget') || '500',
+    previewOnly: previewOnly
   };
 
   useEffect(() => {
@@ -114,11 +117,33 @@ export default function ItineraryPage() {
       // Use example data directly
       setItinerary(exampleItinerary);
       setLoading(false);
+    } else if (existingItineraryId) {
+      // Load existing itinerary from Redis
+      loadItineraryFromRedis(existingItineraryId);
     } else {
       // Generate new itinerary
       generateItineraryData();
     }
-  }, [isExample, exampleItinerary]);
+  }, [isExample, exampleItinerary, existingItineraryId]);
+
+  const loadItineraryFromRedis = async (itineraryId) => {
+    try {
+      setLoading(true);
+      const data = await getItinerary(itineraryId);
+      if (data.success && data.itinerary) {
+        setItinerary(data.itinerary);
+      } else {
+        // If not found, generate new
+        generateItineraryData();
+      }
+    } catch (error) {
+      console.error('Error loading itinerary from Redis:', error);
+      // If error, generate new
+      generateItineraryData();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const generateItineraryData = async () => {
     try {
@@ -159,6 +184,23 @@ export default function ItineraryPage() {
             }]
           };
           console.log('✅ Converted data for display:', convertedData);
+          
+          // If previewOnly, save to Redis and add itineraryId to URL
+          if (previewOnly) {
+            try {
+              const saveResult = await saveItinerary(convertedData);
+              if (saveResult.success && saveResult.itineraryId) {
+                // Update URL with itineraryId
+                const newParams = new URLSearchParams(searchParams);
+                newParams.set('itineraryId', saveResult.itineraryId);
+                window.history.replaceState({}, '', `${window.location.pathname}?${newParams.toString()}`);
+                console.log('✅ Preview saved to Redis with ID:', saveResult.itineraryId);
+              }
+            } catch (saveError) {
+              console.error('Error saving preview to Redis:', saveError);
+            }
+          }
+          
           setItinerary(convertedData);
           return;
         } else {

@@ -233,6 +233,7 @@ export default function HomePage() {
     e.preventDefault();
     if (validateForm()) {
       const queryParams = new URLSearchParams(formData);
+      queryParams.append('previewOnly', 'true'); // Add previewOnly flag
       navigate(`/itinerary?${queryParams.toString()}`);
     }
   };
