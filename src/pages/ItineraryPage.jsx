@@ -114,7 +114,7 @@ export default function ItineraryPage() {
     previewOnly: previewOnly // Boolean value
   };
   
-  console.log('🔍 ItineraryPage - previewOnly:', previewOnly, 'formData:', formData);
+  console.log('🔍 ItineraryPage - previewOnly:', previewOnly, 'existingItineraryId:', existingItineraryId, 'formData:', formData);
 
   useEffect(() => {
     if (existingItineraryId) {
@@ -141,15 +141,23 @@ export default function ItineraryPage() {
   const loadItineraryFromRedis = async (itineraryId) => {
     try {
       setLoading(true);
+      console.log('📥 Loading itinerary from Redis:', itineraryId);
       const data = await getItinerary(itineraryId);
-      if (data.success && data.itinerary) {
+      console.log('📥 Loaded data:', data);
+      if (data && data.success && data.itinerary) {
+        console.log('✅ Itinerary loaded from Redis');
         setItinerary(data.itinerary);
+        // If it's a preview, set the itineraryId state
+        if (data.itinerary.previewOnly || previewOnly) {
+          setItineraryId(itineraryId);
+        }
       } else {
+        console.log('⚠️ Itinerary not found in Redis, generating new');
         // If not found, generate new
         generateItineraryData();
       }
     } catch (error) {
-      console.error('Error loading itinerary from Redis:', error);
+      console.error('❌ Error loading itinerary from Redis:', error);
       // If error, generate new
       generateItineraryData();
     } finally {
@@ -358,107 +366,38 @@ export default function ItineraryPage() {
               duration: "2 hours",
             }]
           },
-          {
-            time: "22:30",
-            items: [{
-              title: "Evening Stroll & Night Views",
-              why: "See the city lights and end on a romantic note",
-              address: "Riverside Promenade",
-              approx_cost: "Free",
-              tips: "Perfect for couples, bring a light jacket",
-              duration: "30 minutes",
-            }]
-          }
         ]
       }]
     };
   };
 
-  const handleDownloadPDF = async () => {
-    try {
-      // Находим элемент для конвертации в PDF
-      const element = document.querySelector('.itinerary-container');
-      if (!element) {
-        alert('Unable to find content for PDF generation');
-        return;
-      }
-
-      // Настройки PDF
-      const options = {
-        margin: 0.5,
-        filename: `FlipTrip-${itinerary?.city || 'Itinerary'}-${new Date().toISOString().slice(0, 10)}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff'
-        },
-        jsPDF: { 
-          unit: 'in', 
-          format: 'letter', 
-          orientation: 'portrait' 
-        }
-      };
-
-      // Показываем индикатор загрузки
-      const originalButtonText = 'Download PDF';
-      const button = document.querySelector('.download-button');
-      if (button) {
-        button.textContent = '📄 Generating PDF...';
-        button.disabled = true;
-      }
-
-      // Динамический импорт html2pdf.js
-      const html2pdf = (await import('html2pdf.js')).default;
-      
-      // Генерируем и скачиваем PDF
-      await html2pdf().set(options).from(element).save();
-
-      // Восстанавливаем кнопку
-      if (button) {
-        button.textContent = '📱 Download PDF';
-        button.disabled = false;
-      }
-
-    } catch (error) {
-      console.error('PDF generation error:', error);
-      alert('Error generating PDF. Please try again.');
-      
-      // Восстанавливаем кнопку при ошибке
-      const button = document.querySelector('.download-button');
-      if (button) {
-        button.textContent = '📱 Download PDF';
-        button.disabled = false;
-      }
-    }
-  };
-
-
   const handleBack = () => {
     navigate('/');
   };
 
+  const handleDownloadPDF = async () => {
+    try {
+      const html2pdf = (await import('html2pdf.js')).default;
+      const element = document.querySelector('.itinerary-container');
+      const opt = {
+        margin: 1,
+        filename: `FlipTrip_${formData.city}_${formData.date}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+      await html2pdf().set(opt).from(element).save();
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    }
+  };
+
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{
-            width: '60px',
-            height: '60px',
-            border: '4px solid #f3f4f6',
-            borderTop: '4px solid #3b82f6',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 16px'
-          }} />
-          <style>{`
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          `}</style>
-          <div style={{ fontSize: '20px', color: '#374151' }}>Curating your perfect day experience...</div>
+      <div className="loading-container">
+        <div className="loading-content">
+          <div className="loading-spinner"></div>
+          <div className="loading-text">Creating your perfect itinerary...</div>
         </div>
       </div>
     );
@@ -561,12 +500,8 @@ export default function ItineraryPage() {
   const timeStyle = {
     fontSize: '20px',
     fontWeight: 'bold',
-    marginBottom: '16px',
-    backgroundColor: '#3b82f6',
-    color: 'white',
-    padding: '8px 16px',
-    borderRadius: '20px',
-    display: 'inline-block'
+    color: '#3b82f6',
+    marginBottom: '16px'
   };
 
   const itemStyle = {
@@ -767,14 +702,19 @@ export default function ItineraryPage() {
                         </a>
                       </div>
                     )}
-                    {item.approx_cost && <div style={{ marginBottom: '10px' }}>💰 {item.approx_cost}</div>}
-                    {item.duration && <div style={{ marginBottom: '10px' }}>⏱️ {item.duration}</div>}
-                    {item.tips && <div>💡 {item.tips}</div>}
-                    {item.url && (
-                      <div style={{ marginTop: '20px' }}>
-                        🔗 <a href={item.url} target="_blank" rel="noreferrer" className="enhanced-link">
-                          Learn More
-                        </a>
+                    {item.approx_cost && (
+                      <div style={{ marginBottom: '10px' }}>
+                        💰 {item.approx_cost}
+                      </div>
+                    )}
+                    {item.duration && (
+                      <div style={{ marginBottom: '10px' }}>
+                        ⏱️ {item.duration}
+                      </div>
+                    )}
+                    {item.tips && (
+                      <div style={{ marginBottom: '10px', color: '#3b82f6', fontStyle: 'italic' }}>
+                        💡 {item.tips}
                       </div>
                     )}
                   </div>
