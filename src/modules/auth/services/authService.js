@@ -5,19 +5,28 @@
 
 // Автоматическое определение API URL
 const getApiBaseUrl = () => {
+  // Приоритет: переменные окружения > продакшн URL > локальный
   if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL.replace('/api', '');
+    const url = import.meta.env.VITE_API_URL.replace('/api', '');
+    console.log('[AuthService] Using VITE_API_URL:', url);
+    return url;
   }
   if (import.meta.env.VITE_API_BASE_URL) {
+    console.log('[AuthService] Using VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
     return import.meta.env.VITE_API_BASE_URL;
   }
   if (import.meta.env.PROD) {
-    return 'https://fliptripbackend.vercel.app';
+    const prodUrl = 'https://fliptripbackend.vercel.app';
+    console.log('[AuthService] Using PROD URL:', prodUrl);
+    return prodUrl;
   }
-  return 'http://localhost:3000';
+  const devUrl = 'http://localhost:3000';
+  console.log('[AuthService] Using DEV URL:', devUrl);
+  return devUrl;
 };
 
 const API_BASE_URL = getApiBaseUrl();
+console.log('[AuthService] Final API_BASE_URL:', API_BASE_URL);
 
 /**
  * Регистрация нового пользователя
