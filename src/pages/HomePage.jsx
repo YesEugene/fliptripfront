@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import FlipTripPhoto from '../assets/FlipTripPhoto.svg';
@@ -136,6 +136,38 @@ export default function HomePage() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   // Removed '' state - using simple dropdown only
 
+  // Random city images for header background
+  const cityImages = [
+    'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&h=600&fit=crop&q=80', // Paris
+    'https://images.unsplash.com/photo-1539037116277-4db20889f2d2?w=1200&h=600&fit=crop&q=80', // Barcelona
+    'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=1200&h=600&fit=crop&q=80', // Amsterdam
+    'https://images.unsplash.com/photo-1587330979470-3595ac045ab0?w=1200&h=600&fit=crop&q=80', // Berlin
+    'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&h=600&fit=crop&q=80', // London
+    'https://images.unsplash.com/photo-1529260830199-42c24126f198?w=1200&h=600&fit=crop&q=80', // Rome
+    'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=1200&h=600&fit=crop&q=80', // Lisbon
+    'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=1200&h=600&fit=crop&q=80', // New York
+    'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1200&h=600&fit=crop&q=80', // Tokyo
+    'https://images.unsplash.com/photo-1541849546-216549ae216d?w=1200&h=600&fit=crop&q=80', // Prague
+    'https://images.unsplash.com/photo-1516550893923-42d28e5677af?w=1200&h=600&fit=crop&q=80', // Vienna
+    'https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?w=1200&h=600&fit=crop&q=80', // Venice
+    'https://images.unsplash.com/photo-1520175480921-4edfa2983e0f?w=1200&h=600&fit=crop&q=80', // Florence
+    'https://images.unsplash.com/photo-1513326738677-b964603b136d?w=1200&h=600&fit=crop&q=80', // Moscow
+    'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=1200&h=600&fit=crop&q=80', // Istanbul
+    'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&h=600&fit=crop&q=80', // Dubai
+    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=600&fit=crop&q=80', // Sydney
+    'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=1200&h=600&fit=crop&q=80', // Singapore
+    'https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?w=1200&h=600&fit=crop&q=80', // Copenhagen
+    'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&h=600&fit=crop&q=80&auto=format' // Generic beautiful city
+  ];
+
+  const [randomCityImage, setRandomCityImage] = useState('');
+
+  // Select random city image on component mount
+  React.useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * cityImages.length);
+    setRandomCityImage(cityImages[randomIndex]);
+  }, []);
+
   const handleCitySelect = (city) => {
     setFormData(prev => ({ ...prev, city }));
     setIsDropdownOpen(false);
@@ -187,7 +219,7 @@ export default function HomePage() {
     e.preventDefault();
     if (validateForm()) {
       const queryParams = new URLSearchParams(formData);
-      navigate(`/preview?${queryParams.toString()}`);
+      navigate(`/itinerary?${queryParams.toString()}`);
     }
   };
 
@@ -224,10 +256,13 @@ export default function HomePage() {
                   marginLeft: 'auto',
                   marginRight: 'auto'
                 }}>
-                  {/* Red Header Section - only show when no city selected */}
+                  {/* Header Section with random city image - only show when no city selected */}
                   {!showFilters && (
                     <div className="red-header-section" style={{
-                      backgroundColor: '#F04C31',
+                      backgroundImage: randomCityImage ? `url(${randomCityImage})` : 'none',
+                      backgroundColor: randomCityImage ? 'transparent' : '#F04C31',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
                       height: '330px',
                       position: 'relative',
                       display: 'flex',
@@ -243,6 +278,16 @@ export default function HomePage() {
                       marginRight: '-50vw',
                       top: 0
                     }}>
+                      {/* Dark overlay for better text readability */}
+                      <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                        zIndex: 1
+                      }} />
           
           {/* Mobile Logo - Centered */}
           <div style={{
@@ -251,7 +296,9 @@ export default function HomePage() {
             justifyContent: 'flex-start',
             alignItems: 'center',
             paddingTop: '40px',
-            flex: 1
+            flex: 1,
+            position: 'relative',
+            zIndex: 2
           }}>
             <img 
               src={FlipTripLogo} 
@@ -268,7 +315,8 @@ export default function HomePage() {
               fontWeight: 'bold',
               textAlign: 'center',
               lineHeight: '1.3',
-              marginBottom: '40px'
+              marginBottom: '40px',
+              textShadow: '0 2px 8px rgba(0,0,0,0.5)'
             }}>
               Choose a city.<br />
               We'll craft your journey.
@@ -281,18 +329,18 @@ export default function HomePage() {
             bottom: '20px',
             left: '20px',
             right: '20px',
-            zIndex: 20,
+            zIndex: 1000,
             display: 'block',
             maxWidth: '750px',
             margin: '0 auto'
           }}>
-            <div style={{ position: 'relative' }}>
+            <div style={{ position: 'relative', zIndex: 1000 }}>
                           <button
                             type="button"
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                             style={{
                               backgroundColor: 'white',
-                              border: '2px solid #F04C31',
+                              border: 'none',
                               borderRadius: '12px',
                               padding: '12px 20px',
                               fontSize: '16px',
@@ -318,7 +366,7 @@ export default function HomePage() {
                   backgroundColor: 'white',
                   borderRadius: '12px',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  zIndex: 20,
+                  zIndex: 1001,
                   marginTop: '4px',
                   maxHeight: '320px',
                   overflowY: 'auto'
@@ -385,7 +433,7 @@ export default function HomePage() {
             justifyContent: 'center',
             alignItems: 'center'
           }}>
-            <div style={{ position: 'relative', width: '100%', maxWidth: '750px' }}>
+            <div style={{ position: 'relative', width: '100%', maxWidth: '750px', zIndex: 1000 }}>
               <button
                 type="button"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -417,7 +465,7 @@ export default function HomePage() {
                   backgroundColor: 'white',
                   borderRadius: '12px',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  zIndex: 20,
+                  zIndex: 1001,
                   marginTop: '4px',
                   maxHeight: '320px',
                   overflowY: 'auto'
@@ -586,9 +634,6 @@ export default function HomePage() {
                       placeholder="09 Feb"
                       readOnly
                       onClick={(e) => {
-                        // Check if device is mobile
-                        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-                        
                         const dateInput = document.createElement('input');
                         dateInput.type = 'date';
                         dateInput.min = new Date().toISOString().slice(0, 10);
@@ -607,25 +652,10 @@ export default function HomePage() {
                         
                         document.body.appendChild(dateInput);
                         
-                        // For mobile devices, use click() instead of showPicker()
-                        if (isMobile) {
-                          // Small delay to ensure element is rendered, then click
-                          setTimeout(() => {
-                            dateInput.focus();
-                            dateInput.click();
-                          }, 10);
-                        } else {
-                          // For desktop, use showPicker() if available
-                          setTimeout(() => {
-                            if (dateInput.showPicker) {
-                              dateInput.showPicker();
-                            } else {
-                              // Fallback for browsers without showPicker support
-                              dateInput.focus();
-                              dateInput.click();
-                            }
-                          }, 10);
-                        }
+                        // Small delay to ensure element is rendered
+                        setTimeout(() => {
+                          dateInput.showPicker();
+                        }, 10);
                         
                         dateInput.onchange = (e) => {
                           setFormData(prev => ({ ...prev, date: e.target.value }));
@@ -704,7 +734,9 @@ export default function HomePage() {
         backgroundColor: 'white', 
         padding: '30px 20px',
         maxWidth: '750px',
-        margin: '0 auto'
+        margin: '0 auto',
+        position: 'relative',
+        zIndex: 1
       }}>
         <h2 style={{
           fontSize: '20px',
