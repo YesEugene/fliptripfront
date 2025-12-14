@@ -726,7 +726,7 @@ export default function ItineraryPage() {
             </div>
           )}
 
-          {!previewOnly && (
+          {itinerary?.previewOnly !== true && (
             <button
               onClick={handleDownloadPDF}
               className="download-button"
