@@ -166,11 +166,16 @@ export default function ItineraryPage() {
         // Check if it's already in the converted format (has daily_plan)
         if (loadedItinerary.daily_plan && loadedItinerary.daily_plan.length > 0) {
           // Already converted, use as is
+          // CRITICAL: Use previewOnly from URL, not from loaded data
+          // If full=true or previewOnly=false in URL, show all blocks
+          const shouldShowPreview = previewOnly && !isFullPlan;
+          const displayItinerary = { ...loadedItinerary, previewOnly: shouldShowPreview };
+          
           console.log('✅ Itinerary already in display format');
-          console.log('📋 Preview mode:', loadedItinerary.previewOnly ? 'YES (showing first 2 blocks)' : 'NO (showing all blocks)');
-          console.log('📊 Total blocks in daily_plan:', loadedItinerary.daily_plan[0]?.blocks?.length || 0);
+          console.log('📋 Preview mode:', shouldShowPreview ? 'YES (showing first 2 blocks)' : 'NO (showing all blocks)');
+          console.log('📊 Total blocks in daily_plan:', displayItinerary.daily_plan[0]?.blocks?.length || 0);
           console.log('📊 Total items in daily_plan:', totalItems);
-          setItinerary(loadedItinerary);
+          setItinerary(displayItinerary);
         } else if (loadedItinerary.activities && loadedItinerary.activities.length > 0) {
           // Need to convert from backend format to display format
           console.log('🔄 Converting itinerary from backend format to display format');
