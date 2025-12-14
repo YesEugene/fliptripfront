@@ -105,6 +105,7 @@ export default function ItineraryPage() {
   // Extract form data from URL params
   const previewOnly = searchParams.get('previewOnly') === 'true';
   const existingItineraryId = searchParams.get('itineraryId');
+  const isFullPlan = searchParams.get('full') === 'true'; // Indicates we expect a full plan, not preview
   const formData = {
     city: searchParams.get('city') || 'Barcelona',
     audience: searchParams.get('audience') || 'him',
@@ -114,7 +115,7 @@ export default function ItineraryPage() {
     previewOnly: previewOnly // Boolean value
   };
   
-  console.log('🔍 ItineraryPage - previewOnly:', previewOnly, 'existingItineraryId:', existingItineraryId, 'formData:', formData);
+  console.log('🔍 ItineraryPage - previewOnly:', previewOnly, 'existingItineraryId:', existingItineraryId, 'isFullPlan:', isFullPlan, 'formData:', formData);
 
   useEffect(() => {
     if (existingItineraryId) {
@@ -138,10 +139,10 @@ export default function ItineraryPage() {
     }
   }, [isExample, exampleItinerary, existingItineraryId, previewOnly]);
 
-  const loadItineraryFromRedis = async (itineraryId) => {
+  const loadItineraryFromRedis = async (itineraryId, retryCount = 0) => {
     try {
       setLoading(true);
-      console.log('📥 Loading itinerary from Redis:', itineraryId);
+      console.log('📥 Loading itinerary from Redis:', itineraryId, retryCount > 0 ? `(retry ${retryCount})` : '');
       const data = await getItinerary(itineraryId);
       console.log('📥 Loaded data:', data);
       if (data && data.success && data.itinerary) {
@@ -151,6 +152,7 @@ export default function ItineraryPage() {
         // Log what we loaded
         const totalItems = loadedItinerary.daily_plan?.[0]?.blocks?.reduce((sum, block) => sum + (block.items?.length || 0), 0) || 0;
         const totalActivities = loadedItinerary.activities?.length || 0;
+        const isPreview = loadedItinerary.previewOnly === true || totalActivities <= 2;
         console.log('📊 Loaded itinerary info:', {
           hasDailyPlan: !!loadedItinerary.daily_plan,
           dailyPlanBlocks: loadedItinerary.daily_plan?.[0]?.blocks?.length || 0,
@@ -158,9 +160,19 @@ export default function ItineraryPage() {
           hasActivities: !!loadedItinerary.activities,
           activitiesCount: totalActivities,
           previewOnly: loadedItinerary.previewOnly,
+          isPreview: isPreview,
           hasConceptualPlan: !!loadedItinerary.conceptual_plan,
           timeSlotsCount: loadedItinerary.conceptual_plan?.timeSlots?.length || 0
         });
+        
+        // CRITICAL: If we expect a full plan but got a preview, retry after a delay
+        if (isFullPlan && isPreview && retryCount < 5) {
+          console.log(`⏳ Expected full plan but got preview (${totalActivities} activities). Retrying in 1 second... (attempt ${retryCount + 1}/5)`);
+          setTimeout(() => {
+            loadItineraryFromRedis(itineraryId, retryCount + 1);
+          }, 1000);
+          return;
+        }
         
         // Check if it's already in the converted format (has daily_plan)
         if (loadedItinerary.daily_plan && loadedItinerary.daily_plan.length > 0) {
