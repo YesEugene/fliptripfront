@@ -148,10 +148,26 @@ export default function ItineraryPage() {
         console.log('✅ Itinerary loaded from Redis');
         const loadedItinerary = data.itinerary;
         
+        // Log what we loaded
+        const totalItems = loadedItinerary.daily_plan?.[0]?.blocks?.reduce((sum, block) => sum + (block.items?.length || 0), 0) || 0;
+        const totalActivities = loadedItinerary.activities?.length || 0;
+        console.log('📊 Loaded itinerary info:', {
+          hasDailyPlan: !!loadedItinerary.daily_plan,
+          dailyPlanBlocks: loadedItinerary.daily_plan?.[0]?.blocks?.length || 0,
+          totalItemsInDailyPlan: totalItems,
+          hasActivities: !!loadedItinerary.activities,
+          activitiesCount: totalActivities,
+          previewOnly: loadedItinerary.previewOnly,
+          hasConceptualPlan: !!loadedItinerary.conceptual_plan,
+          timeSlotsCount: loadedItinerary.conceptual_plan?.timeSlots?.length || 0
+        });
+        
         // Check if it's already in the converted format (has daily_plan)
         if (loadedItinerary.daily_plan && loadedItinerary.daily_plan.length > 0) {
           // Already converted, use as is
           console.log('✅ Itinerary already in display format');
+          console.log('📋 Preview mode:', loadedItinerary.previewOnly ? 'YES (2 locations)' : 'NO (full day)');
+          console.log('📊 Total items in daily_plan:', totalItems);
           setItinerary(loadedItinerary);
         } else if (loadedItinerary.activities && loadedItinerary.activities.length > 0) {
           // Need to convert from backend format to display format
