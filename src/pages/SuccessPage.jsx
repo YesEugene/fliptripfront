@@ -41,7 +41,16 @@ export default function SuccessPage() {
       }
 
       console.log('✅ Full itinerary generated:', completeResult.itinerary);
+      console.log('📊 Full itinerary stats:', {
+        activitiesCount: completeResult.itinerary.activities?.length || 0,
+        dailyPlanBlocks: completeResult.itinerary.daily_plan?.[0]?.blocks?.length || 0,
+        previewOnly: completeResult.itinerary.previewOnly
+      });
       setItinerary(completeResult.itinerary);
+      
+      // IMPORTANT: Wait a moment to ensure Redis save is complete before allowing navigation
+      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('⏳ Waited 500ms for Redis save to complete');
 
       // Then send the email with the full itinerary
       if (formData.email) {
