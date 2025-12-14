@@ -169,3 +169,38 @@ export async function getGuideTours() {
   }
 }
 
+/**
+ * Обновление тура (только для гидов, только свои туры)
+ * @param {string} tourId - ID тура для обновления
+ * @param {Object} tourData - Обновленные данные тура
+ * @returns {Promise<Object>} - Обновленный тур
+ */
+export async function updateTour(tourId, tourData) {
+  try {
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('Требуется авторизация');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/tours-update?id=${tourId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(tourData)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Ошибка обновления тура');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Update tour error:', error);
+    throw error;
+  }
+}
+

@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getCurrentUser, logout } from '../../auth/services/authService';
 import { getGuideTours } from '../../tours-database';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
@@ -134,12 +134,31 @@ export default function GuideDashboardPage() {
                         borderRadius: '8px',
                         marginBottom: '8px'
                       }}>
-                        <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>
-                          {tour.title}
-                        </h3>
-                        <p style={{ color: '#6b7280', fontSize: '14px' }}>
-                          {tour.city} • {tour.duration.value} {tour.duration.type === 'hours' ? 'hours' : 'days'}
-                        </p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                          <div style={{ flex: 1 }}>
+                            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>
+                              {tour.title}
+                            </h3>
+                            <p style={{ color: '#6b7280', fontSize: '14px' }}>
+                              {tour.city} • {tour.duration.value} {tour.duration.type === 'hours' ? 'hours' : 'days'}
+                            </p>
+                          </div>
+                          <Link
+                            to={`/guide/tours/edit/${tour.id}`}
+                            style={{
+                              padding: '6px 12px',
+                              backgroundColor: '#3b82f6',
+                              color: 'white',
+                              borderRadius: '6px',
+                              textDecoration: 'none',
+                              fontSize: '14px',
+                              fontWeight: '500',
+                              marginLeft: '12px'
+                            }}
+                          >
+                            Edit
+                          </Link>
+                        </div>
                       </div>
                     ))}
                   </div>
