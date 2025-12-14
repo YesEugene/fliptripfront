@@ -12,7 +12,7 @@ const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_BASE_URL;
   }
   if (import.meta.env.PROD) {
-    return 'https://fliptripbackend.vercel.app';
+    return 'https://fliptripback.vercel.app';
   }
   return 'http://localhost:3000';
 };
