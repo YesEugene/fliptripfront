@@ -32,11 +32,12 @@ export default function CreateTourPage() {
       value: 6
     },
     languages: ['en'],
-    format: 'self-guided',
+    format: 'self-guided', // Always self-guided, can also be 'guided' if checkbox is checked
+    withGuide: false, // Checkbox for "With Guide" option
     // Updated price structure
     price: {
-      pdfPrice: 16, // Fixed price for PDF format
-      guidedPrice: 0, // Price for guided tour (if format is 'guided')
+      pdfPrice: 16, // Fixed price for PDF format (always available)
+      guidedPrice: 0, // Price for guided tour (if withGuide is true)
       currency: 'USD',
       availableDates: [], // Available dates for guided tours
       meetingPoint: '', // Meeting point for guided tours
@@ -44,8 +45,8 @@ export default function CreateTourPage() {
     },
     // Split additional options into platform and creator options
     additionalOptions: {
-      platformOptions: [], // Options provided by platform (insurance, accommodation)
-      creatorOptions: [] // Options provided by creator (photography, food, transport)
+      platformOptions: ['insurance', 'accommodation'], // Always available from platform (informational only)
+      creatorOptions: {} // Object with optionId as key and price as value: { photography: 50, food: 30 }
     },
     daily_plan: [
       {
@@ -79,33 +80,47 @@ export default function CreateTourPage() {
     { id: 'transport', label: 'Transportation' }
   ];
   
-  const handlePlatformOptionChange = (optionId) => {
+  const handleCreatorOptionChange = (optionId, checked) => {
     setFormData(prev => {
-      const currentOptions = prev.additionalOptions?.platformOptions || [];
-      const newOptions = currentOptions.includes(optionId)
-        ? currentOptions.filter(id => id !== optionId)
-        : [...currentOptions, optionId];
-      return { 
-        ...prev, 
-        additionalOptions: {
-          ...prev.additionalOptions,
-          platformOptions: newOptions
-        }
-      };
+      const currentOptions = prev.additionalOptions?.creatorOptions || {};
+      if (checked) {
+        // Add option with default price 0
+        return { 
+          ...prev, 
+          additionalOptions: {
+            ...prev.additionalOptions,
+            creatorOptions: {
+              ...currentOptions,
+              [optionId]: currentOptions[optionId] || 0
+            }
+          }
+        };
+      } else {
+        // Remove option
+        const newOptions = { ...currentOptions };
+        delete newOptions[optionId];
+        return { 
+          ...prev, 
+          additionalOptions: {
+            ...prev.additionalOptions,
+            creatorOptions: newOptions
+          }
+        };
+      }
     });
   };
 
-  const handleCreatorOptionChange = (optionId) => {
+  const handleCreatorOptionPriceChange = (optionId, price) => {
     setFormData(prev => {
-      const currentOptions = prev.additionalOptions?.creatorOptions || [];
-      const newOptions = currentOptions.includes(optionId)
-        ? currentOptions.filter(id => id !== optionId)
-        : [...currentOptions, optionId];
+      const currentOptions = prev.additionalOptions?.creatorOptions || {};
       return { 
         ...prev, 
         additionalOptions: {
           ...prev.additionalOptions,
-          creatorOptions: newOptions
+          creatorOptions: {
+            ...currentOptions,
+            [optionId]: parseFloat(price) || 0
+          }
         }
       };
     });
@@ -389,53 +404,58 @@ export default function CreateTourPage() {
                 Tour Format & Pricing
               </label>
               
-              {/* PDF Format (Default) */}
+              {/* PDF Format (Default - Always Available) */}
               <div style={{
                 padding: '16px',
                 border: '1px solid #d1d5db',
                 borderRadius: '8px',
                 marginBottom: '16px',
-                backgroundColor: '#f9fafb'
+                backgroundColor: '#f0fdf4',
+                borderLeft: '4px solid #10b981'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                  <input
-                    type="radio"
-                    name="format"
-                    value="self-guided"
-                    checked={formData.format === 'self-guided'}
-                    onChange={(e) => setFormData({ ...formData, format: e.target.value })}
-                    style={{ marginRight: '8px', width: '18px', height: '18px', cursor: 'pointer' }}
-                  />
-                  <strong style={{ fontSize: '16px' }}>Self-guided Tour (PDF)</strong>
+                  <span style={{ 
+                    marginRight: '8px', 
+                    fontSize: '20px',
+                    color: '#10b981'
+                  }}>✓</span>
+                  <strong style={{ fontSize: '16px' }}>Self-guided Tour (PDF) - Always Available</strong>
                 </div>
-                <div style={{ marginLeft: '26px', color: '#6b7280', fontSize: '14px' }}>
+                <div style={{ marginLeft: '28px', color: '#6b7280', fontSize: '14px' }}>
                   Fixed price: <strong style={{ color: '#059669' }}>${formData.price.pdfPrice || 16}</strong>
                   <br />
                   <span style={{ fontSize: '12px' }}>Travelers can download the PDF route and explore independently</span>
                 </div>
               </div>
 
-              {/* Guided Tour Format */}
+              {/* Guided Tour Format (Optional Checkbox) */}
               <div style={{
                 padding: '16px',
                 border: '1px solid #d1d5db',
                 borderRadius: '8px',
                 marginBottom: '16px',
-                backgroundColor: formData.format === 'guided' ? '#eff6ff' : '#f9fafb'
+                backgroundColor: formData.withGuide ? '#eff6ff' : '#f9fafb'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
                   <input
-                    type="radio"
-                    name="format"
-                    value="guided"
-                    checked={formData.format === 'guided'}
-                    onChange={(e) => setFormData({ ...formData, format: e.target.value })}
+                    type="checkbox"
+                    checked={formData.withGuide || false}
+                    onChange={(e) => {
+                      setFormData({ 
+                        ...formData, 
+                        withGuide: e.target.checked,
+                        format: e.target.checked ? 'guided' : 'self-guided'
+                      });
+                    }}
                     style={{ marginRight: '8px', width: '18px', height: '18px', cursor: 'pointer' }}
                   />
-                  <strong style={{ fontSize: '16px' }}>With Guide</strong>
+                  <strong style={{ fontSize: '16px' }}>With Guide (Optional)</strong>
+                </div>
+                <div style={{ marginLeft: '26px', color: '#6b7280', fontSize: '13px', marginBottom: '8px' }}>
+                  Check this if you're ready to accompany travelers on this tour
                 </div>
                 
-                {formData.format === 'guided' && (
+                {formData.withGuide && (
                   <div style={{ marginLeft: '26px', marginTop: '12px' }}>
                     <div style={{ marginBottom: '12px' }}>
                       <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500' }}>
@@ -450,7 +470,7 @@ export default function CreateTourPage() {
                         })}
                         min="0"
                         step="0.01"
-                        required={formData.format === 'guided'}
+                        required={formData.withGuide}
                         placeholder="0.00"
                         style={{
                           width: '100%',
@@ -473,7 +493,7 @@ export default function CreateTourPage() {
                           ...formData,
                           price: { ...formData.price, meetingPoint: e.target.value }
                         })}
-                        required={formData.format === 'guided'}
+                        required={formData.withGuide}
                         placeholder="e.g., Central Station, Main Square"
                         style={{
                           width: '100%',
@@ -496,7 +516,7 @@ export default function CreateTourPage() {
                           ...formData,
                           price: { ...formData.price, meetingTime: e.target.value }
                         })}
-                        required={formData.format === 'guided'}
+                        required={formData.withGuide}
                         style={{
                           width: '100%',
                           padding: '8px',
@@ -535,7 +555,7 @@ export default function CreateTourPage() {
                               type="date"
                               value={date}
                               onChange={(e) => updateAvailableDate(index, e.target.value)}
-                              required={formData.format === 'guided'}
+                              required={formData.withGuide}
                               style={{
                                 flex: 1,
                                 padding: '8px',
@@ -578,13 +598,13 @@ export default function CreateTourPage() {
               </div>
             </div>
             
-            {/* Additional Options - Platform Options */}
+            {/* Additional Options - Platform Options (Informational Only) */}
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500' }}>
                 Platform Additional Options
               </label>
               <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px' }}>
-                Options provided by FlipTrip platform
+                Options automatically provided by FlipTrip platform (always available)
               </div>
               <div style={{
                 display: 'grid',
@@ -592,7 +612,7 @@ export default function CreateTourPage() {
                 gap: '12px'
               }}>
                 {platformOptionsList.map((option) => (
-                  <label
+                  <div
                     key={option.id}
                     style={{
                       display: 'flex',
@@ -600,26 +620,19 @@ export default function CreateTourPage() {
                       padding: '12px',
                       border: '1px solid #d1d5db',
                       borderRadius: '8px',
-                      cursor: 'pointer',
-                      backgroundColor: formData.additionalOptions?.platformOptions?.includes(option.id) ? '#eff6ff' : 'white',
-                      transition: 'background-color 0.2s'
+                      backgroundColor: '#f0fdf4',
+                      borderLeft: '4px solid #10b981'
                     }}
                   >
-                    <input
-                      type="checkbox"
-                      checked={formData.additionalOptions?.platformOptions?.includes(option.id) || false}
-                      onChange={() => handlePlatformOptionChange(option.id)}
-                      style={{
-                        marginRight: '8px',
-                        width: '18px',
-                        height: '18px',
-                        cursor: 'pointer'
-                      }}
-                    />
+                    <span style={{ 
+                      marginRight: '8px', 
+                      fontSize: '18px',
+                      color: '#10b981'
+                    }}>✓</span>
                     <span style={{ fontSize: '14px', fontWeight: '500' }}>
                       {option.label}
                     </span>
-                  </label>
+                  </div>
                 ))}
               </div>
             </div>
@@ -630,43 +643,88 @@ export default function CreateTourPage() {
                 Your Additional Services
               </label>
               <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px' }}>
-                Additional services you can provide to travelers
+                Additional services you can provide to travelers (check and set price)
               </div>
               <div style={{
-                display: 'grid',
-                gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+                display: 'flex',
+                flexDirection: 'column',
                 gap: '12px'
               }}>
-                {creatorOptionsList.map((option) => (
-                  <label
-                    key={option.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: '12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      backgroundColor: formData.additionalOptions?.creatorOptions?.includes(option.id) ? '#eff6ff' : 'white',
-                      transition: 'background-color 0.2s'
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={formData.additionalOptions?.creatorOptions?.includes(option.id) || false}
-                      onChange={() => handleCreatorOptionChange(option.id)}
+                {creatorOptionsList.map((option) => {
+                  const isChecked = formData.additionalOptions?.creatorOptions?.[option.id] !== undefined;
+                  const price = formData.additionalOptions?.creatorOptions?.[option.id] || 0;
+                  
+                  return (
+                    <div
+                      key={option.id}
                       style={{
-                        marginRight: '8px',
-                        width: '18px',
-                        height: '18px',
-                        cursor: 'pointer'
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '12px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        backgroundColor: isChecked ? '#eff6ff' : 'white',
+                        transition: 'background-color 0.2s',
+                        gap: '12px',
+                        flexWrap: isMobile ? 'wrap' : 'nowrap'
                       }}
-                    />
-                    <span style={{ fontSize: '14px', fontWeight: '500' }}>
-                      {option.label}
-                    </span>
-                  </label>
-                ))}
+                    >
+                      <label
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          cursor: 'pointer',
+                          flex: '0 0 auto',
+                          minWidth: isMobile ? '100%' : '200px'
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => handleCreatorOptionChange(option.id, e.target.checked)}
+                          style={{
+                            marginRight: '8px',
+                            width: '18px',
+                            height: '18px',
+                            cursor: 'pointer'
+                          }}
+                        />
+                        <span style={{ fontSize: '14px', fontWeight: '500' }}>
+                          {option.label}
+                        </span>
+                      </label>
+                      {isChecked && (
+                        <div style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '8px',
+                          flex: isMobile ? '1 1 100%' : '1 1 auto',
+                          minWidth: isMobile ? '100%' : '200px'
+                        }}>
+                          <label style={{ fontSize: '13px', color: '#6b7280', whiteSpace: 'nowrap' }}>
+                            Price (USD):
+                          </label>
+                          <input
+                            type="number"
+                            value={price}
+                            onChange={(e) => handleCreatorOptionPriceChange(option.id, e.target.value)}
+                            min="0"
+                            step="0.01"
+                            placeholder="0.00"
+                            style={{
+                              flex: '1 1 auto',
+                              padding: '6px 10px',
+                              border: '1px solid #d1d5db',
+                              borderRadius: '6px',
+                              fontSize: '14px',
+                              maxWidth: '120px'
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
