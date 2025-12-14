@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
-import { completeItinerary, sendEmail } from '../services/api';
+import { completeItinerary, sendEmail, getItinerary } from '../services/api';
 
 export default function SuccessPage() {
   const navigate = useNavigate();
