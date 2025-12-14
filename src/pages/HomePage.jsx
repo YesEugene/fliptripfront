@@ -304,7 +304,7 @@ export default function HomePage() {
                         zIndex: 1
                       }} />
           
-          {/* Mobile Logo - Centered */}
+          {/* Mobile Logo and Auth - Aligned */}
           <div style={{
             display: 'flex',
             flexDirection: 'column',
@@ -323,15 +323,22 @@ export default function HomePage() {
               padding: '0 20px',
               marginBottom: '20px'
             }}>
+              {/* Logo - Left aligned with same padding as city form */}
               <img 
                 src={FlipTripLogo} 
                 alt="FlipTrip" 
                 style={{ 
                   height: '60px',
-                  width: '100px'
+                  width: 'auto',
+                  marginLeft: '0' // Explicitly left-aligned
                 }}
               />
-              <div style={{ display: 'flex', gap: '12px' }}>
+              {/* Auth buttons - Right aligned, same height as logo */}
+              <div style={{ 
+                display: 'flex', 
+                gap: '12px',
+                alignItems: 'center' // Ensure vertical alignment with logo
+              }}>
                 {user ? (
                   <>
                     <Link
