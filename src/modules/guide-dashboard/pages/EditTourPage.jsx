@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { updateTour, getTourById } from '../../tours-database';
 import { getCurrentUser } from '../../auth/services/authService';
-import FlipTripLogo from '../../../../assets/FlipTripLogo.svg';
+import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
 
 export default function EditTourPage() {
   const navigate = useNavigate();

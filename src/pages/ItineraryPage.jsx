@@ -111,8 +111,10 @@ export default function ItineraryPage() {
     interests: searchParams.get('interests')?.split(',') || ['Romantic'],
     date: searchParams.get('date') || new Date().toISOString().slice(0, 10),
     budget: searchParams.get('budget') || '500',
-    previewOnly: previewOnly
+    previewOnly: previewOnly // Boolean value
   };
+  
+  console.log('🔍 ItineraryPage - previewOnly:', previewOnly, 'formData:', formData);
 
   useEffect(() => {
     if (existingItineraryId) {
@@ -160,8 +162,10 @@ export default function ItineraryPage() {
       
       try {
         // ОСНОВНАЯ система с реальными местами
+        console.log('🚀 Calling generateSmartItinerary with previewOnly:', formData.previewOnly);
         const data = await generateSmartItinerary(formData);
         console.log('✅ Received smart itinerary data:', data);
+        console.log('📊 Activities count:', data.activities?.length);
         
         // Проверяем, есть ли активности в плане
         const hasActivities = data.activities && data.activities.length > 0;
