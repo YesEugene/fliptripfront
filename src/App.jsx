@@ -14,7 +14,7 @@ import { LoginPage, RegisterPage, ProtectedRoute } from './modules/auth';
 import { UserDashboardPage } from './modules/user-dashboard';
 
 // Guide Dashboard Module
-import { GuideDashboardPage, CreateTourPage, EditTourPage } from './modules/guide-dashboard';
+import { GuideDashboardPage, CreateTourPage, EditTourPage, ProfileSettingsPage } from './modules/guide-dashboard';
 
 import './index.css';
 
@@ -68,6 +68,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="guide">
                 <EditTourPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/guide/settings" 
+            element={
+              <ProtectedRoute requiredRole="guide">
+                <ProfileSettingsPage />
               </ProtectedRoute>
             } 
           />
