@@ -16,7 +16,7 @@ const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_BASE_URL;
   }
   if (import.meta.env.PROD) {
-    const prodUrl = 'https://fliptripbackend.vercel.app';
+    const prodUrl = 'https://fliptripback.vercel.app';
     console.log('[AuthService] Using PROD URL:', prodUrl);
     return prodUrl;
   }
