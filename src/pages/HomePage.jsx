@@ -320,7 +320,8 @@ export default function HomePage() {
               justifyContent: 'space-between',
               alignItems: 'center',
               width: '100%',
-              padding: '0 20px',
+              paddingLeft: '20px', // Same padding as city form (left: '20px')
+              paddingRight: '20px', // Same padding as city form (right: '20px')
               marginBottom: '20px'
             }}>
               {/* Logo - Left aligned with same padding as city form */}
@@ -329,15 +330,15 @@ export default function HomePage() {
                 alt="FlipTrip" 
                 style={{ 
                   height: '60px',
-                  width: 'auto',
-                  marginLeft: '0' // Explicitly left-aligned
+                  width: 'auto'
                 }}
               />
               {/* Auth buttons - Right aligned, same height as logo */}
               <div style={{ 
                 display: 'flex', 
                 gap: '12px',
-                alignItems: 'center' // Ensure vertical alignment with logo
+                alignItems: 'center', // Ensure vertical alignment with logo
+                height: '60px' // Match logo height for perfect alignment
               }}>
                 {user ? (
                   <>
