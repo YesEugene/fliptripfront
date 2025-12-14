@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
-import { generateRealPlacesItinerary, sendEmail } from '../services/api';
+import { completeItinerary, sendEmail } from '../services/api';
 
 export default function SuccessPage() {
   const navigate = useNavigate();
@@ -10,6 +10,7 @@ export default function SuccessPage() {
   const [itinerary, setItinerary] = useState(null);
   
   // Extract form data from URL params
+  const itineraryId = searchParams.get('itineraryId') || '';
   const formData = {
     city: searchParams.get('city') || 'Barcelona',
     audience: searchParams.get('audience') || 'him',
@@ -21,40 +22,41 @@ export default function SuccessPage() {
   };
 
   useEffect(() => {
-    if (formData.email && !emailSent) {
-      sendEmailWithItinerary();
+    if (itineraryId && formData.email && !emailSent) {
+      completeAndSendEmail();
     }
-  }, [formData.email, emailSent]);
+  }, [itineraryId, formData.email, emailSent]);
 
-  const sendEmailWithItinerary = async () => {
+  const completeAndSendEmail = async () => {
     try {
-      console.log('🌍 Generating real places itinerary for success page...');
+      console.log('🔄 Completing itinerary and sending email...');
+      console.log('📋 Itinerary ID:', itineraryId);
+      console.log('📋 Form Data:', formData);
       
-      // First, generate the real places itinerary
-      const itineraryData = await generateRealPlacesItinerary({
-        city: formData.city,
-        audience: formData.audience,
-        interests: formData.interests,
-        budget: formData.budget,
-        date: formData.date
-      });
+      // First, complete the itinerary (generate full day from preview)
+      const completeResult = await completeItinerary(itineraryId, formData);
+      
+      if (!completeResult.success || !completeResult.itinerary) {
+        throw new Error('Failed to complete itinerary');
+      }
 
-      console.log('✅ Real places itinerary generated:', itineraryData);
-      setItinerary(itineraryData);
+      console.log('✅ Full itinerary generated:', completeResult.itinerary);
+      setItinerary(completeResult.itinerary);
 
-      // Then send the email
+      // Then send the email with the full itinerary
       if (formData.email) {
         const emailResult = await sendEmail({
           email: formData.email,
-          itinerary: itineraryData,
-          formData: formData
+          itinerary: completeResult.itinerary,
+          formData: formData,
+          itineraryId: itineraryId
         });
 
         console.log('📧 Email result:', emailResult);
         setEmailSent(true);
       }
     } catch (error) {
-      console.error('Error in sendEmailWithItinerary:', error);
+      console.error('❌ Error in completeAndSendEmail:', error);
       // Set a fallback itinerary so the page still works
       setItinerary({
         title: `Exploring ${formData.city}`,

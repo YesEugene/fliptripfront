@@ -237,4 +237,20 @@ export const getItinerary = async (itineraryId) => {
   }
 };
 
+// Complete itinerary generation (full day after payment)
+export const completeItinerary = async (itineraryId, formData) => {
+  try {
+    console.log('🔄 Completing itinerary with ID:', itineraryId, 'formData:', formData);
+    const response = await api.post('/api/complete-itinerary', {
+      itineraryId,
+      formData
+    });
+    console.log('✅ Complete itinerary response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error completing itinerary:', error);
+    throw error;
+  }
+};
+
 export default api;

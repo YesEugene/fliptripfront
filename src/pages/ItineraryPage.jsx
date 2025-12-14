@@ -208,10 +208,21 @@ export default function ItineraryPage() {
           console.log('✅ Converted data for display:', convertedData);
           
           // If previewOnly, save to Redis and add itineraryId to URL
+          // IMPORTANT: Save the original data structure with conceptual_plan and activities
           if (previewOnly) {
             try {
-              console.log('💾 Saving preview to Redis...', convertedData);
-              const saveResult = await saveItinerary(convertedData);
+              // Save the original data structure (not convertedData) to preserve conceptual_plan
+              const dataToSave = {
+                ...data,
+                daily_plan: convertedData.daily_plan, // Keep converted daily_plan for display
+                previewOnly: true
+              };
+              console.log('💾 Saving preview to Redis with conceptual_plan...', {
+                hasConceptualPlan: !!data.conceptual_plan,
+                activitiesCount: data.activities?.length,
+                previewOnly: true
+              });
+              const saveResult = await saveItinerary(dataToSave);
               console.log('💾 Save result:', saveResult);
               if (saveResult && saveResult.success && saveResult.itineraryId) {
                 // Update URL with itineraryId
