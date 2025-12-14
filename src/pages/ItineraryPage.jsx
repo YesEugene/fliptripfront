@@ -681,7 +681,16 @@ export default function ItineraryPage() {
                 <button
                   onClick={() => {
                     if (email && itineraryId) {
-                      navigate(`/payment?itineraryId=${itineraryId}&email=${encodeURIComponent(email)}`);
+                      const paymentParams = new URLSearchParams({
+                        itineraryId: itineraryId,
+                        email: email,
+                        city: formData.city,
+                        audience: formData.audience,
+                        interests: formData.interests.join(','),
+                        date: formData.date,
+                        budget: formData.budget
+                      });
+                      navigate(`/payment?${paymentParams.toString()}`);
                     }
                   }}
                   disabled={!email || !itineraryId}

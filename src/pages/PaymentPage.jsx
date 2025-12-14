@@ -148,6 +148,24 @@ export default function PaymentPage() {
     cursor: 'not-allowed'
   };
 
+  // Show loading screen while redirecting
+  if (loading && itineraryId && email) {
+    return (
+      <div style={containerStyle}>
+        <div style={cardStyle}>
+          <div style={{ fontSize: '18px', color: '#6b7280', marginBottom: '16px' }}>
+            Redirecting to payment...
+          </div>
+          {error && (
+            <div style={{ color: '#ef4444', marginBottom: '16px' }}>
+              {error}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={containerStyle}>
       <div style={cardStyle}>
@@ -222,7 +240,7 @@ export default function PaymentPage() {
         <div style={{ marginTop: '24px', fontSize: '14px', color: '#9ca3af' }}>
           <div>Город: {formData.city}</div>
           <div>Дата: {formData.date}</div>
-          <div>Интересы: {formData.interests.join(', ')}</div>
+          <div>Интересы: {Array.isArray(formData.interests) ? formData.interests.join(', ') : formData.interests}</div>
         </div>
       </div>
     </div>
