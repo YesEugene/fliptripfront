@@ -260,9 +260,12 @@ export default function ItineraryPage() {
               };
               console.log('💾 Saving preview to Redis with conceptual_plan...', {
                 hasConceptualPlan: !!data.conceptual_plan,
+                hasTimeSlots: !!data.conceptual_plan?.timeSlots,
+                timeSlotsCount: data.conceptual_plan?.timeSlots?.length || 0,
                 activitiesCount: data.activities?.length,
                 previewOnly: true
               });
+              console.log('📋 Time slots in conceptual_plan:', data.conceptual_plan?.timeSlots?.map(s => `${s.time} - ${s.activity}`));
               const saveResult = await saveItinerary(dataToSave);
               console.log('💾 Save result:', saveResult);
               if (saveResult && saveResult.success && saveResult.itineraryId) {
