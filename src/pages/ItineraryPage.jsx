@@ -12,6 +12,8 @@ export default function ItineraryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [itinerary, setItinerary] = useState(null);
+  const [email, setEmail] = useState('');
+  const [itineraryId, setItineraryId] = useState(null);
 
   // Генерация fallback заголовков согласно промптам
   const generateFallbackTitle = (formData) => {
@@ -113,18 +115,24 @@ export default function ItineraryPage() {
   };
 
   useEffect(() => {
+    if (existingItineraryId) {
+      setItineraryId(existingItineraryId);
+    }
+  }, [existingItineraryId]);
+
+  useEffect(() => {
     if (isExample && exampleItinerary) {
       // Use example data directly
       setItinerary(exampleItinerary);
       setLoading(false);
-    } else if (existingItineraryId) {
-      // Load existing itinerary from Redis
+    } else if (existingItineraryId && !previewOnly) {
+      // Load existing full itinerary from Redis (after payment)
       loadItineraryFromRedis(existingItineraryId);
     } else {
-      // Generate new itinerary
+      // Generate new itinerary (preview or full)
       generateItineraryData();
     }
-  }, [isExample, exampleItinerary, existingItineraryId]);
+  }, [isExample, exampleItinerary, existingItineraryId, previewOnly]);
 
   const loadItineraryFromRedis = async (itineraryId) => {
     try {
@@ -194,6 +202,7 @@ export default function ItineraryPage() {
                 const newParams = new URLSearchParams(searchParams);
                 newParams.set('itineraryId', saveResult.itineraryId);
                 window.history.replaceState({}, '', `${window.location.pathname}?${newParams.toString()}`);
+                setItineraryId(saveResult.itineraryId);
                 console.log('✅ Preview saved to Redis with ID:', saveResult.itineraryId);
               }
             } catch (saveError) {
@@ -636,12 +645,63 @@ export default function ItineraryPage() {
             </div>
           )}
 
-          <button
-            onClick={handleDownloadPDF}
-            className="download-button"
-          >
-            📱 Download PDF
-          </button>
+          {/* Pay to Unlock Section - только для превью */}
+          {previewOnly && itineraryId && (
+            <div className="enhanced-card" style={{ marginTop: '20px', borderRadius: '12px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px' }}>
+                🔒 Unlock Full Itinerary
+              </h3>
+              <p style={{ color: '#6b7280', marginBottom: '16px' }}>
+                Enter your email to unlock the complete day plan with all locations and recommendations.
+              </p>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your.email@example.com"
+                  style={{
+                    flex: 1,
+                    minWidth: '200px',
+                    padding: '12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '12px',
+                    fontSize: '16px'
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    if (email && itineraryId) {
+                      navigate(`/payment?itineraryId=${itineraryId}&email=${encodeURIComponent(email)}`);
+                    }
+                  }}
+                  disabled={!email || !itineraryId}
+                  style={{
+                    padding: '12px 24px',
+                    backgroundColor: email && itineraryId ? '#3b82f6' : '#9ca3af',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '12px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    cursor: email && itineraryId ? 'pointer' : 'not-allowed',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Pay to Unlock
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!previewOnly && (
+            <button
+              onClick={handleDownloadPDF}
+              className="download-button"
+            >
+              📱 Download PDF
+            </button>
+          )}
         </div>
 
 
