@@ -5,30 +5,45 @@ import { createCheckoutSession } from '../services/api';
 export default function PaymentPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
-  // Extract form data from URL params
+  // Extract data from URL params
+  const itineraryId = searchParams.get('itineraryId');
+  const email = searchParams.get('email');
   const formData = {
     city: searchParams.get('city') || 'Barcelona',
     audience: searchParams.get('audience') || 'him',
     interests: searchParams.get('interests')?.split(',') || [],
     date: searchParams.get('date') || new Date().toISOString().slice(0, 10),
-    budgetFrom: searchParams.get('budgetFrom') || '',
-    budgetTo: searchParams.get('budgetTo') || ''
+    budget: searchParams.get('budget') || '500',
+    itineraryId: itineraryId,
+    email: email
   };
+
+  // Auto-create checkout session if itineraryId and email are present
+  useEffect(() => {
+    if (itineraryId && email) {
+      handlePayment();
+    } else {
+      setLoading(false);
+      setError('Missing itinerary ID or email');
+    }
+  }, [itineraryId, email]);
 
   const handlePayment = async () => {
     setLoading(true);
     setError('');
     
     try {
+      console.log('💳 Creating checkout session with:', formData);
       const response = await createCheckoutSession(formData);
-      // Redirect to Stripe Checkout
+      console.log('✅ Checkout session created, redirecting to:', response.url);
+      // Redirect to Stripe Checkout immediately
       window.location.href = response.url;
     } catch (err) {
+      console.error('❌ Payment error:', err);
       setError('Ошибка при создании платежа');
-    } finally {
       setLoading(false);
     }
   };

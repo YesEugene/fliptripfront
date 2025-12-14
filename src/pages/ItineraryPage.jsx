@@ -200,17 +200,22 @@ export default function ItineraryPage() {
           // If previewOnly, save to Redis and add itineraryId to URL
           if (previewOnly) {
             try {
+              console.log('💾 Saving preview to Redis...', convertedData);
               const saveResult = await saveItinerary(convertedData);
-              if (saveResult.success && saveResult.itineraryId) {
+              console.log('💾 Save result:', saveResult);
+              if (saveResult && saveResult.success && saveResult.itineraryId) {
                 // Update URL with itineraryId
                 const newParams = new URLSearchParams(searchParams);
                 newParams.set('itineraryId', saveResult.itineraryId);
                 window.history.replaceState({}, '', `${window.location.pathname}?${newParams.toString()}`);
                 setItineraryId(saveResult.itineraryId);
                 console.log('✅ Preview saved to Redis with ID:', saveResult.itineraryId);
+              } else {
+                console.error('❌ Save failed - no itineraryId in response:', saveResult);
               }
             } catch (saveError) {
-              console.error('Error saving preview to Redis:', saveError);
+              console.error('❌ Error saving preview to Redis:', saveError);
+              console.error('❌ Error details:', saveError.message, saveError.stack);
             }
           }
           
