@@ -134,7 +134,7 @@ export default function GuideDashboardPage() {
                         borderRadius: '8px',
                         marginBottom: '8px'
                       }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                           <div style={{ flex: 1 }}>
                             <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>
                               {tour.title}
@@ -153,7 +153,8 @@ export default function GuideDashboardPage() {
                               textDecoration: 'none',
                               fontSize: '14px',
                               fontWeight: '500',
-                              marginLeft: '12px'
+                              marginLeft: '12px',
+                              whiteSpace: 'nowrap'
                             }}
                           >
                             Edit
