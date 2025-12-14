@@ -654,7 +654,14 @@ export default function HomePage() {
                         
                         // Small delay to ensure element is rendered
                         setTimeout(() => {
-                          dateInput.showPicker();
+                          // Check if device is mobile or showPicker is not supported
+                          const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                          if (isMobile || !dateInput.showPicker) {
+                            dateInput.focus();
+                            dateInput.click();
+                          } else {
+                            dateInput.showPicker();
+                          }
                         }, 10);
                         
                         dateInput.onchange = (e) => {
