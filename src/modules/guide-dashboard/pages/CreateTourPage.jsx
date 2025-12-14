@@ -210,7 +210,12 @@ export default function CreateTourPage() {
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
+              gap: '20px', 
+              marginBottom: '20px' 
+            }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
                   Длительность
@@ -437,7 +442,11 @@ export default function CreateTourPage() {
                               }}
                             />
                             
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                            <div style={{ 
+                              display: 'grid', 
+                              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', 
+                              gap: '8px' 
+                            }}>
                               <input
                                 type="text"
                                 value={item.category || ''}
@@ -451,7 +460,8 @@ export default function CreateTourPage() {
                                   padding: '8px',
                                   border: '1px solid #d1d5db',
                                   borderRadius: '6px',
-                                  fontSize: '14px'
+                                  fontSize: '14px',
+                                  width: '100%'
                                 }}
                               />
                               <input
@@ -467,7 +477,8 @@ export default function CreateTourPage() {
                                   padding: '8px',
                                   border: '1px solid #d1d5db',
                                   borderRadius: '6px',
-                                  fontSize: '14px'
+                                  fontSize: '14px',
+                                  width: '100%'
                                 }}
                               />
                               <input
@@ -483,7 +494,8 @@ export default function CreateTourPage() {
                                   padding: '8px',
                                   border: '1px solid #d1d5db',
                                   borderRadius: '6px',
-                                  fontSize: '14px'
+                                  fontSize: '14px',
+                                  width: '100%'
                                 }}
                               />
                             </div>
