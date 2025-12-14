@@ -265,24 +265,23 @@ export default function ItineraryPage() {
           };
           console.log('✅ Converted data for display:', convertedData);
           
-          // If previewOnly, save to Redis and add itineraryId to URL
-          // IMPORTANT: Save the original data structure with conceptual_plan and activities
+          // Save full plan to Redis (always save full plan, preview mode only affects display)
           if (previewOnly) {
             try {
-              // Save the original data structure (not convertedData) to preserve conceptual_plan
+              // Save the full plan (not limited to 2 locations)
               const dataToSave = {
                 ...data,
-                daily_plan: convertedData.daily_plan, // Keep converted daily_plan for display
-                previewOnly: true
+                daily_plan: convertedData.daily_plan, // Full daily_plan with all blocks
+                previewOnly: true // Flag for display purposes only
               };
-              console.log('💾 Saving preview to Redis with conceptual_plan...', {
+              console.log('💾 Saving FULL plan to Redis (preview mode for display only)...', {
                 hasConceptualPlan: !!data.conceptual_plan,
                 hasTimeSlots: !!data.conceptual_plan?.timeSlots,
                 timeSlotsCount: data.conceptual_plan?.timeSlots?.length || 0,
                 activitiesCount: data.activities?.length,
+                dailyPlanBlocks: convertedData.daily_plan[0]?.blocks?.length || 0,
                 previewOnly: true
               });
-              console.log('📋 Time slots in conceptual_plan:', data.conceptual_plan?.timeSlots?.map(s => `${s.time} - ${s.activity}`));
               const saveResult = await saveItinerary(dataToSave);
               console.log('💾 Save result:', saveResult);
               if (saveResult && saveResult.success && saveResult.itineraryId) {
@@ -291,12 +290,12 @@ export default function ItineraryPage() {
                 newParams.set('itineraryId', saveResult.itineraryId);
                 window.history.replaceState({}, '', `${window.location.pathname}?${newParams.toString()}`);
                 setItineraryId(saveResult.itineraryId);
-                console.log('✅ Preview saved to Redis with ID:', saveResult.itineraryId);
+                console.log('✅ Full plan saved to Redis with ID:', saveResult.itineraryId);
               } else {
                 console.error('❌ Save failed - no itineraryId in response:', saveResult);
               }
             } catch (saveError) {
-              console.error('❌ Error saving preview to Redis:', saveError);
+              console.error('❌ Error saving to Redis:', saveError);
               console.error('❌ Error details:', saveError.message, saveError.stack);
             }
           }
@@ -738,7 +737,10 @@ export default function ItineraryPage() {
             📅 Day Plan
           </h2>
           
-          {itinerary?.daily_plan?.[0]?.blocks?.map((block, blockIndex) => (
+          {(previewOnly 
+            ? itinerary?.daily_plan?.[0]?.blocks?.slice(0, 2) 
+            : itinerary?.daily_plan?.[0]?.blocks
+          )?.map((block, blockIndex) => (
             <div key={blockIndex} style={blockStyle}>
               <div className="time-block-enhanced">{block.time}</div>
               {block.items?.map((item, itemIndex) => (

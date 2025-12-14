@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
-import { completeItinerary, sendEmail, getItinerary } from '../services/api';
+import { sendEmail, getItinerary } from '../services/api';
 
 export default function SuccessPage() {
   const navigate = useNavigate();
@@ -23,79 +23,39 @@ export default function SuccessPage() {
 
   useEffect(() => {
     if (itineraryId && formData.email && !emailSent) {
-      completeAndSendEmail();
+      sendEmailWithItinerary();
     }
   }, [itineraryId, formData.email, emailSent]);
 
-  const completeAndSendEmail = async () => {
+  const sendEmailWithItinerary = async () => {
     try {
-      console.log('🔄 Completing itinerary and sending email...');
+      console.log('📧 Sending email with itinerary...');
       console.log('📋 Itinerary ID:', itineraryId);
       console.log('📋 Form Data:', formData);
       
-      // First, complete the itinerary (generate full day from preview)
-      const completeResult = await completeItinerary(itineraryId, formData);
-      
-      if (!completeResult.success || !completeResult.itinerary) {
-        throw new Error('Failed to complete itinerary');
-      }
+      // Load full itinerary from Redis (it was already saved during preview generation)
+      const itineraryData = await getItinerary(itineraryId);
+      if (itineraryData && itineraryData.success && itineraryData.itinerary) {
+        console.log('✅ Loaded full itinerary from Redis:', itineraryData.itinerary);
+        setItinerary(itineraryData.itinerary);
+        
+        // Send the email with the full itinerary
+        if (formData.email) {
+          const emailResult = await sendEmail({
+            email: formData.email,
+            itinerary: itineraryData.itinerary,
+            formData: formData,
+            itineraryId: itineraryId
+          });
 
-      console.log('✅ Full itinerary generated:', completeResult.itinerary);
-      console.log('📊 Full itinerary stats:', {
-        activitiesCount: completeResult.itinerary.activities?.length || 0,
-        dailyPlanBlocks: completeResult.itinerary.daily_plan?.[0]?.blocks?.length || 0,
-        previewOnly: completeResult.itinerary.previewOnly
-      });
-      setItinerary(completeResult.itinerary);
-      
-      // CRITICAL: Wait and verify that full plan is saved in Redis before allowing navigation
-      console.log('⏳ Waiting for Redis save to complete...');
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
-      
-      // Verify by loading from Redis
-      let verified = false;
-      let attempts = 0;
-      while (!verified && attempts < 10) {
-        attempts++;
-        try {
-          const verifyData = await getItinerary(itineraryId);
-          if (verifyData && verifyData.success && verifyData.itinerary) {
-            const verifiedActivities = verifyData.itinerary.activities?.length || 0;
-            const verifiedPreviewOnly = verifyData.itinerary.previewOnly;
-            console.log(`🔍 Verification attempt ${attempts}: ${verifiedActivities} activities, previewOnly: ${verifiedPreviewOnly}`);
-            
-            if (verifiedActivities > 2 && verifiedPreviewOnly === false) {
-              verified = true;
-              console.log('✅ VERIFIED: Full plan is saved in Redis');
-            } else {
-              console.log(`⏳ Full plan not ready yet, waiting... (${verifiedActivities} activities)`);
-              await new Promise(resolve => setTimeout(resolve, 500));
-            }
-          }
-        } catch (error) {
-          console.error('Error verifying:', error);
-          await new Promise(resolve => setTimeout(resolve, 500));
+          console.log('📧 Email result:', emailResult);
+          setEmailSent(true);
         }
-      }
-      
-      if (!verified) {
-        console.warn('⚠️ Could not verify full plan in Redis, but proceeding anyway');
-      }
-
-      // Then send the email with the full itinerary
-      if (formData.email) {
-        const emailResult = await sendEmail({
-          email: formData.email,
-          itinerary: completeResult.itinerary,
-          formData: formData,
-          itineraryId: itineraryId
-        });
-
-        console.log('📧 Email result:', emailResult);
-        setEmailSent(true);
+      } else {
+        console.warn('⚠️ Could not load itinerary from Redis');
       }
     } catch (error) {
-      console.error('❌ Error in completeAndSendEmail:', error);
+      console.error('❌ Error in sendEmailWithItinerary:', error);
       // Set a fallback itinerary so the page still works
       setItinerary({
         title: `Exploring ${formData.city}`,
