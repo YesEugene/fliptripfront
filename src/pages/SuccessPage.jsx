@@ -48,9 +48,39 @@ export default function SuccessPage() {
       });
       setItinerary(completeResult.itinerary);
       
-      // IMPORTANT: Wait a moment to ensure Redis save is complete before allowing navigation
-      await new Promise(resolve => setTimeout(resolve, 500));
-      console.log('⏳ Waited 500ms for Redis save to complete');
+      // CRITICAL: Wait and verify that full plan is saved in Redis before allowing navigation
+      console.log('⏳ Waiting for Redis save to complete...');
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+      
+      // Verify by loading from Redis
+      let verified = false;
+      let attempts = 0;
+      while (!verified && attempts < 10) {
+        attempts++;
+        try {
+          const verifyData = await getItinerary(itineraryId);
+          if (verifyData && verifyData.success && verifyData.itinerary) {
+            const verifiedActivities = verifyData.itinerary.activities?.length || 0;
+            const verifiedPreviewOnly = verifyData.itinerary.previewOnly;
+            console.log(`🔍 Verification attempt ${attempts}: ${verifiedActivities} activities, previewOnly: ${verifiedPreviewOnly}`);
+            
+            if (verifiedActivities > 2 && verifiedPreviewOnly === false) {
+              verified = true;
+              console.log('✅ VERIFIED: Full plan is saved in Redis');
+            } else {
+              console.log(`⏳ Full plan not ready yet, waiting... (${verifiedActivities} activities)`);
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+          }
+        } catch (error) {
+          console.error('Error verifying:', error);
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+      
+      if (!verified) {
+        console.warn('⚠️ Could not verify full plan in Redis, but proceeding anyway');
+      }
 
       // Then send the email with the full itinerary
       if (formData.email) {
