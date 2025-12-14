@@ -90,7 +90,7 @@ export async function getTours(filters = {}) {
     if (filters.limit) queryParams.append('limit', filters.limit);
     if (filters.offset) queryParams.append('offset', filters.offset);
 
-    const response = await fetch(`${API_BASE_URL}/api/tours-list?${queryParams.toString()}`, {
+    const response = await fetch(`${API_BASE_URL}/api/tours?${queryParams.toString()}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -117,7 +117,7 @@ export async function getTours(filters = {}) {
  */
 export async function getTourById(tourId) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/tours-get?id=${tourId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/tours?id=${tourId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
