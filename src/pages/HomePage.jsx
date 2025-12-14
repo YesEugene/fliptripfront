@@ -309,11 +309,12 @@ export default function HomePage() {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'flex-start',
-            alignItems: 'center',
+            alignItems: 'stretch', // Changed from 'center' to 'stretch' to allow full width
             paddingTop: '40px',
             flex: 1,
             position: 'relative',
-            zIndex: 2
+            zIndex: 2,
+            width: '100%' // Ensure full width
           }}>
             <div style={{
               display: 'flex',
@@ -322,7 +323,10 @@ export default function HomePage() {
               width: '100%',
               paddingLeft: '20px', // Same padding as city form (left: '20px')
               paddingRight: '20px', // Same padding as city form (right: '20px')
-              marginBottom: '20px'
+              marginBottom: '20px',
+              maxWidth: '750px', // Match the main container width
+              marginLeft: 'auto',
+              marginRight: 'auto'
             }}>
               {/* Logo - Left aligned with same padding as city form */}
               <img 
