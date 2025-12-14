@@ -743,7 +743,7 @@ export default function ItineraryPage() {
             📅 Day Plan
           </h2>
           
-          {(previewOnly 
+          {((itinerary?.previewOnly === true)
             ? itinerary?.daily_plan?.[0]?.blocks?.slice(0, 2) 
             : itinerary?.daily_plan?.[0]?.blocks
           )?.map((block, blockIndex) => (
