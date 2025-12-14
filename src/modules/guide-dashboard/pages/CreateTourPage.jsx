@@ -25,6 +25,7 @@ export default function CreateTourPage() {
   
   const [formData, setFormData] = useState({
     title: '',
+    description: '', // New: Tour description
     city: '',
     duration: {
       type: 'hours',
@@ -32,11 +33,19 @@ export default function CreateTourPage() {
     },
     languages: ['en'],
     format: 'self-guided',
-    additionalOptions: [],
+    // Updated price structure
     price: {
-      amount: 0,
-      currency: 'EUR',
-      format: 'pdf'
+      pdfPrice: 16, // Fixed price for PDF format
+      guidedPrice: 0, // Price for guided tour (if format is 'guided')
+      currency: 'USD',
+      availableDates: [], // Available dates for guided tours
+      meetingPoint: '', // Meeting point for guided tours
+      meetingTime: '' // Meeting time for guided tours
+    },
+    // Split additional options into platform and creator options
+    additionalOptions: {
+      platformOptions: [], // Options provided by platform (insurance, accommodation)
+      creatorOptions: [] // Options provided by creator (photography, food, transport)
     },
     daily_plan: [
       {
@@ -57,23 +66,82 @@ export default function CreateTourPage() {
     }
   });
   
-  // Available additional options
-  const additionalOptionsList = [
-    { id: 'food', label: 'Food & Dining' },
-    { id: 'transport', label: 'Transportation' },
-    { id: 'accommodation', label: 'Accommodation' },
-    { id: 'photography', label: 'Photography Service' },
-    { id: 'guide', label: 'Personal Guide' },
-    { id: 'insurance', label: 'Travel Insurance' }
+  // Platform-provided additional options (automated by platform)
+  const platformOptionsList = [
+    { id: 'insurance', label: 'Travel Insurance' },
+    { id: 'accommodation', label: 'Accommodation' }
   ];
   
-  const handleAdditionalOptionChange = (optionId) => {
+  // Creator-provided additional options
+  const creatorOptionsList = [
+    { id: 'photography', label: 'Photography Service' },
+    { id: 'food', label: 'Food & Dining' },
+    { id: 'transport', label: 'Transportation' }
+  ];
+  
+  const handlePlatformOptionChange = (optionId) => {
     setFormData(prev => {
-      const currentOptions = prev.additionalOptions || [];
+      const currentOptions = prev.additionalOptions?.platformOptions || [];
       const newOptions = currentOptions.includes(optionId)
         ? currentOptions.filter(id => id !== optionId)
         : [...currentOptions, optionId];
-      return { ...prev, additionalOptions: newOptions };
+      return { 
+        ...prev, 
+        additionalOptions: {
+          ...prev.additionalOptions,
+          platformOptions: newOptions
+        }
+      };
+    });
+  };
+
+  const handleCreatorOptionChange = (optionId) => {
+    setFormData(prev => {
+      const currentOptions = prev.additionalOptions?.creatorOptions || [];
+      const newOptions = currentOptions.includes(optionId)
+        ? currentOptions.filter(id => id !== optionId)
+        : [...currentOptions, optionId];
+      return { 
+        ...prev, 
+        additionalOptions: {
+          ...prev.additionalOptions,
+          creatorOptions: newOptions
+        }
+      };
+    });
+  };
+
+  const addAvailableDate = () => {
+    setFormData(prev => ({
+      ...prev,
+      price: {
+        ...prev.price,
+        availableDates: [...(prev.price.availableDates || []), '']
+      }
+    }));
+  };
+
+  const removeAvailableDate = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      price: {
+        ...prev.price,
+        availableDates: prev.price.availableDates.filter((_, i) => i !== index)
+      }
+    }));
+  };
+
+  const updateAvailableDate = (index, value) => {
+    setFormData(prev => {
+      const newDates = [...prev.price.availableDates];
+      newDates[index] = value;
+      return {
+        ...prev,
+        price: {
+          ...prev.price,
+          availableDates: newDates
+        }
+      };
     });
   };
 
@@ -131,6 +199,7 @@ export default function CreateTourPage() {
         title: '',
         address: '',
         description: '',
+        recommendations: '', // New: Recommendations field for each location
         category: '',
         duration: '',
         approx_cost: ''
@@ -224,6 +293,28 @@ export default function CreateTourPage() {
 
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Tour Description *
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                required
+                placeholder="Describe your tour, what makes it special, what travelers will experience..."
+                rows={5}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  resize: 'vertical',
+                  fontFamily: 'inherit'
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
                 City *
               </label>
               <input
@@ -292,37 +383,215 @@ export default function CreateTourPage() {
               </div>
             </div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                Tour Format
-              </label>
-              <select
-                value={formData.format}
-                onChange={(e) => setFormData({ ...formData, format: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '16px'
-                }}
-              >
-                <option value="self-guided">Self-guided</option>
-                <option value="guided">With Guide</option>
-              </select>
-            </div>
-            
-            {/* Additional Options */}
+            {/* Pricing and Format Section */}
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500' }}>
-                Additional Options
+                Tour Format & Pricing
               </label>
+              
+              {/* PDF Format (Default) */}
+              <div style={{
+                padding: '16px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                marginBottom: '16px',
+                backgroundColor: '#f9fafb'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                  <input
+                    type="radio"
+                    name="format"
+                    value="self-guided"
+                    checked={formData.format === 'self-guided'}
+                    onChange={(e) => setFormData({ ...formData, format: e.target.value })}
+                    style={{ marginRight: '8px', width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                  <strong style={{ fontSize: '16px' }}>Self-guided Tour (PDF)</strong>
+                </div>
+                <div style={{ marginLeft: '26px', color: '#6b7280', fontSize: '14px' }}>
+                  Fixed price: <strong style={{ color: '#059669' }}>${formData.price.pdfPrice || 16}</strong>
+                  <br />
+                  <span style={{ fontSize: '12px' }}>Travelers can download the PDF route and explore independently</span>
+                </div>
+              </div>
+
+              {/* Guided Tour Format */}
+              <div style={{
+                padding: '16px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                marginBottom: '16px',
+                backgroundColor: formData.format === 'guided' ? '#eff6ff' : '#f9fafb'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                  <input
+                    type="radio"
+                    name="format"
+                    value="guided"
+                    checked={formData.format === 'guided'}
+                    onChange={(e) => setFormData({ ...formData, format: e.target.value })}
+                    style={{ marginRight: '8px', width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                  <strong style={{ fontSize: '16px' }}>With Guide</strong>
+                </div>
+                
+                {formData.format === 'guided' && (
+                  <div style={{ marginLeft: '26px', marginTop: '12px' }}>
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500' }}>
+                        Your Price (USD) *
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.price.guidedPrice || ''}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          price: { ...formData.price, guidedPrice: parseFloat(e.target.value) || 0 }
+                        })}
+                        min="0"
+                        step="0.01"
+                        required={formData.format === 'guided'}
+                        placeholder="0.00"
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          fontSize: '14px'
+                        }}
+                      />
+                    </div>
+
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500' }}>
+                        Meeting Point *
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.price.meetingPoint || ''}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          price: { ...formData.price, meetingPoint: e.target.value }
+                        })}
+                        required={formData.format === 'guided'}
+                        placeholder="e.g., Central Station, Main Square"
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          fontSize: '14px'
+                        }}
+                      />
+                    </div>
+
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500' }}>
+                        Meeting Time *
+                      </label>
+                      <input
+                        type="time"
+                        value={formData.price.meetingTime || ''}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          price: { ...formData.price, meetingTime: e.target.value }
+                        })}
+                        required={formData.format === 'guided'}
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          fontSize: '14px'
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <label style={{ fontSize: '14px', fontWeight: '500' }}>
+                          Available Dates *
+                        </label>
+                        <button
+                          type="button"
+                          onClick={addAvailableDate}
+                          style={{
+                            padding: '4px 12px',
+                            backgroundColor: '#10b981',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          + Add Date
+                        </button>
+                      </div>
+                      {formData.price.availableDates && formData.price.availableDates.length > 0 ? (
+                        formData.price.availableDates.map((date, index) => (
+                          <div key={index} style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                            <input
+                              type="date"
+                              value={date}
+                              onChange={(e) => updateAvailableDate(index, e.target.value)}
+                              required={formData.format === 'guided'}
+                              style={{
+                                flex: 1,
+                                padding: '8px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                fontSize: '14px'
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeAvailableDate(index)}
+                              style={{
+                                padding: '8px 12px',
+                                backgroundColor: '#ef4444',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '12px'
+                              }}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))
+                      ) : (
+                        <div style={{ 
+                          padding: '12px', 
+                          backgroundColor: '#fef3c7', 
+                          borderRadius: '6px',
+                          fontSize: '13px',
+                          color: '#92400e'
+                        }}>
+                          No dates added. Click "+ Add Date" to add available dates for your guided tour.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Additional Options - Platform Options */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500' }}>
+                Platform Additional Options
+              </label>
+              <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px' }}>
+                Options provided by FlipTrip platform
+              </div>
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
                 gap: '12px'
               }}>
-                {additionalOptionsList.map((option) => (
+                {platformOptionsList.map((option) => (
                   <label
                     key={option.id}
                     style={{
@@ -332,14 +601,60 @@ export default function CreateTourPage() {
                       border: '1px solid #d1d5db',
                       borderRadius: '8px',
                       cursor: 'pointer',
-                      backgroundColor: formData.additionalOptions?.includes(option.id) ? '#eff6ff' : 'white',
+                      backgroundColor: formData.additionalOptions?.platformOptions?.includes(option.id) ? '#eff6ff' : 'white',
                       transition: 'background-color 0.2s'
                     }}
                   >
                     <input
                       type="checkbox"
-                      checked={formData.additionalOptions?.includes(option.id) || false}
-                      onChange={() => handleAdditionalOptionChange(option.id)}
+                      checked={formData.additionalOptions?.platformOptions?.includes(option.id) || false}
+                      onChange={() => handlePlatformOptionChange(option.id)}
+                      style={{
+                        marginRight: '8px',
+                        width: '18px',
+                        height: '18px',
+                        cursor: 'pointer'
+                      }}
+                    />
+                    <span style={{ fontSize: '14px', fontWeight: '500' }}>
+                      {option.label}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Additional Options - Creator Options */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500' }}>
+                Your Additional Services
+              </label>
+              <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px' }}>
+                Additional services you can provide to travelers
+              </div>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+                gap: '12px'
+              }}>
+                {creatorOptionsList.map((option) => (
+                  <label
+                    key={option.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      backgroundColor: formData.additionalOptions?.creatorOptions?.includes(option.id) ? '#eff6ff' : 'white',
+                      transition: 'background-color 0.2s'
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={formData.additionalOptions?.creatorOptions?.includes(option.id) || false}
+                      onChange={() => handleCreatorOptionChange(option.id)}
                       style={{
                         marginRight: '8px',
                         width: '18px',
@@ -502,6 +817,26 @@ export default function CreateTourPage() {
                                 setFormData({ ...formData, daily_plan: newPlan });
                               }}
                               placeholder="Location Description"
+                              rows={3}
+                              style={{
+                                width: '100%',
+                                padding: '8px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                marginBottom: '8px',
+                                fontSize: '14px',
+                                resize: 'vertical'
+                              }}
+                            />
+                            
+                            <textarea
+                              value={item.recommendations || ''}
+                              onChange={(e) => {
+                                const newPlan = [...formData.daily_plan];
+                                newPlan[dayIndex].blocks[blockIndex].items[itemIndex].recommendations = e.target.value;
+                                setFormData({ ...formData, daily_plan: newPlan });
+                              }}
+                              placeholder="Recommendations (tips, best time to visit, what to try, etc.)"
                               rows={3}
                               style={{
                                 width: '100%',
