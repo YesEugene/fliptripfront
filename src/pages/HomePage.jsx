@@ -416,6 +416,7 @@ export default function HomePage() {
               fontWeight: 'bold',
               textAlign: 'center',
               lineHeight: '1.3',
+              marginTop: '30px', // Added 30px top margin to move text down
               marginBottom: '40px',
               textShadow: '0 2px 8px rgba(0,0,0,0.5)',
               width: '100%',
