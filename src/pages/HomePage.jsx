@@ -417,7 +417,13 @@ export default function HomePage() {
               textAlign: 'center',
               lineHeight: '1.3',
               marginBottom: '40px',
-              textShadow: '0 2px 8px rgba(0,0,0,0.5)'
+              textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+              width: '100%',
+              maxWidth: '750px',
+              marginLeft: 'auto',
+              marginRight: 'auto',
+              paddingLeft: '20px',
+              paddingRight: '20px'
             }}>
               Choose a city.<br />
               We'll craft your journey.
@@ -428,12 +434,12 @@ export default function HomePage() {
           <div className="mobile-city-select" style={{
             position: 'absolute',
             bottom: '20px',
-            left: '20px',
-            right: '20px',
-            zIndex: 1000,
-            display: 'block',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 'calc(100% - 40px)',
             maxWidth: '750px',
-            margin: '0 auto'
+            zIndex: 1000,
+            display: 'block'
           }}>
             <div style={{ position: 'relative', zIndex: 1000 }}>
                           <button
