@@ -24,9 +24,13 @@ export default function CreateTourPage() {
   }, []);
   
   const [formData, setFormData] = useState({
+    country: '', // New: Country field
+    city: '', // City field (moved up)
     title: '',
     description: '', // New: Tour description
-    city: '',
+    preview: '', // New: Preview image/video (base64 or URL)
+    previewType: 'image', // 'image' or 'video'
+    tags: [], // New: Tags array
     duration: {
       type: 'hours',
       value: 6
@@ -160,6 +164,132 @@ export default function CreateTourPage() {
     });
   };
 
+  const handlePreviewChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      const isImage = file.type.startsWith('image/');
+      const isVideo = file.type.startsWith('video/');
+      
+      if (!isImage && !isVideo) {
+        setError('Please select an image or video file');
+        return;
+      }
+      
+      // Validate file size (max 10MB for images, 50MB for videos)
+      const maxSize = isImage ? 10 * 1024 * 1024 : 50 * 1024 * 1024;
+      if (file.size > maxSize) {
+        setError(`File size should be less than ${isImage ? '10MB' : '50MB'}`);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({
+          ...prev,
+          preview: reader.result, // base64 string
+          previewType: isImage ? 'image' : 'video'
+        }));
+        setError('');
+      };
+      reader.onerror = () => {
+        setError('Error reading file');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const [tagSuggestions, setTagSuggestions] = useState([]);
+  const [tagInput, setTagInput] = useState('');
+  const [showTagSuggestions, setShowTagSuggestions] = useState(false);
+
+  // Generate tag suggestions based on tour description and locations
+  const generateTagSuggestions = async () => {
+    if (!formData.description && formData.daily_plan?.[0]?.blocks?.[0]?.items?.length === 0) {
+      setTagSuggestions([]);
+      return;
+    }
+
+    try {
+      // Collect text from description and location titles/descriptions
+      const locationTexts = formData.daily_plan
+        .flatMap(day => day.blocks)
+        .flatMap(block => block.items)
+        .map(item => `${item.title || ''} ${item.description || ''}`)
+        .join(' ');
+
+      const fullText = `${formData.description || ''} ${locationTexts}`.trim();
+
+      if (!fullText) {
+        setTagSuggestions([]);
+        return;
+      }
+
+      // Call backend API to generate tag suggestions (using smart-itinerary with action=generateTags)
+      const response = await fetch('https://fliptripback.vercel.app/api/smart-itinerary', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'generateTags', text: fullText })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setTagSuggestions(data.tags || []);
+      }
+    } catch (error) {
+      console.error('Error generating tag suggestions:', error);
+      // Fallback: simple keyword extraction
+      const keywords = extractKeywords(formData.description || '');
+      setTagSuggestions(keywords);
+    }
+  };
+
+  // Simple keyword extraction fallback
+  const extractKeywords = (text) => {
+    const commonWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'];
+    const words = text.toLowerCase()
+      .replace(/[^\w\s]/g, ' ')
+      .split(/\s+/)
+      .filter(word => word.length > 3 && !commonWords.includes(word));
+    
+    return [...new Set(words)].slice(0, 10);
+  };
+
+  // Debounced tag suggestion generation
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      generateTagSuggestions();
+    }, 1000); // Wait 1 second after user stops typing
+
+    return () => clearTimeout(timer);
+  }, [formData.description, formData.daily_plan]);
+
+  const handleTagInputChange = (e) => {
+    const value = e.target.value;
+    setTagInput(value);
+    setShowTagSuggestions(value.length > 0 && tagSuggestions.length > 0);
+  };
+
+  const handleTagAdd = (tag) => {
+    if (tag && !formData.tags.includes(tag)) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, tag]
+      }));
+    }
+    setTagInput('');
+    setShowTagSuggestions(false);
+  };
+
+  const handleTagRemove = (tagToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(tag => tag !== tagToRemove)
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -287,6 +417,53 @@ export default function CreateTourPage() {
               Basic Information
             </h2>
 
+            {/* Country and City - At the top */}
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
+              gap: '20px', 
+              marginBottom: '20px' 
+            }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Country *
+                </label>
+                <input
+                  type="text"
+                  value={formData.country}
+                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                  required
+                  placeholder="e.g., France, Italy, Spain"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '16px'
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  City *
+                </label>
+                <input
+                  type="text"
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  required
+                  placeholder="e.g., Paris, Rome, Barcelona"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '16px'
+                  }}
+                />
+              </div>
+            </div>
+
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
                 Tour Name *
@@ -328,23 +505,86 @@ export default function CreateTourPage() {
               />
             </div>
 
+            {/* Preview Upload Section */}
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                City *
+                Preview (Photo or Video Story) *
               </label>
-              <input
-                type="text"
-                value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                required
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '16px'
-                }}
-              />
+              <div style={{
+                border: '2px dashed #d1d5db',
+                borderRadius: '8px',
+                padding: '20px',
+                textAlign: 'center',
+                backgroundColor: '#f9fafb',
+                position: 'relative'
+              }}>
+                {formData.preview ? (
+                  <div>
+                    {formData.previewType === 'image' ? (
+                      <img 
+                        src={formData.preview} 
+                        alt="Preview" 
+                        style={{ 
+                          maxWidth: '100%', 
+                          maxHeight: '300px', 
+                          borderRadius: '8px',
+                          marginBottom: '12px'
+                        }} 
+                      />
+                    ) : (
+                      <video 
+                        src={formData.preview} 
+                        controls
+                        style={{ 
+                          maxWidth: '100%', 
+                          maxHeight: '300px', 
+                          borderRadius: '8px',
+                          marginBottom: '12px'
+                        }}
+                      />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, preview: '', previewType: 'image' })}
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#ef4444',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '14px'
+                      }}
+                    >
+                      Remove Preview
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <label style={{
+                      display: 'inline-block',
+                      padding: '10px 20px',
+                      backgroundColor: '#3b82f6',
+                      color: 'white',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontWeight: '500'
+                    }}>
+                      <input
+                        type="file"
+                        accept="image/*,video/*"
+                        onChange={handlePreviewChange}
+                        style={{ display: 'none' }}
+                        required
+                      />
+                      Choose Photo or Video
+                    </label>
+                    <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>
+                      JPG, PNG, GIF, MP4, MOV. Max 10MB (images) or 50MB (videos)
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div style={{ 
@@ -1004,6 +1244,129 @@ export default function CreateTourPage() {
                 </button>
               </div>
             ))}
+          </div>
+
+          {/* Tags Section */}
+          <div style={{
+            backgroundColor: 'white',
+            padding: '24px',
+            borderRadius: '12px',
+            marginBottom: '24px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>
+              Tags
+            </h2>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Add Tags (for search and discovery)
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  value={tagInput}
+                  onChange={handleTagInputChange}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && tagInput.trim()) {
+                      e.preventDefault();
+                      handleTagAdd(tagInput.trim());
+                    }
+                  }}
+                  placeholder="Type to see suggestions or press Enter to add"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '16px'
+                  }}
+                />
+                {showTagSuggestions && tagSuggestions.length > 0 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    backgroundColor: 'white',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    marginTop: '4px',
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    zIndex: 1000,
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                  }}>
+                    {tagSuggestions
+                      .filter(tag => !formData.tags.includes(tag) && tag.toLowerCase().includes(tagInput.toLowerCase()))
+                      .slice(0, 5)
+                      .map((tag, index) => (
+                        <div
+                          key={index}
+                          onClick={() => handleTagAdd(tag)}
+                          style={{
+                            padding: '10px 12px',
+                            cursor: 'pointer',
+                            borderBottom: index < tagSuggestions.length - 1 ? '1px solid #e5e7eb' : 'none',
+                            hover: { backgroundColor: '#f3f4f6' }
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                        >
+                          {tag}
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>
+                Tags help travelers discover your tour. Suggestions are generated based on your tour description and locations.
+              </p>
+            </div>
+
+            {/* Display selected tags */}
+            {formData.tags.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {formData.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      padding: '6px 12px',
+                      backgroundColor: '#eff6ff',
+                      color: '#1e40af',
+                      borderRadius: '20px',
+                      fontSize: '14px',
+                      fontWeight: '500'
+                    }}
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => handleTagRemove(tag)}
+                      style={{
+                        marginLeft: '8px',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        color: '#1e40af',
+                        cursor: 'pointer',
+                        fontSize: '16px',
+                        lineHeight: '1',
+                        padding: '0',
+                        width: '18px',
+                        height: '18px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Submit Button */}
