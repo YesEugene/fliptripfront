@@ -130,14 +130,14 @@ export default function ItineraryPage() {
       setLoading(false);
     } else if (existingItineraryId) {
       // Load existing itinerary from Redis (preview or full)
-      console.log('📥 Loading existing itinerary from Redis:', existingItineraryId);
+      console.log('📥 Loading existing itinerary from Redis:', existingItineraryId, isFullPlan ? '(expecting full plan)' : '');
       loadItineraryFromRedis(existingItineraryId);
     } else {
       // Generate new itinerary (preview or full)
       console.log('🆕 Generating new itinerary, previewOnly:', previewOnly);
       generateItineraryData();
     }
-  }, [isExample, exampleItinerary, existingItineraryId, previewOnly]);
+  }, [isExample, exampleItinerary, existingItineraryId, previewOnly, isFullPlan]);
 
   const loadItineraryFromRedis = async (itineraryId, retryCount = 0) => {
     try {
