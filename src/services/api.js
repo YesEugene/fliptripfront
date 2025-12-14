@@ -58,16 +58,9 @@ export const generateItinerary = async (formData) => {
 };
 
 // Generate smart itinerary with budget optimization
-export const generateSmartItinerary = async (formData, previewOnly = false) => {
+export const generateSmartItinerary = async (formData) => {
   try {
-    const requestData = {
-      ...formData,
-      previewOnly: previewOnly === true || previewOnly === 'true' // Normalize to boolean
-    };
-    console.log('📤 API CALL: generateSmartItinerary with previewOnly:', requestData.previewOnly);
-    const response = await api.post('/api/smart-itinerary', requestData);
-    console.log('📥 API RESPONSE: activities count:', response.data?.activities?.length);
-    console.log('📥 API RESPONSE: previewOnly flag:', response.data?.previewOnly);
+    const response = await api.post('/api/smart-itinerary', formData);
     return response.data;
   } catch (error) {
     console.error('Smart itinerary generation error:', error);
@@ -215,68 +208,6 @@ export const getExample = async (exampleId) => {
     return response.data;
   } catch (error) {
     console.error('Error getting example:', error);
-    throw error;
-  }
-};
-
-// Save itinerary to Redis
-export const saveItinerary = async (itineraryData) => {
-  try {
-    console.log('💾 Saving itinerary to Redis:', { previewOnly: itineraryData.previewOnly, activitiesCount: itineraryData.activities?.length });
-    const response = await api.post('/api/save-itinerary', itineraryData);
-    console.log('✅ Itinerary saved successfully:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('Save itinerary error:', error);
-    throw error;
-  }
-};
-
-// Get itinerary from Redis by ID
-export const getItinerary = async (id) => {
-  try {
-    console.log('📥 Loading itinerary from Redis:', id);
-    const response = await api.get(`/api/get-itinerary?id=${id}`);
-    console.log('✅ Itinerary loaded:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('Get itinerary error:', error);
-    throw error;
-  }
-};
-
-// Complete itinerary (generate full plan from preview)
-export const completeItinerary = async (itineraryId, formData) => {
-  try {
-    console.log('🔄 Completing itinerary:', itineraryId);
-    const response = await api.post('/api/complete-itinerary', {
-      itineraryId,
-      ...formData
-    });
-    console.log('✅ Itinerary completed:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('Complete itinerary error:', error);
-    throw error;
-  }
-};
-
-// Get alternative places
-export const getAlternatives = async (category, city, currentPlaceName, currentAddress) => {
-  try {
-    console.log('🔍 Getting alternatives:', { category, city, currentPlaceName });
-    const response = await api.get('/api/get-alternatives', {
-      params: {
-        category,
-        city,
-        currentPlaceName,
-        currentAddress
-      }
-    });
-    console.log('✅ Alternatives loaded:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('Get alternatives error:', error);
     throw error;
   }
 };

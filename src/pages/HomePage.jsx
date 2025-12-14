@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
+import { isAuthenticated, getCurrentUser, logout } from '../modules/auth/services/authService';
 import FlipTripPhoto from '../assets/FlipTripPhoto.svg';
 import ParisImage from '../assets/Paris.svg';
 import BarcelonaImage from '../assets/Barcelona.svg';
@@ -134,7 +135,20 @@ export default function HomePage() {
   const [errors, setErrors] = useState({});
   const [showFilters, setShowFilters] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [user, setUser] = useState(null);
   // Removed '' state - using simple dropdown only
+
+  // Check authentication on mount
+  useEffect(() => {
+    try {
+      const currentUser = getCurrentUser();
+      if (currentUser) {
+        setUser(currentUser);
+      }
+    } catch (error) {
+      console.error('Error checking auth:', error);
+    }
+  }, []);
 
   // Random city images for header background
   const cityImages = [
@@ -300,15 +314,89 @@ export default function HomePage() {
             position: 'relative',
             zIndex: 2
           }}>
-            <img 
-              src={FlipTripLogo} 
-              alt="FlipTrip" 
-              style={{ 
-                height: '60px',
-                width: '100px',
-                marginBottom: '40px'
-              }}
-            />
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              width: '100%',
+              padding: '0 20px',
+              marginBottom: '20px'
+            }}>
+              <img 
+                src={FlipTripLogo} 
+                alt="FlipTrip" 
+                style={{ 
+                  height: '60px',
+                  width: '100px'
+                }}
+              />
+              <div style={{ display: 'flex', gap: '12px' }}>
+                {user ? (
+                  <>
+                    <Link
+                      to={user.role === 'guide' ? '/guide/dashboard' : '/user/dashboard'}
+                      style={{
+                        color: 'white',
+                        textDecoration: 'none',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                      }}
+                    >
+                      {user.name}
+                    </Link>
+                    <button
+                      onClick={() => {
+                        logout();
+                        setUser(null);
+                        window.location.reload();
+                      }}
+                      style={{
+                        backgroundColor: 'rgba(255,255,255,0.2)',
+                        color: 'white',
+                        border: '1px solid rgba(255,255,255,0.3)',
+                        borderRadius: '6px',
+                        padding: '6px 12px',
+                        fontSize: '12px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Выйти
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/login"
+                      style={{
+                        color: 'white',
+                        textDecoration: 'none',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                      }}
+                    >
+                      Вход
+                    </Link>
+                    <Link
+                      to="/register"
+                      style={{
+                        backgroundColor: 'rgba(255,255,255,0.2)',
+                        color: 'white',
+                        border: '1px solid rgba(255,255,255,0.3)',
+                        borderRadius: '6px',
+                        padding: '6px 12px',
+                        fontSize: '12px',
+                        textDecoration: 'none',
+                        fontWeight: '600'
+                      }}
+                    >
+                      Регистрация
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
             <div style={{
               color: 'white',
               fontSize: '30px',
@@ -410,10 +498,10 @@ export default function HomePage() {
           margin: '0 auto',
           position: 'relative'
         }}>
-          {/* Centered Logo */}
+          {/* Centered Logo with Auth Links */}
           <div style={{
             display: 'flex',
-            justifyContent: 'center',
+            justifyContent: 'space-between',
             alignItems: 'center',
             marginBottom: '20px'
           }}>
@@ -422,9 +510,72 @@ export default function HomePage() {
               alt="FlipTrip" 
               style={{ 
                 height: '57px',
-                width: '435px'
+                width: 'auto'
               }}
             />
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              {user ? (
+                <>
+                  <Link
+                    to={user.role === 'guide' ? '/guide/dashboard' : '/user/dashboard'}
+                    style={{
+                      color: '#374151',
+                      textDecoration: 'none',
+                      fontSize: '14px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    {user.name}
+                  </Link>
+                  <button
+                    onClick={() => {
+                      logout();
+                      setUser(null);
+                      window.location.reload();
+                    }}
+                    style={{
+                      backgroundColor: '#ef4444',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '6px 12px',
+                      fontSize: '12px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Выйти
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    style={{
+                      color: '#374151',
+                      textDecoration: 'none',
+                      fontSize: '14px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    Вход
+                  </Link>
+                  <Link
+                    to="/register"
+                    style={{
+                      backgroundColor: '#3b82f6',
+                      color: 'white',
+                      borderRadius: '6px',
+                      padding: '8px 16px',
+                      fontSize: '14px',
+                      textDecoration: 'none',
+                      fontWeight: '600'
+                    }}
+                  >
+                    Регистрация
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
           
           {/* City Selection - Centered under logo */}
