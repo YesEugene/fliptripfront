@@ -339,12 +339,174 @@ export default function CreateTourPage() {
                         padding: '8px',
                         border: '1px solid #d1d5db',
                         borderRadius: '6px',
-                        marginBottom: '12px'
+                        marginBottom: '12px',
+                        fontWeight: '600'
                       }}
                     />
-                    <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '12px' }}>
-                      Локации будут добавлены позже
-                    </p>
+                    
+                    {/* Локации в блоке */}
+                    {block.items && block.items.length > 0 && (
+                      <div style={{ marginBottom: '12px' }}>
+                        {block.items.map((item, itemIndex) => (
+                          <div key={itemIndex} style={{
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '6px',
+                            padding: '12px',
+                            marginBottom: '8px',
+                            backgroundColor: '#f9fafb'
+                          }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                              <strong style={{ fontSize: '14px' }}>Локация {itemIndex + 1}</strong>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newPlan = [...formData.daily_plan];
+                                  newPlan[dayIndex].blocks[blockIndex].items.splice(itemIndex, 1);
+                                  setFormData({ ...formData, daily_plan: newPlan });
+                                }}
+                                style={{
+                                  padding: '4px 8px',
+                                  backgroundColor: '#ef4444',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  fontSize: '12px'
+                                }}
+                              >
+                                Удалить
+                              </button>
+                            </div>
+                            
+                            <input
+                              type="text"
+                              value={item.title || ''}
+                              onChange={(e) => {
+                                const newPlan = [...formData.daily_plan];
+                                newPlan[dayIndex].blocks[blockIndex].items[itemIndex].title = e.target.value;
+                                setFormData({ ...formData, daily_plan: newPlan });
+                              }}
+                              placeholder="Название локации *"
+                              required
+                              style={{
+                                width: '100%',
+                                padding: '8px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                marginBottom: '8px',
+                                fontSize: '14px'
+                              }}
+                            />
+                            
+                            <input
+                              type="text"
+                              value={item.address || ''}
+                              onChange={(e) => {
+                                const newPlan = [...formData.daily_plan];
+                                newPlan[dayIndex].blocks[blockIndex].items[itemIndex].address = e.target.value;
+                                setFormData({ ...formData, daily_plan: newPlan });
+                              }}
+                              placeholder="Адрес"
+                              style={{
+                                width: '100%',
+                                padding: '8px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                marginBottom: '8px',
+                                fontSize: '14px'
+                              }}
+                            />
+                            
+                            <textarea
+                              value={item.description || ''}
+                              onChange={(e) => {
+                                const newPlan = [...formData.daily_plan];
+                                newPlan[dayIndex].blocks[blockIndex].items[itemIndex].description = e.target.value;
+                                setFormData({ ...formData, daily_plan: newPlan });
+                              }}
+                              placeholder="Описание локации"
+                              rows={3}
+                              style={{
+                                width: '100%',
+                                padding: '8px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                marginBottom: '8px',
+                                fontSize: '14px',
+                                resize: 'vertical'
+                              }}
+                            />
+                            
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                              <input
+                                type="text"
+                                value={item.category || ''}
+                                onChange={(e) => {
+                                  const newPlan = [...formData.daily_plan];
+                                  newPlan[dayIndex].blocks[blockIndex].items[itemIndex].category = e.target.value;
+                                  setFormData({ ...formData, daily_plan: newPlan });
+                                }}
+                                placeholder="Категория"
+                                style={{
+                                  padding: '8px',
+                                  border: '1px solid #d1d5db',
+                                  borderRadius: '6px',
+                                  fontSize: '14px'
+                                }}
+                              />
+                              <input
+                                type="text"
+                                value={item.duration || ''}
+                                onChange={(e) => {
+                                  const newPlan = [...formData.daily_plan];
+                                  newPlan[dayIndex].blocks[blockIndex].items[itemIndex].duration = e.target.value;
+                                  setFormData({ ...formData, daily_plan: newPlan });
+                                }}
+                                placeholder="Длительность"
+                                style={{
+                                  padding: '8px',
+                                  border: '1px solid #d1d5db',
+                                  borderRadius: '6px',
+                                  fontSize: '14px'
+                                }}
+                              />
+                              <input
+                                type="text"
+                                value={item.approx_cost || ''}
+                                onChange={(e) => {
+                                  const newPlan = [...formData.daily_plan];
+                                  newPlan[dayIndex].blocks[blockIndex].items[itemIndex].approx_cost = e.target.value;
+                                  setFormData({ ...formData, daily_plan: newPlan });
+                                }}
+                                placeholder="Примерная стоимость"
+                                style={{
+                                  padding: '8px',
+                                  border: '1px solid #d1d5db',
+                                  borderRadius: '6px',
+                                  fontSize: '14px'
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <button
+                      type="button"
+                      onClick={() => addItem(dayIndex, blockIndex)}
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#10b981',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '14px'
+                      }}
+                    >
+                      + Добавить локацию
+                    </button>
                   </div>
                 ))}
 
