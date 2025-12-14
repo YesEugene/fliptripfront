@@ -507,13 +507,15 @@ export default function HomePage() {
           margin: '0 auto',
           position: 'relative'
         }}>
-          {/* Centered Logo with Auth Links */}
+          {/* Logo and Auth Links - Logo left, buttons right */}
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '20px'
+            marginBottom: '20px',
+            width: '100%'
           }}>
+            {/* Logo - Left aligned */}
             <img 
               src={FlipTripLogo} 
               alt="FlipTrip" 
@@ -522,7 +524,13 @@ export default function HomePage() {
                 width: 'auto'
               }}
             />
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            {/* Auth buttons - Right aligned, same height as logo */}
+            <div style={{ 
+              display: 'flex', 
+              gap: '12px', 
+              alignItems: 'center',
+              height: '57px' // Match logo height
+            }}>
               {user ? (
                 <>
                   <Link
