@@ -683,11 +683,7 @@ export default function ItineraryPage() {
           )}
 
           {/* Pay to Unlock Section - только для превью */}
-          {(() => {
-            const shouldShow = (previewOnly || itinerary?.previewOnly === true) && itineraryId;
-            console.log('🔍 Email button check:', { previewOnly, itineraryPreviewOnly: itinerary?.previewOnly, itineraryId, shouldShow });
-            return shouldShow;
-          })() && (
+          {previewOnly && itineraryId && (
             <div className="enhanced-card" style={{ marginTop: '20px', borderRadius: '12px' }}>
               <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px' }}>
                 🔒 Unlock Full Itinerary
