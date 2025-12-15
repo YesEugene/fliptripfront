@@ -145,7 +145,8 @@ export default function EditTourPage() {
                         category: item.location?.category || item.category || '',
                         duration: item.duration_minutes || item.duration || '',
                         approx_cost: item.approx_cost || '',
-                        location_id: item.location_id || null
+                        location_id: item.location_id || null,
+                        tag_ids: item.location?.tags?.map(t => t.tag?.id || t.tag_id).filter(Boolean) || []
                       })) : []
                     };
                   }) : []
