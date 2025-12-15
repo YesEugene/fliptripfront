@@ -813,7 +813,16 @@ export default function HomePage() {
                     <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>
                       Category
                     </label>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      gap: '8px', 
+                      flexWrap: window.innerWidth < 768 ? 'nowrap' : 'wrap',
+                      overflowX: window.innerWidth < 768 ? 'auto' : 'visible',
+                      paddingBottom: window.innerWidth < 768 ? '8px' : '0',
+                      WebkitOverflowScrolling: 'touch',
+                      scrollbarWidth: 'thin',
+                      msOverflowStyle: '-ms-autohiding-scrollbar'
+                    }}>
                       {interestsStructure.map(category => (
                         <button
                           key={category.id}
@@ -830,10 +839,12 @@ export default function HomePage() {
                             fontWeight: 'bold',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '6px'
+                            gap: '6px',
+                            whiteSpace: 'nowrap',
+                            flexShrink: 0
                           }}
                         >
-                          {category.icon} {category.name}
+                          {category.icon} {CATEGORY_NAMES[category.name] || category.name}
                         </button>
                       ))}
                     </div>
