@@ -146,7 +146,7 @@ export default function EditTourPage() {
                         duration: item.duration_minutes || item.duration || '',
                         approx_cost: item.approx_cost || '',
                         location_id: item.location_id || null,
-                        tag_ids: item.location?.tags?.map(t => t.tag?.id || t.tag_id).filter(Boolean) || []
+                        interest_ids: item.location?.interests?.map(li => li.interest?.id || li.interest_id).filter(Boolean) || []
                       })) : []
                     };
                   }) : []
@@ -452,27 +452,43 @@ export default function EditTourPage() {
     });
   };
 
-  const [availableTags, setAvailableTags] = useState([]);
-  const [loadingTags, setLoadingTags] = useState(false);
+  const [interestsStructure, setInterestsStructure] = useState(null);
+  const [availableInterests, setAvailableInterests] = useState([]);
+  const [loadingInterests, setLoadingInterests] = useState(false);
 
-  // Load available tags on component mount
+  // Load interests structure on component mount
   useEffect(() => {
-    const loadTags = async () => {
+    const loadInterests = async () => {
       try {
-        setLoadingTags(true);
+        setLoadingInterests(true);
         const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
-        const response = await fetch(`${API_BASE_URL}/api/admin-tags`);
+        const response = await fetch(`${API_BASE_URL}/api/interests?full_structure=true`);
         const data = await response.json();
         if (data.success) {
-          setAvailableTags(data.tags || []);
+          setInterestsStructure(data.categories || []);
+          // Flatten all interests for easy access
+          const allInterests = [];
+          data.categories.forEach(category => {
+            if (category.direct_interests) {
+              allInterests.push(...category.direct_interests);
+            }
+            if (category.subcategories) {
+              category.subcategories.forEach(subcategory => {
+                if (subcategory.interests) {
+                  allInterests.push(...subcategory.interests);
+                }
+              });
+            }
+          });
+          setAvailableInterests(allInterests);
         }
       } catch (err) {
-        console.error('Error loading tags:', err);
+        console.error('Error loading interests:', err);
       } finally {
-        setLoadingTags(false);
+        setLoadingInterests(false);
       }
     };
-    loadTags();
+    loadInterests();
   }, []);
 
   const addItem = (dayIndex, blockIndex) => {
@@ -486,7 +502,7 @@ export default function EditTourPage() {
         category: '',
         duration: '',
         approx_cost: '',
-        tag_ids: [] // Tags for this location
+        interest_ids: [] // Interests for this location
       });
       return { ...prev, daily_plan: newPlan };
     });
@@ -1372,7 +1388,7 @@ export default function EditTourPage() {
                               />
                             </div>
                             
-                            {/* Tags for Location */}
+                            {/* Interests for Location */}
                             <div style={{ marginTop: '12px', width: '100%' }}>
                               <label style={{ 
                                 display: 'block', 
@@ -1380,97 +1396,115 @@ export default function EditTourPage() {
                                 fontWeight: '500',
                                 fontSize: '14px'
                               }}>
-                                Tags for this location
+                                Interests for this location
                               </label>
-                              <div style={{ marginBottom: '8px' }}>
-                                <select
-                                  value=""
-                                  onChange={(e) => {
-                                    const tagId = e.target.value;
-                                    if (tagId) {
-                                      const newPlan = [...formData.daily_plan];
-                                      const currentTagIds = newPlan[dayIndex].blocks[blockIndex].items[itemIndex].tag_ids || [];
-                                      if (!currentTagIds.includes(tagId)) {
-                                        newPlan[dayIndex].blocks[blockIndex].items[itemIndex].tag_ids = [...currentTagIds, tagId];
-                                        setFormData({ ...formData, daily_plan: newPlan });
-                                      }
-                                      e.target.value = '';
-                                    }
-                                  }}
-                                  style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    border: '1px solid #d1d5db',
-                                    borderRadius: '6px',
-                                    fontSize: '14px',
-                                    backgroundColor: 'white'
-                                  }}
-                                >
-                                  <option value="">Select a tag to add...</option>
-                                  {availableTags
-                                    .filter(tag => {
-                                      const currentTagIds = item.tag_ids || [];
-                                      return !currentTagIds.includes(tag.id);
-                                    })
-                                    .map(tag => (
-                                      <option key={tag.id} value={tag.id}>
-                                        {tag.name} {tag.type ? `(${tag.type})` : ''}
-                                      </option>
-                                    ))}
-                                </select>
-                              </div>
-                              
-                              {/* Display selected tags */}
-                              {(item.tag_ids || []).length > 0 && (
-                                <div style={{ 
-                                  display: 'flex', 
-                                  flexWrap: 'wrap', 
-                                  gap: '6px',
-                                  marginTop: '8px'
-                                }}>
-                                  {(item.tag_ids || []).map(tagId => {
-                                    const tag = availableTags.find(t => t.id === tagId);
-                                    if (!tag) return null;
-                                    return (
-                                      <span
-                                        key={tagId}
-                                        style={{
-                                          padding: '4px 10px',
-                                          backgroundColor: '#e0e7ff',
-                                          color: '#3730a3',
-                                          borderRadius: '6px',
-                                          fontSize: '12px',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          gap: '6px'
-                                        }}
-                                      >
-                                        {tag.name}
-                                        <button
-                                          type="button"
-                                          onClick={() => {
-                                            const newPlan = [...formData.daily_plan];
-                                            newPlan[dayIndex].blocks[blockIndex].items[itemIndex].tag_ids = 
-                                              (newPlan[dayIndex].blocks[blockIndex].items[itemIndex].tag_ids || []).filter(id => id !== tagId);
+                              {loadingInterests ? (
+                                <div style={{ padding: '8px', color: '#6b7280', fontSize: '12px' }}>Loading interests...</div>
+                              ) : (
+                                <>
+                                  <div style={{ marginBottom: '8px' }}>
+                                    <select
+                                      value=""
+                                      onChange={(e) => {
+                                        const interestId = e.target.value;
+                                        if (interestId) {
+                                          const newPlan = [...formData.daily_plan];
+                                          const currentInterestIds = newPlan[dayIndex].blocks[blockIndex].items[itemIndex].interest_ids || [];
+                                          if (!currentInterestIds.includes(interestId)) {
+                                            newPlan[dayIndex].blocks[blockIndex].items[itemIndex].interest_ids = [...currentInterestIds, interestId];
                                             setFormData({ ...formData, daily_plan: newPlan });
-                                          }}
-                                          style={{
-                                            background: 'none',
-                                            border: 'none',
-                                            color: '#3730a3',
-                                            cursor: 'pointer',
-                                            fontSize: '14px',
-                                            padding: '0',
-                                            lineHeight: '1',
-                                            fontWeight: 'bold'
-                                          }}
-                                        >
-                                          ×
-                                        </button>
-                                      </span>
-                                    );
-                                  })}
-                                </div>
+                                          }
+                                          e.target.value = '';
+                                        }
+                                      }}
+                                      style={{
+                                        width: '100%',
+                                        padding: '8px',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '6px',
+                                        fontSize: '14px',
+                                        backgroundColor: 'white'
+                                      }}
+                                    >
+                                      <option value="">Select an interest to add...</option>
+                                      {availableInterests
+                                        .filter(interest => {
+                                          const currentInterestIds = item.interest_ids || [];
+                                          return !currentInterestIds.includes(interest.id);
+                                        })
+                                        .map(interest => {
+                                          const category = interestsStructure?.find(c => 
+                                            c.id === interest.category_id || 
+                                            c.subcategories?.some(s => s.id === interest.subcategory_id)
+                                          );
+                                          return (
+                                            <option key={interest.id} value={interest.id}>
+                                              {category?.icon} {interest.name}
+                                            </option>
+                                          );
+                                        })}
+                                    </select>
+                                  </div>
+                                  
+                                  {/* Display selected interests */}
+                                  {(item.interest_ids || []).length > 0 && (
+                                    <div style={{ 
+                                      display: 'flex', 
+                                      flexWrap: 'wrap', 
+                                      gap: '6px',
+                                      marginTop: '8px'
+                                    }}>
+                                      {(item.interest_ids || []).map(interestId => {
+                                        const interest = availableInterests.find(i => i.id === interestId);
+                                        if (!interest) return null;
+                                        
+                                        const category = interestsStructure?.find(c => 
+                                          c.id === interest.category_id || 
+                                          c.subcategories?.some(s => s.id === interest.subcategory_id)
+                                        );
+                                        
+                                        return (
+                                          <span
+                                            key={interestId}
+                                            style={{
+                                              padding: '4px 10px',
+                                              backgroundColor: '#e0e7ff',
+                                              color: '#3730a3',
+                                              borderRadius: '6px',
+                                              fontSize: '12px',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: '6px'
+                                            }}
+                                          >
+                                            {category?.icon} {interest.name}
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                const newPlan = [...formData.daily_plan];
+                                                newPlan[dayIndex].blocks[blockIndex].items[itemIndex].interest_ids = 
+                                                  (newPlan[dayIndex].blocks[blockIndex].items[itemIndex].interest_ids || []).filter(id => id !== interestId);
+                                                setFormData({ ...formData, daily_plan: newPlan });
+                                              }}
+                                              style={{
+                                                background: 'none',
+                                                border: 'none',
+                                                color: '#3730a3',
+                                                cursor: 'pointer',
+                                                fontSize: '14px',
+                                                padding: '0',
+                                                lineHeight: '1',
+                                                fontWeight: 'bold'
+                                              }}
+                                            >
+                                              ×
+                                            </button>
+                                          </span>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </>
                               )}
                             </div>
                           </div>
