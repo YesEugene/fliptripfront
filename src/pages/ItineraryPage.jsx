@@ -173,17 +173,14 @@ export default function ItineraryPage() {
           // Already converted, use as is
           // CRITICAL: If full=true in URL OR previewOnly=false in loaded data, show all blocks
           // If previewOnly=true in URL AND full=false, show only first 2 blocks
-          const isActuallyFullPlan = isFullPlan || !loadedItinerary.previewOnly;
-          const shouldShowPreview = previewOnly && !isFullPlan && loadedItinerary.previewOnly === true;
+          // NEW APPROACH: Keep full daily_plan, preview logic is in render
+          const shouldShowPreview = loadedItinerary.previewOnly === true && !isFullPlan;
           
           const displayItinerary = { 
             ...loadedItinerary, 
             previewOnly: shouldShowPreview,
-            // If preview mode, limit to 2 blocks, otherwise show all
-            daily_plan: shouldShowPreview ? [{
-              ...loadedItinerary.daily_plan[0],
-              blocks: loadedItinerary.daily_plan[0]?.blocks?.slice(0, 2) || []
-            }] : loadedItinerary.daily_plan
+            // Keep full daily_plan - slicing happens in render logic
+            daily_plan: loadedItinerary.daily_plan
           };
           
           console.log('✅ Itinerary already in display format');
