@@ -790,10 +790,21 @@ export default function ItineraryPage() {
             📅 Day Plan
           </h2>
           
-          {((itinerary?.previewOnly === true)
-            ? itinerary?.daily_plan?.[0]?.blocks?.slice(0, 2) 
-            : itinerary?.daily_plan?.[0]?.blocks
-          )?.map((block, blockIndex) => (
+          {(() => {
+            // Show only 2 blocks for preview, all blocks for full plan
+            const shouldShowPreview = itinerary?.previewOnly === true && !isFullPlan;
+            const blocksToShow = shouldShowPreview 
+              ? itinerary?.daily_plan?.[0]?.blocks?.slice(0, 2) || []
+              : itinerary?.daily_plan?.[0]?.blocks || [];
+            console.log('🔍 Display blocks:', { 
+              shouldShowPreview, 
+              isFullPlan, 
+              previewOnly: itinerary?.previewOnly,
+              totalBlocks: itinerary?.daily_plan?.[0]?.blocks?.length || 0,
+              showingBlocks: blocksToShow.length 
+            });
+            return blocksToShow;
+          })()?.map((block, blockIndex) => (
             <div key={blockIndex} style={blockStyle}>
               <div className="time-block-enhanced">{block.time}</div>
               {block.items?.map((item, itemIndex) => (
