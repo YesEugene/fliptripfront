@@ -787,11 +787,11 @@ export default function ItineraryPage() {
           </h2>
           
           {(() => {
-            // Show only 2 blocks for preview, all blocks for full plan
+            // NEW APPROACH: Show only 2 blocks if previewOnly=true, all blocks otherwise
             const shouldShowPreview = itinerary?.previewOnly === true && !isFullPlan;
             const blocksToShow = shouldShowPreview 
-              ? itinerary?.daily_plan?.[0]?.blocks?.slice(0, 2) || []
-              : itinerary?.daily_plan?.[0]?.blocks || [];
+              ? (itinerary?.daily_plan?.[0]?.blocks?.slice(0, 2) || [])
+              : (itinerary?.daily_plan?.[0]?.blocks || []);
             console.log('🔍 Display blocks:', { 
               shouldShowPreview, 
               isFullPlan, 
