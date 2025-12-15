@@ -26,7 +26,9 @@ export default function LoginPage() {
       const data = await login(formData.email, formData.password);
       
       // Редирект в зависимости от роли
-      if (data.user.role === 'guide') {
+      if (data.user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (data.user.role === 'guide') {
         navigate('/guide/dashboard');
       } else {
         navigate('/user/dashboard');
