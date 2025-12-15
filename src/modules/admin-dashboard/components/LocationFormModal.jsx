@@ -20,11 +20,13 @@ export default function LocationFormModal({ location, onClose, onSave }) {
     website: '',
     phone: '',
     booking_url: '',
-    verified: false,
-    lat: '',
-    lng: '',
-    google_place_id: ''
+    verified: true, // Default to verified for admin-created locations
+    tag_ids: []
   });
+  const [tagSuggestions, setTagSuggestions] = useState([]);
+  const [tagInput, setTagInput] = useState('');
+  const [showTagSuggestions, setShowTagSuggestions] = useState(false);
+  const [availableTags, setAvailableTags] = useState([]);
   const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingCities, setLoadingCities] = useState(true);
@@ -108,9 +110,7 @@ export default function LocationFormModal({ location, onClose, onSave }) {
         phone: formData.phone || null,
         booking_url: formData.booking_url || null,
         verified: formData.verified,
-        lat: formData.lat ? parseFloat(formData.lat) : null,
-        lng: formData.lng ? parseFloat(formData.lng) : null,
-        google_place_id: formData.google_place_id || null
+        tag_ids: formData.tag_ids || []
       };
 
       await onSave(locationData);
@@ -434,59 +434,128 @@ export default function LocationFormModal({ location, onClose, onSave }) {
               />
             </div>
 
-            {/* Coordinates */}
-            <div>
+            {/* Tags */}
+            <div style={{ gridColumn: '1 / -1' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
-                Latitude
+                Tags
               </label>
-              <input
-                type="number"
-                name="lat"
-                value={formData.lat}
-                onChange={handleChange}
-                step="any"
-                placeholder="e.g., 48.8566"
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '16px'
-                }}
-              />
-            </div>
+              <div style={{ marginBottom: '8px' }}>
+                <button
+                  type="button"
+                  onClick={generateTagSuggestions}
+                  disabled={!formData.description && !formData.recommendations}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#3b82f6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    marginBottom: '8px',
+                    opacity: (!formData.description && !formData.recommendations) ? 0.5 : 1
+                  }}
+                >
+                  ✨ Generate Tag Suggestions
+                </button>
+              </div>
+              
+              {showTagSuggestions && tagSuggestions.length > 0 && (
+                <div style={{
+                  marginBottom: '12px',
+                  padding: '12px',
+                  backgroundColor: '#f3f4f6',
+                  borderRadius: '8px'
+                }}>
+                  <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>
+                    Suggested tags:
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {tagSuggestions.map((tag, idx) => {
+                      const existingTag = availableTags.find(t => t.name.toLowerCase() === tag.toLowerCase());
+                      if (existingTag && !formData.tag_ids.includes(existingTag.id)) {
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => handleTagAdd(existingTag.id)}
+                            style={{
+                              padding: '6px 12px',
+                              backgroundColor: '#3b82f6',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '12px'
+                            }}
+                          >
+                            + {tag}
+                          </button>
+                        );
+                      }
+                      return null;
+                    })}
+                  </div>
+                </div>
+              )}
 
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
-                Longitude
-              </label>
-              <input
-                type="number"
-                name="lng"
-                value={formData.lng}
-                onChange={handleChange}
-                step="any"
-                placeholder="e.g., 2.3522"
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '16px'
-                }}
-              />
-            </div>
+              {/* Selected Tags */}
+              {formData.tag_ids.length > 0 && (
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>
+                    Selected tags:
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {formData.tag_ids.map(tagId => {
+                      const tag = availableTags.find(t => t.id === tagId);
+                      if (!tag) return null;
+                      return (
+                        <span
+                          key={tagId}
+                          style={{
+                            padding: '6px 12px',
+                            backgroundColor: '#e0e7ff',
+                            color: '#3730a3',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }}
+                        >
+                          {tag.name}
+                          <button
+                            type="button"
+                            onClick={() => handleTagRemove(tagId)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#3730a3',
+                              cursor: 'pointer',
+                              fontSize: '16px',
+                              padding: '0',
+                              lineHeight: '1'
+                            }}
+                          >
+                            ×
+                          </button>
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
-            {/* Google Place ID */}
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
-                Google Place ID
-              </label>
-              <input
-                type="text"
-                name="google_place_id"
-                value={formData.google_place_id}
-                onChange={handleChange}
+              {/* Available Tags Dropdown */}
+              <select
+                value={tagInput}
+                onChange={(e) => {
+                  const tagId = e.target.value;
+                  if (tagId && !formData.tag_ids.includes(tagId)) {
+                    handleTagAdd(tagId);
+                  }
+                  setTagInput('');
+                }}
                 style={{
                   width: '100%',
                   padding: '10px',
@@ -494,7 +563,16 @@ export default function LocationFormModal({ location, onClose, onSave }) {
                   borderRadius: '8px',
                   fontSize: '16px'
                 }}
-              />
+              >
+                <option value="">Select a tag to add...</option>
+                {availableTags
+                  .filter(tag => !formData.tag_ids.includes(tag.id))
+                  .map(tag => (
+                    <option key={tag.id} value={tag.id}>
+                      {tag.name} {tag.type ? `(${tag.type})` : ''}
+                    </option>
+                  ))}
+              </select>
             </div>
 
             {/* Verified */}
