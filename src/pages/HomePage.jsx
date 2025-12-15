@@ -19,8 +19,9 @@ const TOP_CITIES = [
 ];
 
 const AUDIENCES = [
-  { value: 'him', label: 'Him' },
-  { value: 'her', label: 'Her' },
+  { value: 'solo', label: 'Solo' },
+  { value: 'family', label: 'Family' },
+  { value: 'parents', label: 'Parents' },
   { value: 'couples', label: 'Couples' },
   { value: 'kids', label: 'Kids' }
 ];
@@ -110,7 +111,8 @@ export default function HomePage() {
     city: "",
     audience: "",
     interest_ids: [], // Changed from interests to interest_ids (using IDs from DB)
-    date: new Date().toISOString().slice(0, 10), // Current date as default
+    date_from: null,
+    date_to: null,
     budget: ""
   });
   const [errors, setErrors] = useState({});
@@ -118,6 +120,7 @@ export default function HomePage() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [dateSelectionMode, setDateSelectionMode] = useState('from'); // 'from' or 'to'
   
   // Interests system state
   const [interestsStructure, setInterestsStructure] = useState(null);
@@ -333,14 +336,28 @@ export default function HomePage() {
     if (!formData.audience) newErrors.audience = "Please select who this is for.";
     if (formData.interest_ids.length === 0) newErrors.interests = "Please select at least one interest.";
     if (!formData.budget || formData.budget === "" || parseInt(formData.budget) <= 0) newErrors.budget = "Please enter a valid budget.";
-    if (!formData.date) newErrors.date = "Please select a date.";
+    if (!formData.date_from) newErrors.date = "Please select a start date.";
     
-    // Check if date is in the past
-    if (formData.date) {
-      const selectedDate = new Date(formData.date);
+    // Check if dates are in the past
+    if (formData.date_from) {
+      const selectedDate = new Date(formData.date_from);
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Reset time to compare only dates
       if (selectedDate < today) newErrors.date = "Please select a future date.";
+    }
+    
+    // Check if date_to is set and valid
+    if (formData.date_to) {
+      const dateFrom = new Date(formData.date_from);
+      const dateTo = new Date(formData.date_to);
+      const diffTime = Math.abs(dateTo - dateFrom);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both days
+      
+      if (dateTo < dateFrom) {
+        newErrors.date = "End date must be after start date.";
+      } else if (diffDays > 2) {
+        newErrors.date = "Maximum 2 days allowed.";
+      }
     }
     
     setErrors(newErrors);
@@ -354,7 +371,12 @@ export default function HomePage() {
       const params = new URLSearchParams();
       params.append('city', formData.city);
       params.append('audience', formData.audience);
-      params.append('date', formData.date);
+      params.append('date_from', formData.date_from);
+      if (formData.date_to) {
+        params.append('date_to', formData.date_to);
+      } else {
+        params.append('date_to', formData.date_from); // If only one date selected, use same date for both
+      }
       params.append('budget', formData.budget);
       params.append('previewOnly', 'true');
       
@@ -1146,86 +1168,200 @@ export default function HomePage() {
                   {errors.budget && <p style={{ color: '#ef4444', fontSize: '14px', marginTop: '8px' }}>{errors.budget}</p>}
                 </div>
 
-                {/* Date Field */}
+                {/* Date Range Field */}
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>
-                    When?
+                    When? {formData.date_from && formData.date_to && `(${Math.ceil((new Date(formData.date_to) - new Date(formData.date_from)) / (1000 * 60 * 60 * 24)) + 1} day${Math.ceil((new Date(formData.date_to) - new Date(formData.date_from)) / (1000 * 60 * 60 * 24)) + 1 > 1 ? 's' : ''})`}
                   </label>
-                  <div style={{ position: 'relative' }}>
-                    <input
-                      type="text"
-                      value={formData.date ? new Date(formData.date).toLocaleDateString('en-US', { 
-                        month: 'short', 
-                        day: 'numeric' 
-                      }) : ''}
-                      placeholder="09 Feb"
-                      readOnly
-                      onClick={(e) => {
-                        const dateInput = document.createElement('input');
-                        dateInput.type = 'date';
-                        dateInput.min = new Date().toISOString().slice(0, 10);
-                        dateInput.value = formData.date;
-                        
-                        // Position the date picker near the clicked element
-                        const rect = e.target.getBoundingClientRect();
-                        dateInput.style.position = 'fixed';
-                        dateInput.style.left = rect.left + 'px';
-                        dateInput.style.top = (rect.bottom + 5) + 'px';
-                        dateInput.style.zIndex = '9999';
-                        dateInput.style.opacity = '0';
-                        dateInput.style.pointerEvents = 'auto';
-                        dateInput.style.width = '1px';
-                        dateInput.style.height = '1px';
-                        
-                        document.body.appendChild(dateInput);
-                        
-                        // Small delay to ensure element is rendered
-                        setTimeout(() => {
-                          // Check if device is mobile or showPicker is not supported
-                          const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-                          if (isMobile || !dateInput.showPicker) {
-                            dateInput.focus();
-                            dateInput.click();
-                          } else {
-                            dateInput.showPicker();
-                          }
-                        }, 10);
-                        
-                        dateInput.onchange = (e) => {
-                          setFormData(prev => ({ ...prev, date: e.target.value }));
-                          document.body.removeChild(dateInput);
-                        };
-                        
-                        // Clean up if user clicks away without selecting
-                        dateInput.onblur = () => {
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {/* From Date */}
+                    <div style={{ flex: 1, position: 'relative' }}>
+                      <input
+                        type="text"
+                        value={formData.date_from ? new Date(formData.date_from).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric' 
+                        }) : ''}
+                        placeholder="From"
+                        readOnly
+                        onClick={(e) => {
+                          setDateSelectionMode('from');
+                          const dateInput = document.createElement('input');
+                          dateInput.type = 'date';
+                          dateInput.min = new Date().toISOString().slice(0, 10);
+                          dateInput.max = formData.date_to || null;
+                          dateInput.value = formData.date_from || '';
+                          
+                          const rect = e.target.getBoundingClientRect();
+                          dateInput.style.position = 'fixed';
+                          dateInput.style.left = rect.left + 'px';
+                          dateInput.style.top = (rect.bottom + 5) + 'px';
+                          dateInput.style.zIndex = '9999';
+                          dateInput.style.opacity = '0';
+                          dateInput.style.pointerEvents = 'auto';
+                          dateInput.style.width = '1px';
+                          dateInput.style.height = '1px';
+                          
+                          document.body.appendChild(dateInput);
+                          
                           setTimeout(() => {
-                            if (document.body.contains(dateInput)) {
-                              document.body.removeChild(dateInput);
+                            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                            if (isMobile || !dateInput.showPicker) {
+                              dateInput.focus();
+                              dateInput.click();
+                            } else {
+                              dateInput.showPicker();
                             }
-                          }, 100);
-                        };
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '12px 40px 12px 16px',
-                        border: `2px solid ${errors.date ? '#ef4444' : '#e5e7eb'}`,
-                        borderRadius: '12px',
-                        fontSize: '16px',
-                        color: '#374151',
-                        cursor: 'pointer',
-                        backgroundColor: 'white'
-                      }}
-                    />
-                    <span style={{
-                      position: 'absolute',
-                      right: '12px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      color: '#6b7280',
-                      fontSize: '16px'
-                    }}>
-                      📅
-                    </span>
+                          }, 10);
+                          
+                          dateInput.onchange = (e) => {
+                            const selectedDate = e.target.value;
+                            setFormData(prev => {
+                              let newDateFrom = selectedDate;
+                              let newDateTo = prev.date_to;
+                              
+                              // If date_to exists and is before new date_from, clear it
+                              if (newDateTo && newDateTo < newDateFrom) {
+                                newDateTo = null;
+                              }
+                              
+                              // If date_to exists, check max 2 days
+                              if (newDateTo) {
+                                const diffTime = Math.abs(new Date(newDateTo) - new Date(newDateFrom));
+                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                                if (diffDays > 2) {
+                                  newDateTo = null; // Clear date_to if exceeds 2 days
+                                }
+                              }
+                              
+                              return { ...prev, date_from: newDateFrom, date_to: newDateTo };
+                            });
+                            document.body.removeChild(dateInput);
+                          };
+                          
+                          dateInput.onblur = () => {
+                            setTimeout(() => {
+                              if (document.body.contains(dateInput)) {
+                                document.body.removeChild(dateInput);
+                              }
+                            }, 100);
+                          };
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '12px 40px 12px 16px',
+                          border: `2px solid ${errors.date ? '#ef4444' : '#e5e7eb'}`,
+                          borderRadius: '12px',
+                          fontSize: '16px',
+                          color: '#374151',
+                          cursor: 'pointer',
+                          backgroundColor: 'white'
+                        }}
+                      />
+                      <span style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#6b7280',
+                        fontSize: '12px'
+                      }}>
+                        📅
+                      </span>
+                    </div>
+                    
+                    {/* To Date */}
+                    <div style={{ flex: 1, position: 'relative' }}>
+                      <input
+                        type="text"
+                        value={formData.date_to ? new Date(formData.date_to).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric' 
+                        }) : ''}
+                        placeholder="To (optional)"
+                        readOnly
+                        disabled={!formData.date_from}
+                        onClick={(e) => {
+                          if (!formData.date_from) return;
+                          setDateSelectionMode('to');
+                          const dateInput = document.createElement('input');
+                          dateInput.type = 'date';
+                          dateInput.min = formData.date_from;
+                          // Max date: date_from + 1 day (to allow max 2 days total)
+                          const maxDate = new Date(formData.date_from);
+                          maxDate.setDate(maxDate.getDate() + 1);
+                          dateInput.max = maxDate.toISOString().slice(0, 10);
+                          dateInput.value = formData.date_to || '';
+                          
+                          const rect = e.target.getBoundingClientRect();
+                          dateInput.style.position = 'fixed';
+                          dateInput.style.left = rect.left + 'px';
+                          dateInput.style.top = (rect.bottom + 5) + 'px';
+                          dateInput.style.zIndex = '9999';
+                          dateInput.style.opacity = '0';
+                          dateInput.style.pointerEvents = 'auto';
+                          dateInput.style.width = '1px';
+                          dateInput.style.height = '1px';
+                          
+                          document.body.appendChild(dateInput);
+                          
+                          setTimeout(() => {
+                            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                            if (isMobile || !dateInput.showPicker) {
+                              dateInput.focus();
+                              dateInput.click();
+                            } else {
+                              dateInput.showPicker();
+                            }
+                          }, 10);
+                          
+                          dateInput.onchange = (e) => {
+                            const selectedDate = e.target.value;
+                            setFormData(prev => {
+                              const newDateTo = selectedDate;
+                              const diffTime = Math.abs(new Date(newDateTo) - new Date(prev.date_from));
+                              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                              
+                              if (diffDays > 2) {
+                                // Don't update if exceeds 2 days
+                                return prev;
+                              }
+                              
+                              return { ...prev, date_to: newDateTo };
+                            });
+                            document.body.removeChild(dateInput);
+                          };
+                          
+                          dateInput.onblur = () => {
+                            setTimeout(() => {
+                              if (document.body.contains(dateInput)) {
+                                document.body.removeChild(dateInput);
+                              }
+                            }, 100);
+                          };
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '12px 40px 12px 16px',
+                          border: `2px solid ${errors.date ? '#ef4444' : '#e5e7eb'}`,
+                          borderRadius: '12px',
+                          fontSize: '16px',
+                          color: formData.date_from ? '#374151' : '#9ca3af',
+                          cursor: formData.date_from ? 'pointer' : 'not-allowed',
+                          backgroundColor: formData.date_from ? 'white' : '#f3f4f6'
+                        }}
+                      />
+                      <span style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: formData.date_from ? '#6b7280' : '#9ca3af',
+                        fontSize: '12px'
+                      }}>
+                        📅
+                      </span>
+                    </div>
                   </div>
                   {errors.date && <p style={{ color: '#ef4444', fontSize: '14px', marginTop: '8px' }}>{errors.date}</p>}
                 </div>
@@ -1235,16 +1371,16 @@ export default function HomePage() {
                         <div style={{ textAlign: 'center' }}>
                           <button
                             type="submit"
-                            disabled={!formData.city || !formData.audience || formData.interest_ids.length === 0 || !formData.budget || formData.budget === "" || !formData.date}
+                            disabled={!formData.city || !formData.audience || formData.interest_ids.length === 0 || !formData.budget || formData.budget === "" || !formData.date_from}
                             style={{
-                              backgroundColor: (!formData.city || !formData.audience || formData.interest_ids.length === 0 || !formData.budget || formData.budget === "" || !formData.date) ? '#e0e0e0' : '#3E85FC',
+                              backgroundColor: (!formData.city || !formData.audience || formData.interest_ids.length === 0 || !formData.budget || formData.budget === "" || !formData.date_from) ? '#e0e0e0' : '#3E85FC',
                               color: 'white',
                               border: 'none',
                               borderRadius: '12px',
                               padding: '14px 28px',
                               fontSize: '18px',
                               fontWeight: 'bold',
-                              cursor: (!formData.city || !formData.audience || formData.interest_ids.length === 0 || !formData.budget || formData.budget === "" || !formData.date) ? 'not-allowed' : 'pointer',
+                              cursor: (!formData.city || !formData.audience || formData.interest_ids.length === 0 || !formData.budget || formData.budget === "" || !formData.date_from) ? 'not-allowed' : 'pointer',
                               transition: 'background-color 0.2s ease',
                               width: '100%'
                             }}
