@@ -302,6 +302,20 @@ export default function AdminDashboardPage() {
                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
               }}>
                 <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
+                  Plan Generations
+                </div>
+                <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#3b82f6' }}>
+                  {stats.counts.planGenerations || 0}
+                </div>
+              </div>
+
+              <div style={{
+                backgroundColor: 'white',
+                padding: '24px',
+                borderRadius: '12px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              }}>
+                <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
                   Total Revenue
                 </div>
                 <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#10b981' }}>
