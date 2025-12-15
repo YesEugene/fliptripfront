@@ -126,7 +126,8 @@ export default function SuccessPage() {
     // Remove previewOnly if present
     queryParams.delete('previewOnly');
     // Force reload to get fresh data from Redis
-    window.location.href = `/itinerary?${queryParams.toString()}`;
+    // Use full domain to ensure correct domain is used
+    window.location.href = `https://flip-trip.com/itinerary?${queryParams.toString()}`;
   };
 
   const containerStyle = {
