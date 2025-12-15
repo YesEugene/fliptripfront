@@ -186,7 +186,7 @@ export default function ItineraryPage() {
           console.log('✅ Itinerary already in display format');
           console.log('📋 URL params - previewOnly:', previewOnly, 'isFullPlan:', isFullPlan);
           console.log('📋 Loaded data - previewOnly:', loadedItinerary.previewOnly);
-          console.log('📋 Should show preview:', shouldShowPreview, 'Is actually full plan:', isActuallyFullPlan);
+          console.log('📋 Should show preview:', shouldShowPreview);
           console.log('📊 Total blocks in daily_plan:', loadedItinerary.daily_plan[0]?.blocks?.length || 0);
           console.log('📊 Display blocks:', displayItinerary.daily_plan[0]?.blocks?.length || 0);
           console.log('📊 Total items in daily_plan:', totalItems);
