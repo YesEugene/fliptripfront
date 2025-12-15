@@ -14,6 +14,7 @@ import {
 } from '../services/adminService';
 import { getCurrentUser, logout } from '../../auth/services/authService';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
+import LocationFormModal from '../components/LocationFormModal';
 
 export default function AdminLocationsPage() {
   const [user, setUser] = useState(null);
@@ -285,50 +286,29 @@ export default function AdminLocationsPage() {
         )}
       </div>
 
-      {/* TODO: Add Create/Edit Modal */}
-      {showCreateModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            padding: '24px',
-            borderRadius: '12px',
-            maxWidth: '600px',
-            width: '90%',
-            maxHeight: '90vh',
-            overflow: 'auto'
-          }}>
-            <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '16px' }}>
-              Create Location
-            </h2>
-            <p style={{ color: '#6b7280', marginBottom: '24px' }}>
-              Location creation form will be implemented here
-            </p>
-            <button
-              onClick={() => setShowCreateModal(false)}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#6b7280',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer'
-              }}
-            >
-              Close
-            </button>
-          </div>
-        </div>
+      {/* Create/Edit Location Modal */}
+      {(showCreateModal || editingLocation) && (
+        <LocationFormModal
+          location={editingLocation}
+          onClose={() => {
+            setShowCreateModal(false);
+            setEditingLocation(null);
+          }}
+          onSave={async (locationData) => {
+            try {
+              if (editingLocation) {
+                await updateLocation(editingLocation.id, locationData);
+              } else {
+                await createLocation(locationData);
+              }
+              setShowCreateModal(false);
+              setEditingLocation(null);
+              loadLocations();
+            } catch (err) {
+              alert('Error saving location: ' + err.message);
+            }
+          }}
+        />
       )}
     </div>
   );
