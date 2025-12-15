@@ -935,7 +935,7 @@ export default function HomePage() {
                                 gap: '4px'
                               }}
                             >
-                              {category?.icon} {interest.name}
+                              {category?.icon} {INTEREST_NAMES[interest.name] || interest.name}
                             </button>
                           );
                         })}
