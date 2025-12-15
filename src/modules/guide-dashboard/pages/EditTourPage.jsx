@@ -122,14 +122,33 @@ export default function EditTourPage() {
             }),
             daily_plan: Array.isArray(tour.daily_plan) && tour.daily_plan.length > 0 
               ? tour.daily_plan.map(day => ({
-                  ...day,
-                  blocks: Array.isArray(day.blocks) ? day.blocks.map(block => ({
-                    ...block,
-                    items: Array.isArray(block.items) ? block.items.map(item => ({
-                      ...item,
-                      recommendations: item.recommendations || ''
-                    })) : []
-                  })) : []
+                  day: day.day_number || day.day || 1,
+                  day_number: day.day_number || day.day || 1,
+                  date: day.date_hint || day.date || new Date().toISOString().slice(0, 10),
+                  title: day.title,
+                  blocks: Array.isArray(day.blocks) ? day.blocks.map(block => {
+                    // Format time from start_time and end_time if needed
+                    let time = block.time;
+                    if (!time && (block.start_time || block.end_time)) {
+                      time = `${block.start_time || ''} - ${block.end_time || ''}`.trim();
+                    }
+                    return {
+                      ...block,
+                      time: time || '09:00 - 12:00',
+                      start_time: block.start_time,
+                      end_time: block.end_time,
+                      items: Array.isArray(block.items) ? block.items.map(item => ({
+                        title: item.custom_title || item.title || '',
+                        address: item.location?.address || item.address || '',
+                        description: item.custom_description || item.description || '',
+                        recommendations: item.custom_recommendations || item.recommendations || '',
+                        category: item.location?.category || item.category || '',
+                        duration: item.duration_minutes || item.duration || '',
+                        approx_cost: item.approx_cost || '',
+                        location_id: item.location_id || null
+                      })) : []
+                    };
+                  }) : []
                 }))
               : [{
                   day: 1,
