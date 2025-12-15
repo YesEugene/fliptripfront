@@ -42,9 +42,7 @@ export default function RegisterPage() {
       const data = await register(registerData);
       
       // Редирект в зависимости от роли
-      if (data.user.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else if (data.user.role === 'guide') {
+      if (data.user.role === 'guide') {
         navigate('/guide/dashboard');
       } else {
         navigate('/user/dashboard');
@@ -169,7 +167,6 @@ export default function RegisterPage() {
             >
               <option value="user">Путешественник</option>
               <option value="guide">Гид / Создатель туров</option>
-              <option value="admin">Администратор</option>
             </select>
           </div>
 

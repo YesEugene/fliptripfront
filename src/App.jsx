@@ -17,7 +17,7 @@ import { UserDashboardPage } from './modules/user-dashboard';
 import { GuideDashboardPage, CreateTourPage, EditTourPage, ProfileSettingsPage } from './modules/guide-dashboard';
 
 // Admin Dashboard Module
-import { AdminDashboardPage, AdminLocationsPage, AdminToursPage, AdminUsersPage } from './modules/admin-dashboard';
+import { AdminDashboardPage, AdminLocationsPage, AdminToursPage, AdminUsersPage, AdminLoginPage } from './modules/admin-dashboard';
 
 import './index.css';
 
@@ -82,6 +82,9 @@ function App() {
               </ProtectedRoute>
             } 
           />
+          
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminLoginPage />} />
           
           {/* Protected Admin Routes */}
           <Route 
