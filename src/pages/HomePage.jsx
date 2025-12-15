@@ -124,6 +124,7 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
   const [availableInterests, setAvailableInterests] = useState([]);
+  const [allInterests, setAllInterests] = useState([]); // Store all interests for always-visible display
   
   // Removed '' state - using simple dropdown only
 
@@ -149,20 +150,30 @@ export default function HomePage() {
         if (data.success) {
           setInterestsStructure(data.categories || []);
           // Flatten all interests for easy access
-          const allInterests = [];
+          const flattenedInterests = [];
           data.categories.forEach(category => {
             if (category.direct_interests) {
-              allInterests.push(...category.direct_interests);
+              category.direct_interests.forEach(interest => {
+                flattenedInterests.push({ ...interest, category_id: category.id });
+              });
             }
             if (category.subcategories) {
               category.subcategories.forEach(subcategory => {
                 if (subcategory.interests) {
-                  allInterests.push(...subcategory.interests);
+                  subcategory.interests.forEach(interest => {
+                    flattenedInterests.push({ 
+                      ...interest, 
+                      category_id: category.id,
+                      subcategory_id: subcategory.id 
+                    });
+                  });
                 }
               });
             }
           });
-          setAvailableInterests(allInterests);
+          setAllInterests(flattenedInterests);
+          // Initially show all interests
+          setAvailableInterests(flattenedInterests);
         }
       } catch (err) {
         console.error('Error loading interests:', err);
@@ -231,7 +242,8 @@ export default function HomePage() {
     setSelectedCategory(categoryId);
     setSelectedSubcategory(null);
     if (!categoryId) {
-      setAvailableInterests([]);
+      // Show all interests when no category selected
+      setAvailableInterests(allInterests);
       return;
     }
     
@@ -240,17 +252,28 @@ export default function HomePage() {
       const interests = [];
       // Add direct interests
       if (category.direct_interests) {
-        interests.push(...category.direct_interests);
+        category.direct_interests.forEach(interest => {
+          interests.push({ ...interest, category_id: category.id });
+        });
       }
       // Add interests from subcategories
       if (category.subcategories) {
         category.subcategories.forEach(subcategory => {
           if (subcategory.interests) {
-            interests.push(...subcategory.interests);
+            subcategory.interests.forEach(interest => {
+              interests.push({ 
+                ...interest, 
+                category_id: category.id,
+                subcategory_id: subcategory.id 
+              });
+            });
           }
         });
       }
       setAvailableInterests(interests);
+    } else {
+      // Fallback: show all interests
+      setAvailableInterests(allInterests);
     }
   };
 
@@ -265,6 +288,10 @@ export default function HomePage() {
     if (category?.subcategories) {
       const subcategory = category.subcategories.find(s => s.id === subcategoryId);
       if (subcategory?.interests) {
+        subcategory.interests.forEach(interest => {
+          interest.category_id = category.id;
+          interest.subcategory_id = subcategory.id;
+        });
         setAvailableInterests(subcategory.interests);
       }
     }
@@ -850,7 +877,15 @@ export default function HomePage() {
                       <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>
                         Subcategory (optional)
                       </label>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <div style={{ 
+                        display: 'flex', 
+                        gap: '8px', 
+                        flexWrap: window.innerWidth < 768 ? 'nowrap' : 'wrap',
+                        overflowX: window.innerWidth < 768 ? 'auto' : 'visible',
+                        paddingBottom: window.innerWidth < 768 ? '8px' : '0',
+                        WebkitOverflowScrolling: 'touch',
+                        scrollbarWidth: 'thin'
+                      }}>
                         <button
                           type="button"
                           onClick={() => handleSubcategoryChange(null)}
@@ -862,7 +897,9 @@ export default function HomePage() {
                             color: !selectedSubcategory ? 'white' : '#6b7280',
                             cursor: 'pointer',
                             fontSize: '13px',
-                            fontWeight: '500'
+                            fontWeight: '500',
+                            whiteSpace: 'nowrap',
+                            flexShrink: 0
                           }}
                         >
                           All
@@ -882,7 +919,9 @@ export default function HomePage() {
                                 color: selectedSubcategory === subcategory.id ? 'white' : '#6b7280',
                                 cursor: 'pointer',
                                 fontSize: '13px',
-                                fontWeight: '500'
+                                fontWeight: '500',
+                                whiteSpace: 'nowrap',
+                                flexShrink: 0
                               }}
                             >
                               {SUBCATEGORY_NAMES[subcategory.name] || subcategory.name}
@@ -943,15 +982,23 @@ export default function HomePage() {
                     </div>
                   )}
 
-                  {/* Selected Interests Display */}
+                  {/* Selected Interests Display - Always visible, search in allInterests */}
                   {formData.interest_ids.length > 0 && (
                     <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
                       <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px', fontWeight: '500' }}>
                         Selected ({formData.interest_ids.length}):
                       </div>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      <div style={{ 
+                        display: 'flex', 
+                        flexWrap: window.innerWidth < 768 ? 'nowrap' : 'wrap',
+                        gap: '6px',
+                        overflowX: window.innerWidth < 768 ? 'auto' : 'visible',
+                        paddingBottom: window.innerWidth < 768 ? '8px' : '0',
+                        WebkitOverflowScrolling: 'touch'
+                      }}>
                         {formData.interest_ids.map(interestId => {
-                          const interest = availableInterests.find(i => i.id === interestId);
+                          // Search in allInterests, not just availableInterests
+                          const interest = allInterests.find(i => i.id === interestId);
                           if (!interest) return null;
                           
                           const category = interestsStructure.find(c => 
@@ -970,10 +1017,12 @@ export default function HomePage() {
                                 fontSize: '11px',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '4px'
+                                gap: '4px',
+                                whiteSpace: 'nowrap',
+                                flexShrink: 0
                               }}
                             >
-                              {category?.icon} {interest.name}
+                              {category?.icon} {INTEREST_NAMES[interest.name] || interest.name}
                               <button
                                 type="button"
                                 onClick={() => handleInterestToggle(interestId)}
