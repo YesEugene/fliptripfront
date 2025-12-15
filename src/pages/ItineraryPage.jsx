@@ -120,6 +120,11 @@ export default function ItineraryPage() {
   useEffect(() => {
     if (existingItineraryId) {
       setItineraryId(existingItineraryId);
+      // If full=true, we expect a full plan, so load it
+      if (isFullPlan) {
+        console.log('🔄 Loading full plan after payment...');
+        loadItineraryFromRedis(existingItineraryId);
+      }
     }
   }, [existingItineraryId]);
 
