@@ -147,7 +147,7 @@ export default function ItineraryPage() {
   const loadItineraryFromRedis = async (itineraryId) => {
     try {
       setLoading(true);
-      console.log('📥 Loading itinerary from Redis:', itineraryId);
+      console.log('📥 Loading itinerary from Redis:', itineraryId, 'isFullPlan:', isFullPlan, 'previewOnly:', previewOnly);
       const data = await getItinerary(itineraryId);
       console.log('📥 Loaded data:', data);
       if (data && data.success && data.itinerary) {
@@ -157,9 +157,10 @@ export default function ItineraryPage() {
         // Log what we loaded
         const totalItems = loadedItinerary.daily_plan?.[0]?.blocks?.reduce((sum, block) => sum + (block.items?.length || 0), 0) || 0;
         const totalActivities = loadedItinerary.activities?.length || 0;
+        const totalBlocks = loadedItinerary.daily_plan?.[0]?.blocks?.length || 0;
         console.log('📊 Loaded itinerary info:', {
           hasDailyPlan: !!loadedItinerary.daily_plan,
-          dailyPlanBlocks: loadedItinerary.daily_plan?.[0]?.blocks?.length || 0,
+          dailyPlanBlocks: totalBlocks,
           totalItemsInDailyPlan: totalItems,
           hasActivities: !!loadedItinerary.activities,
           activitiesCount: totalActivities,
@@ -168,13 +169,27 @@ export default function ItineraryPage() {
           timeSlotsCount: loadedItinerary.conceptual_plan?.timeSlots?.length || 0
         });
         
+        // CRITICAL: If we expect full plan but loaded previewOnly=true, log warning
+        if (isFullPlan && loadedItinerary.previewOnly === true) {
+          console.warn('⚠️ WARNING: Expected full plan (isFullPlan=true) but loaded previewOnly=true!');
+          console.warn('⚠️ This means unlock-itinerary may not have worked correctly');
+        }
+        
         // Check if it's already in the converted format (has daily_plan)
         if (loadedItinerary.daily_plan && loadedItinerary.daily_plan.length > 0) {
           // Already converted, use as is
           // CRITICAL: If full=true in URL OR previewOnly=false in loaded data, show all blocks
           // If previewOnly=true in URL AND full=false, show only first 2 blocks
-          // NEW APPROACH: Keep full daily_plan, preview logic is in render
+          // NEW APPROACH: Show preview only if previewOnly=true AND not full plan
+          // If isFullPlan=true OR previewOnly=false, show all blocks
           const shouldShowPreview = loadedItinerary.previewOnly === true && !isFullPlan;
+          
+          console.log('✅ Itinerary already in display format');
+          console.log('📋 URL params - previewOnly:', previewOnly, 'isFullPlan:', isFullPlan);
+          console.log('📋 Loaded data - previewOnly:', loadedItinerary.previewOnly);
+          console.log('📋 Should show preview:', shouldShowPreview);
+          console.log('📊 Total blocks in daily_plan:', totalBlocks);
+          console.log('📊 Will show blocks:', shouldShowPreview ? 2 : totalBlocks);
           
           const displayItinerary = { 
             ...loadedItinerary, 
@@ -182,14 +197,6 @@ export default function ItineraryPage() {
             // Keep full daily_plan - slicing happens in render logic
             daily_plan: loadedItinerary.daily_plan
           };
-          
-          console.log('✅ Itinerary already in display format');
-          console.log('📋 URL params - previewOnly:', previewOnly, 'isFullPlan:', isFullPlan);
-          console.log('📋 Loaded data - previewOnly:', loadedItinerary.previewOnly);
-          console.log('📋 Should show preview:', shouldShowPreview);
-          console.log('📊 Total blocks in daily_plan:', loadedItinerary.daily_plan[0]?.blocks?.length || 0);
-          console.log('📊 Display blocks:', displayItinerary.daily_plan[0]?.blocks?.length || 0);
-          console.log('📊 Total items in daily_plan:', totalItems);
           setItinerary(displayItinerary);
         } else if (loadedItinerary.activities && loadedItinerary.activities.length > 0) {
           // Need to convert from backend format to display format
