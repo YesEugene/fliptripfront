@@ -39,7 +39,33 @@ export default function SuccessPage() {
       
       if (completeResult && completeResult.success && completeResult.itinerary) {
         console.log('✅ Itinerary completed:', completeResult.itinerary);
+        console.log('📊 Full plan activities count:', completeResult.itinerary.activities?.length || 0);
+        console.log('📊 Full plan blocks count:', completeResult.itinerary.daily_plan?.[0]?.blocks?.length || 0);
         setItinerary(completeResult.itinerary);
+        
+        // Wait a bit to ensure Redis has saved the data
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Verify the full plan is saved in Redis
+        console.log('🔍 Verifying full plan is saved in Redis...');
+        let verificationAttempts = 0;
+        let verified = false;
+        while (verificationAttempts < 5 && !verified) {
+          const verifyData = await getItinerary(itineraryId);
+          if (verifyData && verifyData.success && verifyData.itinerary) {
+            const activitiesCount = verifyData.itinerary.activities?.length || 0;
+            const blocksCount = verifyData.itinerary.daily_plan?.[0]?.blocks?.length || 0;
+            console.log(`🔍 Verification attempt ${verificationAttempts + 1}: ${activitiesCount} activities, ${blocksCount} blocks`);
+            if (activitiesCount > 2 && !verifyData.itinerary.previewOnly) {
+              verified = true;
+              console.log('✅ Full plan verified in Redis');
+            }
+          }
+          if (!verified) {
+            verificationAttempts++;
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        }
         
         // Step 2: Send the email with the full itinerary
         if (formData.email) {

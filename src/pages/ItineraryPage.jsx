@@ -174,6 +174,10 @@ export default function ItineraryPage() {
           // CRITICAL: If full=true in URL, show all blocks (full plan after payment)
           // If previewOnly=true and full=false, show only first 2 blocks
           const shouldShowPreview = previewOnly && !isFullPlan;
+          
+          // If it's a full plan (previewOnly=false or isFullPlan=true), show all blocks
+          const isFullPlanLoaded = !loadedItinerary.previewOnly || isFullPlan;
+          
           const displayItinerary = { 
             ...loadedItinerary, 
             previewOnly: shouldShowPreview,
@@ -186,9 +190,11 @@ export default function ItineraryPage() {
           
           console.log('✅ Itinerary already in display format');
           console.log('📋 Preview mode:', shouldShowPreview ? 'YES (showing first 2 blocks)' : 'NO (showing all blocks)');
+          console.log('📋 Is full plan:', isFullPlanLoaded);
           console.log('📊 Total blocks in daily_plan:', loadedItinerary.daily_plan[0]?.blocks?.length || 0);
           console.log('📊 Display blocks:', displayItinerary.daily_plan[0]?.blocks?.length || 0);
           console.log('📊 Total items in daily_plan:', totalItems);
+          console.log('📊 PreviewOnly flag in loaded data:', loadedItinerary.previewOnly);
           setItinerary(displayItinerary);
         } else if (loadedItinerary.activities && loadedItinerary.activities.length > 0) {
           // Need to convert from backend format to display format
