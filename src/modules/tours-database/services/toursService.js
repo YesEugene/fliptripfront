@@ -204,3 +204,36 @@ export async function updateTour(tourId, tourData) {
   }
 }
 
+/**
+ * Удаление тура (только для гидов, только свои туры)
+ * @param {string} tourId - ID тура для удаления
+ * @returns {Promise<Object>} - Результат удаления
+ */
+export async function deleteTour(tourId) {
+  try {
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('Требуется авторизация');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/tours-update?id=${tourId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Ошибка удаления тура');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Delete tour error:', error);
+    throw error;
+  }
+}
+

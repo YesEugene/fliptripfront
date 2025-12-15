@@ -7,6 +7,7 @@ export {
   getTours,
   getTourById,
   getGuideTours,
-  updateTour
+  updateTour,
+  deleteTour
 } from './services/toursService';
 

@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getCurrentUser, logout } from '../../auth/services/authService';
-import { getGuideTours } from '../../tours-database';
+import { getGuideTours, deleteTour } from '../../tours-database';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
 
 export default function GuideDashboardPage() {
@@ -37,6 +37,21 @@ export default function GuideDashboardPage() {
   const handleLogout = () => {
     logout();
     window.location.href = '/';
+  };
+
+  const handleDeleteTour = async (tourId, tourTitle) => {
+    if (!window.confirm(`Are you sure you want to delete "${tourTitle}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await deleteTour(tourId);
+      // Reload tours after deletion
+      loadGuideTours();
+    } catch (error) {
+      console.error('Error deleting tour:', error);
+      alert('Failed to delete tour. Please try again.');
+    }
   };
 
   if (!user) {
@@ -143,22 +158,39 @@ export default function GuideDashboardPage() {
                               {tour.city} • {tour.duration.value} {tour.duration.type === 'hours' ? 'hours' : 'days'}
                             </p>
                           </div>
-                          <Link
-                            to={`/guide/tours/edit/${tour.id}`}
-                            style={{
-                              padding: '6px 12px',
-                              backgroundColor: '#3b82f6',
-                              color: 'white',
-                              borderRadius: '6px',
-                              textDecoration: 'none',
-                              fontSize: '14px',
-                              fontWeight: '500',
-                              marginLeft: '12px',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            Edit
-                          </Link>
+                          <div style={{ display: 'flex', gap: '8px', marginLeft: '12px' }}>
+                            <Link
+                              to={`/guide/tours/edit/${tour.id}`}
+                              style={{
+                                padding: '6px 12px',
+                                backgroundColor: '#3b82f6',
+                                color: 'white',
+                                borderRadius: '6px',
+                                textDecoration: 'none',
+                                fontSize: '14px',
+                                fontWeight: '500',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              Edit
+                            </Link>
+                            <button
+                              onClick={() => handleDeleteTour(tour.id, tour.title)}
+                              style={{
+                                padding: '6px 12px',
+                                backgroundColor: '#ef4444',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                fontSize: '14px',
+                                fontWeight: '500',
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}
