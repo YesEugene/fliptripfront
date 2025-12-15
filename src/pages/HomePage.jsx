@@ -931,19 +931,24 @@ export default function HomePage() {
                     </div>
                   )}
 
-                  {/* Interests Selection */}
-                  {selectedCategory && availableInterests.length > 0 && (
+                  {/* Interests Selection - Always show all interests, but highlight selected category */}
+                  {availableInterests.length > 0 && (
                     <div>
                       <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>
-                        Select Interests
+                        Select Interests {selectedCategory && '(showing ' + (interestsStructure?.find(c => c.id === selectedCategory)?.name || 'selected') + ' category)'}
                       </label>
                       <div style={{ 
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                        display: window.innerWidth < 768 ? 'flex' : 'grid',
+                        flexDirection: window.innerWidth < 768 ? 'row' : 'column',
+                        gridTemplateColumns: window.innerWidth >= 768 ? 'repeat(auto-fill, minmax(120px, 1fr))' : 'none',
                         gap: '8px',
-                        maxHeight: '200px',
-                        overflowY: 'auto',
-                        paddingRight: '8px'
+                        maxHeight: window.innerWidth < 768 ? 'none' : '200px',
+                        overflowY: window.innerWidth < 768 ? 'visible' : 'auto',
+                        overflowX: window.innerWidth < 768 ? 'auto' : 'visible',
+                        paddingRight: '8px',
+                        paddingBottom: window.innerWidth < 768 ? '8px' : '0',
+                        WebkitOverflowScrolling: 'touch',
+                        scrollbarWidth: 'thin'
                       }}>
                         {availableInterests.map(interest => {
                           const category = interestsStructure.find(c => 
@@ -951,6 +956,7 @@ export default function HomePage() {
                             c.subcategories?.some(s => s.id === interest.subcategory_id)
                           );
                           const isSelected = formData.interest_ids.includes(interest.id);
+                          const isFromSelectedCategory = selectedCategory && interest.category_id === selectedCategory;
                           
                           return (
                             <button
@@ -959,19 +965,23 @@ export default function HomePage() {
                               onClick={() => handleInterestToggle(interest.id)}
                               style={{
                                 padding: '8px 12px',
-                                border: `2px solid ${isSelected ? '#3E85FC' : '#e5e7eb'}`,
+                                border: `2px solid ${isSelected ? '#3E85FC' : isFromSelectedCategory ? '#93c5fd' : '#e5e7eb'}`,
                                 borderRadius: '16px',
-                                backgroundColor: isSelected ? '#3E85FC' : 'white',
+                                backgroundColor: isSelected ? '#3E85FC' : isFromSelectedCategory ? '#eff6ff' : 'white',
                                 color: isSelected ? 'white' : '#6b7280',
                                 cursor: 'pointer',
                                 fontSize: '12px',
                                 fontWeight: 'bold',
                                 textAlign: 'center',
                                 minHeight: '36px',
+                                minWidth: window.innerWidth < 768 ? '120px' : 'auto',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                gap: '4px'
+                                gap: '4px',
+                                opacity: !selectedCategory || isFromSelectedCategory || isSelected ? 1 : 0.6,
+                                whiteSpace: 'nowrap',
+                                flexShrink: 0
                               }}
                             >
                               {category?.icon} {INTEREST_NAMES[interest.name] || interest.name}
