@@ -195,6 +195,34 @@ export default function HomePage() {
     loadInterests();
   }, []);
 
+  // Update availableInterests when interest_ids change (to keep selected interests from other categories visible)
+  useEffect(() => {
+    if (!selectedCategory) {
+      // No category selected - show all interests
+      setAvailableInterests(allInterests);
+      return;
+    }
+
+    if (selectedSubcategory) {
+      // Subcategory selected - show subcategory interests + selected from other categories
+      const subcategoryInterests = allInterests.filter(interest => 
+        interest.subcategory_id === selectedSubcategory && interest.category_id === selectedCategory
+      );
+      const selectedInterestsFromOtherCategories = allInterests.filter(interest => 
+        (interest.subcategory_id !== selectedSubcategory || interest.category_id !== selectedCategory) && 
+        formData.interest_ids.includes(interest.id)
+      );
+      setAvailableInterests([...subcategoryInterests, ...selectedInterestsFromOtherCategories]);
+    } else {
+      // Category selected - show category interests + selected from other categories
+      const categoryInterests = allInterests.filter(interest => interest.category_id === selectedCategory);
+      const selectedInterestsFromOtherCategories = allInterests.filter(interest => 
+        interest.category_id !== selectedCategory && formData.interest_ids.includes(interest.id)
+      );
+      setAvailableInterests([...categoryInterests, ...selectedInterestsFromOtherCategories]);
+    }
+  }, [formData.interest_ids, selectedCategory, selectedSubcategory, allInterests]);
+
   // Random city images for header background
   const cityImages = [
     'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&h=600&fit=crop&q=80', // Paris
