@@ -59,12 +59,15 @@ export default function AdminUsersPage() {
     try {
       const result = await createUserByEmail(newUserEmail, newUserRole, newUserName);
       if (result.success) {
-        alert(`User created! Temporary password: ${result.tempPassword}`);
+        const message = `User created successfully!\n\nEmail: ${newUserEmail}\nTemporary Password: ${result.tempPassword}\n\nPlease save this password - it will not be shown again.`;
+        alert(message);
         setShowCreateModal(false);
         setNewUserEmail('');
         setNewUserRole('user');
         setNewUserName('');
         loadUsers();
+      } else {
+        alert('Error creating user: ' + (result.error || 'Unknown error'));
       }
     } catch (err) {
       alert('Error creating user: ' + err.message);
