@@ -451,6 +451,29 @@ export default function EditTourPage() {
     });
   };
 
+  const [availableTags, setAvailableTags] = useState([]);
+  const [loadingTags, setLoadingTags] = useState(false);
+
+  // Load available tags on component mount
+  useEffect(() => {
+    const loadTags = async () => {
+      try {
+        setLoadingTags(true);
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
+        const response = await fetch(`${API_BASE_URL}/api/admin-tags`);
+        const data = await response.json();
+        if (data.success) {
+          setAvailableTags(data.tags || []);
+        }
+      } catch (err) {
+        console.error('Error loading tags:', err);
+      } finally {
+        setLoadingTags(false);
+      }
+    };
+    loadTags();
+  }, []);
+
   const addItem = (dayIndex, blockIndex) => {
     setFormData(prev => {
       const newPlan = [...prev.daily_plan];
@@ -461,7 +484,8 @@ export default function EditTourPage() {
         recommendations: '', // New: Recommendations field for each location
         category: '',
         duration: '',
-        approx_cost: ''
+        approx_cost: '',
+        tag_ids: [] // Tags for this location
       });
       return { ...prev, daily_plan: newPlan };
     });
@@ -1345,6 +1369,108 @@ export default function EditTourPage() {
                                   width: '100%'
                                 }}
                               />
+                            </div>
+                            
+                            {/* Tags for Location */}
+                            <div style={{ marginTop: '12px', width: '100%' }}>
+                              <label style={{ 
+                                display: 'block', 
+                                marginBottom: '8px', 
+                                fontWeight: '500',
+                                fontSize: '14px'
+                              }}>
+                                Tags for this location
+                              </label>
+                              <div style={{ marginBottom: '8px' }}>
+                                <select
+                                  value=""
+                                  onChange={(e) => {
+                                    const tagId = e.target.value;
+                                    if (tagId) {
+                                      const newPlan = [...formData.daily_plan];
+                                      const currentTagIds = newPlan[dayIndex].blocks[blockIndex].items[itemIndex].tag_ids || [];
+                                      if (!currentTagIds.includes(tagId)) {
+                                        newPlan[dayIndex].blocks[blockIndex].items[itemIndex].tag_ids = [...currentTagIds, tagId];
+                                        setFormData({ ...formData, daily_plan: newPlan });
+                                      }
+                                      e.target.value = '';
+                                    }
+                                  }}
+                                  style={{
+                                    width: '100%',
+                                    padding: '8px',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '6px',
+                                    fontSize: '14px',
+                                    backgroundColor: 'white'
+                                  }}
+                                >
+                                  <option value="">Select a tag to add...</option>
+                                  {availableTags
+                                    .filter(tag => {
+                                      const currentTagIds = item.tag_ids || [];
+                                      return !currentTagIds.includes(tag.id);
+                                    })
+                                    .map(tag => (
+                                      <option key={tag.id} value={tag.id}>
+                                        {tag.name} {tag.type ? `(${tag.type})` : ''}
+                                      </option>
+                                    ))}
+                                </select>
+                              </div>
+                              
+                              {/* Display selected tags */}
+                              {(item.tag_ids || []).length > 0 && (
+                                <div style={{ 
+                                  display: 'flex', 
+                                  flexWrap: 'wrap', 
+                                  gap: '6px',
+                                  marginTop: '8px'
+                                }}>
+                                  {(item.tag_ids || []).map(tagId => {
+                                    const tag = availableTags.find(t => t.id === tagId);
+                                    if (!tag) return null;
+                                    return (
+                                      <span
+                                        key={tagId}
+                                        style={{
+                                          padding: '4px 10px',
+                                          backgroundColor: '#e0e7ff',
+                                          color: '#3730a3',
+                                          borderRadius: '6px',
+                                          fontSize: '12px',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: '6px'
+                                        }}
+                                      >
+                                        {tag.name}
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const newPlan = [...formData.daily_plan];
+                                            newPlan[dayIndex].blocks[blockIndex].items[itemIndex].tag_ids = 
+                                              (newPlan[dayIndex].blocks[blockIndex].items[itemIndex].tag_ids || []).filter(id => id !== tagId);
+                                            setFormData({ ...formData, daily_plan: newPlan });
+                                          }}
+                                          style={{
+                                            background: 'none',
+                                            border: 'none',
+                                            color: '#3730a3',
+                                            cursor: 'pointer',
+                                            fontSize: '14px',
+                                            padding: '0',
+                                            lineHeight: '1',
+                                            fontWeight: 'bold'
+                                          }}
+                                        >
+                                          ×
+                                        </button>
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}
