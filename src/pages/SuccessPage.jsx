@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
-import { sendEmail, getItinerary } from '../services/api';
+import { sendEmail, getItinerary, completeItinerary } from '../services/api';
 
 export default function SuccessPage() {
   const navigate = useNavigate();
@@ -29,21 +29,24 @@ export default function SuccessPage() {
 
   const sendEmailWithItinerary = async () => {
     try {
-      console.log('📧 Sending email with itinerary...');
+      console.log('📧 Completing itinerary and sending email...');
       console.log('📋 Itinerary ID:', itineraryId);
       console.log('📋 Form Data:', formData);
       
-      // Load full itinerary from Redis (it was already saved during preview generation)
-      const itineraryData = await getItinerary(itineraryId);
-      if (itineraryData && itineraryData.success && itineraryData.itinerary) {
-        console.log('✅ Loaded full itinerary from Redis:', itineraryData.itinerary);
-        setItinerary(itineraryData.itinerary);
+      // Step 1: Complete the itinerary (generate remaining locations)
+      console.log('🔄 Completing itinerary...');
+      const completeResult = await completeItinerary(itineraryId, formData);
+      
+      if (completeResult && completeResult.success && completeResult.itinerary) {
+        console.log('✅ Itinerary completed:', completeResult.itinerary);
+        setItinerary(completeResult.itinerary);
         
-        // Send the email with the full itinerary
+        // Step 2: Send the email with the full itinerary
         if (formData.email) {
+          console.log('📧 Sending email...');
           const emailResult = await sendEmail({
             email: formData.email,
-            itinerary: itineraryData.itinerary,
+            itinerary: completeResult.itinerary,
             formData: formData,
             itineraryId: itineraryId
           });
@@ -52,7 +55,21 @@ export default function SuccessPage() {
           setEmailSent(true);
         }
       } else {
-        console.warn('⚠️ Could not load itinerary from Redis');
+        console.warn('⚠️ Could not complete itinerary, trying to load existing...');
+        // Fallback: try to load existing itinerary
+        const itineraryData = await getItinerary(itineraryId);
+        if (itineraryData && itineraryData.success && itineraryData.itinerary) {
+          setItinerary(itineraryData.itinerary);
+          if (formData.email) {
+            await sendEmail({
+              email: formData.email,
+              itinerary: itineraryData.itinerary,
+              formData: formData,
+              itineraryId: itineraryId
+            });
+            setEmailSent(true);
+          }
+        }
       }
     } catch (error) {
       console.error('❌ Error in sendEmailWithItinerary:', error);
