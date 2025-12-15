@@ -849,7 +849,16 @@ export default function HomePage() {
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>
                 Who's it for?
               </label>
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <div style={{ 
+                display: 'flex', 
+                gap: '12px', 
+                flexWrap: 'nowrap',
+                overflowX: 'auto',
+                paddingBottom: '8px',
+                WebkitOverflowScrolling: 'touch',
+                scrollbarWidth: 'thin',
+                msOverflowStyle: '-ms-autohiding-scrollbar'
+              }}>
                 {AUDIENCES.map((audience) => (
                   <button
                     key={audience.value}
@@ -863,7 +872,9 @@ export default function HomePage() {
                       color: formData.audience === audience.value ? 'white' : '#6b7280',
                       cursor: 'pointer',
                       fontSize: '14px',
-                      fontWeight: 'bold'
+                      fontWeight: 'bold',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0
                     }}
                   >
                     {audience.label}
@@ -934,9 +945,9 @@ export default function HomePage() {
                       <div style={{ 
                         display: 'flex', 
                         gap: '8px', 
-                        flexWrap: isMobile ? 'nowrap' : 'wrap',
-                        overflowX: isMobile ? 'auto' : 'visible',
-                        paddingBottom: isMobile ? '8px' : '0',
+                        flexWrap: 'nowrap',
+                        overflowX: 'auto',
+                        paddingBottom: '8px',
                         WebkitOverflowScrolling: 'touch',
                         scrollbarWidth: 'thin'
                       }}>
