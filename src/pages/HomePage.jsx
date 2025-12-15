@@ -25,56 +25,8 @@ const AUDIENCES = [
   { value: 'kids', label: 'Kids' }
 ];
 
-const INTERESTS = [
-  { value: 'adventure', label: 'Adventure' },
-  { value: 'culture', label: 'Culture' },
-  { value: 'food', label: 'Food' },
-  { value: 'nature', label: 'Nature' },
-  { value: 'art', label: 'Art' },
-  { value: 'music', label: 'Music' },
-  { value: 'sports', label: 'Sports' },
-  { value: 'relaxation', label: 'Relaxation' },
-  { value: 'romantic', label: 'Romantic' },
-  { value: 'history', label: 'History' },
-  { value: 'photography', label: 'Photography' },
-  { value: 'shopping', label: 'Shopping' },
-  { value: 'nightlife', label: 'Nightlife' },
-  { value: 'wellness', label: 'Wellness' },
-  { value: 'architecture', label: 'Architecture' },
-  { value: 'local', label: 'Local Experience' },
-  { value: 'family', label: 'Family Friendly' },
-  { value: 'budget', label: 'Budget Friendly' },
-  { value: 'luxury', label: 'Luxury' },
-  { value: 'outdoor', label: 'Outdoor Activities' },
-  { value: 'indoor', label: 'Indoor Activities' },
-  { value: 'seasonal', label: 'Seasonal Events' },
-  { value: 'festivals', label: 'Festivals' }
-];
-
-const KIDS_INTERESTS = [
-  { value: 'playground', label: 'Playgrounds' },
-  { value: 'museums', label: 'Kids Museums' },
-  { value: 'parks', label: 'Parks & Gardens' },
-  { value: 'zoo', label: 'Zoo & Aquarium' },
-  { value: 'amusement', label: 'Amusement Parks' },
-  { value: 'science', label: 'Science Centers' },
-  { value: 'sports', label: 'Sports' },
-  { value: 'swimming', label: 'Swimming' },
-  { value: 'cycling', label: 'Cycling' },
-  { value: 'nature', label: 'Nature Walks' },
-  { value: 'art', label: 'Art & Crafts' },
-  { value: 'music', label: 'Music' },
-  { value: 'theater', label: 'Children Theater' },
-  { value: 'food', label: 'Kids Friendly Food' },
-  { value: 'shopping', label: 'Toy Stores' },
-  { value: 'indoor', label: 'Indoor Play' },
-  { value: 'outdoor', label: 'Outdoor Play' },
-  { value: 'seasonal', label: 'Seasonal Events' },
-  { value: 'family', label: 'Family Activities' },
-  { value: 'educational', label: 'Educational' },
-  { value: 'adventure', label: 'Adventure' },
-  { value: 'culture', label: 'Culture' }
-];
+// Interests will be loaded from API
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
 
 const POPULAR_TRIPS = [
   {
@@ -128,7 +80,7 @@ export default function HomePage() {
   const [formData, setFormData] = useState({
     city: "",
     audience: "",
-    interests: [],
+    interest_ids: [], // Changed from interests to interest_ids (using IDs from DB)
     date: new Date().toISOString().slice(0, 10), // Current date as default
     budget: ""
   });
@@ -136,6 +88,14 @@ export default function HomePage() {
   const [showFilters, setShowFilters] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [user, setUser] = useState(null);
+  
+  // Interests system state
+  const [interestsStructure, setInterestsStructure] = useState(null);
+  const [loadingInterests, setLoadingInterests] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState(null);
+  const [availableInterests, setAvailableInterests] = useState([]);
+  
   // Removed '' state - using simple dropdown only
 
   // Check authentication on mount
@@ -148,6 +108,40 @@ export default function HomePage() {
     } catch (error) {
       console.error('Error checking auth:', error);
     }
+  }, []);
+
+  // Load interests structure from API
+  useEffect(() => {
+    const loadInterests = async () => {
+      try {
+        setLoadingInterests(true);
+        const response = await fetch(`${API_BASE_URL}/api/interests?full_structure=true`);
+        const data = await response.json();
+        if (data.success) {
+          setInterestsStructure(data.categories || []);
+          // Flatten all interests for easy access
+          const allInterests = [];
+          data.categories.forEach(category => {
+            if (category.direct_interests) {
+              allInterests.push(...category.direct_interests);
+            }
+            if (category.subcategories) {
+              category.subcategories.forEach(subcategory => {
+                if (subcategory.interests) {
+                  allInterests.push(...subcategory.interests);
+                }
+              });
+            }
+          });
+          setAvailableInterests(allInterests);
+        }
+      } catch (err) {
+        console.error('Error loading interests:', err);
+      } finally {
+        setLoadingInterests(false);
+      }
+    };
+    loadInterests();
   }, []);
 
   // Random city images for header background
@@ -195,17 +189,64 @@ export default function HomePage() {
     setFormData(prev => ({ 
       ...prev, 
       audience: newAudience,
-      // Clear interests when switching to/from kids
-      interests: []
+      // Clear interests when switching audience
+      interest_ids: []
     }));
+    // Reset category/subcategory selection
+    setSelectedCategory(null);
+    setSelectedSubcategory(null);
+    setAvailableInterests([]);
   };
 
-  const handleInterestChange = (interest) => {
+  const handleCategoryChange = (categoryId) => {
+    setSelectedCategory(categoryId);
+    setSelectedSubcategory(null);
+    if (!categoryId) {
+      setAvailableInterests([]);
+      return;
+    }
+    
+    const category = interestsStructure?.find(c => c.id === categoryId);
+    if (category) {
+      const interests = [];
+      // Add direct interests
+      if (category.direct_interests) {
+        interests.push(...category.direct_interests);
+      }
+      // Add interests from subcategories
+      if (category.subcategories) {
+        category.subcategories.forEach(subcategory => {
+          if (subcategory.interests) {
+            interests.push(...subcategory.interests);
+          }
+        });
+      }
+      setAvailableInterests(interests);
+    }
+  };
+
+  const handleSubcategoryChange = (subcategoryId) => {
+    setSelectedSubcategory(subcategoryId);
+    if (!subcategoryId) {
+      handleCategoryChange(selectedCategory);
+      return;
+    }
+    
+    const category = interestsStructure?.find(c => c.id === selectedCategory);
+    if (category?.subcategories) {
+      const subcategory = category.subcategories.find(s => s.id === subcategoryId);
+      if (subcategory?.interests) {
+        setAvailableInterests(subcategory.interests);
+      }
+    }
+  };
+
+  const handleInterestToggle = (interestId) => {
     setFormData(prev => {
-      const newInterests = prev.interests.includes(interest)
-        ? prev.interests.filter(i => i !== interest)
-        : [...prev.interests, interest];
-      return { ...prev, interests: newInterests };
+      const newInterestIds = prev.interest_ids.includes(interestId)
+        ? prev.interest_ids.filter(id => id !== interestId)
+        : [...prev.interest_ids, interestId];
+      return { ...prev, interest_ids: newInterestIds };
     });
   };
 
@@ -213,7 +254,7 @@ export default function HomePage() {
     const newErrors = {};
     if (!formData.city) newErrors.city = "Please select a city.";
     if (!formData.audience) newErrors.audience = "Please select who this is for.";
-    if (formData.interests.length === 0) newErrors.interests = "Please select at least one interest.";
+    if (formData.interest_ids.length === 0) newErrors.interests = "Please select at least one interest.";
     if (!formData.budget || formData.budget === "" || parseInt(formData.budget) <= 0) newErrors.budget = "Please enter a valid budget.";
     if (!formData.date) newErrors.date = "Please select a date.";
     
@@ -725,39 +766,213 @@ export default function HomePage() {
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>
                 Pick the vibe
               </label>
-              <div style={{ 
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '12px',
-                maxHeight: '180px',
-                overflowY: 'auto',
-                paddingRight: '8px'
-              }}>
-                {(formData.audience === 'kids' ? KIDS_INTERESTS : INTERESTS).map((interest) => (
-                  <button
-                    key={interest.value}
-                    type="button"
-                    onClick={() => handleInterestChange(interest.value)}
-                    style={{
-                      padding: '8px 12px',
-                      border: `2px solid ${formData.interests.includes(interest.value) ? '#3E85FC' : '#e5e7eb'}`,
-                      borderRadius: '20px',
-                      backgroundColor: formData.interests.includes(interest.value) ? '#3E85FC' : 'white',
-                      color: formData.interests.includes(interest.value) ? 'white' : '#6b7280',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      textAlign: 'center',
-                      minHeight: '36px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    {interest.label}
-                  </button>
-                ))}
-              </div>
+              
+              {loadingInterests ? (
+                <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>
+                  Loading interests...
+                </div>
+              ) : interestsStructure && interestsStructure.length > 0 ? (
+                <>
+                  {/* Category Selection */}
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>
+                      Category
+                    </label>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      {interestsStructure.map(category => (
+                        <button
+                          key={category.id}
+                          type="button"
+                          onClick={() => handleCategoryChange(category.id)}
+                          style={{
+                            padding: '8px 16px',
+                            border: `2px solid ${selectedCategory === category.id ? '#3E85FC' : '#e5e7eb'}`,
+                            borderRadius: '20px',
+                            backgroundColor: selectedCategory === category.id ? '#3E85FC' : 'white',
+                            color: selectedCategory === category.id ? 'white' : '#6b7280',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          {category.icon} {category.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Subcategory Selection (if category has subcategories) */}
+                  {selectedCategory && interestsStructure.find(c => c.id === selectedCategory)?.subcategories?.length > 0 && (
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>
+                        Subcategory (optional)
+                      </label>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleSubcategoryChange(null)}
+                          style={{
+                            padding: '6px 14px',
+                            border: `2px solid ${!selectedSubcategory ? '#3E85FC' : '#e5e7eb'}`,
+                            borderRadius: '16px',
+                            backgroundColor: !selectedSubcategory ? '#3E85FC' : 'white',
+                            color: !selectedSubcategory ? 'white' : '#6b7280',
+                            cursor: 'pointer',
+                            fontSize: '13px',
+                            fontWeight: '500'
+                          }}
+                        >
+                          All
+                        </button>
+                        {interestsStructure
+                          .find(c => c.id === selectedCategory)
+                          ?.subcategories?.map(subcategory => (
+                            <button
+                              key={subcategory.id}
+                              type="button"
+                              onClick={() => handleSubcategoryChange(subcategory.id)}
+                              style={{
+                                padding: '6px 14px',
+                                border: `2px solid ${selectedSubcategory === subcategory.id ? '#3E85FC' : '#e5e7eb'}`,
+                                borderRadius: '16px',
+                                backgroundColor: selectedSubcategory === subcategory.id ? '#3E85FC' : 'white',
+                                color: selectedSubcategory === subcategory.id ? 'white' : '#6b7280',
+                                cursor: 'pointer',
+                                fontSize: '13px',
+                                fontWeight: '500'
+                              }}
+                            >
+                              {subcategory.name}
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Interests Selection */}
+                  {selectedCategory && availableInterests.length > 0 && (
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>
+                        Select Interests
+                      </label>
+                      <div style={{ 
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                        gap: '8px',
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        paddingRight: '8px'
+                      }}>
+                        {availableInterests.map(interest => {
+                          const category = interestsStructure.find(c => 
+                            c.id === interest.category_id || 
+                            c.subcategories?.some(s => s.id === interest.subcategory_id)
+                          );
+                          const isSelected = formData.interest_ids.includes(interest.id);
+                          
+                          return (
+                            <button
+                              key={interest.id}
+                              type="button"
+                              onClick={() => handleInterestToggle(interest.id)}
+                              style={{
+                                padding: '8px 12px',
+                                border: `2px solid ${isSelected ? '#3E85FC' : '#e5e7eb'}`,
+                                borderRadius: '16px',
+                                backgroundColor: isSelected ? '#3E85FC' : 'white',
+                                color: isSelected ? 'white' : '#6b7280',
+                                cursor: 'pointer',
+                                fontSize: '12px',
+                                fontWeight: 'bold',
+                                textAlign: 'center',
+                                minHeight: '36px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              {category?.icon} {interest.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Selected Interests Display */}
+                  {formData.interest_ids.length > 0 && (
+                    <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
+                      <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px', fontWeight: '500' }}>
+                        Selected ({formData.interest_ids.length}):
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {formData.interest_ids.map(interestId => {
+                          const interest = availableInterests.find(i => i.id === interestId);
+                          if (!interest) return null;
+                          
+                          const category = interestsStructure.find(c => 
+                            c.id === interest.category_id || 
+                            c.subcategories?.some(s => s.id === interest.subcategory_id)
+                          );
+                          
+                          return (
+                            <span
+                              key={interestId}
+                              style={{
+                                padding: '4px 10px',
+                                backgroundColor: '#e0e7ff',
+                                color: '#3730a3',
+                                borderRadius: '12px',
+                                fontSize: '11px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              {category?.icon} {interest.name}
+                              <button
+                                type="button"
+                                onClick={() => handleInterestToggle(interestId)}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: '#3730a3',
+                                  cursor: 'pointer',
+                                  fontSize: '14px',
+                                  padding: '0',
+                                  marginLeft: '4px',
+                                  lineHeight: '1',
+                                  fontWeight: 'bold'
+                                }}
+                              >
+                                ×
+                              </button>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {!selectedCategory && (
+                    <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280', fontSize: '14px' }}>
+                      Select a category above to choose interests
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>
+                  Failed to load interests. Please try again later.
+                </div>
+              )}
+              
+              {errors.interests && (
+                <p style={{ color: '#ef4444', fontSize: '14px', marginTop: '8px' }}>{errors.interests}</p>
+              )}
             </div>
 
             <div style={{ marginBottom: '24px' }}>
@@ -887,16 +1102,16 @@ export default function HomePage() {
                         <div style={{ textAlign: 'center' }}>
                           <button
                             type="submit"
-                            disabled={!formData.city || !formData.audience || formData.interests.length === 0 || !formData.budget || formData.budget === "" || !formData.date}
+                            disabled={!formData.city || !formData.audience || formData.interest_ids.length === 0 || !formData.budget || formData.budget === "" || !formData.date}
                             style={{
-                              backgroundColor: (!formData.city || !formData.audience || formData.interests.length === 0 || !formData.budget || formData.budget === "" || !formData.date) ? '#e0e0e0' : '#3E85FC',
+                              backgroundColor: (!formData.city || !formData.audience || formData.interest_ids.length === 0 || !formData.budget || formData.budget === "" || !formData.date) ? '#e0e0e0' : '#3E85FC',
                               color: 'white',
                               border: 'none',
                               borderRadius: '12px',
                               padding: '14px 28px',
                               fontSize: '18px',
                               fontWeight: 'bold',
-                              cursor: (!formData.city || !formData.audience || formData.interests.length === 0 || !formData.budget || formData.budget === "" || !formData.date) ? 'not-allowed' : 'pointer',
+                              cursor: (!formData.city || !formData.audience || formData.interest_ids.length === 0 || !formData.budget || formData.budget === "" || !formData.date) ? 'not-allowed' : 'pointer',
                               transition: 'background-color 0.2s ease',
                               width: '100%'
                             }}
