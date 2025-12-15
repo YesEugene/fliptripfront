@@ -902,9 +902,9 @@ export default function HomePage() {
                     <div style={{ 
                       display: 'flex', 
                       gap: '8px', 
-                      flexWrap: isMobile ? 'nowrap' : 'wrap',
-                      overflowX: isMobile ? 'auto' : 'visible',
-                      paddingBottom: isMobile ? '8px' : '0',
+                      flexWrap: 'nowrap',
+                      overflowX: 'auto',
+                      paddingBottom: '8px',
                       WebkitOverflowScrolling: 'touch',
                       scrollbarWidth: 'thin',
                       msOverflowStyle: '-ms-autohiding-scrollbar'
