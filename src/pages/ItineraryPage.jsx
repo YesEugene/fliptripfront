@@ -166,14 +166,23 @@ export default function ItineraryPage() {
         // Check if it's already in the converted format (has daily_plan)
         if (loadedItinerary.daily_plan && loadedItinerary.daily_plan.length > 0) {
           // Already converted, use as is
-          // CRITICAL: Use previewOnly from URL, not from loaded data
-          // If full=true or previewOnly=false in URL, show all blocks
+          // CRITICAL: If full=true in URL, show all blocks (full plan after payment)
+          // If previewOnly=true and full=false, show only first 2 blocks
           const shouldShowPreview = previewOnly && !isFullPlan;
-          const displayItinerary = { ...loadedItinerary, previewOnly: shouldShowPreview };
+          const displayItinerary = { 
+            ...loadedItinerary, 
+            previewOnly: shouldShowPreview,
+            // If preview mode, limit to 2 blocks, otherwise show all
+            daily_plan: shouldShowPreview ? [{
+              ...loadedItinerary.daily_plan[0],
+              blocks: loadedItinerary.daily_plan[0]?.blocks?.slice(0, 2) || []
+            }] : loadedItinerary.daily_plan
+          };
           
           console.log('✅ Itinerary already in display format');
           console.log('📋 Preview mode:', shouldShowPreview ? 'YES (showing first 2 blocks)' : 'NO (showing all blocks)');
-          console.log('📊 Total blocks in daily_plan:', displayItinerary.daily_plan[0]?.blocks?.length || 0);
+          console.log('📊 Total blocks in daily_plan:', loadedItinerary.daily_plan[0]?.blocks?.length || 0);
+          console.log('📊 Display blocks:', displayItinerary.daily_plan[0]?.blocks?.length || 0);
           console.log('📊 Total items in daily_plan:', totalItems);
           setItinerary(displayItinerary);
         } else if (loadedItinerary.activities && loadedItinerary.activities.length > 0) {
@@ -272,6 +281,8 @@ export default function ItineraryPage() {
           console.log('✅ Converted data for display:', convertedData);
           
           // Save preview to Redis (only 2 locations for preview)
+          let savedItineraryId = itineraryId; // Initialize with existing ID
+          
           if (previewOnly) {
             try {
               // Save only preview (2 locations) - remaining will be generated after payment
@@ -284,24 +295,24 @@ export default function ItineraryPage() {
                 activities: data.activities?.slice(0, 2) || [],
                 previewOnly: true
               };
-              const dataToSave = previewDataToSave;
-              console.log('💾 Saving FULL plan to Redis (preview mode for display only)...', {
+              console.log('💾 Saving preview (2 locations) to Redis...', {
                 hasConceptualPlan: !!data.conceptual_plan,
                 hasTimeSlots: !!data.conceptual_plan?.timeSlots,
                 timeSlotsCount: data.conceptual_plan?.timeSlots?.length || 0,
-                activitiesCount: data.activities?.length,
-                dailyPlanBlocks: convertedData.daily_plan[0]?.blocks?.length || 0,
+                activitiesCount: previewDataToSave.activities?.length,
+                dailyPlanBlocks: previewDataToSave.daily_plan[0]?.blocks?.length || 0,
                 previewOnly: true
               });
-              const saveResult = await saveItinerary(dataToSave);
+              const saveResult = await saveItinerary(previewDataToSave);
               console.log('💾 Save result:', saveResult);
               if (saveResult && saveResult.success && saveResult.itineraryId) {
                 // Update URL with itineraryId
                 const newParams = new URLSearchParams(searchParams);
                 newParams.set('itineraryId', saveResult.itineraryId);
                 window.history.replaceState({}, '', `${window.location.pathname}?${newParams.toString()}`);
+                savedItineraryId = saveResult.itineraryId;
                 setItineraryId(saveResult.itineraryId);
-                console.log('✅ Full plan saved to Redis with ID:', saveResult.itineraryId);
+                console.log('✅ Preview saved to Redis with ID:', saveResult.itineraryId);
               } else {
                 console.error('❌ Save failed - no itineraryId in response:', saveResult);
               }
@@ -311,14 +322,25 @@ export default function ItineraryPage() {
             }
           }
           
-          setItinerary(convertedData);
+          // Set itinerary with preview flag - show only 2 blocks for preview
+          const displayItinerary = {
+            ...convertedData,
+            previewOnly: previewOnly,
+            // For preview, limit daily_plan to 2 blocks
+            daily_plan: previewOnly ? [{
+              ...convertedData.daily_plan[0],
+              blocks: convertedData.daily_plan[0]?.blocks?.slice(0, 2) || []
+            }] : convertedData.daily_plan
+          };
+          setItinerary(displayItinerary);
           
           // Debug: Log state for email/button display
           console.log('🔍 Debug preview state:', {
             previewOnly,
-            itineraryPreviewOnly: convertedData.previewOnly,
-            itineraryId: saveResult?.itineraryId || itineraryId,
-            hasEmailButton: (previewOnly || convertedData.previewOnly === true) && (saveResult?.itineraryId || itineraryId)
+            itineraryPreviewOnly: displayItinerary.previewOnly,
+            itineraryId: savedItineraryId,
+            hasEmailButton: previewOnly && savedItineraryId,
+            blocksCount: displayItinerary.daily_plan[0]?.blocks?.length || 0
           });
           
           return;
