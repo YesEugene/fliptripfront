@@ -23,6 +23,11 @@ export default function LocationFormModal({ location, onClose, onSave }) {
     verified: true, // Default to verified for admin-created locations
     interest_ids: []
   });
+  const [interestsStructure, setInterestsStructure] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState(null);
+  const [availableInterests, setAvailableInterests] = useState([]);
+  const [loadingInterests, setLoadingInterests] = useState(false);
   const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingCities, setLoadingCities] = useState(true);
