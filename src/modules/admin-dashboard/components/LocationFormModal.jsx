@@ -602,7 +602,7 @@ export default function LocationFormModal({ location, onClose, onSave }) {
                           .find(c => c.id === selectedCategory)
                           ?.subcategories?.map(subcategory => (
                             <option key={subcategory.id} value={subcategory.id}>
-                              {subcategory.name}
+                              {SUBCATEGORY_NAMES[subcategory.name] || subcategory.name}
                             </option>
                           ))}
                       </select>
