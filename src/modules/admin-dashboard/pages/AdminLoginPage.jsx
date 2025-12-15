@@ -40,12 +40,13 @@ export default function AdminLoginPage() {
       role: 'admin'
     };
 
-    // Generate simple token
-    const token = Buffer.from(JSON.stringify({
+    // Generate simple token (browser-compatible base64)
+    const tokenPayload = JSON.stringify({
       userId: adminUser.id,
       role: 'admin',
       timestamp: Date.now()
-    })).toString('base64');
+    });
+    const token = btoa(unescape(encodeURIComponent(tokenPayload)));
 
     // Save to localStorage
     localStorage.setItem('authToken', token);
