@@ -117,6 +117,7 @@ export default function HomePage() {
   const [showFilters, setShowFilters] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   
   // Interests system state
   const [interestsStructure, setInterestsStructure] = useState(null);
@@ -138,6 +139,16 @@ export default function HomePage() {
     } catch (error) {
       console.error('Error checking auth:', error);
     }
+  }, []);
+
+  // Track window size for mobile detection
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Initial check
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Load interests structure from API
@@ -816,9 +827,9 @@ export default function HomePage() {
                     <div style={{ 
                       display: 'flex', 
                       gap: '8px', 
-                      flexWrap: window.innerWidth < 768 ? 'nowrap' : 'wrap',
-                      overflowX: window.innerWidth < 768 ? 'auto' : 'visible',
-                      paddingBottom: window.innerWidth < 768 ? '8px' : '0',
+                      flexWrap: isMobile ? 'nowrap' : 'wrap',
+                      overflowX: isMobile ? 'auto' : 'visible',
+                      paddingBottom: isMobile ? '8px' : '0',
                       WebkitOverflowScrolling: 'touch',
                       scrollbarWidth: 'thin',
                       msOverflowStyle: '-ms-autohiding-scrollbar'
@@ -859,9 +870,9 @@ export default function HomePage() {
                       <div style={{ 
                         display: 'flex', 
                         gap: '8px', 
-                        flexWrap: window.innerWidth < 768 ? 'nowrap' : 'wrap',
-                        overflowX: window.innerWidth < 768 ? 'auto' : 'visible',
-                        paddingBottom: window.innerWidth < 768 ? '8px' : '0',
+                        flexWrap: isMobile ? 'nowrap' : 'wrap',
+                        overflowX: isMobile ? 'auto' : 'visible',
+                        paddingBottom: isMobile ? '8px' : '0',
                         WebkitOverflowScrolling: 'touch',
                         scrollbarWidth: 'thin'
                       }}>
@@ -917,15 +928,15 @@ export default function HomePage() {
                         Select Interests {selectedCategory && '(highlighting ' + (CATEGORY_NAMES[interestsStructure?.find(c => c.id === selectedCategory)?.name] || interestsStructure?.find(c => c.id === selectedCategory)?.name || 'selected') + ' category)'}
                       </label>
                       <div style={{ 
-                        display: window.innerWidth < 768 ? 'flex' : 'grid',
-                        flexDirection: window.innerWidth < 768 ? 'row' : 'column',
-                        gridTemplateColumns: window.innerWidth >= 768 ? 'repeat(auto-fill, minmax(120px, 1fr))' : 'none',
+                        display: isMobile ? 'flex' : 'grid',
+                        flexDirection: isMobile ? 'row' : 'column',
+                        gridTemplateColumns: !isMobile ? 'repeat(auto-fill, minmax(120px, 1fr))' : 'none',
                         gap: '8px',
-                        maxHeight: window.innerWidth < 768 ? 'none' : '200px',
-                        overflowY: window.innerWidth < 768 ? 'visible' : 'auto',
-                        overflowX: window.innerWidth < 768 ? 'auto' : 'visible',
+                        maxHeight: isMobile ? 'none' : '200px',
+                        overflowY: isMobile ? 'visible' : 'auto',
+                        overflowX: isMobile ? 'auto' : 'visible',
                         paddingRight: '8px',
-                        paddingBottom: window.innerWidth < 768 ? '8px' : '0',
+                        paddingBottom: isMobile ? '8px' : '0',
                         WebkitOverflowScrolling: 'touch',
                         scrollbarWidth: 'thin'
                       }}>
@@ -954,7 +965,7 @@ export default function HomePage() {
                                 fontWeight: 'bold',
                                 textAlign: 'center',
                                 minHeight: '36px',
-                                minWidth: window.innerWidth < 768 ? '120px' : 'auto',
+                                minWidth: isMobile ? '120px' : 'auto',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -980,10 +991,10 @@ export default function HomePage() {
                       </div>
                       <div style={{ 
                         display: 'flex', 
-                        flexWrap: window.innerWidth < 768 ? 'nowrap' : 'wrap',
+                        flexWrap: isMobile ? 'nowrap' : 'wrap',
                         gap: '6px',
-                        overflowX: window.innerWidth < 768 ? 'auto' : 'visible',
-                        paddingBottom: window.innerWidth < 768 ? '8px' : '0',
+                        overflowX: isMobile ? 'auto' : 'visible',
+                        paddingBottom: isMobile ? '8px' : '0',
                         WebkitOverflowScrolling: 'touch'
                       }}>
                         {formData.interest_ids.map(interestId => {
