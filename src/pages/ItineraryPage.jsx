@@ -174,7 +174,7 @@ export default function ItineraryPage() {
           // CRITICAL: If full=true in URL OR previewOnly=false in loaded data, show all blocks
           // If previewOnly=true in URL AND full=false, show only first 2 blocks
           const isActuallyFullPlan = isFullPlan || !loadedItinerary.previewOnly;
-          const shouldShowPreview = previewOnly && !isFullPlan && loadedItinerary.previewOnly;
+          const shouldShowPreview = previewOnly && !isFullPlan && loadedItinerary.previewOnly === true;
           
           const displayItinerary = { 
             ...loadedItinerary, 
