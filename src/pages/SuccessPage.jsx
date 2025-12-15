@@ -121,7 +121,10 @@ export default function SuccessPage() {
     }
     // Add full=true to indicate this is a full plan (not preview)
     queryParams.set('full', 'true');
-    navigate(`/itinerary?${queryParams.toString()}`);
+    // Remove previewOnly if present
+    queryParams.delete('previewOnly');
+    // Force reload to get fresh data from Redis
+    window.location.href = `/itinerary?${queryParams.toString()}`;
   };
 
   const containerStyle = {
