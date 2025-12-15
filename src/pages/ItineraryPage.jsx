@@ -271,15 +271,20 @@ export default function ItineraryPage() {
           };
           console.log('✅ Converted data for display:', convertedData);
           
-          // Save full plan to Redis (always save full plan, preview mode only affects display)
+          // Save preview to Redis (only 2 locations for preview)
           if (previewOnly) {
             try {
-              // Save the full plan (not limited to 2 locations)
-              const dataToSave = {
+              // Save only preview (2 locations) - remaining will be generated after payment
+              const previewDataToSave = {
                 ...data,
-                daily_plan: convertedData.daily_plan, // Full daily_plan with all blocks
-                previewOnly: true // Flag for display purposes only
+                daily_plan: [{
+                  ...convertedData.daily_plan[0],
+                  blocks: convertedData.daily_plan[0]?.blocks?.slice(0, 2) || []
+                }],
+                activities: data.activities?.slice(0, 2) || [],
+                previewOnly: true
               };
+              const dataToSave = previewDataToSave;
               console.log('💾 Saving FULL plan to Redis (preview mode for display only)...', {
                 hasConceptualPlan: !!data.conceptual_plan,
                 hasTimeSlots: !!data.conceptual_plan?.timeSlots,
