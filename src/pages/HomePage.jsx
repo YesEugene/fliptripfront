@@ -900,10 +900,10 @@ export default function HomePage() {
                   )}
 
                   {/* Interests Selection - Always show all interests, but highlight selected category */}
-                  {availableInterests.length > 0 && (
+                  {allInterests.length > 0 && (
                     <div>
                       <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>
-                        Select Interests {selectedCategory && '(showing ' + (interestsStructure?.find(c => c.id === selectedCategory)?.name || 'selected') + ' category)'}
+                        Select Interests {selectedCategory && '(highlighting ' + (CATEGORY_NAMES[interestsStructure?.find(c => c.id === selectedCategory)?.name] || interestsStructure?.find(c => c.id === selectedCategory)?.name || 'selected') + ' category)'}
                       </label>
                       <div style={{ 
                         display: window.innerWidth < 768 ? 'flex' : 'grid',
@@ -925,6 +925,7 @@ export default function HomePage() {
                           );
                           const isSelected = formData.interest_ids.includes(interest.id);
                           const isFromSelectedCategory = selectedCategory && interest.category_id === selectedCategory;
+                          const isFromSelectedSubcategory = selectedSubcategory && interest.subcategory_id === selectedSubcategory;
                           
                           return (
                             <button
