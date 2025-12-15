@@ -85,11 +85,15 @@ export default function EditTourPage() {
           const legacyOptions = Array.isArray(tour.additionalOptions);
           
           setFormData({
+            country: tour.country || '',
+            city: tour.city || '',
             title: tour.title || '',
             description: tour.description || '',
-            city: tour.city || '',
+            preview: tour.preview || '',
+            previewType: tour.previewType || 'image',
+            tags: Array.isArray(tour.tags) ? tour.tags : [],
             duration: tour.duration || { type: 'hours', value: 6 },
-            languages: tour.languages || ['en'],
+            languages: Array.isArray(tour.languages) ? tour.languages : (tour.languages || ['en']),
             format: tour.format || 'self-guided',
             withGuide: tour.format === 'guided' || tour.withGuide || false,
             price: legacyPrice ? {
@@ -116,11 +120,22 @@ export default function EditTourPage() {
               platformOptions: ['insurance', 'accommodation'],
               creatorOptions: {}
             }),
-            daily_plan: tour.daily_plan || [{
-              day: 1,
-              date: new Date().toISOString().slice(0, 10),
-              blocks: [{ time: '09:00 - 12:00', items: [] }]
-            }],
+            daily_plan: Array.isArray(tour.daily_plan) && tour.daily_plan.length > 0 
+              ? tour.daily_plan.map(day => ({
+                  ...day,
+                  blocks: Array.isArray(day.blocks) ? day.blocks.map(block => ({
+                    ...block,
+                    items: Array.isArray(block.items) ? block.items.map(item => ({
+                      ...item,
+                      recommendations: item.recommendations || ''
+                    })) : []
+                  })) : []
+                }))
+              : [{
+                  day: 1,
+                  date: new Date().toISOString().slice(0, 10),
+                  blocks: [{ time: '09:00 - 12:00', items: [] }]
+                }],
             meta: tour.meta || {
               interests: [],
               audience: 'him',
@@ -271,15 +286,29 @@ export default function EditTourPage() {
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
 
   const generateTagSuggestions = async () => {
-    if (!formData.description && formData.daily_plan?.[0]?.blocks?.[0]?.items?.length === 0) {
+    const hasDescription = formData.description && formData.description.trim().length > 0;
+    const hasLocations = formData.daily_plan && 
+      Array.isArray(formData.daily_plan) && 
+      formData.daily_plan.length > 0 &&
+      formData.daily_plan[0]?.blocks &&
+      Array.isArray(formData.daily_plan[0].blocks) &&
+      formData.daily_plan[0].blocks.length > 0 &&
+      formData.daily_plan[0].blocks[0]?.items &&
+      Array.isArray(formData.daily_plan[0].blocks[0].items) &&
+      formData.daily_plan[0].blocks[0].items.length > 0;
+
+    if (!hasDescription && !hasLocations) {
       setTagSuggestions([]);
       return;
     }
 
     try {
-      const locationTexts = formData.daily_plan
+      const locationTexts = (formData.daily_plan || [])
+        .filter(day => day && day.blocks && Array.isArray(day.blocks))
         .flatMap(day => day.blocks)
+        .filter(block => block && block.items && Array.isArray(block.items))
         .flatMap(block => block.items)
+        .filter(item => item && (item.title || item.description))
         .map(item => `${item.title || ''} ${item.description || ''}`)
         .join(' ');
 
@@ -320,12 +349,17 @@ export default function EditTourPage() {
   };
 
   useEffect(() => {
+    // Only generate suggestions if formData is properly initialized
+    if (!formData || !formData.daily_plan) {
+      return;
+    }
+    
     const timer = setTimeout(() => {
       generateTagSuggestions();
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [formData.description, formData.daily_plan]);
+  }, [formData?.description, formData?.daily_plan]);
 
   const handleTagInputChange = (e) => {
     const value = e.target.value;
@@ -334,10 +368,10 @@ export default function EditTourPage() {
   };
 
   const handleTagAdd = (tag) => {
-    if (tag && !formData.tags.includes(tag)) {
+    if (tag && Array.isArray(formData.tags) && !formData.tags.includes(tag)) {
       setFormData(prev => ({
         ...prev,
-        tags: [...prev.tags, tag]
+        tags: [...(prev.tags || []), tag]
       }));
     }
     setTagInput('');
@@ -347,7 +381,7 @@ export default function EditTourPage() {
   const handleTagRemove = (tagToRemove) => {
     setFormData(prev => ({
       ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
+      tags: Array.isArray(prev.tags) ? prev.tags.filter(tag => tag !== tagToRemove) : []
     }));
   };
 
@@ -877,7 +911,7 @@ export default function EditTourPage() {
                           + Add Date
                         </button>
                       </div>
-                      {formData.price.availableDates && formData.price.availableDates.length > 0 ? (
+                      {Array.isArray(formData.price.availableDates) && formData.price.availableDates.length > 0 ? (
                         formData.price.availableDates.map((date, index) => (
                           <div key={index} style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                             <input
@@ -940,7 +974,7 @@ export default function EditTourPage() {
                 gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
                 gap: '12px'
               }}>
-                {platformOptionsList.map((option) => (
+                {Array.isArray(platformOptionsList) && platformOptionsList.map((option) => (
                   <div
                     key={option.id}
                     style={{
@@ -979,7 +1013,7 @@ export default function EditTourPage() {
                 flexDirection: 'column',
                 gap: '12px'
               }}>
-                {creatorOptionsList.map((option) => {
+                {Array.isArray(creatorOptionsList) && creatorOptionsList.map((option) => {
                   const isChecked = formData.additionalOptions?.creatorOptions?.[option.id] !== undefined;
                   const price = formData.additionalOptions?.creatorOptions?.[option.id] || 0;
                   
@@ -1086,7 +1120,7 @@ export default function EditTourPage() {
               </button>
             </div>
 
-            {formData.daily_plan.map((day, dayIndex) => (
+            {Array.isArray(formData.daily_plan) && formData.daily_plan.map((day, dayIndex) => (
               <div key={dayIndex} style={{
                 border: '1px solid #e5e7eb',
                 borderRadius: '8px',
@@ -1097,7 +1131,7 @@ export default function EditTourPage() {
                   Day {day.day}
                 </h3>
 
-                {day.blocks.map((block, blockIndex) => (
+                {Array.isArray(day.blocks) && day.blocks.map((block, blockIndex) => (
                   <div key={blockIndex} style={{
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
@@ -1124,7 +1158,7 @@ export default function EditTourPage() {
                     />
                     
                     {/* Locations in block */}
-                    {block.items && block.items.length > 0 && (
+                    {Array.isArray(block.items) && block.items.length > 0 && (
                       <div style={{ marginBottom: '12px' }}>
                         {block.items.map((item, itemIndex) => (
                           <div key={itemIndex} style={{
@@ -1387,7 +1421,7 @@ export default function EditTourPage() {
                     boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
                   }}>
                     {tagSuggestions
-                      .filter(tag => !formData.tags.includes(tag) && tag.toLowerCase().includes(tagInput.toLowerCase()))
+                      .filter(tag => Array.isArray(formData.tags) && !formData.tags.includes(tag) && tag.toLowerCase().includes(tagInput.toLowerCase()))
                       .slice(0, 5)
                       .map((tag, index) => (
                         <div
@@ -1413,7 +1447,7 @@ export default function EditTourPage() {
             </div>
 
             {/* Display selected tags */}
-            {formData.tags.length > 0 && (
+            {Array.isArray(formData.tags) && formData.tags.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {formData.tags.map((tag, index) => (
                   <span
