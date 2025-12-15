@@ -28,6 +28,35 @@ const AUDIENCES = [
 // Interests will be loaded from API
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
 
+// Category name translations
+const CATEGORY_NAMES = {
+  'active': 'Active',
+  'culture': 'Culture',
+  'food': 'Food',
+  'nature': 'Nature',
+  'nightlife': 'Nightlife',
+  'family': 'Family',
+  'romantic': 'Romantic',
+  'health': 'Health',
+  'unique': 'Unique Experiences'
+};
+
+// Subcategory name translations
+const SUBCATEGORY_NAMES = {
+  'relaxation': 'Relaxation',
+  'events': 'Events'
+};
+
+// Interest name translations
+const INTEREST_NAMES = {
+  'spa salons': 'SPA Salons',
+  'yoga': 'Yoga',
+  'hot springs': 'Hot Springs',
+  'music festivals': 'Music Festivals',
+  'local festivals': 'Local Festivals',
+  'conferences': 'Conferences'
+};
+
 const POPULAR_TRIPS = [
   {
     id: 1,
@@ -856,7 +885,7 @@ export default function HomePage() {
                                 fontWeight: '500'
                               }}
                             >
-                              {subcategory.name}
+                              {SUBCATEGORY_NAMES[subcategory.name] || subcategory.name}
                             </button>
                           ))}
                       </div>
