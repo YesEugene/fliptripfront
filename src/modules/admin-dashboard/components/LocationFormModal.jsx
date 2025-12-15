@@ -7,6 +7,25 @@ import { useState, useEffect } from 'react';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
 
+// Category name translations
+const CATEGORY_NAMES = {
+  'active': 'Active',
+  'culture': 'Culture',
+  'food': 'Food',
+  'nature': 'Nature',
+  'nightlife': 'Nightlife',
+  'family': 'Family',
+  'romantic': 'Romantic',
+  'health': 'Health',
+  'unique': 'Unique Experiences'
+};
+
+// Subcategory name translations
+const SUBCATEGORY_NAMES = {
+  'relaxation': 'Relaxation',
+  'events': 'Events'
+};
+
 export default function LocationFormModal({ location, onClose, onSave }) {
   const [formData, setFormData] = useState({
     name: '',
@@ -555,7 +574,7 @@ export default function LocationFormModal({ location, onClose, onSave }) {
                       <option value="">Select a category...</option>
                       {interestsStructure?.map(category => (
                         <option key={category.id} value={category.id}>
-                          {category.icon} {category.name}
+                          {category.icon} {CATEGORY_NAMES[category.name] || category.name}
                         </option>
                       ))}
                     </select>
