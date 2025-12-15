@@ -21,11 +21,8 @@ export default function LocationFormModal({ location, onClose, onSave }) {
     phone: '',
     booking_url: '',
     verified: true, // Default to verified for admin-created locations
-    tag_ids: []
+    interest_ids: []
   });
-  const [tagSuggestions, setTagSuggestions] = useState([]);
-  const [tagInput, setTagInput] = useState('');
-  const [showTagSuggestions, setShowTagSuggestions] = useState(false);
   const [availableTags, setAvailableTags] = useState([]);
   const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -40,10 +37,10 @@ export default function LocationFormModal({ location, onClose, onSave }) {
 
   useEffect(() => {
     loadCities();
-    loadAvailableTags();
+    loadInterestsStructure();
     if (location) {
       // Load location data for editing
-      const locationTags = location.tags?.map(lt => lt.tag?.id || lt.tag_id).filter(Boolean) || [];
+      const locationInterests = location.interests?.map(li => li.interest?.id || li.interest_id).filter(Boolean) || [];
       setFormData({
         name: location.name || '',
         city_id: location.city_id || location.city?.id || '',
@@ -57,7 +54,7 @@ export default function LocationFormModal({ location, onClose, onSave }) {
         phone: location.phone || '',
         booking_url: location.booking_url || '',
         verified: location.verified !== undefined ? location.verified : true,
-        tag_ids: locationTags
+        interest_ids: locationInterests
       });
     }
   }, [location]);
@@ -77,59 +74,94 @@ export default function LocationFormModal({ location, onClose, onSave }) {
     }
   };
 
-  const loadAvailableTags = async () => {
+  const loadInterestsStructure = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin-tags`);
+      setLoadingInterests(true);
+      const response = await fetch(`${API_BASE_URL}/api/interests?full_structure=true`);
       const data = await response.json();
       if (data.success) {
-        setAvailableTags(data.tags || []);
+        setInterestsStructure(data.categories || []);
+        // Flatten all interests for easy access
+        const allInterests = [];
+        data.categories.forEach(category => {
+          // Add direct interests
+          if (category.direct_interests) {
+            allInterests.push(...category.direct_interests);
+          }
+          // Add interests from subcategories
+          if (category.subcategories) {
+            category.subcategories.forEach(subcategory => {
+              if (subcategory.interests) {
+                allInterests.push(...subcategory.interests);
+              }
+            });
+          }
+        });
+        setAvailableInterests(allInterests);
       }
     } catch (err) {
-      console.error('Error loading tags:', err);
+      console.error('Error loading interests:', err);
+    } finally {
+      setLoadingInterests(false);
     }
   };
 
-  const generateTagSuggestions = async () => {
-    const text = `${formData.description || ''} ${formData.recommendations || ''}`.trim();
-    if (!text || text.length < 10) {
-      setTagSuggestions([]);
+  const handleCategoryChange = (categoryId) => {
+    setSelectedCategory(categoryId);
+    setSelectedSubcategory(null);
+    if (!categoryId) {
+      setAvailableInterests([]);
       return;
     }
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/smart-itinerary`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'generateTags',
-          text: text
-        })
-      });
-      const data = await response.json();
-      if (data.success && data.tags) {
-        setTagSuggestions(data.tags);
-        setShowTagSuggestions(true);
+    
+    const category = interestsStructure?.find(c => c.id === categoryId);
+    if (category) {
+      const interests = [];
+      // Add direct interests
+      if (category.direct_interests) {
+        interests.push(...category.direct_interests);
       }
-    } catch (err) {
-      console.error('Error generating tag suggestions:', err);
+      // Add interests from subcategories
+      if (category.subcategories) {
+        category.subcategories.forEach(subcategory => {
+          if (subcategory.interests) {
+            interests.push(...subcategory.interests);
+          }
+        });
+      }
+      setAvailableInterests(interests);
     }
   };
 
-  const handleTagAdd = (tagId) => {
-    if (!formData.tag_ids.includes(tagId)) {
+  const handleSubcategoryChange = (subcategoryId) => {
+    setSelectedSubcategory(subcategoryId);
+    if (!subcategoryId) {
+      handleCategoryChange(selectedCategory);
+      return;
+    }
+    
+    const category = interestsStructure?.find(c => c.id === selectedCategory);
+    if (category?.subcategories) {
+      const subcategory = category.subcategories.find(s => s.id === subcategoryId);
+      if (subcategory?.interests) {
+        setAvailableInterests(subcategory.interests);
+      }
+    }
+  };
+
+  const handleInterestAdd = (interestId) => {
+    if (!formData.interest_ids.includes(interestId)) {
       setFormData(prev => ({
         ...prev,
-        tag_ids: [...prev.tag_ids, tagId]
+        interest_ids: [...prev.interest_ids, interestId]
       }));
     }
-    setShowTagSuggestions(false);
-    setTagInput('');
   };
 
-  const handleTagRemove = (tagId) => {
+  const handleInterestRemove = (interestId) => {
     setFormData(prev => ({
       ...prev,
-      tag_ids: prev.tag_ids.filter(id => id !== tagId)
+      interest_ids: prev.interest_ids.filter(id => id !== interestId)
     }));
   };
 
@@ -166,7 +198,7 @@ export default function LocationFormModal({ location, onClose, onSave }) {
         phone: formData.phone || null,
         booking_url: formData.booking_url || null,
         verified: formData.verified,
-        tag_ids: formData.tag_ids || []
+        interest_ids: formData.interest_ids || []
       };
 
       await onSave(locationData);
