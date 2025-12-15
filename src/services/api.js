@@ -238,6 +238,19 @@ export const getItinerary = async (itineraryId) => {
 };
 
 // Complete itinerary after payment (generate remaining locations)
+// Unlock itinerary (simply update previewOnly flag to false)
+export const unlockItinerary = async (itineraryId) => {
+  try {
+    const response = await api.post('/api/unlock-itinerary', {
+      itineraryId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Unlock itinerary error:', error);
+    throw error;
+  }
+};
+
 export const completeItinerary = async (itineraryId, formData) => {
   try {
     const response = await api.post('/api/complete-itinerary', {

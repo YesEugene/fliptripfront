@@ -33,32 +33,34 @@ export default function SuccessPage() {
       console.log('📋 Itinerary ID:', itineraryId);
       console.log('📋 Form Data:', formData);
       
-      // Step 1: Complete the itinerary (generate remaining locations)
-      console.log('🔄 Completing itinerary...');
-      const completeResult = await completeItinerary(itineraryId, formData);
+      // NEW APPROACH: Simply unlock the itinerary (set previewOnly to false)
+      // The full plan was already generated and saved during preview
+      console.log('🔓 Unlocking itinerary...');
+      const unlockResult = await unlockItinerary(itineraryId);
       
-      if (completeResult && completeResult.success && completeResult.itinerary) {
-        console.log('✅ Itinerary completed:', completeResult.itinerary);
-        console.log('📊 Full plan activities count:', completeResult.itinerary.activities?.length || 0);
-        console.log('📊 Full plan blocks count:', completeResult.itinerary.daily_plan?.[0]?.blocks?.length || 0);
-        setItinerary(completeResult.itinerary);
+      if (unlockResult && unlockResult.success && unlockResult.itinerary) {
+        console.log('✅ Itinerary unlocked:', unlockResult.itinerary);
+        console.log('📊 Full plan activities count:', unlockResult.itinerary.activities?.length || 0);
+        console.log('📊 Full plan blocks count:', unlockResult.itinerary.daily_plan?.[0]?.blocks?.length || 0);
+        console.log('📊 PreviewOnly flag:', unlockResult.itinerary.previewOnly);
+        setItinerary(unlockResult.itinerary);
         
         // Wait a bit to ensure Redis has saved the data
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Verify the full plan is saved in Redis
-        console.log('🔍 Verifying full plan is saved in Redis...');
+        // Verify the itinerary is unlocked in Redis
+        console.log('🔍 Verifying itinerary is unlocked in Redis...');
         let verificationAttempts = 0;
         let verified = false;
-        while (verificationAttempts < 5 && !verified) {
+        while (verificationAttempts < 3 && !verified) {
           const verifyData = await getItinerary(itineraryId);
           if (verifyData && verifyData.success && verifyData.itinerary) {
-            const activitiesCount = verifyData.itinerary.activities?.length || 0;
             const blocksCount = verifyData.itinerary.daily_plan?.[0]?.blocks?.length || 0;
-            console.log(`🔍 Verification attempt ${verificationAttempts + 1}: ${activitiesCount} activities, ${blocksCount} blocks`);
-            if (activitiesCount > 2 && !verifyData.itinerary.previewOnly) {
+            const isUnlocked = verifyData.itinerary.previewOnly === false;
+            console.log(`🔍 Verification attempt ${verificationAttempts + 1}: ${blocksCount} blocks, unlocked: ${isUnlocked}`);
+            if (isUnlocked && blocksCount > 2) {
               verified = true;
-              console.log('✅ Full plan verified in Redis');
+              console.log('✅ Itinerary verified as unlocked in Redis');
             }
           }
           if (!verified) {
@@ -72,7 +74,7 @@ export default function SuccessPage() {
           console.log('📧 Sending email...');
           const emailResult = await sendEmail({
             email: formData.email,
-            itinerary: completeResult.itinerary,
+            itinerary: unlockResult.itinerary,
             formData: formData,
             itineraryId: itineraryId
           });
@@ -81,7 +83,7 @@ export default function SuccessPage() {
           setEmailSent(true);
         }
       } else {
-        console.warn('⚠️ Could not complete itinerary, trying to load existing...');
+        console.warn('⚠️ Could not unlock itinerary, trying to load existing...');
         // Fallback: try to load existing itinerary
         const itineraryData = await getItinerary(itineraryId);
         if (itineraryData && itineraryData.success && itineraryData.itinerary) {

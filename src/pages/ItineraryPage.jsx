@@ -294,17 +294,15 @@ export default function ItineraryPage() {
           
           if (previewOnly) {
             try {
-              // Save only preview (2 locations) - remaining will be generated after payment
+              // NEW APPROACH: Save FULL plan, but with previewOnly=true flag
+              // Frontend will show only first 2 blocks when previewOnly=true
               const previewDataToSave = {
                 ...data,
-                daily_plan: [{
-                  ...convertedData.daily_plan[0],
-                  blocks: convertedData.daily_plan[0]?.blocks?.slice(0, 2) || []
-                }],
-                activities: data.activities?.slice(0, 2) || [],
-                previewOnly: true
+                daily_plan: convertedData.daily_plan, // Save FULL daily_plan
+                activities: data.activities, // Save ALL activities
+                previewOnly: true // Flag to indicate preview mode
               };
-              console.log('💾 Saving preview (2 locations) to Redis...', {
+              console.log('💾 Saving FULL plan with previewOnly=true to Redis...', {
                 hasConceptualPlan: !!data.conceptual_plan,
                 hasTimeSlots: !!data.conceptual_plan?.timeSlots,
                 timeSlotsCount: data.conceptual_plan?.timeSlots?.length || 0,
