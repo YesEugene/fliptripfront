@@ -106,10 +106,14 @@ export default function ItineraryPage() {
   const previewOnly = searchParams.get('previewOnly') === 'true';
   const existingItineraryId = searchParams.get('itineraryId');
   const isFullPlan = searchParams.get('full') === 'true'; // Indicates we expect a full plan, not preview
+  // Extract interest_ids from query params (can be multiple with same name)
+  const interestIds = searchParams.getAll('interest_ids');
+  
   const formData = {
     city: searchParams.get('city') || 'Barcelona',
     audience: searchParams.get('audience') || 'him',
-    interests: searchParams.get('interests')?.split(',') || ['Romantic'],
+    interests: searchParams.get('interests')?.split(',') || [], // Legacy support
+    interest_ids: interestIds.length > 0 ? interestIds : [], // New system
     date: searchParams.get('date') || new Date().toISOString().slice(0, 10),
     budget: searchParams.get('budget') || '500',
     previewOnly: previewOnly // Boolean value

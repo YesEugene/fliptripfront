@@ -273,9 +273,20 @@ export default function HomePage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
-      const queryParams = new URLSearchParams(formData);
-      queryParams.append('previewOnly', 'true'); // Add previewOnly flag
-      navigate(`/itinerary?${queryParams.toString()}`);
+      // Build query params manually to handle interest_ids array
+      const params = new URLSearchParams();
+      params.append('city', formData.city);
+      params.append('audience', formData.audience);
+      params.append('date', formData.date);
+      params.append('budget', formData.budget);
+      params.append('previewOnly', 'true');
+      
+      // Add each interest_id as separate parameter
+      formData.interest_ids.forEach(id => {
+        params.append('interest_ids', id);
+      });
+      
+      navigate(`/itinerary?${params.toString()}`);
     }
   };
 
