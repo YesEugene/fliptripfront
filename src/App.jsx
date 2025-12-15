@@ -16,6 +16,9 @@ import { UserDashboardPage } from './modules/user-dashboard';
 // Guide Dashboard Module
 import { GuideDashboardPage, CreateTourPage, EditTourPage, ProfileSettingsPage } from './modules/guide-dashboard';
 
+// Admin Dashboard Module
+import { AdminDashboardPage, AdminLocationsPage, AdminToursPage, AdminUsersPage } from './modules/admin-dashboard';
+
 import './index.css';
 
 function App() {
@@ -76,6 +79,40 @@ function App() {
             element={
               <ProtectedRoute requiredRole="guide">
                 <ProfileSettingsPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Protected Admin Routes */}
+          <Route 
+            path="/admin/dashboard" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminDashboardPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/locations" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLocationsPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/tours" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminToursPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/users" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminUsersPage />
               </ProtectedRoute>
             } 
           />
