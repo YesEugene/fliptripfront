@@ -241,60 +241,27 @@ export default function HomePage() {
   const handleCategoryChange = (categoryId) => {
     setSelectedCategory(categoryId);
     setSelectedSubcategory(null);
+    // Always show all interests, but we'll highlight the selected category
+    // This way selected interests from other categories remain visible
     if (!categoryId) {
-      // Show all interests when no category selected
       setAvailableInterests(allInterests);
       return;
     }
     
-    const category = interestsStructure?.find(c => c.id === categoryId);
-    if (category) {
-      const interests = [];
-      // Add direct interests
-      if (category.direct_interests) {
-        category.direct_interests.forEach(interest => {
-          interests.push({ ...interest, category_id: category.id });
-        });
-      }
-      // Add interests from subcategories
-      if (category.subcategories) {
-        category.subcategories.forEach(subcategory => {
-          if (subcategory.interests) {
-            subcategory.interests.forEach(interest => {
-              interests.push({ 
-                ...interest, 
-                category_id: category.id,
-                subcategory_id: subcategory.id 
-              });
-            });
-          }
-        });
-      }
-      setAvailableInterests(interests);
-    } else {
-      // Fallback: show all interests
-      setAvailableInterests(allInterests);
-    }
+    // Still show all interests, but we'll use categoryId for highlighting
+    setAvailableInterests(allInterests);
   };
 
   const handleSubcategoryChange = (subcategoryId) => {
     setSelectedSubcategory(subcategoryId);
     if (!subcategoryId) {
-      handleCategoryChange(selectedCategory);
+      // Show all interests when no subcategory selected
+      setAvailableInterests(allInterests);
       return;
     }
     
-    const category = interestsStructure?.find(c => c.id === selectedCategory);
-    if (category?.subcategories) {
-      const subcategory = category.subcategories.find(s => s.id === subcategoryId);
-      if (subcategory?.interests) {
-        subcategory.interests.forEach(interest => {
-          interest.category_id = category.id;
-          interest.subcategory_id = subcategory.id;
-        });
-        setAvailableInterests(subcategory.interests);
-      }
-    }
+    // Still show all interests, but we'll use subcategoryId for highlighting
+    setAvailableInterests(allInterests);
   };
 
   const handleInterestToggle = (interestId) => {
@@ -965,9 +932,9 @@ export default function HomePage() {
                               onClick={() => handleInterestToggle(interest.id)}
                               style={{
                                 padding: '8px 12px',
-                                border: `2px solid ${isSelected ? '#3E85FC' : isFromSelectedCategory ? '#93c5fd' : '#e5e7eb'}`,
+                                border: `2px solid ${isSelected ? '#3E85FC' : (isFromSelectedSubcategory || isFromSelectedCategory) ? '#93c5fd' : '#e5e7eb'}`,
                                 borderRadius: '16px',
-                                backgroundColor: isSelected ? '#3E85FC' : isFromSelectedCategory ? '#eff6ff' : 'white',
+                                backgroundColor: isSelected ? '#3E85FC' : (isFromSelectedSubcategory || isFromSelectedCategory) ? '#eff6ff' : 'white',
                                 color: isSelected ? 'white' : '#6b7280',
                                 cursor: 'pointer',
                                 fontSize: '12px',
@@ -979,7 +946,7 @@ export default function HomePage() {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 gap: '4px',
-                                opacity: !selectedCategory || isFromSelectedCategory || isSelected ? 1 : 0.6,
+                                opacity: !selectedCategory || isFromSelectedSubcategory || isFromSelectedCategory || isSelected ? 1 : 0.6,
                                 whiteSpace: 'nowrap',
                                 flexShrink: 0
                               }}
