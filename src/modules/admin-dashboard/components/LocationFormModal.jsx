@@ -23,7 +23,6 @@ export default function LocationFormModal({ location, onClose, onSave }) {
     verified: true, // Default to verified for admin-created locations
     interest_ids: []
   });
-  const [availableTags, setAvailableTags] = useState([]);
   const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingCities, setLoadingCities] = useState(true);
@@ -522,145 +521,168 @@ export default function LocationFormModal({ location, onClose, onSave }) {
               />
             </div>
 
-            {/* Tags */}
+            {/* Interests */}
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
-                Tags
+                Interests
               </label>
-              <div style={{ marginBottom: '8px' }}>
-                <button
-                  type="button"
-                  onClick={generateTagSuggestions}
-                  disabled={!formData.description && !formData.recommendations}
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#3b82f6',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    marginBottom: '8px',
-                    opacity: (!formData.description && !formData.recommendations) ? 0.5 : 1
-                  }}
-                >
-                  ✨ Generate Tag Suggestions
-                </button>
-              </div>
               
-              {showTagSuggestions && tagSuggestions.length > 0 && (
-                <div style={{
-                  marginBottom: '12px',
-                  padding: '12px',
-                  backgroundColor: '#f3f4f6',
-                  borderRadius: '8px'
-                }}>
-                  <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>
-                    Suggested tags:
+              {loadingInterests ? (
+                <div style={{ padding: '12px', color: '#6b7280' }}>Loading interests...</div>
+              ) : (
+                <>
+                  {/* Category Selection */}
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>
+                      Category
+                    </label>
+                    <select
+                      value={selectedCategory || ''}
+                      onChange={(e) => handleCategoryChange(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '8px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        fontSize: '14px'
+                      }}
+                    >
+                      <option value="">Select a category...</option>
+                      {interestsStructure?.map(category => (
+                        <option key={category.id} value={category.id}>
+                          {category.icon} {category.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                    {tagSuggestions.map((tag, idx) => {
-                      const existingTag = availableTags.find(t => t.name.toLowerCase() === tag.toLowerCase());
-                      if (existingTag && !formData.tag_ids.includes(existingTag.id)) {
-                        return (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={() => handleTagAdd(existingTag.id)}
-                            style={{
-                              padding: '6px 12px',
-                              backgroundColor: '#3b82f6',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '12px'
-                            }}
-                          >
-                            + {tag}
-                          </button>
-                        );
-                      }
-                      return null;
-                    })}
-                  </div>
-                </div>
-              )}
 
-              {/* Selected Tags */}
-              {formData.tag_ids.length > 0 && (
-                <div style={{ marginBottom: '12px' }}>
-                  <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>
-                    Selected tags:
-                  </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                    {formData.tag_ids.map(tagId => {
-                      const tag = availableTags.find(t => t.id === tagId);
-                      if (!tag) return null;
-                      return (
-                        <span
-                          key={tagId}
-                          style={{
-                            padding: '6px 12px',
-                            backgroundColor: '#e0e7ff',
-                            color: '#3730a3',
-                            borderRadius: '6px',
-                            fontSize: '12px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px'
-                          }}
-                        >
-                          {tag.name}
-                          <button
-                            type="button"
-                            onClick={() => handleTagRemove(tagId)}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              color: '#3730a3',
-                              cursor: 'pointer',
-                              fontSize: '16px',
-                              padding: '0',
-                              lineHeight: '1'
-                            }}
-                          >
-                            ×
-                          </button>
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+                  {/* Subcategory Selection (if category has subcategories) */}
+                  {selectedCategory && interestsStructure?.find(c => c.id === selectedCategory)?.subcategories?.length > 0 && (
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>
+                        Subcategory (optional)
+                      </label>
+                      <select
+                        value={selectedSubcategory || ''}
+                        onChange={(e) => handleSubcategoryChange(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          fontSize: '14px'
+                        }}
+                      >
+                        <option value="">All interests in category</option>
+                        {interestsStructure
+                          .find(c => c.id === selectedCategory)
+                          ?.subcategories?.map(subcategory => (
+                            <option key={subcategory.id} value={subcategory.id}>
+                              {subcategory.name}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  )}
 
-              {/* Available Tags Dropdown */}
-              <select
-                value={tagInput}
-                onChange={(e) => {
-                  const tagId = e.target.value;
-                  if (tagId && !formData.tag_ids.includes(tagId)) {
-                    handleTagAdd(tagId);
-                  }
-                  setTagInput('');
-                }}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '16px'
-                }}
-              >
-                <option value="">Select a tag to add...</option>
-                {availableTags
-                  .filter(tag => !formData.tag_ids.includes(tag.id))
-                  .map(tag => (
-                    <option key={tag.id} value={tag.id}>
-                      {tag.name} {tag.type ? `(${tag.type})` : ''}
-                    </option>
-                  ))}
-              </select>
+                  {/* Interests Selection */}
+                  {selectedCategory && availableInterests.length > 0 && (
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>
+                        Select Interests
+                      </label>
+                      <div style={{
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        padding: '8px'
+                      }}>
+                        {availableInterests
+                          .filter(interest => !formData.interest_ids.includes(interest.id))
+                          .map(interest => (
+                            <button
+                              key={interest.id}
+                              type="button"
+                              onClick={() => handleInterestAdd(interest.id)}
+                              style={{
+                                display: 'block',
+                                width: '100%',
+                                padding: '8px 12px',
+                                marginBottom: '4px',
+                                backgroundColor: '#f3f4f6',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                textAlign: 'left',
+                                transition: 'background-color 0.2s'
+                              }}
+                              onMouseEnter={(e) => e.target.style.backgroundColor = '#e5e7eb'}
+                              onMouseLeave={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                            >
+                              + {interest.name}
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Selected Interests */}
+                  {formData.interest_ids.length > 0 && (
+                    <div style={{ marginBottom: '12px' }}>
+                      <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px', fontWeight: '500' }}>
+                        Selected interests:
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {formData.interest_ids.map(interestId => {
+                          const interest = availableInterests.find(i => i.id === interestId);
+                          if (!interest) return null;
+                          
+                          const category = interestsStructure?.find(c => 
+                            c.id === interest.category_id || 
+                            c.subcategories?.some(s => s.id === interest.subcategory_id)
+                          );
+                          
+                          return (
+                            <span
+                              key={interestId}
+                              style={{
+                                padding: '6px 12px',
+                                backgroundColor: '#e0e7ff',
+                                color: '#3730a3',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                              }}
+                            >
+                              {category?.icon} {interest.name}
+                              <button
+                                type="button"
+                                onClick={() => handleInterestRemove(interestId)}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: '#3730a3',
+                                  cursor: 'pointer',
+                                  fontSize: '16px',
+                                  padding: '0',
+                                  lineHeight: '1',
+                                  fontWeight: 'bold'
+                                }}
+                              >
+                                ×
+                              </button>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             {/* Verified */}
