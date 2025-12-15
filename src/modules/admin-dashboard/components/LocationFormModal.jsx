@@ -40,8 +40,10 @@ export default function LocationFormModal({ location, onClose, onSave }) {
 
   useEffect(() => {
     loadCities();
+    loadAvailableTags();
     if (location) {
       // Load location data for editing
+      const locationTags = location.tags?.map(lt => lt.tag?.id || lt.tag_id).filter(Boolean) || [];
       setFormData({
         name: location.name || '',
         city_id: location.city_id || location.city?.id || '',
@@ -54,10 +56,8 @@ export default function LocationFormModal({ location, onClose, onSave }) {
         website: location.website || '',
         phone: location.phone || '',
         booking_url: location.booking_url || '',
-        verified: location.verified || false,
-        lat: location.lat?.toString() || '',
-        lng: location.lng?.toString() || '',
-        google_place_id: location.google_place_id || ''
+        verified: location.verified !== undefined ? location.verified : true,
+        tag_ids: locationTags
       });
     }
   }, [location]);
@@ -75,6 +75,62 @@ export default function LocationFormModal({ location, onClose, onSave }) {
     } finally {
       setLoadingCities(false);
     }
+  };
+
+  const loadAvailableTags = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin-tags`);
+      const data = await response.json();
+      if (data.success) {
+        setAvailableTags(data.tags || []);
+      }
+    } catch (err) {
+      console.error('Error loading tags:', err);
+    }
+  };
+
+  const generateTagSuggestions = async () => {
+    const text = `${formData.description || ''} ${formData.recommendations || ''}`.trim();
+    if (!text || text.length < 10) {
+      setTagSuggestions([]);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/smart-itinerary`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generateTags',
+          text: text
+        })
+      });
+      const data = await response.json();
+      if (data.success && data.tags) {
+        setTagSuggestions(data.tags);
+        setShowTagSuggestions(true);
+      }
+    } catch (err) {
+      console.error('Error generating tag suggestions:', err);
+    }
+  };
+
+  const handleTagAdd = (tagId) => {
+    if (!formData.tag_ids.includes(tagId)) {
+      setFormData(prev => ({
+        ...prev,
+        tag_ids: [...prev.tag_ids, tagId]
+      }));
+    }
+    setShowTagSuggestions(false);
+    setTagInput('');
+  };
+
+  const handleTagRemove = (tagId) => {
+    setFormData(prev => ({
+      ...prev,
+      tag_ids: prev.tag_ids.filter(id => id !== tagId)
+    }));
   };
 
   const handleChange = (e) => {
