@@ -235,7 +235,8 @@ export default function HomePage() {
     // Reset category/subcategory selection
     setSelectedCategory(null);
     setSelectedSubcategory(null);
-    setAvailableInterests([]);
+    // Keep all interests visible
+    setAvailableInterests(allInterests);
   };
 
   const handleCategoryChange = (categoryId) => {
@@ -917,7 +918,7 @@ export default function HomePage() {
                         WebkitOverflowScrolling: 'touch',
                         scrollbarWidth: 'thin'
                       }}>
-                        {availableInterests.map(interest => {
+                        {allInterests.map(interest => {
                           const category = interestsStructure.find(c => 
                             c.id === interest.category_id || 
                             c.subcategories?.some(s => s.id === interest.subcategory_id)
