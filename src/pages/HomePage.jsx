@@ -253,27 +253,41 @@ export default function HomePage() {
   const handleCategoryChange = (categoryId) => {
     setSelectedCategory(categoryId);
     setSelectedSubcategory(null);
-    // Always show all interests, but we'll highlight the selected category
-    // This way selected interests from other categories remain visible
     if (!categoryId) {
+      // Show all interests when no category selected
       setAvailableInterests(allInterests);
       return;
     }
     
-    // Still show all interests, but we'll use categoryId for highlighting
-    setAvailableInterests(allInterests);
+    // Show interests from selected category + selected interests from other categories
+    const categoryInterests = allInterests.filter(interest => interest.category_id === categoryId);
+    const selectedInterestsFromOtherCategories = allInterests.filter(interest => 
+      interest.category_id !== categoryId && formData.interest_ids.includes(interest.id)
+    );
+    
+    // Combine: category interests + selected interests from other categories
+    setAvailableInterests([...categoryInterests, ...selectedInterestsFromOtherCategories]);
   };
 
   const handleSubcategoryChange = (subcategoryId) => {
     setSelectedSubcategory(subcategoryId);
     if (!subcategoryId) {
-      // Show all interests when no subcategory selected
-      setAvailableInterests(allInterests);
+      // Show interests from selected category + selected interests from other categories
+      handleCategoryChange(selectedCategory);
       return;
     }
     
-    // Still show all interests, but we'll use subcategoryId for highlighting
-    setAvailableInterests(allInterests);
+    // Show interests from selected subcategory + selected interests from other categories
+    const subcategoryInterests = allInterests.filter(interest => 
+      interest.subcategory_id === subcategoryId && interest.category_id === selectedCategory
+    );
+    const selectedInterestsFromOtherCategories = allInterests.filter(interest => 
+      (interest.subcategory_id !== subcategoryId || interest.category_id !== selectedCategory) && 
+      formData.interest_ids.includes(interest.id)
+    );
+    
+    // Combine: subcategory interests + selected interests from other categories
+    setAvailableInterests([...subcategoryInterests, ...selectedInterestsFromOtherCategories]);
   };
 
   const handleInterestToggle = (interestId) => {
@@ -940,7 +954,7 @@ export default function HomePage() {
                         WebkitOverflowScrolling: 'touch',
                         scrollbarWidth: 'thin'
                       }}>
-                        {allInterests.map(interest => {
+                        {availableInterests.map(interest => {
                           const category = interestsStructure.find(c => 
                             c.id === interest.category_id || 
                             c.subcategories?.some(s => s.id === interest.subcategory_id)
@@ -948,6 +962,7 @@ export default function HomePage() {
                           const isSelected = formData.interest_ids.includes(interest.id);
                           const isFromSelectedCategory = selectedCategory && interest.category_id === selectedCategory;
                           const isFromSelectedSubcategory = selectedSubcategory && interest.subcategory_id === selectedSubcategory;
+                          const isSelectedFromOtherCategory = isSelected && !isFromSelectedCategory && !isFromSelectedSubcategory;
                           
                           return (
                             <button
@@ -956,9 +971,9 @@ export default function HomePage() {
                               onClick={() => handleInterestToggle(interest.id)}
                               style={{
                                 padding: '8px 12px',
-                                border: `2px solid ${isSelected ? '#3E85FC' : (isFromSelectedSubcategory || isFromSelectedCategory) ? '#93c5fd' : '#e5e7eb'}`,
+                                border: `2px solid ${isSelected ? '#3E85FC' : (isFromSelectedSubcategory || isFromSelectedCategory) ? '#93c5fd' : isSelectedFromOtherCategory ? '#c7d2fe' : '#e5e7eb'}`,
                                 borderRadius: '16px',
-                                backgroundColor: isSelected ? '#3E85FC' : (isFromSelectedSubcategory || isFromSelectedCategory) ? '#eff6ff' : 'white',
+                                backgroundColor: isSelected ? '#3E85FC' : (isFromSelectedSubcategory || isFromSelectedCategory) ? '#eff6ff' : isSelectedFromOtherCategory ? '#eef2ff' : 'white',
                                 color: isSelected ? 'white' : '#6b7280',
                                 cursor: 'pointer',
                                 fontSize: '12px',
@@ -970,7 +985,7 @@ export default function HomePage() {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 gap: '4px',
-                                opacity: !selectedCategory || isFromSelectedSubcategory || isFromSelectedCategory || isSelected ? 1 : 0.6,
+                                opacity: 1, // All shown interests are fully visible
                                 whiteSpace: 'nowrap',
                                 flexShrink: 0
                               }}
