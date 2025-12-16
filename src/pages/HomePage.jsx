@@ -178,11 +178,11 @@ export default function HomePage() {
       try {
         setLoadingTours(true);
         const filters = {};
-        // Only apply city filter if filters are applied
+        // Apply city filter if filters are applied
         if (filtersApplied && formData.city) {
           filters.city = formData.city;
         }
-        // Only apply interest filter if filters are applied
+        // Apply interest filter if filters are applied
         if (filtersApplied && formData.interest_ids && formData.interest_ids.length > 0 && allInterests.length > 0) {
           // Get interest names from IDs
           const interestNames = formData.interest_ids
@@ -206,6 +206,7 @@ export default function HomePage() {
         setLoadingTours(false);
       }
     };
+    // Load tours on mount and when filters change
     loadTours();
   }, [formData.city, formData.interest_ids, allInterests, filtersApplied]);
 
