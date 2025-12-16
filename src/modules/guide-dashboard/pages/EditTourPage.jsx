@@ -84,9 +84,21 @@ export default function EditTourPage() {
           const legacyPrice = tour.price?.amount !== undefined;
           const legacyOptions = Array.isArray(tour.additionalOptions);
           
+          // Handle city - can be string or object with name/id
+          let cityValue = '';
+          if (typeof tour.city === 'string') {
+            cityValue = tour.city;
+          } else if (tour.city && typeof tour.city === 'object') {
+            cityValue = tour.city.name || tour.city.id || '';
+          } else if (tour.city_id) {
+            // If we have city_id but no city name, we'll need to fetch it
+            // For now, use city_id as fallback
+            cityValue = tour.city_id;
+          }
+
           setFormData({
             country: tour.country || '',
-            city: tour.city || '',
+            city: cityValue,
             title: tour.title || '',
             description: tour.description || '',
             preview: tour.preview || '',
