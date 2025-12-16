@@ -1305,9 +1305,10 @@ export default function HomePage() {
             {tours.map((tour, index) => {
               const creator = getTourCreator(tour.id);
               // Determine card size: mix of vertical (story format) and horizontal
-              // Vertical cards are 1x2, horizontal are 2x1 (half height of vertical)
-              // Pattern: vertical, horizontal, vertical, vertical, horizontal, vertical, etc.
-              const isVertical = (index % 4) !== 1 && (index % 4) !== 2; // Cards at index 1, 2, 5, 6, 9, 10... are horizontal
+              // First 2 tours after red banner are always horizontal (to fill the space next to red banner)
+              // Then we alternate: vertical, horizontal, vertical, etc.
+              // Red banner takes 2 columns x 2 rows, so first 2 tours should be horizontal (1 column x 1 row each)
+              const isVertical = index >= 2 && (index % 3) !== 2; // First 2 are horizontal, then pattern: vertical, vertical, horizontal
               
               // Get preview image - use traveler/blogger photo (deterministic based on tour ID)
               const photoIndex = parseInt(tour.id.split('-').join('').substring(0, 8), 16) % travelerPhotos.length;

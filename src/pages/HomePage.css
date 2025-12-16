@@ -23,30 +23,30 @@ body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
-  grid-auto-rows: minmax(200px, auto);
+  grid-auto-rows: minmax(150px, auto);
 }
 
-/* Vertical cards (story format) - take 2 rows, same width as horizontal */
+/* Vertical cards (story format) - take 2 rows, height = 2 horizontal cards */
 .vertical-card {
+  grid-column: span 1;
   grid-row: span 2;
   aspect-ratio: 9 / 16;
-  min-height: 300px;
   width: 100%;
 }
 
-/* Horizontal cards - take 1 row, same width as vertical */
+/* Horizontal cards - take 1 row, height = half of vertical card */
 .horizontal-card {
+  grid-column: span 1;
   grid-row: span 1;
   aspect-ratio: 16 / 9;
-  min-height: 150px;
   width: 100%;
 }
 
-/* Red banner and personalized trip cards - always 2 rows, same width */
+/* Red banner and personalized trip cards - 2 columns wide, 2 rows high */
 .red-banner-card,
 .personalized-trip-card {
+  grid-column: span 2;
   grid-row: span 2;
-  min-height: 300px;
   width: 100%;
 }
 
