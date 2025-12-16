@@ -249,9 +249,15 @@ export default function ItineraryPage() {
         // Always set itineraryId state
         setItineraryId(itineraryId);
       } else {
-        console.log('⚠️ Itinerary not found in Redis, generating new');
-        // If not found, generate new
-        generateItineraryData();
+        console.log('⚠️ Itinerary not found in Redis');
+        // If not found and we expect full plan, show error
+        if (isFullPlan) {
+          setError('Itinerary not found. Please contact support.');
+          setLoading(false);
+        } else {
+          // If not full plan, generate new (user came from homepage)
+          generateItineraryData();
+        }
       }
     } catch (error) {
       console.error('❌ Error loading itinerary from Redis:', error);

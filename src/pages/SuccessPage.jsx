@@ -127,7 +127,10 @@ export default function SuccessPage() {
     queryParams.delete('previewOnly');
     // Force reload to get fresh data from Redis
     // Use full domain to ensure correct domain is used
-    window.location.href = `https://flip-trip.com/itinerary?${queryParams.toString()}`;
+    const baseUrl = window.location.hostname === 'flip-trip.com' || window.location.hostname === 'www.flip-trip.com'
+      ? `https://${window.location.hostname}`
+      : 'https://flip-trip.com';
+    window.location.href = `${baseUrl}/itinerary?${queryParams.toString()}`;
   };
 
   const containerStyle = {
