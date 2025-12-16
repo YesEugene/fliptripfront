@@ -1176,7 +1176,7 @@ export default function HomePage() {
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
                   boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)',
-                  gridColumn: 'span 1',
+                  gridColumn: 'span 2',
                   gridRow: 'span 2',
                   display: 'flex',
                   flexDirection: 'column',
