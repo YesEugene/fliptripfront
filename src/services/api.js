@@ -268,4 +268,24 @@ export const completeItinerary = async (itineraryId, formData) => {
   }
 };
 
+// Get tours from database with filters
+export const getTours = async (filters = {}) => {
+  try {
+    const params = new URLSearchParams();
+    if (filters.city) params.append('city', filters.city);
+    if (filters.interests && filters.interests.length > 0) {
+      params.append('interests', filters.interests.join(','));
+    }
+    if (filters.format) params.append('format', filters.format);
+    if (filters.limit) params.append('limit', filters.limit);
+    if (filters.offset) params.append('offset', filters.offset);
+    
+    const response = await api.get(`/api/tours?${params.toString()}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting tours:', error);
+    throw error;
+  }
+};
+
 export default api;

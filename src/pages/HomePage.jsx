@@ -1,13 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import { isAuthenticated, getCurrentUser, logout } from '../modules/auth/services/authService';
-import FlipTripPhoto from '../assets/FlipTripPhoto.svg';
-import ParisImage from '../assets/Paris.svg';
-import BarcelonaImage from '../assets/Barcelona.svg';
-import RomeImage from '../assets/Rome.svg';
-import LisbonImage from '../assets/Lisbon.svg';
-import ExamplePlanCard from '../components/ExamplePlanCard';
+import { getTours } from '../services/api';
 import './HomePage.css';
 
 // Top 20 most popular travel destinations
@@ -20,9 +15,8 @@ const TOP_CITIES = [
 
 const AUDIENCES = [
   { value: 'solo', label: 'Solo' },
-  { value: 'family', label: 'Family' },
-  { value: 'parents', label: 'Parents' },
   { value: 'couples', label: 'Couples' },
+  { value: 'family', label: 'Family' },
   { value: 'kids', label: 'Kids' }
 ];
 
@@ -58,52 +52,7 @@ const INTEREST_NAMES = {
   'conferences': 'Conferences'
 };
 
-const POPULAR_TRIPS = [
-  {
-    id: 1,
-    title: "Relax weekend in Paris",
-    image: ParisImage,
-    interests: "Spa, Relaxation",
-    city: "Paris",
-    audience: "her",
-    interestsList: ["relaxation", "spa"],
-    budget: "500",
-    exampleId: "paris-spa-relaxation"
-  },
-  {
-    id: 2,
-    title: "Adventure in Barcelona",
-    image: BarcelonaImage,
-    interests: "Cycling, Architecture",
-    city: "Barcelona",
-    audience: "him",
-    interestsList: ["sports", "art"],
-    budget: "300",
-    exampleId: "barcelona-cycling-architecture"
-  },
-  {
-    id: 3,
-    title: "A Day of Inspiration in Rome",
-    image: RomeImage,
-    interests: "Day of Emma Watson",
-    city: "Rome",
-    audience: "her",
-    interestsList: ["culture", "art"],
-    budget: "400",
-    exampleId: "rome-family-city-gems"
-  },
-  {
-    id: 4,
-    title: "Romantic Day in Lisbon",
-    image: LisbonImage,
-    interests: "Romantic, Culture",
-    city: "Lisbon",
-    audience: "couples",
-    interestsList: ["culture", "food"],
-    budget: "350",
-    exampleId: "lisbon-romantic-culture"
-  }
-];
+// POPULAR_TRIPS removed - will be loaded from database
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -120,15 +69,19 @@ export default function HomePage() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [dateSelectionMode, setDateSelectionMode] = useState('from'); // 'from' or 'to'
+  // Date range state (single calendar for multi-date selection, max 2 days)
+  const [selectedDates, setSelectedDates] = useState([]); // Array of selected dates (max 2)
   
   // Interests system state
   const [interestsStructure, setInterestsStructure] = useState(null);
   const [loadingInterests, setLoadingInterests] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedSubcategory, setSelectedSubcategory] = useState(null);
   const [availableInterests, setAvailableInterests] = useState([]);
   const [allInterests, setAllInterests] = useState([]); // Store all interests for always-visible display
+  
+  // Tours from database
+  const [tours, setTours] = useState([]);
+  const [loadingTours, setLoadingTours] = useState(false);
   
   // Removed '' state - using simple dropdown only
 
@@ -163,7 +116,7 @@ export default function HomePage() {
         const data = await response.json();
         if (data.success) {
           setInterestsStructure(data.categories || []);
-          // Flatten all interests for easy access
+          // Flatten all interests for easy access (skip subcategories - show all interests directly)
           const flattenedInterests = [];
           data.categories.forEach(category => {
             if (category.direct_interests) {
@@ -171,14 +124,15 @@ export default function HomePage() {
                 flattenedInterests.push({ ...interest, category_id: category.id });
               });
             }
+            // Also include interests from subcategories, but treat them as category interests
             if (category.subcategories) {
               category.subcategories.forEach(subcategory => {
                 if (subcategory.interests) {
                   subcategory.interests.forEach(interest => {
                     flattenedInterests.push({ 
                       ...interest, 
-                      category_id: category.id,
-                      subcategory_id: subcategory.id 
+                      category_id: category.id
+                      // Don't store subcategory_id - we skip subcategories
                     });
                   });
                 }
@@ -198,7 +152,55 @@ export default function HomePage() {
     loadInterests();
   }, []);
 
-  // Update availableInterests when interest_ids change (to keep selected interests from other categories visible)
+  // Sync selectedDates with formData
+  useEffect(() => {
+    if (formData.date_from) {
+      const dates = [formData.date_from];
+      if (formData.date_to && formData.date_to !== formData.date_from) {
+        dates.push(formData.date_to);
+        dates.sort();
+      }
+      setSelectedDates(dates);
+    } else {
+      setSelectedDates([]);
+    }
+  }, [formData.date_from, formData.date_to]);
+
+  // Load tours from database - filter by city and interests
+  useEffect(() => {
+    const loadTours = async () => {
+      try {
+        setLoadingTours(true);
+        const filters = {};
+        if (formData.city) filters.city = formData.city;
+        if (formData.interest_ids && formData.interest_ids.length > 0 && allInterests.length > 0) {
+          // Get interest names from IDs
+          const interestNames = formData.interest_ids
+            .map(id => {
+              const interest = allInterests.find(i => i.id === id);
+              return interest?.name;
+            })
+            .filter(Boolean);
+          if (interestNames.length > 0) {
+            filters.interests = interestNames;
+          }
+        }
+        const result = await getTours(filters);
+        if (result.success) {
+          setTours(result.tours || []);
+        }
+      } catch (err) {
+        console.error('Error loading tours:', err);
+        setTours([]);
+      } finally {
+        setLoadingTours(false);
+      }
+    };
+    loadTours();
+  }, [formData.city, formData.interest_ids, allInterests]);
+
+  // Update availableInterests when category or interest_ids change
+  // Show all interests by default, or only interests from selected category
   useEffect(() => {
     if (!selectedCategory) {
       // No category selected - show all interests
@@ -206,25 +208,16 @@ export default function HomePage() {
       return;
     }
 
-    if (selectedSubcategory) {
-      // Subcategory selected - show subcategory interests + selected from other categories
-      const subcategoryInterests = allInterests.filter(interest => 
-        interest.subcategory_id === selectedSubcategory && interest.category_id === selectedCategory
-      );
-      const selectedInterestsFromOtherCategories = allInterests.filter(interest => 
-        (interest.subcategory_id !== selectedSubcategory || interest.category_id !== selectedCategory) && 
-        formData.interest_ids.includes(interest.id)
-      );
-      setAvailableInterests([...subcategoryInterests, ...selectedInterestsFromOtherCategories]);
-    } else {
-      // Category selected - show category interests + selected from other categories
-      const categoryInterests = allInterests.filter(interest => interest.category_id === selectedCategory);
-      const selectedInterestsFromOtherCategories = allInterests.filter(interest => 
-        interest.category_id !== selectedCategory && formData.interest_ids.includes(interest.id)
-      );
-      setAvailableInterests([...categoryInterests, ...selectedInterestsFromOtherCategories]);
-    }
-  }, [formData.interest_ids, selectedCategory, selectedSubcategory, allInterests]);
+    // Category selected - show category interests + selected interests from other categories
+    // Skip subcategories - show all interests from the category directly
+    const categoryInterests = allInterests.filter(interest => 
+      interest.category_id === selectedCategory
+    );
+    const selectedInterestsFromOtherCategories = allInterests.filter(interest => 
+      interest.category_id !== selectedCategory && formData.interest_ids.includes(interest.id)
+    );
+    setAvailableInterests([...categoryInterests, ...selectedInterestsFromOtherCategories]);
+  }, [formData.interest_ids, selectedCategory, allInterests]);
 
   // Random city images for header background
   const cityImages = [
@@ -266,59 +259,21 @@ export default function HomePage() {
 
   // Inline handlers used instead
 
-  const handleAudienceChange = (e) => {
-    const newAudience = e.target.value;
+  const handleAudienceChange = (audienceValue) => {
     setFormData(prev => ({ 
       ...prev, 
-      audience: newAudience,
+      audience: audienceValue,
       // Clear interests when switching audience
       interest_ids: []
     }));
-    // Reset category/subcategory selection
+    // Reset category selection
     setSelectedCategory(null);
-    setSelectedSubcategory(null);
     // Keep all interests visible
     setAvailableInterests(allInterests);
   };
 
   const handleCategoryChange = (categoryId) => {
-    setSelectedCategory(categoryId);
-    setSelectedSubcategory(null);
-    if (!categoryId) {
-      // Show all interests when no category selected
-      setAvailableInterests(allInterests);
-      return;
-    }
-    
-    // Show interests from selected category + selected interests from other categories
-    const categoryInterests = allInterests.filter(interest => interest.category_id === categoryId);
-    const selectedInterestsFromOtherCategories = allInterests.filter(interest => 
-      interest.category_id !== categoryId && formData.interest_ids.includes(interest.id)
-    );
-    
-    // Combine: category interests + selected interests from other categories
-    setAvailableInterests([...categoryInterests, ...selectedInterestsFromOtherCategories]);
-  };
-
-  const handleSubcategoryChange = (subcategoryId) => {
-    setSelectedSubcategory(subcategoryId);
-    if (!subcategoryId) {
-      // Show interests from selected category + selected interests from other categories
-      handleCategoryChange(selectedCategory);
-      return;
-    }
-    
-    // Show interests from selected subcategory + selected interests from other categories
-    const subcategoryInterests = allInterests.filter(interest => 
-      interest.subcategory_id === subcategoryId && interest.category_id === selectedCategory
-    );
-    const selectedInterestsFromOtherCategories = allInterests.filter(interest => 
-      (interest.subcategory_id !== subcategoryId || interest.category_id !== selectedCategory) && 
-      formData.interest_ids.includes(interest.id)
-    );
-    
-    // Combine: subcategory interests + selected interests from other categories
-    setAvailableInterests([...subcategoryInterests, ...selectedInterestsFromOtherCategories]);
+    setSelectedCategory(categoryId === selectedCategory ? null : categoryId);
   };
 
   const handleInterestToggle = (interestId) => {
@@ -336,28 +291,19 @@ export default function HomePage() {
     if (!formData.audience) newErrors.audience = "Please select who this is for.";
     if (formData.interest_ids.length === 0) newErrors.interests = "Please select at least one interest.";
     if (!formData.budget || formData.budget === "" || parseInt(formData.budget) <= 0) newErrors.budget = "Please enter a valid budget.";
-    if (!formData.date_from) newErrors.date = "Please select a start date.";
+    if (selectedDates.length === 0) newErrors.date = "Please select a date.";
     
     // Check if dates are in the past
-    if (formData.date_from) {
-      const selectedDate = new Date(formData.date_from);
+    if (selectedDates.length > 0) {
+      const selectedDate = new Date(selectedDates[0]);
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Reset time to compare only dates
       if (selectedDate < today) newErrors.date = "Please select a future date.";
     }
     
-    // Check if date_to is set and valid
-    if (formData.date_to) {
-      const dateFrom = new Date(formData.date_from);
-      const dateTo = new Date(formData.date_to);
-      const diffTime = Math.abs(dateTo - dateFrom);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both days
-      
-      if (dateTo < dateFrom) {
-        newErrors.date = "End date must be after start date.";
-      } else if (diffDays > 2) {
-        newErrors.date = "Maximum 2 days allowed.";
-      }
+    // Check if more than 2 days selected
+    if (selectedDates.length > 2) {
+      newErrors.date = "Maximum 2 days allowed.";
     }
     
     setErrors(newErrors);
@@ -371,11 +317,13 @@ export default function HomePage() {
       const params = new URLSearchParams();
       params.append('city', formData.city);
       params.append('audience', formData.audience);
-      params.append('date_from', formData.date_from);
-      if (formData.date_to) {
-        params.append('date_to', formData.date_to);
-      } else {
-        params.append('date_to', formData.date_from); // If only one date selected, use same date for both
+      if (selectedDates.length > 0) {
+        params.append('date_from', selectedDates[0]);
+        if (selectedDates.length > 1) {
+          params.append('date_to', selectedDates[selectedDates.length - 1]);
+        } else {
+          params.append('date_to', selectedDates[0]); // If only one date selected, use same date for both
+        }
       }
       params.append('budget', formData.budget);
       params.append('previewOnly', 'true');
@@ -389,26 +337,10 @@ export default function HomePage() {
     }
   };
 
-  const handleExampleTripClick = async (trip) => {
-    try {
-      // Load example data from API
-      const response = await fetch(`http://localhost:3000/api/examples/${trip.exampleId}`);
-      const data = await response.json();
-      
-      if (data.success) {
-        // Navigate to itinerary page with example data
-        navigate('/itinerary', { 
-          state: { 
-            itinerary: data.example,
-            isExample: true 
-          } 
-        });
-      } else {
-        console.error('Failed to load example:', data.error);
-      }
-    } catch (error) {
-      console.error('Error loading example:', error);
-    }
+  const handleTourClick = (tour) => {
+    // Navigate to tour details or itinerary page
+    // For now, navigate to itinerary page with tour data
+    navigate(`/itinerary?tourId=${tour.id}`);
   };
 
               return (
@@ -422,9 +354,8 @@ export default function HomePage() {
                   marginLeft: 'auto',
                   marginRight: 'auto'
                 }}>
-                  {/* Header Section with random city image - only show when no city selected */}
-                  {!showFilters && (
-                    <div className="red-header-section" style={{
+                  {/* Header Section with random city image - always show */}
+                  <div className="red-header-section" style={{
                       backgroundImage: randomCityImage ? `url(${randomCityImage})` : 'none',
                       backgroundColor: randomCityImage ? 'transparent' : '#F04C31',
                       backgroundSize: 'cover',
@@ -658,177 +589,6 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Header when city is selected */}
-      {showFilters && (
-        <div style={{
-          backgroundColor: 'white',
-          padding: '20px',
-          maxWidth: '750px',
-          margin: '0 auto',
-          position: 'relative'
-        }}>
-          {/* Logo and Auth Links - Logo left, buttons right */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '20px',
-            width: '100%'
-          }}>
-            {/* Logo - Left aligned */}
-            <img 
-              src={FlipTripLogo} 
-              alt="FlipTrip" 
-              style={{ 
-                height: '57px',
-                width: 'auto'
-              }}
-            />
-            {/* Auth buttons - Right aligned, same height as logo */}
-            <div style={{ 
-              display: 'flex', 
-              gap: '12px', 
-              alignItems: 'center',
-              height: '57px' // Match logo height
-            }}>
-              {user ? (
-                <>
-                  <Link
-                    to={user.role === 'guide' ? '/guide/dashboard' : '/user/dashboard'}
-                    style={{
-                      color: '#374151',
-                      textDecoration: 'none',
-                      fontSize: '14px',
-                      fontWeight: '600'
-                    }}
-                  >
-                    {user.name}
-                  </Link>
-                  <button
-                    onClick={() => {
-                      logout();
-                      setUser(null);
-                      window.location.reload();
-                    }}
-                    style={{
-                      backgroundColor: '#ef4444',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '6px',
-                      padding: '6px 12px',
-                      fontSize: '12px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Выйти
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link
-                    to="/login"
-                    style={{
-                      color: '#374151',
-                      textDecoration: 'none',
-                      fontSize: '14px',
-                      fontWeight: '600'
-                    }}
-                  >
-                    Вход
-                  </Link>
-                  <Link
-                    to="/register"
-                    style={{
-                      backgroundColor: '#3b82f6',
-                      color: 'white',
-                      borderRadius: '6px',
-                      padding: '8px 16px',
-                      fontSize: '14px',
-                      textDecoration: 'none',
-                      fontWeight: '600'
-                    }}
-                  >
-                    Регистрация
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-          
-          {/* City Selection - Centered under logo */}
-          <div style={{ 
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}>
-            <div style={{ position: 'relative', width: '100%', maxWidth: '750px', zIndex: 1000 }}>
-              <button
-                type="button"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                style={{
-                  backgroundColor: 'white',
-                  border: '1px solid #C9C9C9',
-                  borderRadius: '12px',
-                  padding: '12px 20px',
-                  fontSize: '16px',
-                  color: '#6b7280',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  width: '100%',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                }}
-              >
-                <span>{formData.city || 'Select a city to continue'}</span>
-                <span style={{ fontSize: '12px', marginLeft: 'auto' }}>▼</span>
-              </button>
-              
-              {isDropdownOpen && (
-                <div style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
-                  backgroundColor: 'white',
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  zIndex: 1001,
-                  marginTop: '4px',
-                  maxHeight: '320px',
-                  overflowY: 'auto'
-                }}>
-                    {TOP_CITIES.map((city) => (
-                      <button
-                        key={city}
-                        type="button"
-                        onClick={() => handleCitySelect(city)}
-                        style={{
-                          width: '100%',
-                          padding: '12px 16px',
-                          border: 'none',
-                          backgroundColor: 'transparent',
-                          textAlign: 'left',
-                          cursor: 'pointer',
-                          borderRadius: '0',
-                          transition: 'background-color 0.2s',
-                          fontSize: '14px',
-                          color: '#374151'
-                        }}
-                        onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
-                        onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                      >
-                        {city}
-                      </button>
-                    ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Filters Section - show when city selected */}
       {showFilters && (
@@ -936,71 +696,11 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  {/* Subcategory Selection (if category has subcategories) */}
-                  {selectedCategory && interestsStructure.find(c => c.id === selectedCategory)?.subcategories?.length > 0 && (
-                    <div style={{ marginBottom: '12px' }}>
-                      <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>
-                        Subcategory (optional)
-                      </label>
-                      <div style={{ 
-                        display: 'flex', 
-                        gap: '8px', 
-                        flexWrap: 'nowrap',
-                        overflowX: 'auto',
-                        paddingBottom: '8px',
-                        WebkitOverflowScrolling: 'touch',
-                        scrollbarWidth: 'thin'
-                      }}>
-                        <button
-                          type="button"
-                          onClick={() => handleSubcategoryChange(null)}
-                          style={{
-                            padding: '6px 14px',
-                            border: `2px solid ${!selectedSubcategory ? '#3E85FC' : '#e5e7eb'}`,
-                            borderRadius: '16px',
-                            backgroundColor: !selectedSubcategory ? '#3E85FC' : 'white',
-                            color: !selectedSubcategory ? 'white' : '#6b7280',
-                            cursor: 'pointer',
-                            fontSize: '13px',
-                            fontWeight: '500',
-                            whiteSpace: 'nowrap',
-                            flexShrink: 0
-                          }}
-                        >
-                          All
-                        </button>
-                        {interestsStructure
-                          .find(c => c.id === selectedCategory)
-                          ?.subcategories?.map(subcategory => (
-                            <button
-                              key={subcategory.id}
-                              type="button"
-                              onClick={() => handleSubcategoryChange(subcategory.id)}
-                              style={{
-                                padding: '6px 14px',
-                                border: `2px solid ${selectedSubcategory === subcategory.id ? '#3E85FC' : '#e5e7eb'}`,
-                                borderRadius: '16px',
-                                backgroundColor: selectedSubcategory === subcategory.id ? '#3E85FC' : 'white',
-                                color: selectedSubcategory === subcategory.id ? 'white' : '#6b7280',
-                                cursor: 'pointer',
-                                fontSize: '13px',
-                                fontWeight: '500',
-                                whiteSpace: 'nowrap',
-                                flexShrink: 0
-                              }}
-                            >
-                              {SUBCATEGORY_NAMES[subcategory.name] || subcategory.name}
-                            </button>
-                          ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Interests Selection - Always show all interests, but highlight selected category */}
+                  {/* Interests Selection - Show all interests by default, or only from selected category */}
                   {allInterests.length > 0 && (
                     <div>
                       <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>
-                        Select Interests {selectedCategory && '(highlighting ' + (CATEGORY_NAMES[interestsStructure?.find(c => c.id === selectedCategory)?.name] || interestsStructure?.find(c => c.id === selectedCategory)?.name || 'selected') + ' category)'}
+                        Select interests
                       </label>
                       <div style={{ 
                         display: isMobile ? 'flex' : 'grid',
@@ -1016,14 +716,10 @@ export default function HomePage() {
                         scrollbarWidth: 'thin'
                       }}>
                         {availableInterests.map(interest => {
-                          const category = interestsStructure.find(c => 
-                            c.id === interest.category_id || 
-                            c.subcategories?.some(s => s.id === interest.subcategory_id)
-                          );
+                          const category = interestsStructure.find(c => c.id === interest.category_id);
                           const isSelected = formData.interest_ids.includes(interest.id);
                           const isFromSelectedCategory = selectedCategory && interest.category_id === selectedCategory;
-                          const isFromSelectedSubcategory = selectedSubcategory && interest.subcategory_id === selectedSubcategory;
-                          const isSelectedFromOtherCategory = isSelected && !isFromSelectedCategory && !isFromSelectedSubcategory;
+                          const isSelectedFromOtherCategory = isSelected && !isFromSelectedCategory;
                           
                           return (
                             <button
@@ -1032,9 +728,9 @@ export default function HomePage() {
                               onClick={() => handleInterestToggle(interest.id)}
                               style={{
                                 padding: '8px 12px',
-                                border: `2px solid ${isSelected ? '#3E85FC' : (isFromSelectedSubcategory || isFromSelectedCategory) ? '#93c5fd' : isSelectedFromOtherCategory ? '#c7d2fe' : '#e5e7eb'}`,
+                                border: `2px solid ${isSelected ? '#3E85FC' : isFromSelectedCategory ? '#93c5fd' : isSelectedFromOtherCategory ? '#c7d2fe' : '#e5e7eb'}`,
                                 borderRadius: '16px',
-                                backgroundColor: isSelected ? '#3E85FC' : (isFromSelectedSubcategory || isFromSelectedCategory) ? '#eff6ff' : isSelectedFromOtherCategory ? '#eef2ff' : 'white',
+                                backgroundColor: isSelected ? '#3E85FC' : isFromSelectedCategory ? '#eff6ff' : isSelectedFromOtherCategory ? '#eef2ff' : 'white',
                                 color: isSelected ? 'white' : '#6b7280',
                                 cursor: 'pointer',
                                 fontSize: '12px',
@@ -1046,7 +742,7 @@ export default function HomePage() {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 gap: '4px',
-                                opacity: 1, // All shown interests are fully visible
+                                opacity: 1,
                                 whiteSpace: 'nowrap',
                                 flexShrink: 0
                               }}
@@ -1078,10 +774,7 @@ export default function HomePage() {
                           const interest = allInterests.find(i => i.id === interestId);
                           if (!interest) return null;
                           
-                          const category = interestsStructure.find(c => 
-                            c.id === interest.category_id || 
-                            c.subcategories?.some(s => s.id === interest.subcategory_id)
-                          );
+                          const category = interestsStructure.find(c => c.id === interest.category_id);
                           
                           return (
                             <span
@@ -1124,11 +817,6 @@ export default function HomePage() {
                     </div>
                   )}
 
-                  {!selectedCategory && (
-                    <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280', fontSize: '14px' }}>
-                      Select a category above to choose interests
-                    </div>
-                  )}
                 </>
               ) : (
                 <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>
@@ -1179,200 +867,117 @@ export default function HomePage() {
                   {errors.budget && <p style={{ color: '#ef4444', fontSize: '14px', marginTop: '8px' }}>{errors.budget}</p>}
                 </div>
 
-                {/* Date Range Field */}
+                {/* Trip Date - Single calendar for range selection (max 2 days) */}
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>
-                    When? {formData.date_from && formData.date_to && `(${Math.ceil((new Date(formData.date_to) - new Date(formData.date_from)) / (1000 * 60 * 60 * 24)) + 1} day${Math.ceil((new Date(formData.date_to) - new Date(formData.date_from)) / (1000 * 60 * 60 * 24)) + 1 > 1 ? 's' : ''})`}
+                    Trip date {selectedDates.length > 0 && `(${selectedDates.length} day${selectedDates.length > 1 ? 's' : ''})`}
                   </label>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    {/* From Date */}
-                    <div style={{ flex: 1, position: 'relative' }}>
-                      <input
-                        type="text"
-                        value={formData.date_from ? new Date(formData.date_from).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric' 
-                        }) : ''}
-                        placeholder="From"
-                        readOnly
-                        onClick={(e) => {
-                          setDateSelectionMode('from');
-                          const dateInput = document.createElement('input');
-                          dateInput.type = 'date';
-                          dateInput.min = new Date().toISOString().slice(0, 10);
-                          dateInput.max = formData.date_to || null;
-                          dateInput.value = formData.date_from || '';
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="text"
+                      value={selectedDates.length > 0 
+                        ? selectedDates.length === 1 
+                          ? new Date(selectedDates[0]).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                          : `${new Date(selectedDates[0]).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(selectedDates[selectedDates.length - 1]).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                        : ''}
+                      placeholder="Select date(s)"
+                      readOnly
+                      onClick={(e) => {
+                        const dateInput = document.createElement('input');
+                        dateInput.type = 'date';
+                        dateInput.min = new Date().toISOString().slice(0, 10);
+                        // Max date: today + 1 day (to allow max 2 days total)
+                        const maxDate = new Date();
+                        maxDate.setDate(maxDate.getDate() + 1);
+                        dateInput.max = maxDate.toISOString().slice(0, 10);
+                        dateInput.value = selectedDates.length > 0 ? selectedDates[0] : '';
+                        
+                        const rect = e.target.getBoundingClientRect();
+                        dateInput.style.position = 'fixed';
+                        dateInput.style.left = rect.left + 'px';
+                        dateInput.style.top = (rect.bottom + 5) + 'px';
+                        dateInput.style.zIndex = '9999';
+                        dateInput.style.opacity = '0';
+                        dateInput.style.pointerEvents = 'auto';
+                        dateInput.style.width = '1px';
+                        dateInput.style.height = '1px';
+                        
+                        document.body.appendChild(dateInput);
+                        
+                        setTimeout(() => {
+                          const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                          if (isMobile || !dateInput.showPicker) {
+                            dateInput.focus();
+                            dateInput.click();
+                          } else {
+                            dateInput.showPicker();
+                          }
+                        }, 10);
+                        
+                        dateInput.onchange = (e) => {
+                          const selectedDate = e.target.value;
+                          if (!selectedDate) return;
                           
-                          const rect = e.target.getBoundingClientRect();
-                          dateInput.style.position = 'fixed';
-                          dateInput.style.left = rect.left + 'px';
-                          dateInput.style.top = (rect.bottom + 5) + 'px';
-                          dateInput.style.zIndex = '9999';
-                          dateInput.style.opacity = '0';
-                          dateInput.style.pointerEvents = 'auto';
-                          dateInput.style.width = '1px';
-                          dateInput.style.height = '1px';
-                          
-                          document.body.appendChild(dateInput);
-                          
-                          setTimeout(() => {
-                            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-                            if (isMobile || !dateInput.showPicker) {
-                              dateInput.focus();
-                              dateInput.click();
+                          setSelectedDates(prev => {
+                            if (prev.length === 0) {
+                              // First date selected
+                              setFormData(formData => ({ ...formData, date_from: selectedDate, date_to: null }));
+                              return [selectedDate];
+                            } else if (prev.length === 1) {
+                              // Second date selected - check if it's within 1 day
+                              const firstDate = new Date(prev[0]);
+                              const secondDate = new Date(selectedDate);
+                              const diffTime = Math.abs(secondDate - firstDate);
+                              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                              
+                              if (diffDays <= 1) {
+                                // Valid range (max 2 days)
+                                const dates = [prev[0], selectedDate].sort();
+                                setFormData(formData => ({ ...formData, date_from: dates[0], date_to: dates[1] }));
+                                return dates;
+                              } else {
+                                // Reset to new date
+                                setFormData(formData => ({ ...formData, date_from: selectedDate, date_to: null }));
+                                return [selectedDate];
+                              }
                             } else {
-                              dateInput.showPicker();
+                              // Reset to new date
+                              setFormData(formData => ({ ...formData, date_from: selectedDate, date_to: null }));
+                              return [selectedDate];
                             }
-                          }, 10);
-                          
-                          dateInput.onchange = (e) => {
-                            const selectedDate = e.target.value;
-                            setFormData(prev => {
-                              let newDateFrom = selectedDate;
-                              let newDateTo = prev.date_to;
-                              
-                              // If date_to exists and is before new date_from, clear it
-                              if (newDateTo && newDateTo < newDateFrom) {
-                                newDateTo = null;
-                              }
-                              
-                              // If date_to exists, check max 2 days
-                              if (newDateTo) {
-                                const diffTime = Math.abs(new Date(newDateTo) - new Date(newDateFrom));
-                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                                if (diffDays > 2) {
-                                  newDateTo = null; // Clear date_to if exceeds 2 days
-                                }
-                              }
-                              
-                              return { ...prev, date_from: newDateFrom, date_to: newDateTo };
-                            });
-                            document.body.removeChild(dateInput);
-                          };
-                          
-                          dateInput.onblur = () => {
-                            setTimeout(() => {
-                              if (document.body.contains(dateInput)) {
-                                document.body.removeChild(dateInput);
-                              }
-                            }, 100);
-                          };
-                        }}
-                        style={{
-                          width: '100%',
-                          padding: '12px 40px 12px 16px',
-                          border: `2px solid ${errors.date ? '#ef4444' : '#e5e7eb'}`,
-                          borderRadius: '12px',
-                          fontSize: '16px',
-                          color: '#374151',
-                          cursor: 'pointer',
-                          backgroundColor: 'white'
-                        }}
-                      />
-                      <span style={{
-                        position: 'absolute',
-                        right: '12px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        color: '#6b7280',
-                        fontSize: '12px'
-                      }}>
-                        📅
-                      </span>
-                    </div>
-                    
-                    {/* To Date */}
-                    <div style={{ flex: 1, position: 'relative' }}>
-                      <input
-                        type="text"
-                        value={formData.date_to ? new Date(formData.date_to).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric' 
-                        }) : ''}
-                        placeholder="To (optional)"
-                        readOnly
-                        disabled={!formData.date_from}
-                        onClick={(e) => {
-                          if (!formData.date_from) return;
-                          setDateSelectionMode('to');
-                          const dateInput = document.createElement('input');
-                          dateInput.type = 'date';
-                          dateInput.min = formData.date_from;
-                          // Max date: date_from + 1 day (to allow max 2 days total)
-                          const maxDate = new Date(formData.date_from);
-                          maxDate.setDate(maxDate.getDate() + 1);
-                          dateInput.max = maxDate.toISOString().slice(0, 10);
-                          dateInput.value = formData.date_to || '';
-                          
-                          const rect = e.target.getBoundingClientRect();
-                          dateInput.style.position = 'fixed';
-                          dateInput.style.left = rect.left + 'px';
-                          dateInput.style.top = (rect.bottom + 5) + 'px';
-                          dateInput.style.zIndex = '9999';
-                          dateInput.style.opacity = '0';
-                          dateInput.style.pointerEvents = 'auto';
-                          dateInput.style.width = '1px';
-                          dateInput.style.height = '1px';
-                          
-                          document.body.appendChild(dateInput);
-                          
+                          });
+                          document.body.removeChild(dateInput);
+                        };
+                        
+                        dateInput.onblur = () => {
                           setTimeout(() => {
-                            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-                            if (isMobile || !dateInput.showPicker) {
-                              dateInput.focus();
-                              dateInput.click();
-                            } else {
-                              dateInput.showPicker();
+                            if (document.body.contains(dateInput)) {
+                              document.body.removeChild(dateInput);
                             }
-                          }, 10);
-                          
-                          dateInput.onchange = (e) => {
-                            const selectedDate = e.target.value;
-                            setFormData(prev => {
-                              const newDateTo = selectedDate;
-                              const diffTime = Math.abs(new Date(newDateTo) - new Date(prev.date_from));
-                              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                              
-                              if (diffDays > 2) {
-                                // Don't update if exceeds 2 days
-                                return prev;
-                              }
-                              
-                              return { ...prev, date_to: newDateTo };
-                            });
-                            document.body.removeChild(dateInput);
-                          };
-                          
-                          dateInput.onblur = () => {
-                            setTimeout(() => {
-                              if (document.body.contains(dateInput)) {
-                                document.body.removeChild(dateInput);
-                              }
-                            }, 100);
-                          };
-                        }}
-                        style={{
-                          width: '100%',
-                          padding: '12px 40px 12px 16px',
-                          border: `2px solid ${errors.date ? '#ef4444' : '#e5e7eb'}`,
-                          borderRadius: '12px',
-                          fontSize: '16px',
-                          color: formData.date_from ? '#374151' : '#9ca3af',
-                          cursor: formData.date_from ? 'pointer' : 'not-allowed',
-                          backgroundColor: formData.date_from ? 'white' : '#f3f4f6'
-                        }}
-                      />
-                      <span style={{
-                        position: 'absolute',
-                        right: '12px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        color: formData.date_from ? '#6b7280' : '#9ca3af',
-                        fontSize: '12px'
-                      }}>
-                        📅
-                      </span>
-                    </div>
+                          }, 100);
+                        };
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '12px 40px 12px 16px',
+                        border: `2px solid ${errors.date ? '#ef4444' : '#e5e7eb'}`,
+                        borderRadius: '12px',
+                        fontSize: '16px',
+                        color: '#374151',
+                        cursor: 'pointer',
+                        backgroundColor: 'white'
+                      }}
+                    />
+                    <span style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: '#6b7280',
+                      fontSize: '12px'
+                    }}>
+                      📅
+                    </span>
                   </div>
                   {errors.date && <p style={{ color: '#ef4444', fontSize: '14px', marginTop: '8px' }}>{errors.date}</p>}
                 </div>
@@ -1382,16 +987,16 @@ export default function HomePage() {
                         <div style={{ textAlign: 'center' }}>
                           <button
                             type="submit"
-                            disabled={!formData.city || !formData.audience || formData.interest_ids.length === 0 || !formData.budget || formData.budget === "" || !formData.date_from}
+                            disabled={!formData.city || !formData.audience || formData.interest_ids.length === 0 || !formData.budget || formData.budget === "" || selectedDates.length === 0}
                             style={{
-                              backgroundColor: (!formData.city || !formData.audience || formData.interest_ids.length === 0 || !formData.budget || formData.budget === "" || !formData.date_from) ? '#e0e0e0' : '#3E85FC',
+                              backgroundColor: (!formData.city || !formData.audience || formData.interest_ids.length === 0 || !formData.budget || formData.budget === "" || selectedDates.length === 0) ? '#e0e0e0' : '#3E85FC',
                               color: 'white',
                               border: 'none',
                               borderRadius: '12px',
                               padding: '14px 28px',
                               fontSize: '18px',
                               fontWeight: 'bold',
-                              cursor: (!formData.city || !formData.audience || formData.interest_ids.length === 0 || !formData.budget || formData.budget === "" || !formData.date_from) ? 'not-allowed' : 'pointer',
+                              cursor: (!formData.city || !formData.audience || formData.interest_ids.length === 0 || !formData.budget || formData.budget === "" || selectedDates.length === 0) ? 'not-allowed' : 'pointer',
                               transition: 'background-color 0.2s ease',
                               width: '100%'
                             }}
@@ -1410,7 +1015,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* White Section with Popular Trips */}
+      {/* White Section with Tours from Database */}
       <div style={{ 
         backgroundColor: 'white', 
         padding: '30px 20px',
@@ -1428,116 +1033,135 @@ export default function HomePage() {
           Take a look at our day plan
         </h2>
         
-        <div className="cards-grid">
-          {POPULAR_TRIPS.map((trip) => (
-            <div
-              key={trip.id}
-              style={{
-                borderRadius: '12px',
-                overflow: 'hidden',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
-                cursor: 'pointer',
-                transition: 'transform 0.2s ease',
-                position: 'relative',
-                width: '100%',
-                height: '0',
-                paddingBottom: '100%'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-              onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-              onClick={() => handleExampleTripClick(trip)}
-            >
-              {/* Background Image */}
-              <img
-                src={trip.image}
-                alt={trip.title}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  zIndex: 1
-                }}
-              />
+        {loadingTours ? (
+          <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+            Loading tours...
+          </div>
+        ) : tours.length === 0 ? (
+          <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+            No tours available. {formData.city && 'Try adjusting your filters.'}
+          </div>
+        ) : (
+          <div className="cards-grid">
+            {tours.map((tour) => {
+              // Get tour tags/interests for display
+              const tourTags = (tour.tour_tags || []).map(tt => tt.tag?.name).filter(Boolean);
+              const tourInterests = tourTags.slice(0, 2).join(', ') || 'Tour';
               
-              {/* Dark overlay for text readability */}
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))',
-                zIndex: 2
-              }} />
+              // Get preview image
+              const previewImage = tour.preview_media_url || randomCityImage || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&q=80';
               
-              {/* Content */}
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                zIndex: 3,
-                padding: '20px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between'
-              }}>
-                {/* Top content - Interests and Title */}
-                <div>
-                  {/* Interests */}
-                  <div style={{
-                    color: 'white',
-                    fontSize: '10px',
-                    fontWeight: '500',
-                    opacity: 0.9,
-                    marginBottom: '8px'
-                  }}>
-                    {trip.interests}
-                  </div>
-                  
-                  {/* Title */}
-                  <h3 style={{
-                    fontSize: '18px',
-                    fontWeight: 'bold',
-                    color: 'white',
-                    lineHeight: '1.3'
-                  }}>
-                    {trip.title}
-                  </h3>
-                </div>
-                
-                {/* Bottom content - Button */}
-                <div>
-                  <button
+              return (
+                <div
+                  key={tour.id}
+                  style={{
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s ease',
+                    position: 'relative',
+                    width: '100%',
+                    height: '0',
+                    paddingBottom: '100%'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                  onClick={() => handleTourClick(tour)}
+                >
+                  {/* Background Image */}
+                  <img
+                    src={previewImage}
+                    alt={tour.title}
                     style={{
-                      backgroundColor: 'white',
-                      color: 'black',
-                      border: 'none',
-                      borderRadius: '8px',
-                      width: '60px',
-                      height: '22px',
-                      fontSize: '10px',
-                      fontWeight: 'bold',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      zIndex: 1
                     }}
-                    onMouseOver={(e) => e.target.style.backgroundColor = '#f3f4f6'}
-                    onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
-                  >
-                    See plan
-                  </button>
+                  />
+                  
+                  {/* Dark overlay for text readability */}
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))',
+                    zIndex: 2
+                  }} />
+                  
+                  {/* Content */}
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 3,
+                    padding: '20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between'
+                  }}>
+                    {/* Top content - Interests and Title */}
+                    <div>
+                      {/* Interests/Tags */}
+                      <div style={{
+                        color: 'white',
+                        fontSize: '10px',
+                        fontWeight: '500',
+                        opacity: 0.9,
+                        marginBottom: '8px'
+                      }}>
+                        {tourInterests}
+                      </div>
+                      
+                      {/* Title */}
+                      <h3 style={{
+                        fontSize: '18px',
+                        fontWeight: 'bold',
+                        color: 'white',
+                        lineHeight: '1.3'
+                      }}>
+                        {tour.title}
+                      </h3>
+                    </div>
+                    
+                    {/* Bottom content - Button */}
+                    <div>
+                      <button
+                        style={{
+                          backgroundColor: 'white',
+                          color: 'black',
+                          border: 'none',
+                          borderRadius: '8px',
+                          width: '60px',
+                          height: '22px',
+                          fontSize: '10px',
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseOver={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                        onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
+                      >
+                        See plan
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
