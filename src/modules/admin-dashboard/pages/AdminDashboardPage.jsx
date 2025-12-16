@@ -216,7 +216,7 @@ export default function AdminDashboardPage() {
               Retry
             </button>
           </div>
-        ) : stats ? (
+        ) : stats && stats.counts ? (
           <>
             {/* Count Cards */}
             <div style={{
@@ -235,7 +235,7 @@ export default function AdminDashboardPage() {
                   Total Users
                 </div>
                 <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#1f2937' }}>
-                  {stats.counts.users}
+                  {stats.counts?.users || 0}
                 </div>
               </div>
 
@@ -249,7 +249,7 @@ export default function AdminDashboardPage() {
                   Guides
                 </div>
                 <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#1f2937' }}>
-                  {stats.counts.guides}
+                  {stats.counts?.guides || 0}
                 </div>
               </div>
 
@@ -263,7 +263,7 @@ export default function AdminDashboardPage() {
                   Tours
                 </div>
                 <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#1f2937' }}>
-                  {stats.counts.tours}
+                  {stats.counts?.tours || 0}
                 </div>
               </div>
 
@@ -277,7 +277,7 @@ export default function AdminDashboardPage() {
                   Locations
                 </div>
                 <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#1f2937' }}>
-                  {stats.counts.locations}
+                  {stats.counts?.locations || 0}
                 </div>
               </div>
 
@@ -291,7 +291,7 @@ export default function AdminDashboardPage() {
                   Itineraries
                 </div>
                 <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#1f2937' }}>
-                  {stats.counts.itineraries}
+                  {stats.counts?.itineraries || 0}
                 </div>
               </div>
 
@@ -305,7 +305,7 @@ export default function AdminDashboardPage() {
                   Plan Generations
                 </div>
                 <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#3b82f6' }}>
-                  {stats.counts.planGenerations || 0}
+                  {stats.counts?.planGenerations || 0}
                 </div>
               </div>
 
@@ -319,7 +319,7 @@ export default function AdminDashboardPage() {
                   Total Revenue
                 </div>
                 <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#10b981' }}>
-                  ${stats.revenue.total.toFixed(2)}
+                  ${(stats.revenue?.total || 0).toFixed(2)}
                 </div>
               </div>
             </div>
@@ -340,7 +340,7 @@ export default function AdminDashboardPage() {
                 <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px' }}>
                   Tours by Status
                 </h3>
-                {Object.keys(stats.toursByStatus).length > 0 ? (
+                {stats.toursByStatus && Object.keys(stats.toursByStatus).length > 0 ? (
                   <div>
                     {Object.entries(stats.toursByStatus).map(([status, count]) => (
                       <div key={status} style={{
