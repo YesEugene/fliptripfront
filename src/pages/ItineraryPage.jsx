@@ -142,10 +142,16 @@ export default function ItineraryPage() {
       // Load existing itinerary from Redis (preview or full)
       console.log('📥 Loading existing itinerary from Redis:', existingItineraryId, isFullPlan ? '(expecting full plan)' : '');
       loadItineraryFromRedis(existingItineraryId);
-    } else {
-      // Generate new itinerary (preview or full)
-      console.log('🆕 Generating new itinerary, previewOnly:', previewOnly);
+    } else if (formData.city && formData.city !== 'Barcelona') {
+      // Only generate if we have explicit city parameter (user came from homepage with filters)
+      // Don't auto-generate for default/empty city
+      console.log('🆕 Generating new itinerary with city parameter, previewOnly:', previewOnly);
       generateItineraryData();
+    } else {
+      // No city parameter - don't auto-generate, just show loading state
+      console.log('⚠️ No city parameter - not auto-generating itinerary to save API costs');
+      setLoading(false);
+      setError('Please select a city and interests on the homepage to generate an itinerary.');
     }
   }, [isExample, exampleItinerary, existingItineraryId, previewOnly, isFullPlan]);
 

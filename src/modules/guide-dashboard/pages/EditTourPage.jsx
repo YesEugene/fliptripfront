@@ -380,18 +380,17 @@ export default function EditTourPage() {
     return [...new Set(words)].slice(0, 10);
   };
 
-  useEffect(() => {
-    // Only generate suggestions if formData is properly initialized
-    if (!formData || !formData.daily_plan) {
-      return;
-    }
-    
-    const timer = setTimeout(() => {
-      generateTagSuggestions();
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [formData?.description, formData?.daily_plan]);
+  // REMOVED: Automatic tag suggestion generation to prevent unnecessary API calls
+  // Tag suggestions should only be generated when user clicks "Generate Tags" button
+  // useEffect(() => {
+  //   if (!formData || !formData.daily_plan) {
+  //     return;
+  //   }
+  //   const timer = setTimeout(() => {
+  //     generateTagSuggestions();
+  //   }, 1000);
+  //   return () => clearTimeout(timer);
+  // }, [formData?.description, formData?.daily_plan]);
 
   const handleTagInputChange = (e) => {
     const value = e.target.value;

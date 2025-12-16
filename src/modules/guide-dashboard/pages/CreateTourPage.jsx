@@ -263,14 +263,14 @@ export default function CreateTourPage() {
     return [...new Set(words)].slice(0, 10);
   };
 
-  // Debounced tag suggestion generation
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      generateTagSuggestions();
-    }, 1000); // Wait 1 second after user stops typing
-
-    return () => clearTimeout(timer);
-  }, [formData.description, formData.daily_plan]);
+  // REMOVED: Automatic tag suggestion generation to prevent unnecessary API calls
+  // Tag suggestions should only be generated when user clicks "Generate Tags" button
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     generateTagSuggestions();
+  //   }, 1000);
+  //   return () => clearTimeout(timer);
+  // }, [formData.description, formData.daily_plan]);
 
   // Load interests structure on component mount
   useEffect(() => {
