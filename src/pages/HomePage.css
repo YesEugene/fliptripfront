@@ -23,7 +23,7 @@ body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px; /* Consistent gap between all blocks */
-  grid-auto-rows: minmax(95.1px, auto); /* Increased by 40%: 67.92px * 1.4 = 95.1px */
+  grid-auto-rows: minmax(114.12px, auto); /* Increased by 20%: 95.1px * 1.2 = 114.12px */
 }
 
 /* Vertical cards (story format) - take 2 rows, height = 2 horizontal cards */
