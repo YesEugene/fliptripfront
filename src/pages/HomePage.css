@@ -52,34 +52,34 @@ body {
 
 /* Mobile styles - adjust heights for mobile devices */
 @media (max-width: 768px) {
-  /* On mobile, reduce red banner height to match vertical card height */
+  /* On mobile, adjust grid for 2 columns */
   .masonry-grid {
     grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
     gap: 12px; /* Keep consistent gap */
-    grid-auto-rows: minmax(140px, auto); /* Increased base height for mobile */
+    grid-auto-rows: minmax(140px, auto); /* Base height: 140px per row */
   }
   
-  /* Red banner - same height as vertical card (1 row instead of 2) */
+  /* Red banner - height = vertical card (span 1 but with min-height = 2 rows) */
   .red-banner-card,
   .personalized-trip-card {
     grid-column: span 2; /* Full width on mobile */
-    grid-row: span 1; /* Reduced from 2 to 1 - height = vertical card */
+    grid-row: span 1; /* 1 row */
     width: 100%;
+    min-height: 280px; /* 2 * 140px = height of vertical card (2 rows) */
   }
   
-  /* Vertical cards - keep 2 rows */
+  /* Vertical cards - 2 rows = 280px */
   .vertical-card {
     grid-column: span 1;
-    grid-row: span 2;
+    grid-row: span 2; /* 2 rows = 280px */
     width: 100%;
   }
   
-  /* Horizontal cards - increase height so 2 horizontal = 1 vertical */
+  /* Horizontal cards - 1 row = 140px, so 2 horizontal = 280px = 1 vertical */
   .horizontal-card {
     grid-column: span 1;
-    grid-row: span 1;
+    grid-row: span 1; /* 1 row = 140px */
     width: 100%;
-    /* Height will be 140px (1 row), so 2 horizontal = 280px = 2 vertical rows */
   }
 }
 
