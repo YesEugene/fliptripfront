@@ -1234,14 +1234,14 @@ export default function HomePage() {
             {filtersApplied && personalizedTripPreview && (
               <div
                 className="personalized-trip-card"
-              style={{
-                borderRadius: '12px',
-                overflow: 'hidden',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
-                cursor: 'pointer',
-                transition: 'transform 0.2s ease',
-                position: 'relative',
-                  gridColumn: 'span 1',
+                style={{
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s ease',
+                  position: 'relative',
+                  gridColumn: 'span 2',
                   gridRow: 'span 2',
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   display: 'flex',
