@@ -56,7 +56,7 @@ body {
   .masonry-grid {
     grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
     gap: 12px; /* Keep consistent gap */
-    grid-auto-rows: minmax(140px, auto); /* Base height: 140px per row */
+    grid-auto-rows: minmax(98px, auto); /* Base height: 140px * 0.7 = 98px per row */
   }
   
   /* Red banner - height = vertical card (span 1 but with min-height = 2 rows) */
@@ -65,20 +65,20 @@ body {
     grid-column: span 2; /* Full width on mobile */
     grid-row: span 1; /* 1 row */
     width: 100%;
-    min-height: 280px; /* 2 * 140px = height of vertical card (2 rows) */
+    min-height: 196px; /* 2 * 98px = height of vertical card (2 rows) */
   }
   
-  /* Vertical cards - 2 rows = 280px */
+  /* Vertical cards - 2 rows = 196px */
   .vertical-card {
     grid-column: span 1;
-    grid-row: span 2; /* 2 rows = 280px */
+    grid-row: span 2; /* 2 rows = 196px */
     width: 100%;
   }
   
-  /* Horizontal cards - 1 row = 140px, so 2 horizontal = 280px = 1 vertical */
+  /* Horizontal cards - 1 row = 98px, so 2 horizontal = 196px = 1 vertical */
   .horizontal-card {
     grid-column: span 1;
-    grid-row: span 1; /* 1 row = 140px */
+    grid-row: span 1; /* 1 row = 98px */
     width: 100%;
   }
 }
