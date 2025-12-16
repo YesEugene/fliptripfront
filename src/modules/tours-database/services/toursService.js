@@ -38,6 +38,14 @@ export async function createTour(tourData) {
       throw new Error('Требуется авторизация');
     }
 
+    console.log('📤 Creating tour:', { 
+      hasToken: !!token, 
+      tourDataKeys: Object.keys(tourData),
+      country: tourData.country,
+      city: tourData.city,
+      title: tourData.title
+    });
+
     const response = await fetch(`${API_BASE_URL}/api/tours-create`, {
       method: 'POST',
       headers: {
@@ -47,15 +55,21 @@ export async function createTour(tourData) {
       body: JSON.stringify(tourData)
     });
 
+    console.log('📡 Response status:', response.status);
+    console.log('📡 Response ok:', response.ok);
+
     const data = await response.json();
+    console.log('📡 Response data:', data);
 
     if (!response.ok || !data.success) {
-      throw new Error(data.message || 'Ошибка создания тура');
+      const errorMessage = data.error || data.message || 'Ошибка создания тура';
+      console.error('❌ Create tour error:', errorMessage, data);
+      throw new Error(errorMessage);
     }
 
     return data;
   } catch (error) {
-    console.error('Create tour error:', error);
+    console.error('❌ Create tour error:', error);
     throw error;
   }
 }
