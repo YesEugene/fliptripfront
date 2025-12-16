@@ -1385,25 +1385,25 @@ export default function HomePage() {
                     position: 'relative',
                     gridColumn: 'span 1',
                     gridRow: isVertical ? 'span 2' : 'span 1'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-              onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                   onClick={() => handleTourClick(tour)}
-            >
+                >
                   {/* Background Image/Video */}
-              <img
+                  <img
                     src={previewImage}
                     alt={tour.title}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  zIndex: 1
-                }}
-              />
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      zIndex: 1
+                    }}
+                  />
                   
                   {/* Video Play Button Overlay */}
                   {isVideo && (
@@ -1432,40 +1432,40 @@ export default function HomePage() {
                       }} />
                     </div>
                   )}
-              
-              {/* Dark overlay for text readability */}
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))',
-                zIndex: 2
-              }} />
-              
-              {/* Content */}
-              <div style={{
-                position: 'absolute',
+                  
+                  {/* Dark overlay for text readability */}
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
                     bottom: 0,
-                left: 0,
-                right: 0,
-                zIndex: 3,
-                padding: '20px',
-                display: 'flex',
-                flexDirection: 'column',
+                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))',
+                    zIndex: 2
+                  }} />
+                  
+                  {/* Content */}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    zIndex: 3,
+                    padding: '20px',
+                    display: 'flex',
+                    flexDirection: 'column',
                     justifyContent: 'flex-end'
                   }}>
-                  {/* Title */}
-                  <h3 style={{
+                    {/* Title */}
+                    <h3 style={{
                       fontSize: isVertical ? '18px' : '16px',
-                    fontWeight: 'bold',
-                    color: 'white',
+                      fontWeight: 'bold',
+                      color: 'white',
                       lineHeight: '1.3',
                       marginBottom: '8px'
-                  }}>
+                    }}>
                       {tour.title}
-                  </h3>
+                    </h3>
                     
                     {/* Creator */}
                     <div style={{
@@ -1474,9 +1474,9 @@ export default function HomePage() {
                       fontWeight: '500'
                     }}>
                       by {creator.name}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
               );
             })}
         </div>
