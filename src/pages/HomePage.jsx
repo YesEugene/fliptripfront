@@ -66,6 +66,7 @@ export default function HomePage() {
   });
   const [errors, setErrors] = useState({});
   const [showFilters, setShowFilters] = useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false); // Modal state for filter panel
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -82,6 +83,10 @@ export default function HomePage() {
   // Tours from database
   const [tours, setTours] = useState([]);
   const [loadingTours, setLoadingTours] = useState(false);
+  
+  // Personalized trip preview (shown after filters are applied)
+  const [personalizedTripPreview, setPersonalizedTripPreview] = useState(null);
+  const [filtersApplied, setFiltersApplied] = useState(false);
   
   // Removed '' state - using simple dropdown only
 
@@ -167,13 +172,18 @@ export default function HomePage() {
   }, [formData.date_from, formData.date_to]);
 
   // Load tours from database - filter by city and interests
+  // Load all tours on initial load, filter when filters are applied
   useEffect(() => {
     const loadTours = async () => {
       try {
         setLoadingTours(true);
         const filters = {};
-        if (formData.city) filters.city = formData.city;
-        if (formData.interest_ids && formData.interest_ids.length > 0 && allInterests.length > 0) {
+        // Only apply city filter if filters are applied
+        if (filtersApplied && formData.city) {
+          filters.city = formData.city;
+        }
+        // Only apply interest filter if filters are applied
+        if (filtersApplied && formData.interest_ids && formData.interest_ids.length > 0 && allInterests.length > 0) {
           // Get interest names from IDs
           const interestNames = formData.interest_ids
             .map(id => {
@@ -197,7 +207,7 @@ export default function HomePage() {
       }
     };
     loadTours();
-  }, [formData.city, formData.interest_ids, allInterests]);
+  }, [formData.city, formData.interest_ids, allInterests, filtersApplied]);
 
   // Update availableInterests when category or interest_ids change
   // Show all interests by default, or only interests from selected category
@@ -254,7 +264,33 @@ export default function HomePage() {
   const handleCitySelect = (city) => {
     setFormData(prev => ({ ...prev, city }));
     setIsDropdownOpen(false);
-    setShowFilters(true);
+    setShowFilterModal(true); // Open filter modal instead of showing filters inline
+  };
+  
+  const handleCreatePersonalizedTrip = () => {
+    setShowFilterModal(true); // Open filter modal
+  };
+  
+  const handleCloseFilterModal = () => {
+    setShowFilterModal(false);
+  };
+  
+  const handleShowResults = (e) => {
+    e.preventDefault();
+    if (validateForm()) {
+      setShowFilterModal(false);
+      setFiltersApplied(true);
+      // Generate personalized trip preview
+      const preview = {
+        city: formData.city,
+        title: `${formData.city} Adventure`,
+        subtitle: `Personalized trip for ${formData.audience}`,
+        image: randomCityImage
+      };
+      setPersonalizedTripPreview(preview);
+      // Reload tours with filters
+      // (tours will be reloaded automatically via useEffect)
+    }
   };
 
   // Inline handlers used instead
@@ -338,9 +374,8 @@ export default function HomePage() {
   };
 
   const handleTourClick = (tour) => {
-    // Navigate to tour details or itinerary page
-    // For now, navigate to itinerary page with tour data
-    navigate(`/itinerary?tourId=${tour.id}`);
+    // Navigate to tour preview page
+    navigate(`/itinerary?tourId=${tour.id}&previewOnly=true`);
   };
 
               return (
@@ -590,21 +625,68 @@ export default function HomePage() {
           </div>
         </div>
 
-      {/* Filters Section - show when city selected */}
-      {showFilters && (
-        <div style={{
-          width: '100%',
-          maxWidth: '750px',
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-          padding: '30px',
-          marginTop: '20px',
-          position: 'relative',
-          zIndex: 10,
-          margin: '0 auto'
-        }}>
-          <form onSubmit={handleSubmit}>
+      {/* Filter Modal - slides up from bottom */}
+      {showFilterModal && (
+        <>
+          {/* Backdrop */}
+          <div 
+            onClick={handleCloseFilterModal}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              zIndex: 9998,
+              animation: 'fadeIn 0.3s ease'
+            }}
+          />
+          {/* Filter Panel */}
+          <div style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: 'white',
+            borderTopLeftRadius: '20px',
+            borderTopRightRadius: '20px',
+            boxShadow: '0 -4px 20px rgba(0,0,0,0.15)',
+            padding: '30px 20px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            zIndex: 9999,
+            animation: 'slideUp 0.3s ease',
+            maxWidth: '750px',
+            margin: '0 auto'
+          }}>
+            {/* Close button */}
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'flex-end', 
+              marginBottom: '20px' 
+            }}>
+              <button
+                onClick={handleCloseFilterModal}
+                style={{
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#6b7280',
+                  padding: '0',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <form onSubmit={handleShowResults}>
             <div style={{ marginBottom: '24px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>
                 Who's it for?
@@ -1001,7 +1083,7 @@ export default function HomePage() {
                               width: '100%'
                             }}
                           >
-                            Show my plan
+                            Show results
                           </button>
                           <p style={{ 
                             color: '#6b7280', 
@@ -1011,7 +1093,139 @@ export default function HomePage() {
                             Your scenario will be ready in seconds — free preview
                           </p>
                         </div>
-          </form>
+            </form>
+          </div>
+        </>
+      )}
+
+      {/* Red Banner - Create Personalized Trip (shown when filters not applied) */}
+      {!filtersApplied && (
+        <div style={{
+          backgroundColor: '#F04C31',
+          borderRadius: '12px',
+          padding: '30px 20px',
+          margin: '20px auto',
+          maxWidth: '750px',
+          textAlign: 'center',
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <h3 style={{
+            fontSize: '24px',
+            fontWeight: 'bold',
+            marginBottom: '10px',
+            color: 'white'
+          }}>
+            Create Personalized Trip
+          </h3>
+          <p style={{
+            fontSize: '14px',
+            marginBottom: '20px',
+            opacity: 0.9
+          }}>
+            Создайте уникальный маршрут специально для вас
+          </p>
+          <button
+            onClick={handleCreatePersonalizedTrip}
+            style={{
+              backgroundColor: 'white',
+              color: '#F04C31',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '12px 24px',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              transition: 'transform 0.2s ease'
+            }}
+            onMouseOver={(e) => e.target.style.transform = 'scale(1.05)'}
+            onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
+          >
+            START CREATION
+          </button>
+        </div>
+      )}
+
+      {/* Personalized Trip Preview (shown after filters applied) */}
+      {filtersApplied && personalizedTripPreview && (
+        <div style={{
+          borderRadius: '12px',
+          overflow: 'hidden',
+          margin: '20px auto',
+          maxWidth: '750px',
+          position: 'relative',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+          cursor: 'pointer'
+        }}
+        onClick={() => {
+          // Navigate to itinerary page with filters
+          const params = new URLSearchParams();
+          params.append('city', formData.city);
+          params.append('audience', formData.audience);
+          if (selectedDates.length > 0) {
+            params.append('date_from', selectedDates[0]);
+            if (selectedDates.length > 1) {
+              params.append('date_to', selectedDates[selectedDates.length - 1]);
+            } else {
+              params.append('date_to', selectedDates[0]);
+            }
+          }
+          params.append('budget', formData.budget);
+          params.append('previewOnly', 'true');
+          formData.interest_ids.forEach(id => {
+            params.append('interest_ids', id);
+          });
+          navigate(`/itinerary?${params.toString()}`);
+        }}
+        >
+          <img
+            src={personalizedTripPreview.image}
+            alt={personalizedTripPreview.title}
+            style={{
+              width: '100%',
+              height: '200px',
+              objectFit: 'cover'
+            }}
+          />
+          <div style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
+            padding: '20px',
+            color: 'white'
+          }}>
+            <h3 style={{
+              fontSize: '20px',
+              fontWeight: 'bold',
+              marginBottom: '5px',
+              color: 'white'
+            }}>
+              {personalizedTripPreview.title}
+            </h3>
+            <p style={{
+              fontSize: '14px',
+              opacity: 0.9,
+              marginBottom: '15px',
+              color: 'white'
+            }}>
+              {personalizedTripPreview.subtitle}
+            </p>
+            <button style={{
+              backgroundColor: '#FFD700',
+              color: '#1f2937',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 20px',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              cursor: 'pointer'
+            }}>
+              YOUR PERSONAL TRIP
+            </button>
+          </div>
         </div>
       )}
 
@@ -1024,24 +1238,26 @@ export default function HomePage() {
         position: 'relative',
         zIndex: 1
       }}>
-        <h2 style={{
-          fontSize: '20px',
-          fontWeight: 'bold',
-          color: '#1f2937',
-          marginBottom: '24px'
-        }}>
-          Take a look at our day plan
-        </h2>
+        {(tours.length > 0 || filtersApplied) && (
+          <h2 style={{
+            fontSize: '20px',
+            fontWeight: 'bold',
+            color: '#1f2937',
+            marginBottom: '24px'
+          }}>
+            Take a look at our day plan
+          </h2>
+        )}
         
         {loadingTours ? (
           <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
             Loading tours...
           </div>
-        ) : tours.length === 0 ? (
+        ) : tours.length === 0 && !filtersApplied ? (
           <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
             No tours available. {formData.city && 'Try adjusting your filters.'}
           </div>
-        ) : (
+        ) : tours.length > 0 ? (
           <div className="cards-grid">
             {tours.map((tour) => {
               // Get tour tags/interests for display
