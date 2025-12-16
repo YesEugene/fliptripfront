@@ -617,7 +617,6 @@ export default function CreateTourPage() {
                         accept="image/*,video/*"
                         onChange={handlePreviewChange}
                         style={{ display: 'none' }}
-                        required
                       />
                       Choose Photo or Video
                     </label>
