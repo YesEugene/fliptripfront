@@ -728,7 +728,7 @@ export default function ItineraryPage() {
           )}
 
           {/* Pay to Unlock Section - только для превью */}
-          {previewOnly && itineraryId && (
+          {((itinerary?.previewOnly === true || previewOnly) && (itineraryId || itinerary)) && (
             <div className="enhanced-card" style={{ marginTop: '20px', borderRadius: '12px' }}>
               <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px' }}>
                 🔒 Unlock Full Itinerary
@@ -753,29 +753,30 @@ export default function ItineraryPage() {
                 />
                 <button
                   onClick={() => {
-                    if (email && itineraryId) {
+                    const idToUse = itineraryId || (itinerary && itinerary.itineraryId);
+                    if (email && idToUse) {
                       const paymentParams = new URLSearchParams({
-                        itineraryId: itineraryId,
+                        itineraryId: idToUse,
                         email: email,
                         city: formData.city,
                         audience: formData.audience,
-                        interests: formData.interests.join(','),
+                        interests: formData.interests?.join(',') || '',
                         date: formData.date,
                         budget: formData.budget
                       });
                       navigate(`/payment?${paymentParams.toString()}`);
                     }
                   }}
-                  disabled={!email || !itineraryId}
+                  disabled={!email || (!itineraryId && !itinerary?.itineraryId)}
                   style={{
                     padding: '12px 24px',
-                    backgroundColor: email && itineraryId ? '#3b82f6' : '#9ca3af',
+                    backgroundColor: email && (itineraryId || itinerary?.itineraryId) ? '#3b82f6' : '#9ca3af',
                     color: 'white',
                     border: 'none',
                     borderRadius: '12px',
                     fontSize: '16px',
                     fontWeight: '600',
-                    cursor: email && itineraryId ? 'pointer' : 'not-allowed',
+                    cursor: email && (itineraryId || itinerary?.itineraryId) ? 'pointer' : 'not-allowed',
                     whiteSpace: 'nowrap'
                   }}
                 >
