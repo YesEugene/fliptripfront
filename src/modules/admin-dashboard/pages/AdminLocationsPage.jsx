@@ -51,17 +51,25 @@ export default function AdminLocationsPage() {
   };
 
   const handleDelete = async (locationId, locationName) => {
+    console.log('🗑️ Delete clicked for:', locationId, locationName);
+    
     if (!window.confirm(`Are you sure you want to delete "${locationName}"?`)) {
+      console.log('❌ Delete cancelled by user');
       return;
     }
 
+    console.log('✅ Delete confirmed, starting deletion...');
+    
     try {
       setDeletingId(locationId);
+      console.log('📡 Calling deleteLocation API...');
       await deleteLocation(locationId);
+      console.log('✅ Location deleted, reloading list...');
       await loadLocations();
       setDeletingId(null);
+      console.log('✅ Delete completed successfully');
     } catch (err) {
-      console.error('Delete error:', err);
+      console.error('❌ Delete error:', err);
       alert('Error deleting location: ' + (err.message || 'Unknown error'));
       setDeletingId(null);
     }
@@ -250,10 +258,32 @@ export default function AdminLocationsPage() {
                           {location.verified ? '✓ Verified' : 'Unverified'}
                         </span>
                       </td>
-                      <td style={{ padding: '12px' }}>
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                      <td 
+                        style={{ 
+                          padding: '12px',
+                          position: 'relative',
+                          zIndex: 1
+                        }}
+                        onClick={(e) => {
+                          // Prevent row click from interfering with button clicks
+                          if (e.target.tagName === 'BUTTON') {
+                            e.stopPropagation();
+                          }
+                        }}
+                      >
+                        <div style={{ 
+                          display: 'flex', 
+                          gap: '8px',
+                          position: 'relative',
+                          zIndex: 2
+                        }}>
                           <button
-                            onClick={() => setEditingLocation(location)}
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setEditingLocation(location);
+                            }}
                             style={{
                               padding: '6px 12px',
                               backgroundColor: '#3b82f6',
@@ -261,13 +291,17 @@ export default function AdminLocationsPage() {
                               border: 'none',
                               borderRadius: '6px',
                               cursor: 'pointer',
-                              fontSize: '14px'
+                              fontSize: '14px',
+                              position: 'relative',
+                              zIndex: 3
                             }}
                           >
                             Edit
                           </button>
                           <button
+                            type="button"
                             onClick={(e) => {
+                              console.log('🔘 Delete button clicked', location.id, location.name);
                               e.preventDefault();
                               e.stopPropagation();
                               handleDelete(location.id, location.name);
@@ -282,7 +316,9 @@ export default function AdminLocationsPage() {
                               cursor: deletingId === location.id ? 'not-allowed' : 'pointer',
                               fontSize: '14px',
                               opacity: deletingId === location.id ? 0.6 : 1,
-                              pointerEvents: deletingId === location.id ? 'none' : 'auto'
+                              pointerEvents: deletingId === location.id ? 'none' : 'auto',
+                              position: 'relative',
+                              zIndex: 3
                             }}
                           >
                             {deletingId === location.id ? 'Deleting...' : 'Delete'}
