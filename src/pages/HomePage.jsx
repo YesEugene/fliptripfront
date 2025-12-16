@@ -171,6 +171,24 @@ export default function HomePage() {
     }
   }, [formData.date_from, formData.date_to]);
 
+  // Fictional creators for tours
+  const creators = [
+    { name: 'Michael Balinni', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&q=80' },
+    { name: 'Emma Tui', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&q=80' },
+    { name: 'George Cloonie', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&q=80' },
+    { name: 'Sophie Laurent', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&q=80' },
+    { name: 'Marco Rossi', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&q=80' },
+    { name: 'Luna Martinez', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&q=80' },
+    { name: 'Alex Thompson', avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&q=80' },
+    { name: 'Isabella Chen', avatar: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=400&fit=crop&q=80' }
+  ];
+
+  // Assign random creator to each tour
+  const getTourCreator = (tourId) => {
+    const index = parseInt(tourId.replace(/-/g, '').substring(0, 8), 16) % creators.length;
+    return creators[index];
+  };
+
   // Load tours from database - filter by city and interests
   // Load all tours on initial load, filter when filters are applied
   useEffect(() => {
@@ -1099,66 +1117,6 @@ export default function HomePage() {
         </>
       )}
 
-      {/* Red Banner - Create Personalized Trip (shown when filters not applied) */}
-      {!filtersApplied && (
-        <div style={{
-          backgroundColor: '#F04C31',
-          borderRadius: '12px',
-          padding: '30px 20px',
-          margin: '20px auto',
-          maxWidth: '750px',
-          textAlign: 'center',
-          color: 'white',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          <h3 style={{
-            fontSize: '24px',
-            fontWeight: 'bold',
-            marginBottom: '10px',
-            color: 'white'
-          }}>
-            Create Personalized Trip
-          </h3>
-          <p style={{
-            fontSize: '14px',
-            marginBottom: '20px',
-            opacity: 0.9
-          }}>
-            Создайте уникальный маршрут специально для вас
-          </p>
-          <button
-            onClick={handleCreatePersonalizedTrip}
-            style={{
-              backgroundColor: 'white',
-              color: '#F04C31',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '12px 24px',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              transition: 'transform 0.2s ease'
-            }}
-            onMouseOver={(e) => e.target.style.transform = 'scale(1.05)'}
-            onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
-          >
-            START CREATION
-          </button>
-        </div>
-      )}
-
-      {/* Personalized Trip Preview (shown after filters applied) */}
-      {filtersApplied && personalizedTripPreview && (
-        <div style={{
-          borderRadius: '12px',
-          overflow: 'hidden',
-          margin: '20px auto',
-          maxWidth: '750px',
-          position: 'relative',
-          boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-          cursor: 'pointer'
-        }}
         onClick={() => {
           // Navigate to itinerary page with filters
           const params = new URLSearchParams();
@@ -1258,123 +1216,263 @@ export default function HomePage() {
           <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
             No tours available. {formData.city && 'Try adjusting your filters.'}
           </div>
-        ) : tours.length > 0 && (
-        <div className="cards-grid">
-            {tours.map((tour) => {
-              // Get tour tags/interests for display
-              const tourTags = (tour.tour_tags || []).map(tt => tt.tag?.name).filter(Boolean);
-              const tourInterests = tourTags.slice(0, 2).join(', ') || 'Tour';
+        ) : (
+        <div className="masonry-grid">
+            {/* Red Banner - always first if filters not applied */}
+            {!filtersApplied && (
+              <div
+                className="red-banner-card"
+                style={{
+                  backgroundColor: '#ef4444',
+                  borderRadius: '12px',
+                  padding: '40px 30px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)',
+                  gridColumn: 'span 1',
+                  gridRow: 'span 2',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.4)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(239, 68, 68, 0.3)';
+                }}
+                onClick={handleCreatePersonalizedTrip}
+              >
+                <h2 style={{
+                  fontSize: '28px',
+                  fontWeight: 'bold',
+                  color: 'white',
+                  marginBottom: '12px',
+                  lineHeight: '1.2'
+                }}>
+                  Create Personalized Trip
+                </h2>
+                <p style={{
+                  fontSize: '16px',
+                  color: 'rgba(255, 255, 255, 0.95)',
+                  marginBottom: '20px',
+                  lineHeight: '1.5'
+                }}>
+                  Мы возьмем все ваши предпочтения и соберем трип с учетом всех деталей
+                </p>
+                <button
+                  style={{
+                    backgroundColor: 'white',
+                    color: '#ef4444',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '12px 24px',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    alignSelf: 'flex-start'
+                  }}
+                  onMouseOver={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                  onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
+                >
+                  START CREATION
+                </button>
+              </div>
+            )}
+            
+            {/* Personalized Trip Preview - replaces red banner when filters applied */}
+            {filtersApplied && personalizedTripPreview && (
+              <div
+                className="personalized-trip-card"
+                style={{
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s ease',
+                  position: 'relative',
+                  gridColumn: 'span 1',
+                  gridRow: 'span 2',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  padding: '30px',
+                  color: 'white'
+                }}
+                onClick={() => {
+                  const params = new URLSearchParams();
+                  if (formData.city) params.append('city', formData.city);
+                  if (formData.audience) params.append('audience', formData.audience);
+                  if (formData.interest_ids && formData.interest_ids.length > 0) {
+                    formData.interest_ids.forEach(id => {
+                      params.append('interest_ids', id);
+                    });
+                  }
+                  navigate(`/itinerary?${params.toString()}`);
+                }}
+              >
+                <div>
+                  <h3 style={{
+                    fontSize: '24px',
+                    fontWeight: 'bold',
+                    marginBottom: '12px',
+                    lineHeight: '1.2'
+                  }}>
+                    {personalizedTripPreview.title}
+                  </h3>
+                  <p style={{
+                    fontSize: '14px',
+                    opacity: 0.9,
+                    lineHeight: '1.5'
+                  }}>
+                    {personalizedTripPreview.subtitle}
+                  </p>
+                </div>
+                <button
+                  style={{
+                    backgroundColor: 'white',
+                    color: '#667eea',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '12px 24px',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    alignSelf: 'flex-start',
+                    marginTop: '20px'
+                  }}
+                  onMouseOver={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                  onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
+                >
+                  Your personal trip
+                </button>
+              </div>
+            )}
+            
+            {/* Tour Cards */}
+            {tours.map((tour, index) => {
+              const creator = getTourCreator(tour.id);
+              // Determine card size: mix of vertical (story format) and horizontal
+              // Vertical cards are 1x2, horizontal are 2x1 (half height of vertical)
+              const isVertical = index % 3 !== 1; // Every 3rd card (index 1, 4, 7...) is horizontal
               
-              // Get preview image
-              const previewImage = tour.preview_media_url || randomCityImage || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&q=80';
+              // Get preview image - use creator avatar or tour preview
+              const previewImage = tour.preview_media_url || creator.avatar || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&q=80';
+              
+              // Randomly decide if it's a video (30% chance)
+              const isVideo = Math.random() < 0.3;
               
               return (
                 <div
                   key={tour.id}
-              style={{
-                borderRadius: '12px',
-                overflow: 'hidden',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
-                cursor: 'pointer',
-                transition: 'transform 0.2s ease',
-                position: 'relative',
-                width: '100%',
-                height: '0',
-                paddingBottom: '100%'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-              onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                  className={`tour-card ${isVertical ? 'vertical-card' : 'horizontal-card'}`}
+                  style={{
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s ease',
+                    position: 'relative',
+                    gridColumn: 'span 1',
+                    gridRow: isVertical ? 'span 2' : 'span 1'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                   onClick={() => handleTourClick(tour)}
-            >
-              {/* Background Image */}
-              <img
+                >
+                  {/* Background Image/Video */}
+                  <img
                     src={previewImage}
                     alt={tour.title}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  zIndex: 1
-                }}
-              />
-              
-              {/* Dark overlay for text readability */}
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))',
-                zIndex: 2
-              }} />
-              
-              {/* Content */}
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                zIndex: 3,
-                padding: '20px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between'
-              }}>
-                {/* Top content - Interests and Title */}
-                <div>
-                      {/* Interests/Tags */}
-                  <div style={{
-                    color: 'white',
-                    fontSize: '10px',
-                    fontWeight: '500',
-                    opacity: 0.9,
-                    marginBottom: '8px'
-                  }}>
-                        {tourInterests}
-                  </div>
-                  
-                  {/* Title */}
-                  <h3 style={{
-                    fontSize: '18px',
-                    fontWeight: 'bold',
-                    color: 'white',
-                    lineHeight: '1.3'
-                  }}>
-                        {tour.title}
-                  </h3>
-                </div>
-                
-                {/* Bottom content - Button */}
-                <div>
-                  <button
                     style={{
-                      backgroundColor: 'white',
-                      color: 'black',
-                      border: 'none',
-                      borderRadius: '8px',
-                      width: '60px',
-                      height: '22px',
-                      fontSize: '10px',
-                      fontWeight: 'bold',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      zIndex: 1
+                    }}
+                  />
+                  
+                  {/* Video Play Button Overlay */}
+                  {isVideo && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      zIndex: 3,
+                      width: '50px',
+                      height: '50px',
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(0, 0, 0, 0.6)',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                    onMouseOver={(e) => e.target.style.backgroundColor = '#f3f4f6'}
-                    onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
-                  >
-                    See plan
-                  </button>
+                      justifyContent: 'center',
+                      cursor: 'pointer'
+                    }}>
+                      <div style={{
+                        width: 0,
+                        height: 0,
+                        borderLeft: '15px solid white',
+                        borderTop: '10px solid transparent',
+                        borderBottom: '10px solid transparent',
+                        marginLeft: '3px'
+                      }} />
+                    </div>
+                  )}
+                  
+                  {/* Dark overlay for text readability */}
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))',
+                    zIndex: 2
+                  }} />
+                  
+                  {/* Content */}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    zIndex: 3,
+                    padding: '20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'flex-end'
+                  }}>
+                    {/* Title */}
+                    <h3 style={{
+                      fontSize: isVertical ? '18px' : '16px',
+                      fontWeight: 'bold',
+                      color: 'white',
+                      lineHeight: '1.3',
+                      marginBottom: '8px'
+                    }}>
+                      {tour.title}
+                    </h3>
+                    
+                    {/* Creator */}
+                    <div style={{
+                      fontSize: '12px',
+                      color: 'rgba(255, 255, 255, 0.9)',
+                      fontWeight: '500'
+                    }}>
+                      by {creator.name}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
               );
             })}
         </div>

@@ -18,6 +18,47 @@ body {
   gap: 15px !important;
 }
 
+/* Masonry grid for mixed-size tour cards */
+.masonry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  grid-auto-rows: minmax(200px, auto);
+}
+
+/* Vertical cards (story format) - take 2 rows */
+.vertical-card {
+  grid-row: span 2;
+  aspect-ratio: 9 / 16;
+  min-height: 400px;
+}
+
+/* Horizontal cards - take 1 row */
+.horizontal-card {
+  grid-row: span 1;
+  aspect-ratio: 16 / 9;
+  min-height: 200px;
+}
+
+/* Red banner and personalized trip cards - always 2 rows */
+.red-banner-card,
+.personalized-trip-card {
+  grid-row: span 2;
+  min-height: 400px;
+}
+
+/* Tour card base styles */
+.tour-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.tour-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* Examples grid styles - Responsive grid for example cards */
 .examples-grid {
   display: grid;
