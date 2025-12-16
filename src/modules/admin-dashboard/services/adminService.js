@@ -142,6 +142,9 @@ export async function createLocation(locationData) {
 export async function updateLocation(locationId, locationData) {
   try {
     const token = getAuthToken();
+    console.log('📡 PUT request to:', `${API_BASE_URL}/api/admin-locations?id=${locationId}`);
+    console.log('📡 Request data:', locationData);
+    
     const response = await fetch(`${API_BASE_URL}/api/admin-locations?id=${locationId}`, {
       method: 'PUT',
       headers: {
@@ -151,14 +154,19 @@ export async function updateLocation(locationId, locationData) {
       body: JSON.stringify(locationData)
     });
 
+    console.log('📡 Response status:', response.status);
+    console.log('📡 Response ok:', response.ok);
+
     const data = await response.json();
+    console.log('📡 Response data:', data);
+
     if (!response.ok || !data.success) {
-      throw new Error(data.message || 'Error updating location');
+      throw new Error(data.message || data.error || 'Error updating location');
     }
 
     return data;
   } catch (error) {
-    console.error('Update location error:', error);
+    console.error('❌ Update location error:', error);
     throw error;
   }
 }

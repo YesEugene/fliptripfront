@@ -216,14 +216,15 @@ export default function LocationFormModal({ location, onClose, onSave }) {
         description: formData.description || null,
         recommendations: formData.recommendations || null,
         price_level: formData.price_level ? parseInt(formData.price_level) : null,
-        avg_price_usd: formData.avg_price_usd ? parseFloat(formData.avg_price_usd) : null,
         website: formData.website || null,
         phone: formData.phone || null,
         booking_url: formData.booking_url || null,
         verified: formData.verified,
-        interest_ids: formData.interest_ids || []
+        interests: formData.interest_ids || [], // Backend expects 'interests' not 'interest_ids'
+        tags: [] // Tags will be handled separately if needed
       };
 
+      console.log('📤 Saving location data:', locationData);
       await onSave(locationData);
     } catch (err) {
       setError(err.message);

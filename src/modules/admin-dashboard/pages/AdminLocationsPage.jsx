@@ -486,16 +486,22 @@ export default function AdminLocationsPage() {
           }}
           onSave={async (locationData) => {
             try {
+              console.log('💾 Saving location:', locationData);
               if (editingLocation) {
+                console.log('✏️ Updating location:', editingLocation.id);
                 await updateLocation(editingLocation.id, locationData);
+                alert('Location updated successfully!');
               } else {
+                console.log('➕ Creating new location');
                 await createLocation(locationData);
+                alert('Location created successfully!');
               }
               setShowCreateModal(false);
               setEditingLocation(null);
-              loadLocations();
+              await loadLocations();
             } catch (err) {
-              alert('Error saving location: ' + err.message);
+              console.error('❌ Save error:', err);
+              alert('Error saving location: ' + (err.message || 'Unknown error. Check console for details.'));
             }
           }}
         />
