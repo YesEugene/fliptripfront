@@ -225,6 +225,32 @@ export async function getTours(filters = {}) {
 }
 
 /**
+ * Get all tags
+ */
+export async function getTags() {
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/api/admin-tags`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Error fetching tags');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Get tags error:', error);
+    throw error;
+  }
+}
+
+/**
  * Get all users
  */
 export async function getUsers(filters = {}) {

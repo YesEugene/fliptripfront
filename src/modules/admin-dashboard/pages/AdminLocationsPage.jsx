@@ -10,7 +10,8 @@ import {
   createLocation,
   updateLocation,
   deleteLocation,
-  exportToCSV
+  exportToCSV,
+  getTags
 } from '../services/adminService';
 import { getCurrentUser, logout } from '../../auth/services/authService';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
@@ -22,15 +23,30 @@ export default function AdminLocationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+  const [filterSource, setFilterSource] = useState('');
+  const [filterTag, setFilterTag] = useState('');
+  const [filterVerified, setFilterVerified] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingLocation, setEditingLocation] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [availableTags, setAvailableTags] = useState([]);
 
   useEffect(() => {
     const currentUser = getCurrentUser();
     setUser(currentUser);
     loadLocations();
+    loadTags();
   }, []);
+
+  const loadTags = async () => {
+    try {
+      const data = await getTags();
+      setAvailableTags(data.tags || []);
+    } catch (err) {
+      console.error('Error loading tags:', err);
+    }
+  };
 
   const loadLocations = async () => {
     try {
@@ -39,6 +55,18 @@ export default function AdminLocationsPage() {
       const filters = {};
       if (searchTerm) {
         filters.search = searchTerm;
+      }
+      if (filterCategory) {
+        filters.category = filterCategory;
+      }
+      if (filterSource) {
+        filters.source = filterSource;
+      }
+      if (filterTag) {
+        filters.tag_id = filterTag;
+      }
+      if (filterVerified !== '') {
+        filters.verified = filterVerified;
       }
       const data = await getLocations(filters);
       setLocations(data.locations || []);
@@ -93,12 +121,10 @@ export default function AdminLocationsPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (searchTerm !== undefined) {
-        loadLocations();
-      }
+      loadLocations();
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchTerm, filterCategory, filterSource, filterTag, filterVerified]);
 
   if (!user) {
     return <div style={{ padding: '20px' }}>Loading...</div>;
@@ -179,8 +205,8 @@ export default function AdminLocationsPage() {
           </div>
         </div>
 
-        {/* Search */}
-        <div style={{ marginBottom: '24px' }}>
+        {/* Search and Filters */}
+        <div style={{ marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <input
             type="text"
             placeholder="Search locations..."
@@ -195,6 +221,110 @@ export default function AdminLocationsPage() {
               fontSize: '16px'
             }}
           />
+          
+          {/* Filters Row */}
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              style={{
+                padding: '8px 12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                backgroundColor: 'white',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="">All Categories</option>
+              <option value="restaurant">Restaurant</option>
+              <option value="cafe">Cafe</option>
+              <option value="museum">Museum</option>
+              <option value="bar">Bar</option>
+              <option value="attraction">Attraction</option>
+              <option value="hotel">Hotel</option>
+              <option value="shop">Shop</option>
+              <option value="park">Park</option>
+            </select>
+
+            <select
+              value={filterSource}
+              onChange={(e) => setFilterSource(e.target.value)}
+              style={{
+                padding: '8px 12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                backgroundColor: 'white',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="">All Sources</option>
+              <option value="admin">Admin</option>
+              <option value="guide">Guide</option>
+              <option value="import">Import</option>
+              <option value="ai">AI</option>
+              <option value="google">Google</option>
+            </select>
+
+            <select
+              value={filterTag}
+              onChange={(e) => setFilterTag(e.target.value)}
+              style={{
+                padding: '8px 12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                backgroundColor: 'white',
+                cursor: 'pointer',
+                minWidth: '150px'
+              }}
+            >
+              <option value="">All Tags</option>
+              {availableTags.map(tag => (
+                <option key={tag.id} value={tag.id}>{tag.name}</option>
+              ))}
+            </select>
+
+            <select
+              value={filterVerified}
+              onChange={(e) => setFilterVerified(e.target.value)}
+              style={{
+                padding: '8px 12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                backgroundColor: 'white',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="">All Status</option>
+              <option value="true">Verified</option>
+              <option value="false">Not Verified</option>
+            </select>
+
+            {(filterCategory || filterSource || filterTag || filterVerified) && (
+              <button
+                onClick={() => {
+                  setFilterCategory('');
+                  setFilterSource('');
+                  setFilterTag('');
+                  setFilterVerified('');
+                }}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Locations List */}
