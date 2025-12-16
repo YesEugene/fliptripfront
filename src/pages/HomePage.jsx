@@ -390,7 +390,7 @@ export default function HomePage() {
                   marginRight: 'auto'
                 }}>
                   {/* Header Section with random city image - always show */}
-                  <div className="red-header-section" style={{
+                    <div className="red-header-section" style={{
                       backgroundImage: randomCityImage ? `url(${randomCityImage})` : 'none',
                       backgroundColor: randomCityImage ? 'transparent' : '#F04C31',
                       backgroundSize: 'cover',
@@ -436,7 +436,7 @@ export default function HomePage() {
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'center',
+            alignItems: 'center',
               width: '100%',
               paddingLeft: '20px', // Same padding as city form (left: '20px')
               paddingRight: '20px', // Same padding as city form (right: '20px')
@@ -446,11 +446,11 @@ export default function HomePage() {
               marginRight: 'auto'
             }}>
               {/* Logo - Left aligned with same padding as city form */}
-              <img 
-                src={FlipTripLogo} 
-                alt="FlipTrip" 
-                style={{ 
-                  height: '60px',
+            <img 
+              src={FlipTripLogo} 
+              alt="FlipTrip" 
+              style={{ 
+                height: '60px',
                   width: 'auto'
                 }}
               />
@@ -643,12 +643,12 @@ export default function HomePage() {
             }}
           />
           {/* Filter Panel */}
-          <div style={{
+        <div style={{
             position: 'fixed',
             bottom: 0,
             left: 0,
             right: 0,
-            backgroundColor: 'white',
+          backgroundColor: 'white',
             borderTopLeftRadius: '20px',
             borderTopRightRadius: '20px',
             boxShadow: '0 -4px 20px rgba(0,0,0,0.15)',
@@ -657,15 +657,15 @@ export default function HomePage() {
             overflowY: 'auto',
             zIndex: 9999,
             animation: 'slideUp 0.3s ease',
-            maxWidth: '750px',
+          maxWidth: '750px',
             margin: '0 auto'
-          }}>
+        }}>
             {/* Close button */}
-            <div style={{ 
-              display: 'flex', 
+          <div style={{
+            display: 'flex',
               justifyContent: 'flex-end', 
-              marginBottom: '20px' 
-            }}>
+            marginBottom: '20px'
+          }}>
               <button
                 onClick={handleCloseFilterModal}
                 style={{
@@ -691,7 +691,7 @@ export default function HomePage() {
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>
                 Who's it for?
               </label>
-              <div style={{ 
+                <div style={{
                 display: 'flex', 
                 gap: '12px', 
                 flexWrap: 'nowrap',
@@ -702,27 +702,27 @@ export default function HomePage() {
                 msOverflowStyle: '-ms-autohiding-scrollbar'
               }}>
                 {AUDIENCES.map((audience) => (
-                  <button
+                      <button
                     key={audience.value}
-                    type="button"
+                        type="button"
                     onClick={() => setFormData(prev => ({ ...prev, audience: audience.value }))}
-                    style={{
+                        style={{
                       padding: '8px 16px',
                       border: `2px solid ${formData.audience === audience.value ? '#3E85FC' : '#e5e7eb'}`,
                       borderRadius: '20px',
                       backgroundColor: formData.audience === audience.value ? '#3E85FC' : 'white',
                       color: formData.audience === audience.value ? 'white' : '#6b7280',
-                      cursor: 'pointer',
-                      fontSize: '14px',
+                          cursor: 'pointer',
+                          fontSize: '14px',
                       fontWeight: 'bold',
                       whiteSpace: 'nowrap',
                       flexShrink: 0
-                    }}
-                  >
+                        }}
+                      >
                     {audience.label}
-                  </button>
-                ))}
-              </div>
+                      </button>
+                    ))}
+                </div>
             </div>
 
             <div style={{ marginBottom: '24px' }}>
@@ -752,18 +752,18 @@ export default function HomePage() {
                       msOverflowStyle: '-ms-autohiding-scrollbar'
                     }}>
                       {interestsStructure.map(category => (
-                        <button
+                  <button
                           key={category.id}
-                          type="button"
+                    type="button"
                           onClick={() => handleCategoryChange(category.id)}
-                          style={{
-                            padding: '8px 16px',
+                    style={{
+                      padding: '8px 16px',
                             border: `2px solid ${selectedCategory === category.id ? '#3E85FC' : '#e5e7eb'}`,
-                            borderRadius: '20px',
+                      borderRadius: '20px',
                             backgroundColor: selectedCategory === category.id ? '#3E85FC' : 'white',
                             color: selectedCategory === category.id ? 'white' : '#6b7280',
-                            cursor: 'pointer',
-                            fontSize: '14px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
                             fontWeight: 'bold',
                             display: 'flex',
                             alignItems: 'center',
@@ -773,17 +773,17 @@ export default function HomePage() {
                           }}
                         >
                           {category.icon} {CATEGORY_NAMES[category.name] || category.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  </button>
+                ))}
+              </div>
+            </div>
 
                   {/* Interests Selection - Show all interests by default, or only from selected category */}
                   {allInterests.length > 0 && (
                     <div>
                       <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>
                         Select interests
-                      </label>
+              </label>
                       <div style={{ 
                         display: isMobile ? 'flex' : 'grid',
                         flexDirection: isMobile ? 'row' : 'column',
@@ -804,24 +804,24 @@ export default function HomePage() {
                           const isSelectedFromOtherCategory = isSelected && !isFromSelectedCategory;
                           
                           return (
-                            <button
+                  <button
                               key={interest.id}
-                              type="button"
+                    type="button"
                               onClick={() => handleInterestToggle(interest.id)}
-                              style={{
-                                padding: '8px 12px',
+                    style={{
+                      padding: '8px 12px',
                                 border: `2px solid ${isSelected ? '#3E85FC' : isFromSelectedCategory ? '#93c5fd' : isSelectedFromOtherCategory ? '#c7d2fe' : '#e5e7eb'}`,
                                 borderRadius: '16px',
                                 backgroundColor: isSelected ? '#3E85FC' : isFromSelectedCategory ? '#eff6ff' : isSelectedFromOtherCategory ? '#eef2ff' : 'white',
                                 color: isSelected ? 'white' : '#6b7280',
-                                cursor: 'pointer',
-                                fontSize: '12px',
-                                fontWeight: 'bold',
-                                textAlign: 'center',
-                                minHeight: '36px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      textAlign: 'center',
+                      minHeight: '36px',
                                 minWidth: isMobile ? '120px' : 'auto',
-                                display: 'flex',
-                                alignItems: 'center',
+                      display: 'flex',
+                      alignItems: 'center',
                                 justifyContent: 'center',
                                 gap: '4px',
                                 opacity: 1,
@@ -830,10 +830,10 @@ export default function HomePage() {
                               }}
                             >
                               {category?.icon} {INTEREST_NAMES[interest.name] || interest.name}
-                            </button>
+                  </button>
                           );
                         })}
-                      </div>
+              </div>
                     </div>
                   )}
 
@@ -1093,8 +1093,8 @@ export default function HomePage() {
                             Your scenario will be ready in seconds — free preview
                           </p>
                         </div>
-            </form>
-          </div>
+          </form>
+        </div>
         </>
       )}
 
@@ -1239,14 +1239,14 @@ export default function HomePage() {
         zIndex: 1
       }}>
         {(tours.length > 0 || filtersApplied) && (
-          <h2 style={{
-            fontSize: '20px',
-            fontWeight: 'bold',
-            color: '#1f2937',
-            marginBottom: '24px'
-          }}>
-            Take a look at our day plan
-          </h2>
+        <h2 style={{
+          fontSize: '20px',
+          fontWeight: 'bold',
+          color: '#1f2937',
+          marginBottom: '24px'
+        }}>
+          Take a look at our day plan
+        </h2>
         )}
         
         {loadingTours ? (
@@ -1257,8 +1257,8 @@ export default function HomePage() {
           <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
             No tours available. {formData.city && 'Try adjusting your filters.'}
           </div>
-        ) : tours.length > 0 ? (
-          <div className="cards-grid">
+        ) : tours.length > 0 && (
+        <div className="cards-grid">
             {tours.map((tour) => {
               // Get tour tags/interests for display
               const tourTags = (tour.tour_tags || []).map(tt => tt.tag?.name).filter(Boolean);
@@ -1270,113 +1270,113 @@ export default function HomePage() {
               return (
                 <div
                   key={tour.id}
-                  style={{
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
-                    cursor: 'pointer',
-                    transition: 'transform 0.2s ease',
-                    position: 'relative',
-                    width: '100%',
-                    height: '0',
-                    paddingBottom: '100%'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                  onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              style={{
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+                cursor: 'pointer',
+                transition: 'transform 0.2s ease',
+                position: 'relative',
+                width: '100%',
+                height: '0',
+                paddingBottom: '100%'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                   onClick={() => handleTourClick(tour)}
-                >
-                  {/* Background Image */}
-                  <img
+            >
+              {/* Background Image */}
+              <img
                     src={previewImage}
                     alt={tour.title}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      zIndex: 1
-                    }}
-                  />
-                  
-                  {/* Dark overlay for text readability */}
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))',
-                    zIndex: 2
-                  }} />
-                  
-                  {/* Content */}
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    zIndex: 3,
-                    padding: '20px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between'
-                  }}>
-                    {/* Top content - Interests and Title */}
-                    <div>
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  zIndex: 1
+                }}
+              />
+              
+              {/* Dark overlay for text readability */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))',
+                zIndex: 2
+              }} />
+              
+              {/* Content */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 3,
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between'
+              }}>
+                {/* Top content - Interests and Title */}
+                <div>
                       {/* Interests/Tags */}
-                      <div style={{
-                        color: 'white',
-                        fontSize: '10px',
-                        fontWeight: '500',
-                        opacity: 0.9,
-                        marginBottom: '8px'
-                      }}>
+                  <div style={{
+                    color: 'white',
+                    fontSize: '10px',
+                    fontWeight: '500',
+                    opacity: 0.9,
+                    marginBottom: '8px'
+                  }}>
                         {tourInterests}
-                      </div>
-                      
-                      {/* Title */}
-                      <h3 style={{
-                        fontSize: '18px',
-                        fontWeight: 'bold',
-                        color: 'white',
-                        lineHeight: '1.3'
-                      }}>
-                        {tour.title}
-                      </h3>
-                    </div>
-                    
-                    {/* Bottom content - Button */}
-                    <div>
-                      <button
-                        style={{
-                          backgroundColor: 'white',
-                          color: 'black',
-                          border: 'none',
-                          borderRadius: '8px',
-                          width: '60px',
-                          height: '22px',
-                          fontSize: '10px',
-                          fontWeight: 'bold',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s ease',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                        onMouseOver={(e) => e.target.style.backgroundColor = '#f3f4f6'}
-                        onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
-                      >
-                        See plan
-                      </button>
-                    </div>
                   </div>
+                  
+                  {/* Title */}
+                  <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: 'bold',
+                    color: 'white',
+                    lineHeight: '1.3'
+                  }}>
+                        {tour.title}
+                  </h3>
                 </div>
+                
+                {/* Bottom content - Button */}
+                <div>
+                  <button
+                    style={{
+                      backgroundColor: 'white',
+                      color: 'black',
+                      border: 'none',
+                      borderRadius: '8px',
+                      width: '60px',
+                      height: '22px',
+                      fontSize: '10px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
+                  >
+                    See plan
+                  </button>
+                </div>
+              </div>
+            </div>
               );
             })}
-          </div>
+        </div>
         )}
       </div>
     </div>
