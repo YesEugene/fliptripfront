@@ -209,6 +209,7 @@ export default function ItineraryPage() {
             daily_plan: loadedItinerary.daily_plan
           };
           setItinerary(displayItinerary);
+          setLoading(false); // CRITICAL: Stop loading after setting itinerary
         } else if (loadedItinerary.activities && loadedItinerary.activities.length > 0) {
           // Need to convert from backend format to display format
           console.log('🔄 Converting itinerary from backend format to display format');
@@ -241,9 +242,11 @@ export default function ItineraryPage() {
           };
           console.log('✅ Converted itinerary for display');
           setItinerary(convertedData);
+          setLoading(false); // CRITICAL: Stop loading after setting itinerary
         } else {
           console.log('⚠️ Itinerary format not recognized, using as is');
           setItinerary(loadedItinerary);
+          setLoading(false); // CRITICAL: Stop loading after setting itinerary
         }
         
         // Always set itineraryId state
