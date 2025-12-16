@@ -347,9 +347,10 @@ export default function ItineraryPage() {
           }
           
           // Set itinerary with preview flag - keep ALL blocks, slicing happens in render
+          // CRITICAL: Always set previewOnly flag based on previewOnly parameter
           const displayItinerary = {
             ...convertedData,
-            previewOnly: previewOnly,
+            previewOnly: previewOnly === true, // Explicitly set to boolean true/false
             itineraryId: savedItineraryId, // Include itineraryId in itinerary object
             // Keep FULL daily_plan - slicing happens in render logic based on previewOnly flag
             daily_plan: convertedData.daily_plan
@@ -360,6 +361,8 @@ export default function ItineraryPage() {
           if (savedItineraryId) {
             setItineraryId(savedItineraryId);
           }
+          
+          console.log('✅ Set itinerary with previewOnly:', displayItinerary.previewOnly, 'blocks:', displayItinerary.daily_plan[0]?.blocks?.length || 0);
           
           // Debug: Log state for email/button display
           console.log('🔍 Debug preview state:', {
