@@ -24,6 +24,7 @@ export default function AdminLocationsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingLocation, setEditingLocation] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     const currentUser = getCurrentUser();
@@ -55,10 +56,14 @@ export default function AdminLocationsPage() {
     }
 
     try {
+      setDeletingId(locationId);
       await deleteLocation(locationId);
-      loadLocations();
+      await loadLocations();
+      setDeletingId(null);
     } catch (err) {
-      alert('Error deleting location: ' + err.message);
+      console.error('Delete error:', err);
+      alert('Error deleting location: ' + (err.message || 'Unknown error'));
+      setDeletingId(null);
     }
   };
 
@@ -262,18 +267,25 @@ export default function AdminLocationsPage() {
                             Edit
                           </button>
                           <button
-                            onClick={() => handleDelete(location.id, location.name)}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDelete(location.id, location.name);
+                            }}
+                            disabled={deletingId === location.id}
                             style={{
                               padding: '6px 12px',
-                              backgroundColor: '#ef4444',
+                              backgroundColor: deletingId === location.id ? '#9ca3af' : '#ef4444',
                               color: 'white',
                               border: 'none',
                               borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '14px'
+                              cursor: deletingId === location.id ? 'not-allowed' : 'pointer',
+                              fontSize: '14px',
+                              opacity: deletingId === location.id ? 0.6 : 1,
+                              pointerEvents: deletingId === location.id ? 'none' : 'auto'
                             }}
                           >
-                            Delete
+                            {deletingId === location.id ? 'Deleting...' : 'Delete'}
                           </button>
                         </div>
                       </td>
