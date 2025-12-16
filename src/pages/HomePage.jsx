@@ -185,7 +185,8 @@ export default function HomePage() {
 
   // Assign random creator to each tour
   const getTourCreator = (tourId) => {
-    const index = parseInt(tourId.replace(/-/g, '').substring(0, 8), 16) % creators.length;
+    const tourIdWithoutDashes = tourId.replace(/\-/g, '');
+    const index = parseInt(tourIdWithoutDashes.substring(0, 8), 16) % creators.length;
     return creators[index];
   };
 
