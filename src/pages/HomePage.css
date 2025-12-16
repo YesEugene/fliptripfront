@@ -26,25 +26,28 @@ body {
   grid-auto-rows: minmax(200px, auto);
 }
 
-/* Vertical cards (story format) - take 2 rows */
+/* Vertical cards (story format) - take 2 rows, same width as horizontal */
 .vertical-card {
   grid-row: span 2;
   aspect-ratio: 9 / 16;
-  min-height: 400px;
+  min-height: 300px;
+  width: 100%;
 }
 
-/* Horizontal cards - take 1 row */
+/* Horizontal cards - take 1 row, same width as vertical */
 .horizontal-card {
   grid-row: span 1;
   aspect-ratio: 16 / 9;
-  min-height: 200px;
+  min-height: 150px;
+  width: 100%;
 }
 
-/* Red banner and personalized trip cards - always 2 rows */
+/* Red banner and personalized trip cards - always 2 rows, same width */
 .red-banner-card,
 .personalized-trip-card {
   grid-row: span 2;
-  min-height: 400px;
+  min-height: 300px;
+  width: 100%;
 }
 
 /* Tour card base styles */
