@@ -30,7 +30,7 @@ export default function CreateTourPage() {
   const [loadingInterests, setLoadingInterests] = useState(false);
   
   const [formData, setFormData] = useState({
-    country: '', // New: Country field
+    // country removed - not used
     city: '', // City field (moved up)
     title: '',
     description: '', // New: Tour description
@@ -459,32 +459,10 @@ export default function CreateTourPage() {
               Basic Information
             </h2>
 
-            {/* Country and City - At the top */}
+            {/* City - At the top */}
             <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
-              gap: '20px', 
               marginBottom: '20px' 
             }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                  Country *
-                </label>
-                <input
-                  type="text"
-                  value={formData.country}
-                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                  required
-                  placeholder="e.g., France, Italy, Spain"
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '8px',
-                    fontSize: '16px'
-                  }}
-                />
-              </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
                   City *
