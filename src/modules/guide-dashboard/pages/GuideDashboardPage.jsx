@@ -155,7 +155,7 @@ export default function GuideDashboardPage() {
                               {tour.title}
                             </h3>
                             <p style={{ color: '#6b7280', fontSize: '14px' }}>
-                              {tour.city} • {tour.duration.value} {tour.duration.type === 'hours' ? 'hours' : 'days'}
+                              {tour.city || 'No city'} • {tour.duration?.value || 0} {tour.duration?.type === 'hours' ? 'hours' : 'days'}
                             </p>
                           </div>
                           <div style={{ display: 'flex', gap: '8px', marginLeft: '12px' }}>
