@@ -1118,77 +1118,6 @@ export default function HomePage() {
         </>
       )}
 
-        onClick={() => {
-          // Navigate to itinerary page with filters
-          const params = new URLSearchParams();
-          params.append('city', formData.city);
-          params.append('audience', formData.audience);
-          if (selectedDates.length > 0) {
-            params.append('date_from', selectedDates[0]);
-            if (selectedDates.length > 1) {
-              params.append('date_to', selectedDates[selectedDates.length - 1]);
-            } else {
-              params.append('date_to', selectedDates[0]);
-            }
-          }
-          params.append('budget', formData.budget);
-          params.append('previewOnly', 'true');
-          formData.interest_ids.forEach(id => {
-            params.append('interest_ids', id);
-          });
-          navigate(`/itinerary?${params.toString()}`);
-        }}
-        >
-          <img
-            src={personalizedTripPreview.image}
-            alt={personalizedTripPreview.title}
-            style={{
-              width: '100%',
-              height: '200px',
-              objectFit: 'cover'
-            }}
-          />
-          <div style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
-            padding: '20px',
-            color: 'white'
-          }}>
-            <h3 style={{
-              fontSize: '20px',
-              fontWeight: 'bold',
-              marginBottom: '5px',
-              color: 'white'
-            }}>
-              {personalizedTripPreview.title}
-            </h3>
-            <p style={{
-              fontSize: '14px',
-              opacity: 0.9,
-              marginBottom: '15px',
-              color: 'white'
-            }}>
-              {personalizedTripPreview.subtitle}
-            </p>
-            <button style={{
-              backgroundColor: '#FFD700',
-              color: '#1f2937',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '10px 20px',
-              fontSize: '14px',
-              fontWeight: 'bold',
-              cursor: 'pointer'
-            }}>
-              YOUR PERSONAL TRIP
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* White Section with Tours from Database */}
       <div style={{ 
         backgroundColor: 'white', 
@@ -1385,25 +1314,25 @@ export default function HomePage() {
                     position: 'relative',
                     gridColumn: 'span 1',
                     gridRow: isVertical ? 'span 2' : 'span 1'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                  onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              }}
+              onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                   onClick={() => handleTourClick(tour)}
-                >
+            >
                   {/* Background Image/Video */}
-                  <img
+              <img
                     src={previewImage}
                     alt={tour.title}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      zIndex: 1
-                    }}
-                  />
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  zIndex: 1
+                }}
+              />
                   
                   {/* Video Play Button Overlay */}
                   {isVideo && (
@@ -1432,40 +1361,40 @@ export default function HomePage() {
                       }} />
                     </div>
                   )}
-                  
-                  {/* Dark overlay for text readability */}
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
+              
+              {/* Dark overlay for text readability */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))',
+                zIndex: 2
+              }} />
+              
+              {/* Content */}
+              <div style={{
+                position: 'absolute',
                     bottom: 0,
-                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))',
-                    zIndex: 2
-                  }} />
-                  
-                  {/* Content */}
-                  <div style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    zIndex: 3,
-                    padding: '20px',
-                    display: 'flex',
-                    flexDirection: 'column',
+                left: 0,
+                right: 0,
+                zIndex: 3,
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
                     justifyContent: 'flex-end'
                   }}>
-                    {/* Title */}
-                    <h3 style={{
+                  {/* Title */}
+                  <h3 style={{
                       fontSize: isVertical ? '18px' : '16px',
-                      fontWeight: 'bold',
-                      color: 'white',
+                    fontWeight: 'bold',
+                    color: 'white',
                       lineHeight: '1.3',
                       marginBottom: '8px'
-                    }}>
+                  }}>
                       {tour.title}
-                    </h3>
+                  </h3>
                     
                     {/* Creator */}
                     <div style={{
@@ -1474,9 +1403,9 @@ export default function HomePage() {
                       fontWeight: '500'
                     }}>
                       by {creator.name}
-                    </div>
-                  </div>
                 </div>
+              </div>
+            </div>
               );
             })}
         </div>
