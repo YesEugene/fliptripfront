@@ -39,8 +39,9 @@ body {
 .horizontal-card {
   grid-column: span 1;
   grid-row: span 1;
-  aspect-ratio: 16 / 9;
   width: 100%;
+  height: 100%; /* Use grid row height instead of aspect-ratio */
+  min-height: 0; /* Allow grid to control height */
 }
 
 /* Red banner and personalized trip cards - 2 columns wide, 2 rows high */
