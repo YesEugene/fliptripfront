@@ -263,16 +263,21 @@ export default function ItineraryPage() {
       
       try {
         // ОСНОВНАЯ система с реальными местами
-        console.log('🚀 Calling generateSmartItinerary with formData:', {
+        // Prepare API data with all necessary parameters
+        const apiData = {
           city: formData.city,
           audience: formData.audience,
-          interest_ids: formData.interest_ids,
-          interests: formData.interests,
+          interest_ids: formData.interest_ids, // Array of IDs for DB filtering
+          interests: formData.interests, // Legacy support (names)
           date: formData.date,
+          date_from: searchParams.get('date_from') || formData.date,
+          date_to: searchParams.get('date_to') || formData.date,
           budget: formData.budget,
-          previewOnly: formData.previewOnly
-        });
-        const data = await generateSmartItinerary(formData);
+          previewOnly: formData.previewOnly === true // Explicit boolean
+        };
+        
+        console.log('🚀 Calling generateSmartItinerary with apiData:', apiData);
+        const data = await generateSmartItinerary(apiData);
         console.log('✅ Received smart itinerary data:', data);
         console.log('📊 Activities count:', data.activities?.length);
         
