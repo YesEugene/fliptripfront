@@ -345,25 +345,30 @@ export default function ItineraryPage() {
             }
           }
           
-          // Set itinerary with preview flag - show only 2 blocks for preview
+          // Set itinerary with preview flag - keep ALL blocks, slicing happens in render
           const displayItinerary = {
             ...convertedData,
             previewOnly: previewOnly,
-            // For preview, limit daily_plan to 2 blocks
-            daily_plan: previewOnly ? [{
-              ...convertedData.daily_plan[0],
-              blocks: convertedData.daily_plan[0]?.blocks?.slice(0, 2) || []
-            }] : convertedData.daily_plan
+            itineraryId: savedItineraryId, // Include itineraryId in itinerary object
+            // Keep FULL daily_plan - slicing happens in render logic based on previewOnly flag
+            daily_plan: convertedData.daily_plan
           };
           setItinerary(displayItinerary);
+          
+          // Set itineraryId state if we have it
+          if (savedItineraryId) {
+            setItineraryId(savedItineraryId);
+          }
           
           // Debug: Log state for email/button display
           console.log('🔍 Debug preview state:', {
             previewOnly,
             itineraryPreviewOnly: displayItinerary.previewOnly,
             itineraryId: savedItineraryId,
-            hasEmailButton: previewOnly && savedItineraryId,
-            blocksCount: displayItinerary.daily_plan[0]?.blocks?.length || 0
+            itineraryItineraryId: displayItinerary.itineraryId,
+            hasEmailButton: (previewOnly && savedItineraryId) || (previewOnly && displayItinerary),
+            blocksCount: displayItinerary.daily_plan[0]?.blocks?.length || 0,
+            totalBlocksInData: convertedData.daily_plan[0]?.blocks?.length || 0
           });
           
           return;
