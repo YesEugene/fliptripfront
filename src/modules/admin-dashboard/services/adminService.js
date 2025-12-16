@@ -169,6 +169,9 @@ export async function updateLocation(locationId, locationData) {
 export async function deleteLocation(locationId) {
   try {
     const token = getAuthToken();
+    console.log('📡 DELETE request to:', `${API_BASE_URL}/api/admin-locations?id=${locationId}`);
+    console.log('📡 Token:', token ? 'Present' : 'Missing');
+    
     const response = await fetch(`${API_BASE_URL}/api/admin-locations?id=${locationId}`, {
       method: 'DELETE',
       headers: {
@@ -177,14 +180,19 @@ export async function deleteLocation(locationId) {
       }
     });
 
+    console.log('📡 Response status:', response.status);
+    console.log('📡 Response ok:', response.ok);
+
     const data = await response.json();
+    console.log('📡 Response data:', data);
+
     if (!response.ok || !data.success) {
-      throw new Error(data.message || 'Error deleting location');
+      throw new Error(data.message || data.error || 'Error deleting location');
     }
 
     return data;
   } catch (error) {
-    console.error('Delete location error:', error);
+    console.error('❌ Delete location error:', error);
     throw error;
   }
 }

@@ -62,15 +62,27 @@ export default function AdminLocationsPage() {
     
     try {
       setDeletingId(locationId);
-      console.log('📡 Calling deleteLocation API...');
-      await deleteLocation(locationId);
-      console.log('✅ Location deleted, reloading list...');
+      console.log('📡 Calling deleteLocation API for:', locationId);
+      
+      const result = await deleteLocation(locationId);
+      console.log('✅ Delete API response:', result);
+      
+      console.log('🔄 Reloading locations list...');
       await loadLocations();
+      
       setDeletingId(null);
       console.log('✅ Delete completed successfully');
+      
+      // Show success message
+      alert(`Location "${locationName}" deleted successfully`);
     } catch (err) {
       console.error('❌ Delete error:', err);
-      alert('Error deleting location: ' + (err.message || 'Unknown error'));
+      console.error('❌ Error details:', {
+        message: err.message,
+        stack: err.stack,
+        name: err.name
+      });
+      alert('Error deleting location: ' + (err.message || 'Unknown error. Check console for details.'));
       setDeletingId(null);
     }
   };
