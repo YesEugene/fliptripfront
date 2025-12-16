@@ -48,25 +48,34 @@ export default function SuccessPage() {
         // Wait a bit to ensure Redis has saved the data
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Verify the itinerary is unlocked in Redis
+        // Verify the itinerary is unlocked in Redis (optional - don't fail if this fails)
         console.log('🔍 Verifying itinerary is unlocked in Redis...');
-        let verificationAttempts = 0;
-        let verified = false;
-        while (verificationAttempts < 3 && !verified) {
-          const verifyData = await getItinerary(itineraryId);
-          if (verifyData && verifyData.success && verifyData.itinerary) {
-            const blocksCount = verifyData.itinerary.daily_plan?.[0]?.blocks?.length || 0;
-            const isUnlocked = verifyData.itinerary.previewOnly === false;
-            console.log(`🔍 Verification attempt ${verificationAttempts + 1}: ${blocksCount} blocks, unlocked: ${isUnlocked}`);
-            if (isUnlocked && blocksCount > 2) {
-              verified = true;
-              console.log('✅ Itinerary verified as unlocked in Redis');
+        try {
+          let verificationAttempts = 0;
+          let verified = false;
+          while (verificationAttempts < 3 && !verified) {
+            try {
+              const verifyData = await getItinerary(itineraryId);
+              if (verifyData && verifyData.success && verifyData.itinerary) {
+                const blocksCount = verifyData.itinerary.daily_plan?.[0]?.blocks?.length || 0;
+                const isUnlocked = verifyData.itinerary.previewOnly === false;
+                console.log(`🔍 Verification attempt ${verificationAttempts + 1}: ${blocksCount} blocks, unlocked: ${isUnlocked}`);
+                if (isUnlocked && blocksCount > 2) {
+                  verified = true;
+                  console.log('✅ Itinerary verified as unlocked in Redis');
+                }
+              }
+            } catch (verifyError) {
+              console.warn('⚠️ Verification attempt failed (non-critical):', verifyError.message);
+            }
+            if (!verified) {
+              verificationAttempts++;
+              await new Promise(resolve => setTimeout(resolve, 500));
             }
           }
-          if (!verified) {
-            verificationAttempts++;
-            await new Promise(resolve => setTimeout(resolve, 500));
-          }
+        } catch (verifyError) {
+          console.warn('⚠️ Verification failed (non-critical, continuing anyway):', verifyError.message);
+          // Don't fail the whole process if verification fails
         }
         
         // Step 2: Send the email with the full itinerary
