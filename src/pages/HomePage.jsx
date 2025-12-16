@@ -185,7 +185,7 @@ export default function HomePage() {
 
   // Assign random creator to each tour
   const getTourCreator = (tourId) => {
-    const tourIdWithoutDashes = tourId.replace(/\-/g, '');
+    const tourIdWithoutDashes = tourId.split('-').join('');
     const index = parseInt(tourIdWithoutDashes.substring(0, 8), 16) % creators.length;
     return creators[index];
   };
@@ -1368,7 +1368,7 @@ export default function HomePage() {
               const previewImage = tour.preview_media_url || creator.avatar || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&q=80';
               
               // Deterministically decide if it's a video (30% chance based on tour ID)
-              const tourIdWithoutDashes = tour.id.replace(/\-/g, '');
+              const tourIdWithoutDashes = tour.id.split('-').join('');
               const tourIdHash = parseInt(tourIdWithoutDashes.substring(0, 8), 16);
               const isVideo = (tourIdHash % 10) < 3; // 30% chance
               
