@@ -1288,13 +1288,13 @@ export default function HomePage() {
             {filtersApplied && personalizedTripPreview && (
               <div
                 className="personalized-trip-card"
-                style={{
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
-                  cursor: 'pointer',
-                  transition: 'transform 0.2s ease',
-                  position: 'relative',
+              style={{
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+                cursor: 'pointer',
+                transition: 'transform 0.2s ease',
+                position: 'relative',
                   gridColumn: 'span 1',
                   gridRow: 'span 2',
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -1360,13 +1360,15 @@ export default function HomePage() {
               const creator = getTourCreator(tour.id);
               // Determine card size: mix of vertical (story format) and horizontal
               // Vertical cards are 1x2, horizontal are 2x1 (half height of vertical)
-              const isVertical = index % 3 !== 1; // Every 3rd card (index 1, 4, 7...) is horizontal
+              // Pattern: vertical, horizontal, vertical, vertical, horizontal, vertical, etc.
+              const isVertical = (index % 4) !== 1 && (index % 4) !== 2; // Cards at index 1, 2, 5, 6, 9, 10... are horizontal
               
               // Get preview image - use creator avatar or tour preview
               const previewImage = tour.preview_media_url || creator.avatar || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&q=80';
               
-              // Randomly decide if it's a video (30% chance)
-              const isVideo = Math.random() < 0.3;
+              // Deterministically decide if it's a video (30% chance based on tour ID)
+              const tourIdHash = parseInt(tour.id.replace(/-/g, '').substring(0, 8), 16);
+              const isVideo = (tourIdHash % 10) < 3; // 30% chance
               
               return (
                 <div
@@ -1381,25 +1383,25 @@ export default function HomePage() {
                     position: 'relative',
                     gridColumn: 'span 1',
                     gridRow: isVertical ? 'span 2' : 'span 1'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                  onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              }}
+              onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                   onClick={() => handleTourClick(tour)}
-                >
+            >
                   {/* Background Image/Video */}
-                  <img
+              <img
                     src={previewImage}
                     alt={tour.title}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      zIndex: 1
-                    }}
-                  />
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  zIndex: 1
+                }}
+              />
                   
                   {/* Video Play Button Overlay */}
                   {isVideo && (
@@ -1428,40 +1430,40 @@ export default function HomePage() {
                       }} />
                     </div>
                   )}
-                  
-                  {/* Dark overlay for text readability */}
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
+              
+              {/* Dark overlay for text readability */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))',
+                zIndex: 2
+              }} />
+              
+              {/* Content */}
+              <div style={{
+                position: 'absolute',
                     bottom: 0,
-                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))',
-                    zIndex: 2
-                  }} />
-                  
-                  {/* Content */}
-                  <div style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    zIndex: 3,
-                    padding: '20px',
-                    display: 'flex',
-                    flexDirection: 'column',
+                left: 0,
+                right: 0,
+                zIndex: 3,
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
                     justifyContent: 'flex-end'
                   }}>
-                    {/* Title */}
-                    <h3 style={{
+                  {/* Title */}
+                  <h3 style={{
                       fontSize: isVertical ? '18px' : '16px',
-                      fontWeight: 'bold',
-                      color: 'white',
+                    fontWeight: 'bold',
+                    color: 'white',
                       lineHeight: '1.3',
                       marginBottom: '8px'
-                    }}>
+                  }}>
                       {tour.title}
-                    </h3>
+                  </h3>
                     
                     {/* Creator */}
                     <div style={{
@@ -1470,9 +1472,9 @@ export default function HomePage() {
                       fontWeight: '500'
                     }}>
                       by {creator.name}
-                    </div>
-                  </div>
                 </div>
+              </div>
+            </div>
               );
             })}
         </div>
