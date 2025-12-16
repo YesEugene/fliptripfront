@@ -14,6 +14,7 @@ export default function ItineraryPage() {
   const [itinerary, setItinerary] = useState(null);
   const [email, setEmail] = useState('');
   const [itineraryId, setItineraryId] = useState(null);
+  const [interestNames, setInterestNames] = useState([]); // Имена интересов для отображения
 
   // Генерация fallback заголовков согласно промптам
   const generateFallbackTitle = (formData) => {
@@ -708,7 +709,14 @@ export default function ItineraryPage() {
             <span className="badge-enhanced" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>
               Budget: {itinerary?.meta?.total_estimated_cost || `${formData.budget}€`}
             </span>
-            {formData.interests && formData.interests.map((interest, index) => (
+            {/* Display interest names from interest_ids */}
+            {interestNames.length > 0 && interestNames.map((interestName, index) => (
+              <span key={index} className="badge-enhanced" style={{ backgroundColor: '#fde7e7', color: '#b91c1c' }}>
+                🎯 {interestName}
+              </span>
+            ))}
+            {/* Fallback to legacy interests if no names loaded */}
+            {interestNames.length === 0 && formData.interests && formData.interests.length > 0 && formData.interests.map((interest, index) => (
               <span key={index} className="badge-enhanced" style={{ backgroundColor: '#fde7e7', color: '#b91c1c' }}>
                 🎯 {interest}
               </span>
