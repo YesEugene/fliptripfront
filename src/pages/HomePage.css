@@ -18,11 +18,11 @@ body {
   gap: 15px !important;
 }
 
-/* Masonry grid for mixed-size tour cards */
+/* Masonry grid for mixed-size tour cards - 3 columns */
 .masonry-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
   grid-auto-rows: minmax(200px, auto);
 }
 

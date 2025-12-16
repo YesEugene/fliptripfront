@@ -171,16 +171,32 @@ export default function HomePage() {
     }
   }, [formData.date_from, formData.date_to]);
 
-  // Fictional creators for tours
+  // Fictional creators for tours with traveler/blogger photos
   const creators = [
-    { name: 'Michael Balinni', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&q=80' },
-    { name: 'Emma Tui', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&q=80' },
-    { name: 'George Cloonie', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&q=80' },
-    { name: 'Sophie Laurent', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&q=80' },
-    { name: 'Marco Rossi', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&q=80' },
-    { name: 'Luna Martinez', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&q=80' },
-    { name: 'Alex Thompson', avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&q=80' },
-    { name: 'Isabella Chen', avatar: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=400&fit=crop&q=80' }
+    { name: 'Michael Balinni', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop&q=80' },
+    { name: 'Emma Tui', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=600&fit=crop&q=80' },
+    { name: 'George Cloonie', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=600&fit=crop&q=80' },
+    { name: 'Sophie Laurent', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=600&fit=crop&q=80' },
+    { name: 'Marco Rossi', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=600&fit=crop&q=80' },
+    { name: 'Luna Martinez', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=600&fit=crop&q=80' },
+    { name: 'Alex Thompson', avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=600&fit=crop&q=80' },
+    { name: 'Isabella Chen', avatar: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=600&fit=crop&q=80' }
+  ];
+  
+  // Additional traveler/blogger photos for tour previews
+  const travelerPhotos = [
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop&q=80', // Man smiling
+    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=600&fit=crop&q=80', // Woman smiling
+    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=600&fit=crop&q=80', // Man with hat
+    'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=600&fit=crop&q=80', // Woman with hair
+    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=600&fit=crop&q=80', // Man portrait
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=600&fit=crop&q=80', // Woman portrait
+    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=600&fit=crop&q=80', // Man casual
+    'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=600&fit=crop&q=80', // Woman casual
+    'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400&h=600&fit=crop&q=80', // Woman traveler
+    'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=600&fit=crop&q=80', // Man traveler
+    'https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=400&h=600&fit=crop&q=80', // Woman blogger
+    'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=400&h=600&fit=crop&q=80'  // Man blogger
   ];
 
   // Assign random creator to each tour
@@ -1293,8 +1309,9 @@ export default function HomePage() {
               // Pattern: vertical, horizontal, vertical, vertical, horizontal, vertical, etc.
               const isVertical = (index % 4) !== 1 && (index % 4) !== 2; // Cards at index 1, 2, 5, 6, 9, 10... are horizontal
               
-              // Get preview image - use creator avatar or tour preview
-              const previewImage = tour.preview_media_url || creator.avatar || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&q=80';
+              // Get preview image - use traveler/blogger photo (deterministic based on tour ID)
+              const photoIndex = parseInt(tour.id.split('-').join('').substring(0, 8), 16) % travelerPhotos.length;
+              const previewImage = travelerPhotos[photoIndex];
               
               // Deterministically decide if it's a video (30% chance based on tour ID)
               const tourIdWithoutDashes = tour.id.split('-').join('');
