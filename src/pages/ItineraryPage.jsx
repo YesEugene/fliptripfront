@@ -261,10 +261,18 @@ export default function ItineraryPage() {
       }
     } catch (error) {
       console.error('❌ Error loading itinerary from Redis:', error);
-      // If error, generate new
-      generateItineraryData();
+      // If error and we expect full plan, show error instead of regenerating
+      if (isFullPlan) {
+        setError('Failed to load itinerary. Please contact support.');
+        setLoading(false);
+      } else {
+        // If not full plan, generate new (user came from homepage)
+        generateItineraryData();
+      }
     } finally {
-      setLoading(false);
+      if (!isFullPlan || itinerary) {
+        setLoading(false);
+      }
     }
   };
 
