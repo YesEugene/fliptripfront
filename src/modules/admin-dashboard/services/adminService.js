@@ -371,6 +371,59 @@ export async function deleteUser(userId) {
 }
 
 /**
+ * Get tour by ID (for editing)
+ */
+export async function getTourById(tourId) {
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/api/admin-tours?id=${tourId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Error fetching tour');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Get tour by ID error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update tour
+ */
+export async function updateTour(tourId, tourData) {
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/api/admin-tours?id=${tourId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(tourData)
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Error updating tour');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Update tour error:', error);
+    throw error;
+  }
+}
+
+/**
  * Export data to CSV
  */
 export function exportToCSV(data, filename) {
