@@ -294,13 +294,15 @@ export default function ItineraryPage() {
         });
         
         // CRITICAL: If we expect full plan but loaded previewOnly=true, reload full tour from DB
-        if (isFullPlan && loadedItinerary.previewOnly === true && loadedItinerary.tourId) {
+        // Use tourId from URL if available, otherwise from loaded itinerary
+        const tourIdToReload = tourId || loadedItinerary.tourId;
+        if (isFullPlan && loadedItinerary.previewOnly === true && tourIdToReload) {
           console.warn('⚠️ Expected full plan but loaded previewOnly=true with tourId');
-          console.log('🔄 Reloading full tour from database...');
+          console.log('🔄 Reloading full tour from database...', { tourIdFromURL: tourId, tourIdFromRedis: loadedItinerary.tourId, usingTourId: tourIdToReload });
           
           // Reload full tour from database
           try {
-            const tourResponse = await getTourById(loadedItinerary.tourId);
+            const tourResponse = await getTourById(tourIdToReload);
             if (tourResponse.success && tourResponse.tour) {
               const tour = tourResponse.tour;
               const cityName = typeof tour.city === 'string' ? tour.city : tour.city?.name || tour.city_id || 'Barcelona';
