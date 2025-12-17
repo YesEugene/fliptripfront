@@ -171,8 +171,8 @@ export default function HomePage() {
     }
   }, [formData.date_from, formData.date_to]);
 
-  // Fictional creators for tours with traveler/blogger photos
-  const creators = [
+  // Fallback creators for tours without guide info
+  const fallbackCreators = [
     { name: 'Michael Balinni', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop&q=80' },
     { name: 'Emma Tui', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=600&fit=crop&q=80' },
     { name: 'George Cloonie', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=600&fit=crop&q=80' },
@@ -183,7 +183,7 @@ export default function HomePage() {
     { name: 'Isabella Chen', avatar: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=600&fit=crop&q=80' }
   ];
   
-  // Additional traveler/blogger photos for tour previews
+  // Additional traveler/blogger photos for tour previews (fallback if no guide avatar)
   const travelerPhotos = [
     'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop&q=80', // Man smiling
     'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=600&fit=crop&q=80', // Woman smiling
@@ -199,11 +199,19 @@ export default function HomePage() {
     'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=400&h=600&fit=crop&q=80'  // Man blogger
   ];
 
-  // Assign random creator to each tour
-  const getTourCreator = (tourId) => {
-    const tourIdWithoutDashes = tourId.split('-').join('');
-    const index = parseInt(tourIdWithoutDashes.substring(0, 8), 16) % creators.length;
-    return creators[index];
+  // Get creator info from tour (use real guide data if available, otherwise fallback)
+  const getTourCreator = (tour) => {
+    // Use real guide data if available
+    if (tour.guide && tour.guide.name) {
+      return {
+        name: tour.guide.name,
+        avatar: tour.guide.avatar_url || null
+      };
+    }
+    // Fallback to random creator
+    const tourIdWithoutDashes = tour.id.split('-').join('');
+    const index = parseInt(tourIdWithoutDashes.substring(0, 8), 16) % fallbackCreators.length;
+    return fallbackCreators[index];
   };
 
   // Load tours from database - filter by city and interests
@@ -1300,16 +1308,18 @@ export default function HomePage() {
             
             {/* Tour Cards */}
             {tours.map((tour, index) => {
-              const creator = getTourCreator(tour.id);
+              const creator = getTourCreator(tour);
               // Determine card size: mix of vertical (story format) and horizontal
               // First 2 tours after red banner are always horizontal (to fill the space next to red banner)
               // Then we alternate: vertical, horizontal, vertical, etc.
               // Red banner takes 2 columns x 2 rows, so first 2 tours should be horizontal (1 column x 1 row each)
               const isVertical = index >= 2 && (index % 3) !== 2; // First 2 are horizontal, then pattern: vertical, vertical, horizontal
               
-              // Get preview image - use traveler/blogger photo (deterministic based on tour ID)
-              const photoIndex = parseInt(tour.id.split('-').join('').substring(0, 8), 16) % travelerPhotos.length;
-              const previewImage = travelerPhotos[photoIndex];
+              // Get preview image - use guide avatar if available, otherwise fallback to traveler photo
+              const previewImage = creator.avatar || (() => {
+                const photoIndex = parseInt(tour.id.split('-').join('').substring(0, 8), 16) % travelerPhotos.length;
+                return travelerPhotos[photoIndex];
+              })();
               
               // Deterministically decide if it's a video (30% chance based on tour ID)
               const tourIdWithoutDashes = tour.id.split('-').join('');
