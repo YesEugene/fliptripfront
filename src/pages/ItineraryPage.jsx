@@ -284,10 +284,87 @@ export default function ItineraryPage() {
           timeSlotsCount: loadedItinerary.conceptual_plan?.timeSlots?.length || 0
         });
         
-        // CRITICAL: If we expect full plan but loaded previewOnly=true, log warning
-        if (isFullPlan && loadedItinerary.previewOnly === true) {
-          console.warn('⚠️ WARNING: Expected full plan (isFullPlan=true) but loaded previewOnly=true!');
-          console.warn('⚠️ This means unlock-itinerary may not have worked correctly');
+        // CRITICAL: If we expect full plan but loaded previewOnly=true, reload full tour from DB
+        if (isFullPlan && loadedItinerary.previewOnly === true && loadedItinerary.tourId) {
+          console.warn('⚠️ Expected full plan but loaded previewOnly=true with tourId');
+          console.log('🔄 Reloading full tour from database...');
+          
+          // Reload full tour from database
+          try {
+            const tourResponse = await getTourById(loadedItinerary.tourId);
+            if (tourResponse.success && tourResponse.tour) {
+              const tour = tourResponse.tour;
+              const cityName = typeof tour.city === 'string' ? tour.city : tour.city?.name || tour.city_id || 'Barcelona';
+              const date = loadedItinerary.date || formData.date || new Date().toISOString().slice(0, 10);
+              
+              // Build ALL blocks from tour
+              const allBlocks = [];
+              if (tour.tour_days && Array.isArray(tour.tour_days)) {
+                for (const day of tour.tour_days) {
+                  if (day.tour_blocks && Array.isArray(day.tour_blocks)) {
+                    for (const block of day.tour_blocks) {
+                      const items = [];
+                      if (block.tour_items && Array.isArray(block.tour_items)) {
+                        for (const item of block.tour_items) {
+                          const location = item.location;
+                          if (location) {
+                            items.push({
+                              title: item.custom_title || location.name,
+                              description: item.custom_description || location.description || '',
+                              why: item.custom_description || location.description || '',
+                              category: location.category || 'attraction',
+                              location: location.name,
+                              address: location.address || '',
+                              photos: location.photos ? (Array.isArray(location.photos) ? location.photos.map(p => ({
+                                url: p.url || p,
+                                thumbnail: p.url || p,
+                                source: 'database'
+                              })) : []) : [],
+                              tips: item.custom_recommendations || location.recommendations || '',
+                              approx_cost: item.approx_cost ? `€${item.approx_cost}` : 'Free',
+                              rating: 4.5
+                            });
+                          }
+                        }
+                      }
+                      
+                      if (items.length > 0) {
+                        allBlocks.push({
+                          time: block.start_time && block.end_time 
+                            ? `${block.start_time} - ${block.end_time}`
+                            : block.title || 'TBD',
+                          items: items
+                        });
+                      }
+                    }
+                  }
+                }
+              }
+              
+              // Create full itinerary with all blocks
+              const fullItinerary = {
+                ...loadedItinerary,
+                title: tour.title,
+                subtitle: tour.description || `Explore ${cityName} with this curated tour`,
+                previewOnly: false, // Full plan unlocked
+                daily_plan: [{
+                  date: date,
+                  blocks: allBlocks // ALL blocks
+                }]
+              };
+              
+              // Update in Redis
+              await saveItinerary(fullItinerary, itineraryId);
+              
+              setItinerary(fullItinerary);
+              setLoading(false);
+              console.log('✅ Full tour loaded from database with all blocks');
+              return;
+            }
+          } catch (tourError) {
+            console.error('❌ Error reloading tour from DB:', tourError);
+            // Fall through to use Redis data
+          }
         }
         
         // Check if it's already in the converted format (has daily_plan)
