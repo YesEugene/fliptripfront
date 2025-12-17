@@ -156,16 +156,13 @@ export default function ItineraryPage() {
       const date = formData.date || new Date().toISOString().slice(0, 10);
       
       // Build daily_plan from tour structure (tour_days → tour_blocks → tour_items)
+      // IMPORTANT: Save ALL blocks to Redis, not just 2. Preview display will show only 2.
       const blocks = [];
-      let blockCount = 0;
-      const maxPreviewBlocks = 2; // Show only first 2 blocks in preview
       
       if (tour.tour_days && Array.isArray(tour.tour_days)) {
         for (const day of tour.tour_days) {
           if (day.tour_blocks && Array.isArray(day.tour_blocks)) {
             for (const block of day.tour_blocks) {
-              if (blockCount >= maxPreviewBlocks) break;
-              
               const items = [];
               if (block.tour_items && Array.isArray(block.tour_items)) {
                 for (const item of block.tour_items) {
@@ -198,7 +195,6 @@ export default function ItineraryPage() {
                     : block.title || 'TBD',
                   items: items
                 });
-                blockCount++;
               }
             }
           }
@@ -206,15 +202,16 @@ export default function ItineraryPage() {
       }
       
       // Build preview itinerary from tour data
+      // Save ALL blocks to Redis, previewOnly flag controls display
       const previewItinerary = {
         title: tour.title,
         subtitle: tour.description || `Explore ${cityName} with this curated tour`,
         date: date,
         budget: tour.price_pdf ? tour.price_pdf.toString() : '500',
-        previewOnly: true,
+        previewOnly: true, // Flag for display, but all blocks are saved
         daily_plan: [{
           date: date,
-          blocks: blocks
+          blocks: blocks // ALL blocks saved, not just 2
         }],
         tourId: tourIdParam
       };
