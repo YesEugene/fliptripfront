@@ -357,15 +357,15 @@
   box-shadow: none;
 }
 
-/* Improved time block styles - increased by 20% from original */
+/* Improved time block styles - reduced by 50% */
 .time-block-enhanced {
-  font-size: 24px; /* 20px * 1.2 = 24px (20% increase) */
+  font-size: 12px; /* 24px / 2 = 12px (50% reduction) */
   font-weight: bold;
   margin-bottom: 16px;
   background-color: #3b82f6;
   color: white;
-  padding: 10px 19px; /* 8px*1.2=9.6px≈10px, 16px*1.2=19.2px≈19px (20% increase) */
-  border-radius: 24px; /* 20px * 1.2 = 24px (20% increase) */
+  padding: 5px 10px; /* 10px/2=5px, 19px/2=9.5px≈10px (50% reduction) */
+  border-radius: 12px; /* 24px / 2 = 12px (50% reduction) */
   display: inline-block;
   transition: background-color 0.2s ease;
 }
