@@ -1460,6 +1460,56 @@ export default function HomePage() {
                 </button>
               </div>
             )}
+            
+            {/* Interest Tags - Show each selected interest */}
+            {formData.interest_ids && formData.interest_ids.length > 0 && formData.interest_ids.map(interestId => {
+              const interest = allInterests.find(i => i.id === interestId);
+              if (!interest) return null;
+              
+              const category = interestsStructure?.find(c => c.id === interest.category_id);
+              const interestName = INTEREST_NAMES[interest.name] || interest.name;
+              
+              return (
+                <div
+                  key={interestId}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 12px',
+                    backgroundColor: '#e0e7ff',
+                    borderRadius: '20px',
+                    fontSize: '14px',
+                    color: '#3730a3',
+                    fontWeight: '500'
+                  }}
+                >
+                  {category?.icon && <span>{category.icon}</span>}
+                  <span>{interestName}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleInterestToggle(interestId)}
+                    style={{
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      color: '#3730a3',
+                      cursor: 'pointer',
+                      padding: '0',
+                      marginLeft: '4px',
+                      fontSize: '16px',
+                      lineHeight: '1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '18px',
+                      height: '18px'
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
         
