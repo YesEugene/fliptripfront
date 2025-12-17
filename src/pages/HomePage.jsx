@@ -745,6 +745,90 @@ export default function HomePage() {
             </div>
             
             <form onSubmit={handleShowResults}>
+            {/* City Selection - First field in filter form */}
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>
+                City
+              </label>
+              <div style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  style={{
+                    backgroundColor: 'white',
+                    border: `2px solid ${errors.city ? '#ef4444' : formData.city ? '#3E85FC' : '#e5e7eb'}`,
+                    borderRadius: '12px',
+                    padding: '12px 20px',
+                    fontSize: '16px',
+                    color: formData.city ? '#374151' : '#6b7280',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    width: '100%',
+                    boxShadow: formData.city ? '0 0 0 3px rgba(62, 133, 252, 0.1)' : 'none',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <span>{formData.city || 'Select a city'}</span>
+                  <span style={{ fontSize: '12px', marginLeft: 'auto' }}>▼</span>
+                </button>
+                
+                {isDropdownOpen && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    backgroundColor: 'white',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    zIndex: 1001,
+                    marginTop: '4px',
+                    maxHeight: '320px',
+                    overflowY: 'auto'
+                  }}>
+                    {TOP_CITIES.map((city) => (
+                      <button
+                        key={city}
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, city }));
+                          setIsDropdownOpen(false);
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '12px 16px',
+                          border: 'none',
+                          backgroundColor: formData.city === city ? '#eff6ff' : 'transparent',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          borderRadius: '0',
+                          transition: 'background-color 0.2s',
+                          fontSize: '14px',
+                          color: formData.city === city ? '#3E85FC' : '#374151',
+                          fontWeight: formData.city === city ? '600' : '400'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (formData.city !== city) {
+                            e.target.style.backgroundColor = '#f3f4f6';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (formData.city !== city) {
+                            e.target.style.backgroundColor = 'transparent';
+                          }
+                        }}
+                      >
+                        {city}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {errors.city && <p style={{ color: '#ef4444', fontSize: '14px', marginTop: '8px' }}>{errors.city}</p>}
+            </div>
+
             <div style={{ marginBottom: '24px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>
                 Who's it for?
