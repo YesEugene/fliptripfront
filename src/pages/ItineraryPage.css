@@ -357,15 +357,15 @@
   box-shadow: none;
 }
 
-/* Improved time block styles - reduced by 50% */
+/* Improved time block styles - increased padding by 5px on all sides */
 .time-block-enhanced {
-  font-size: 12px; /* 24px / 2 = 12px (50% reduction) */
+  font-size: 12px;
   font-weight: bold;
   margin-bottom: 16px;
   background-color: #3b82f6;
   color: white;
-  padding: 5px 10px; /* 10px/2=5px, 19px/2=9.5px≈10px (50% reduction) */
-  border-radius: 12px; /* 24px / 2 = 12px (50% reduction) */
+  padding: 15px 20px; /* 10px+5px=15px, 15px+5px=20px (increased by 5px on all sides) */
+  border-radius: 12px;
   display: inline-block;
   transition: background-color 0.2s ease;
 }
@@ -374,19 +374,28 @@
   background-color: #2563eb;
 }
 
-/* Enhanced item styles */
+/* Enhanced item styles - removed gray background, aligned with time block */
 .item-enhanced {
-  background-color: #f9fafb;
-  border-radius: 12px;
-  padding: 20px;
+  background-color: transparent; /* Removed gray background */
+  border-radius: 0; /* Removed border radius */
+  padding: 0; /* Removed padding - text will align with time block */
   margin-bottom: 16px;
-  transition: background-color 0.2s ease;
-  border: 1px solid transparent;
+  margin-left: 0; /* Ensure no left margin */
+  transition: none;
+  border: none; /* Removed border */
+  text-align: left; /* Align text to left, same as time block */
 }
 
 .item-enhanced:hover {
-  background-color: #f3f4f6;
-  border-color: #e5e7eb;
+  background-color: transparent; /* No hover effect */
+  border-color: transparent;
+}
+
+/* Ensure item title and description align with time block */
+.item-enhanced .item-title,
+.item-enhanced .item-description {
+  margin-left: 0; /* No left margin to align with time block */
+  padding-left: 0; /* No left padding */
 }
 
 /* Improved link styles */
