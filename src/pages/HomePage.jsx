@@ -67,7 +67,8 @@ export default function HomePage() {
   const [errors, setErrors] = useState({});
   const [showFilters, setShowFilters] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false); // Modal state for filter panel
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // For city dropdown in header
+  const [isFilterCityDropdownOpen, setIsFilterCityDropdownOpen] = useState(false); // For city dropdown in filter form
   const [user, setUser] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   // Date range state (single calendar for multi-date selection, max 2 days)
@@ -753,7 +754,7 @@ export default function HomePage() {
               <div style={{ position: 'relative' }}>
                 <button
                   type="button"
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  onClick={() => setIsFilterCityDropdownOpen(!isFilterCityDropdownOpen)}
                   style={{
                     backgroundColor: 'white',
                     border: `2px solid ${errors.city ? '#ef4444' : formData.city ? '#3E85FC' : '#e5e7eb'}`,
@@ -774,7 +775,7 @@ export default function HomePage() {
                   <span style={{ fontSize: '12px', marginLeft: 'auto' }}>▼</span>
                 </button>
                 
-                {isDropdownOpen && (
+                {isFilterCityDropdownOpen && (
                   <div style={{
                     position: 'absolute',
                     top: '100%',
@@ -794,7 +795,7 @@ export default function HomePage() {
                         type="button"
                         onClick={() => {
                           setFormData(prev => ({ ...prev, city }));
-                          setIsDropdownOpen(false);
+                          setIsFilterCityDropdownOpen(false);
                         }}
                         style={{
                           width: '100%',
