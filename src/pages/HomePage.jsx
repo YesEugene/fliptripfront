@@ -28,7 +28,7 @@ const CATEGORY_NAMES = {
   'active': 'Active',
   'culture': 'Culture',
   'food': 'Food',
-  'nature': 'Nature',в
+  'nature': 'Nature',
   'nightlife': 'Nightlife',
   'family': 'Family',
   'romantic': 'Romantic',
