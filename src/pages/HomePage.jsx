@@ -409,6 +409,18 @@ export default function HomePage() {
     }
   };
 
+  // Handle tour card click - navigate to preview page with tourId
+  const handleTourClick = (tour) => {
+    const params = new URLSearchParams();
+    params.append('tourId', tour.id);
+    params.append('previewOnly', 'true');
+    // Add city from tour if available
+    if (tour.city) {
+      params.append('city', typeof tour.city === 'string' ? tour.city : tour.city.name || '');
+    }
+    navigate(`/itinerary?${params.toString()}`);
+  };
+
   const handleTourClick = (tour) => {
     // Navigate to tour preview page
     navigate(`/itinerary?tourId=${tour.id}&previewOnly=true`);

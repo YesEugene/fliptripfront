@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail, saveItinerary, getItinerary } from '../services/api';
+import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail, saveItinerary, getItinerary, getTourById } from '../services/api';
 import PhotoGallery from '../components/PhotoGallery';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import './ItineraryPage.css';
@@ -106,6 +106,7 @@ export default function ItineraryPage() {
   // Extract form data from URL params
   const previewOnly = searchParams.get('previewOnly') === 'true';
   const existingItineraryId = searchParams.get('itineraryId');
+  const tourId = searchParams.get('tourId'); // Tour ID from database
   const isFullPlan = searchParams.get('full') === 'true'; // Indicates we expect a full plan, not preview
   // Extract interest_ids from query params (can be multiple with same name)
   const interestIds = searchParams.getAll('interest_ids');
@@ -120,7 +121,7 @@ export default function ItineraryPage() {
     previewOnly: previewOnly // Boolean value
   };
   
-  console.log('🔍 ItineraryPage - previewOnly:', previewOnly, 'existingItineraryId:', existingItineraryId, 'isFullPlan:', isFullPlan, 'formData:', formData);
+  console.log('🔍 ItineraryPage - previewOnly:', previewOnly, 'existingItineraryId:', existingItineraryId, 'tourId:', tourId, 'isFullPlan:', isFullPlan, 'formData:', formData);
 
   useEffect(() => {
     if (existingItineraryId) {
@@ -133,6 +134,97 @@ export default function ItineraryPage() {
     }
   }, [existingItineraryId]);
 
+  // Load tour and generate preview
+  const loadTourAndGeneratePreview = async (tourIdParam) => {
+    try {
+      setLoading(true);
+      setError('');
+      console.log('📖 Loading tour from database:', tourIdParam);
+      
+      const tourResponse = await getTourById(tourIdParam);
+      if (!tourResponse.success || !tourResponse.tour) {
+        throw new Error('Tour not found');
+      }
+      
+      const tour = tourResponse.tour;
+      console.log('✅ Tour loaded:', tour);
+      
+      // Extract city name from tour
+      const cityName = typeof tour.city === 'string' ? tour.city : tour.city?.name || tour.city_id || 'Barcelona';
+      
+      // Build formData from tour
+      const tourFormData = {
+        city: cityName,
+        audience: formData.audience || 'him',
+        interests: [],
+        interest_ids: [],
+        date: formData.date || new Date().toISOString().slice(0, 10),
+        budget: tour.price_pdf ? tour.price_pdf.toString() : '500',
+        previewOnly: true,
+        tourId: tourIdParam
+      };
+      
+      // Extract interest IDs from tour tags if available
+      if (tour.tour_tags && tour.tour_tags.length > 0) {
+        tourFormData.interest_ids = tour.tour_tags
+          .map(tt => tt.tag?.id)
+          .filter(Boolean);
+      }
+      
+      // Generate preview itinerary based on tour
+      console.log('🔄 Generating preview itinerary from tour...');
+      const itineraryResponse = await generateSmartItinerary({
+        ...tourFormData,
+        tourId: tourIdParam // Pass tourId to backend to use tour locations
+      });
+      
+      if (!itineraryResponse.success) {
+        throw new Error(itineraryResponse.error || 'Failed to generate itinerary');
+      }
+      
+      // Convert to display format
+      const previewItinerary = {
+        title: itineraryResponse.title || tour.title,
+        subtitle: itineraryResponse.subtitle || tour.description,
+        date: tourFormData.date,
+        budget: tourFormData.budget,
+        previewOnly: true,
+        daily_plan: itineraryResponse.daily_plan || (itineraryResponse.activities ? [{
+          date: tourFormData.date,
+          blocks: itineraryResponse.activities.slice(0, 2).map(activity => ({
+            time: activity.time,
+            items: [{
+              title: activity.name || activity.title,
+              description: activity.description,
+              category: activity.category,
+              location: activity.location,
+              address: activity.location,
+              photos: activity.photos || [],
+              tips: activity.recommendations,
+              approx_cost: activity.priceRange || activity.price
+            }]
+          }))
+        }] : []),
+        tourId: tourIdParam
+      };
+      
+      // Save to Redis
+      const saveResponse = await saveItinerary(previewItinerary);
+      if (saveResponse.success && saveResponse.itineraryId) {
+        setItineraryId(saveResponse.itineraryId);
+        previewItinerary.id = saveResponse.itineraryId;
+      }
+      
+      setItinerary(previewItinerary);
+      setLoading(false);
+      console.log('✅ Preview itinerary generated from tour');
+    } catch (err) {
+      console.error('❌ Error loading tour and generating preview:', err);
+      setError(err.message || 'Failed to load tour preview');
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (isExample && exampleItinerary) {
       // Use example data directly
@@ -142,6 +234,10 @@ export default function ItineraryPage() {
       // Load existing itinerary from Redis (preview or full)
       console.log('📥 Loading existing itinerary from Redis:', existingItineraryId, isFullPlan ? '(expecting full plan)' : '');
       loadItineraryFromRedis(existingItineraryId);
+    } else if (tourId) {
+      // Load tour from database and generate preview
+      console.log('📖 Loading tour and generating preview:', tourId);
+      loadTourAndGeneratePreview(tourId);
     } else if (formData.city && formData.city !== 'Barcelona') {
       // Only generate if we have explicit city parameter (user came from homepage with filters)
       // Don't auto-generate for default/empty city
@@ -153,7 +249,7 @@ export default function ItineraryPage() {
       setLoading(false);
       setError('Please select a city and interests on the homepage to generate an itinerary.');
     }
-  }, [isExample, exampleItinerary, existingItineraryId, previewOnly, isFullPlan]);
+  }, [isExample, exampleItinerary, existingItineraryId, tourId, previewOnly, isFullPlan]);
 
   const loadItineraryFromRedis = async (itineraryId) => {
     try {
@@ -831,12 +927,12 @@ export default function ItineraryPage() {
           )}
 
           {itinerary?.previewOnly !== true && (
-            <button
-              onClick={handleDownloadPDF}
-              className="download-button"
-            >
-              📱 Download PDF
-            </button>
+          <button
+            onClick={handleDownloadPDF}
+            className="download-button"
+          >
+            📱 Download PDF
+          </button>
           )}
         </div>
 

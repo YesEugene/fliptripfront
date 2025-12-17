@@ -288,4 +288,15 @@ export const getTours = async (filters = {}) => {
   }
 };
 
+// Get single tour by ID
+export const getTourById = async (tourId) => {
+  try {
+    const response = await api.get(`/api/tours?id=${tourId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting tour by ID:', error);
+    throw error;
+  }
+};
+
 export default api;
