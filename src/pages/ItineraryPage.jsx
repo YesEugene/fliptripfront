@@ -1057,6 +1057,7 @@ export default function ItineraryPage() {
           {(() => {
             // NEW APPROACH: Show only 2 blocks if previewOnly=true, all blocks otherwise
             const shouldShowPreview = itinerary?.previewOnly === true && !isFullPlan;
+            const totalBlocksInPlan = itinerary?.daily_plan?.[0]?.blocks?.length || 0;
             const blocksToShow = shouldShowPreview 
               ? (itinerary?.daily_plan?.[0]?.blocks?.slice(0, 2) || [])
               : (itinerary?.daily_plan?.[0]?.blocks || []);
@@ -1064,9 +1065,17 @@ export default function ItineraryPage() {
               shouldShowPreview, 
               isFullPlan, 
               previewOnly: itinerary?.previewOnly,
-              totalBlocks: itinerary?.daily_plan?.[0]?.blocks?.length || 0,
-              showingBlocks: blocksToShow.length 
+              totalBlocks: totalBlocksInPlan,
+              showingBlocks: blocksToShow.length,
+              tourId: itinerary?.tourId || tourId,
+              itineraryId: itineraryId
             });
+            
+            // If we're showing full plan but only 2 blocks, log warning
+            if (!shouldShowPreview && totalBlocksInPlan === 2) {
+              console.warn('⚠️ Full plan mode but tour has only 2 blocks - this is expected if tour was created with 2 locations');
+            }
+            
             return blocksToShow;
           })()?.map((block, blockIndex) => (
             <div key={blockIndex} style={blockStyle}>
