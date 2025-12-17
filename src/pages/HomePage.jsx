@@ -720,13 +720,14 @@ export default function HomePage() {
             margin: '0 auto',
             position: 'relative'
         }}>
-            {/* Close button - positioned absolutely on top */}
+            <form onSubmit={handleShowResults} style={{ paddingTop: '20px', position: 'relative' }}>
+            {/* Close button - positioned absolutely aligned with City label */}
             <button
               onClick={handleCloseFilterModal}
               style={{
                 position: 'absolute',
                 top: '20px',
-                right: '20px',
+                right: '0px',
                 backgroundColor: 'transparent',
                 border: 'none',
                 fontSize: '24px',
@@ -738,16 +739,16 @@ export default function HomePage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                zIndex: 10000
+                zIndex: 10000,
+                lineHeight: '1.5'
               }}
             >
               ×
             </button>
             
-            <form onSubmit={handleShowResults} style={{ paddingTop: '20px' }}>
             {/* City Selection - First field in filter form */}
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151', lineHeight: '1.5' }}>
                 City
               </label>
               <div style={{ position: 'relative' }}>
