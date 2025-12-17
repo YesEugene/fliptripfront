@@ -1406,10 +1406,22 @@ export default function HomePage() {
                     fontWeight: 'bold',
                     color: 'white',
                       lineHeight: '1.3',
-                      marginBottom: '8px'
+                      marginBottom: '4px'
                   }}>
                       {tour.title}
                   </h3>
+                  
+                  {/* Duration */}
+                  {tour.duration_value && (
+                    <div style={{
+                      fontSize: '11px',
+                      color: 'rgba(255, 255, 255, 0.85)',
+                      fontWeight: '500',
+                      marginBottom: '6px'
+                    }}>
+                      {tour.duration_value} {tour.duration_value === 1 ? 'day' : 'days'}
+                    </div>
+                  )}
                     
                     {/* Creator */}
                     <div className="tour-card-creator" style={{
