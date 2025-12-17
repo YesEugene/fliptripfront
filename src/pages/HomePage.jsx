@@ -325,7 +325,25 @@ export default function HomePage() {
   
   const handleCloseFilterModal = () => {
     setShowFilterModal(false);
+    // Re-enable body scroll when modal closes
+    document.body.style.overflow = '';
   };
+
+  // Prevent body scroll when filter modal is open
+  useEffect(() => {
+    if (showFilterModal) {
+      // Disable body scroll
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Re-enable body scroll
+      document.body.style.overflow = '';
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showFilterModal]);
   
   const handleShowResults = (e) => {
     e.preventDefault();
@@ -705,8 +723,10 @@ export default function HomePage() {
         <div style={{
             position: 'fixed',
             bottom: 0,
-            left: 0,
-            right: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '100%',
+            maxWidth: '750px',
           backgroundColor: 'white',
             borderTopLeftRadius: '20px',
             borderTopRightRadius: '20px',
@@ -716,9 +736,7 @@ export default function HomePage() {
             overflowY: 'auto',
             zIndex: 9999,
             animation: 'slideUp 0.3s ease',
-          maxWidth: '750px',
-            margin: '0 auto',
-            position: 'relative'
+            WebkitOverflowScrolling: 'touch'
         }}>
             <form onSubmit={handleShowResults} style={{ paddingTop: '20px', position: 'relative' }}>
             {/* Close button - positioned absolutely aligned with City label */}
