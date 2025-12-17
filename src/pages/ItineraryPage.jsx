@@ -1310,13 +1310,19 @@ export default function ItineraryPage() {
                       
                       {/* Day Blocks */}
                       {blocksToShow.map((block, blockIndex) => {
-                        // Format time: extract only start time (e.g., "09:00:00 - 10:30:00" -> "09:00")
+                        // Format time: remove seconds from both start and end time (e.g., "09:00:00 - 10:30:00" -> "09:00 - 10:30")
                         const formatTime = (timeStr) => {
                           if (!timeStr) return '';
-                          // Extract start time (before " - ")
-                          const startTime = timeStr.split(' - ')[0] || timeStr;
-                          // Remove seconds if present (e.g., "09:00:00" -> "09:00")
-                          return startTime.replace(/:\d{2}$/, '');
+                          // Split by " - " to get start and end times
+                          const parts = timeStr.split(' - ');
+                          if (parts.length === 2) {
+                            // Remove seconds from both times
+                            const startTime = parts[0].replace(/:\d{2}$/, '');
+                            const endTime = parts[1].replace(/:\d{2}$/, '');
+                            return `${startTime} - ${endTime}`;
+                          }
+                          // If no " - " separator, just remove seconds
+                          return timeStr.replace(/:\d{2}$/, '');
                         };
                         
                         return (
