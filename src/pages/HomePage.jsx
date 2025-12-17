@@ -711,41 +711,40 @@ export default function HomePage() {
             borderTopLeftRadius: '20px',
             borderTopRightRadius: '20px',
             boxShadow: '0 -4px 20px rgba(0,0,0,0.15)',
-            padding: '30px 20px',
+            padding: '0 20px 30px 20px',
             maxHeight: '90vh',
             overflowY: 'auto',
             zIndex: 9999,
             animation: 'slideUp 0.3s ease',
           maxWidth: '750px',
-            margin: '0 auto'
+            margin: '0 auto',
+            position: 'relative'
         }}>
-            {/* Close button */}
-          <div style={{
-            display: 'flex',
-              justifyContent: 'flex-end', 
-            marginBottom: '20px'
-          }}>
-              <button
-                onClick={handleCloseFilterModal}
-                style={{
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  fontSize: '24px',
-                  cursor: 'pointer',
-                  color: '#6b7280',
-                  padding: '0',
-                  width: '32px',
-                  height: '32px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                ×
-              </button>
-            </div>
+            {/* Close button - positioned absolutely on top */}
+            <button
+              onClick={handleCloseFilterModal}
+              style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                backgroundColor: 'transparent',
+                border: 'none',
+                fontSize: '24px',
+                cursor: 'pointer',
+                color: '#6b7280',
+                padding: '0',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 10000
+              }}
+            >
+              ×
+            </button>
             
-            <form onSubmit={handleShowResults}>
+            <form onSubmit={handleShowResults} style={{ paddingTop: '20px' }}>
             {/* City Selection - First field in filter form */}
             <div style={{ marginBottom: '24px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>
