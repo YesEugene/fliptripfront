@@ -329,6 +329,25 @@ export default function HomePage() {
     document.body.style.overflow = '';
   };
 
+  // Reset all filters
+  const handleResetFilters = (e) => {
+    e?.stopPropagation(); // Prevent dropdown from opening
+    setFormData({
+      city: "",
+      audience: "",
+      interest_ids: [],
+      date_from: null,
+      date_to: null,
+      budget: ""
+    });
+    setSelectedDates([]);
+    setSelectedCategory(null);
+    setAvailableInterests(allInterests);
+    setFiltersApplied(false);
+    setPersonalizedTripPreview(null);
+    setErrors({});
+  };
+
   // Prevent body scroll when filter modal is open
   useEffect(() => {
     if (showFilterModal) {
@@ -762,7 +781,31 @@ export default function HomePage() {
                   }}
                 >
                   <span>{formData.city || 'Select a city'}</span>
-                  <span style={{ fontSize: '12px', marginLeft: 'auto' }}>▼</span>
+                  {formData.city && (
+                    <button
+                      type="button"
+                      onClick={handleResetFilters}
+                      style={{
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        color: '#6b7280',
+                        cursor: 'pointer',
+                        padding: '0',
+                        marginLeft: 'auto',
+                        marginRight: '8px',
+                        fontSize: '18px',
+                        lineHeight: '1',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '20px',
+                        height: '20px'
+                      }}
+                    >
+                      ×
+                    </button>
+                  )}
+                  <span style={{ fontSize: '12px', marginLeft: formData.city ? '0' : 'auto' }}>▼</span>
                 </button>
                 
                 {isFilterCityDropdownOpen && (
@@ -1240,6 +1283,185 @@ export default function HomePage() {
         position: 'relative',
         zIndex: 1
       }}>
+        {/* Filter Tags - Show after filters are applied */}
+        {filtersApplied && (
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '8px',
+            marginBottom: '20px',
+            paddingBottom: '15px',
+            borderBottom: '1px solid #e5e7eb'
+          }}>
+            {/* City Tag */}
+            {formData.city && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 12px',
+                backgroundColor: '#dbeafe',
+                borderRadius: '20px',
+                fontSize: '14px',
+                color: '#1e40af',
+                fontWeight: '500'
+              }}>
+                <span>🌍</span>
+                <span>{formData.city}</span>
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    color: '#1e40af',
+                    cursor: 'pointer',
+                    padding: '0',
+                    marginLeft: '4px',
+                    fontSize: '16px',
+                    lineHeight: '1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '18px',
+                    height: '18px'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            )}
+            
+            {/* Date Tag */}
+            {selectedDates.length > 0 && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 12px',
+                backgroundColor: '#f3e8ff',
+                borderRadius: '20px',
+                fontSize: '14px',
+                color: '#6b21a8',
+                fontWeight: '500'
+              }}>
+                <span>📅</span>
+                <span>
+                  {selectedDates.length === 1
+                    ? new Date(selectedDates[0]).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })
+                    : `${new Date(selectedDates[0]).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })} - ${new Date(selectedDates[selectedDates.length - 1]).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}`
+                  }
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedDates([]);
+                    setFormData(prev => ({ ...prev, date_from: null, date_to: null }));
+                  }}
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    color: '#6b21a8',
+                    cursor: 'pointer',
+                    padding: '0',
+                    marginLeft: '4px',
+                    fontSize: '16px',
+                    lineHeight: '1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '18px',
+                    height: '18px'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            )}
+            
+            {/* Audience Tag */}
+            {formData.audience && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 12px',
+                backgroundColor: '#dcfce7',
+                borderRadius: '20px',
+                fontSize: '14px',
+                color: '#166534',
+                fontWeight: '500'
+              }}>
+                <span>For: {AUDIENCES.find(a => a.value === formData.audience)?.label || formData.audience}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, audience: "", interest_ids: [] }));
+                    setSelectedCategory(null);
+                    setAvailableInterests(allInterests);
+                  }}
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    color: '#166534',
+                    cursor: 'pointer',
+                    padding: '0',
+                    marginLeft: '4px',
+                    fontSize: '16px',
+                    lineHeight: '1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '18px',
+                    height: '18px'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            )}
+            
+            {/* Budget Tag */}
+            {formData.budget && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 12px',
+                backgroundColor: '#fef3c7',
+                borderRadius: '20px',
+                fontSize: '14px',
+                color: '#92400e',
+                fontWeight: '500'
+              }}>
+                <span>Budget: {formData.budget}€</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, budget: "" }));
+                  }}
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    color: '#92400e',
+                    cursor: 'pointer',
+                    padding: '0',
+                    marginLeft: '4px',
+                    fontSize: '16px',
+                    lineHeight: '1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '18px',
+                    height: '18px'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            )}
+          </div>
+        )}
         
         {loadingTours ? (
           <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
