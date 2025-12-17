@@ -134,7 +134,7 @@ export default function ItineraryPage() {
     }
   }, [existingItineraryId]);
 
-  // Load tour and generate preview
+  // Load tour and convert to preview format (NO GENERATION - use existing tour data)
   const loadTourAndGeneratePreview = async (tourIdParam) => {
     try {
       setLoading(true);
@@ -147,64 +147,75 @@ export default function ItineraryPage() {
       }
       
       const tour = tourResponse.tour;
-      console.log('✅ Tour loaded:', tour);
+      console.log('✅ Tour loaded from DB (no generation needed):', tour);
       
       // Extract city name from tour
       const cityName = typeof tour.city === 'string' ? tour.city : tour.city?.name || tour.city_id || 'Barcelona';
       
-      // Build formData from tour
-      const tourFormData = {
-        city: cityName,
-        audience: formData.audience || 'him',
-        interests: [],
-        interest_ids: [],
-        date: formData.date || new Date().toISOString().slice(0, 10),
+      // Convert tour structure directly to preview format (NO API CALL)
+      const date = formData.date || new Date().toISOString().slice(0, 10);
+      
+      // Build daily_plan from tour structure (tour_days → tour_blocks → tour_items)
+      const blocks = [];
+      let blockCount = 0;
+      const maxPreviewBlocks = 2; // Show only first 2 blocks in preview
+      
+      if (tour.tour_days && Array.isArray(tour.tour_days)) {
+        for (const day of tour.tour_days) {
+          if (day.tour_blocks && Array.isArray(day.tour_blocks)) {
+            for (const block of day.tour_blocks) {
+              if (blockCount >= maxPreviewBlocks) break;
+              
+              const items = [];
+              if (block.tour_items && Array.isArray(block.tour_items)) {
+                for (const item of block.tour_items) {
+                  const location = item.location;
+                  if (location) {
+                    items.push({
+                      title: item.custom_title || location.name,
+                      description: item.custom_description || location.description || '',
+                      why: item.custom_description || location.description || '',
+                      category: location.category || 'attraction',
+                      location: location.name,
+                      address: location.address || '',
+                      photos: location.photos ? (Array.isArray(location.photos) ? location.photos.map(p => ({
+                        url: p.url || p,
+                        thumbnail: p.url || p,
+                        source: 'database'
+                      })) : []) : [],
+                      tips: item.custom_recommendations || location.recommendations || '',
+                      approx_cost: item.approx_cost ? `€${item.approx_cost}` : 'Free',
+                      rating: 4.5
+                    });
+                  }
+                }
+              }
+              
+              if (items.length > 0) {
+                blocks.push({
+                  time: block.start_time && block.end_time 
+                    ? `${block.start_time} - ${block.end_time}`
+                    : block.title || 'TBD',
+                  items: items
+                });
+                blockCount++;
+              }
+            }
+          }
+        }
+      }
+      
+      // Build preview itinerary from tour data
+      const previewItinerary = {
+        title: tour.title,
+        subtitle: tour.description || `Explore ${cityName} with this curated tour`,
+        date: date,
         budget: tour.price_pdf ? tour.price_pdf.toString() : '500',
         previewOnly: true,
-        tourId: tourIdParam
-      };
-      
-      // Extract interest IDs from tour tags if available
-      if (tour.tour_tags && tour.tour_tags.length > 0) {
-        tourFormData.interest_ids = tour.tour_tags
-          .map(tt => tt.tag?.id)
-          .filter(Boolean);
-      }
-      
-      // Generate preview itinerary based on tour
-      console.log('🔄 Generating preview itinerary from tour...');
-      const itineraryResponse = await generateSmartItinerary({
-        ...tourFormData,
-        tourId: tourIdParam // Pass tourId to backend to use tour locations
-      });
-      
-      if (!itineraryResponse.success) {
-        throw new Error(itineraryResponse.error || 'Failed to generate itinerary');
-      }
-      
-      // Convert to display format
-      const previewItinerary = {
-        title: itineraryResponse.title || tour.title,
-        subtitle: itineraryResponse.subtitle || tour.description,
-        date: tourFormData.date,
-        budget: tourFormData.budget,
-        previewOnly: true,
-        daily_plan: itineraryResponse.daily_plan || (itineraryResponse.activities ? [{
-          date: tourFormData.date,
-          blocks: itineraryResponse.activities.slice(0, 2).map(activity => ({
-            time: activity.time,
-            items: [{
-              title: activity.name || activity.title,
-              description: activity.description,
-              category: activity.category,
-              location: activity.location,
-              address: activity.location,
-              photos: activity.photos || [],
-              tips: activity.recommendations,
-              approx_cost: activity.priceRange || activity.price
-            }]
-          }))
-        }] : []),
+        daily_plan: [{
+          date: date,
+          blocks: blocks
+        }],
         tourId: tourIdParam
       };
       
@@ -217,9 +228,9 @@ export default function ItineraryPage() {
       
       setItinerary(previewItinerary);
       setLoading(false);
-      console.log('✅ Preview itinerary generated from tour');
+      console.log('✅ Preview itinerary created from tour data (no generation)');
     } catch (err) {
-      console.error('❌ Error loading tour and generating preview:', err);
+      console.error('❌ Error loading tour and creating preview:', err);
       setError(err.message || 'Failed to load tour preview');
       setLoading(false);
     }
