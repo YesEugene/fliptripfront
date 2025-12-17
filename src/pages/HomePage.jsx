@@ -421,11 +421,6 @@ export default function HomePage() {
     navigate(`/itinerary?${params.toString()}`);
   };
 
-  const handleTourClick = (tour) => {
-    // Navigate to tour preview page
-    navigate(`/itinerary?tourId=${tour.id}&previewOnly=true`);
-  };
-
               return (
                 <div style={{ 
                   minHeight: '100vh', 
