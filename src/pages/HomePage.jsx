@@ -238,12 +238,19 @@ export default function HomePage() {
             filters.interests = interestNames;
           }
         }
+        console.log('🔄 Loading tours with filters:', filters);
         const result = await getTours(filters);
-        if (result.success) {
+        console.log('📥 Tours API response:', result);
+        if (result && result.success) {
+          console.log(`✅ Loaded ${result.tours?.length || 0} tours`);
           setTours(result.tours || []);
+        } else {
+          console.warn('⚠️ Tours API returned unsuccessful response:', result);
+          setTours([]);
         }
       } catch (err) {
-        console.error('Error loading tours:', err);
+        console.error('❌ Error loading tours:', err);
+        console.error('Error details:', err.response?.data || err.message);
         setTours([]);
       } finally {
         setLoadingTours(false);
