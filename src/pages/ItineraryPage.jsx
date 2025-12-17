@@ -1309,9 +1309,19 @@ export default function ItineraryPage() {
                         </h3>
                       
                       {/* Day Blocks */}
-                      {blocksToShow.map((block, blockIndex) => (
+                      {blocksToShow.map((block, blockIndex) => {
+                        // Format time: extract only start time (e.g., "09:00:00 - 10:30:00" -> "09:00")
+                        const formatTime = (timeStr) => {
+                          if (!timeStr) return '';
+                          // Extract start time (before " - ")
+                          const startTime = timeStr.split(' - ')[0] || timeStr;
+                          // Remove seconds if present (e.g., "09:00:00" -> "09:00")
+                          return startTime.replace(/:\d{2}$/, '');
+                        };
+                        
+                        return (
                         <div key={blockIndex} style={blockStyle}>
-                          <div className="time-block-enhanced">{block.time}</div>
+                          <div className="time-block-enhanced">{formatTime(block.time)}</div>
                           {block.items?.map((item, itemIndex) => (
                             <div key={itemIndex} className="item-enhanced">
                               <h3 className="item-title">
@@ -1364,7 +1374,8 @@ export default function ItineraryPage() {
                             </div>
                           ))}
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   );
                 })
