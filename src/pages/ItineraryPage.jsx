@@ -255,7 +255,8 @@ export default function ItineraryPage() {
         budget: tour.price_pdf ? tour.price_pdf.toString() : '500',
         previewOnly: true, // Flag for display, but all blocks are saved
         daily_plan: dailyPlan, // Each day is separate
-        tourId: tourIdParam
+        tourId: tourIdParam,
+        preview_media_url: tour.preview_media_url || null // Add preview image from tour
       };
       
       // Save to Redis
@@ -436,7 +437,8 @@ export default function ItineraryPage() {
                 title: tour.title,
                 subtitle: tour.description || `Explore ${cityName} with this curated tour`,
                 previewOnly: false, // Full plan unlocked
-                daily_plan: dailyPlan // Each day is separate
+                daily_plan: dailyPlan, // Each day is separate
+                preview_media_url: tour.preview_media_url || loadedItinerary.preview_media_url || null // Add preview image from tour
               };
               
               // Update in Redis
@@ -1064,11 +1066,12 @@ export default function ItineraryPage() {
         <div className="enhanced-card">
           {/* Tour Image with Title and Download Button */}
           {(() => {
-            // Get first photo from first block of first day, or use placeholder
+            // Priority: 1) tour preview_media_url, 2) itinerary preview_media_url, 3) first photo from locations, 4) placeholder
+            const tourPreviewImage = itinerary?.preview_media_url || null;
             const firstPhoto = itinerary?.daily_plan?.[0]?.blocks?.[0]?.items?.[0]?.photos?.[0]?.url || 
                               itinerary?.daily_plan?.[0]?.blocks?.[0]?.items?.[0]?.photos?.[0] ||
                               null;
-            const tourImage = firstPhoto || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200&h=600&fit=crop';
+            const tourImage = tourPreviewImage || firstPhoto || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200&h=600&fit=crop';
             
             return (
               <div className="tour-hero-image" style={{
