@@ -158,13 +158,19 @@ export default function ItineraryPage() {
       // Build daily_plan from tour structure (tour_days → tour_blocks → tour_items)
       // IMPORTANT: Save ALL blocks to Redis, not just 2. Preview display will show only 2.
       const blocks = [];
+      let totalDays = 0;
+      let totalBlocks = 0;
+      let totalItems = 0;
       
       if (tour.tour_days && Array.isArray(tour.tour_days)) {
+        totalDays = tour.tour_days.length;
         for (const day of tour.tour_days) {
           if (day.tour_blocks && Array.isArray(day.tour_blocks)) {
+            totalBlocks += day.tour_blocks.length;
             for (const block of day.tour_blocks) {
               const items = [];
               if (block.tour_items && Array.isArray(block.tour_items)) {
+                totalItems += block.tour_items.length;
                 for (const item of block.tour_items) {
                   const location = item.location;
                   if (location) {
@@ -200,6 +206,9 @@ export default function ItineraryPage() {
           }
         }
       }
+      
+      console.log(`📊 Tour structure from DB (preview): ${totalDays} days, ${totalBlocks} blocks, ${totalItems} items`);
+      console.log(`📊 Built ${blocks.length} blocks for preview (will show 2, but all ${blocks.length} saved to Redis)`);
       
       // Build preview itinerary from tour data
       // Save ALL blocks to Redis, previewOnly flag controls display
@@ -299,12 +308,19 @@ export default function ItineraryPage() {
               
               // Build ALL blocks from tour
               const allBlocks = [];
+              let totalDays = 0;
+              let totalBlocks = 0;
+              let totalItems = 0;
+              
               if (tour.tour_days && Array.isArray(tour.tour_days)) {
+                totalDays = tour.tour_days.length;
                 for (const day of tour.tour_days) {
                   if (day.tour_blocks && Array.isArray(day.tour_blocks)) {
+                    totalBlocks += day.tour_blocks.length;
                     for (const block of day.tour_blocks) {
                       const items = [];
                       if (block.tour_items && Array.isArray(block.tour_items)) {
+                        totalItems += block.tour_items.length;
                         for (const item of block.tour_items) {
                           const location = item.location;
                           if (location) {
@@ -341,6 +357,9 @@ export default function ItineraryPage() {
                 }
               }
               
+              console.log(`📊 Tour structure from DB: ${totalDays} days, ${totalBlocks} blocks, ${totalItems} items`);
+              console.log(`📊 Built ${allBlocks.length} blocks for display`);
+              
               // Create full itinerary with all blocks
               const fullItinerary = {
                 ...loadedItinerary,
@@ -358,7 +377,7 @@ export default function ItineraryPage() {
               
               setItinerary(fullItinerary);
               setLoading(false);
-              console.log('✅ Full tour loaded from database with all blocks');
+              console.log(`✅ Full tour loaded from database with ${allBlocks.length} blocks (${totalItems} total locations)`);
               return;
             }
           } catch (tourError) {
@@ -989,6 +1008,11 @@ export default function ItineraryPage() {
                         date: formData.date,
                         budget: formData.budget
                       });
+                      // CRITICAL: Add tourId if present (for creator tours)
+                      if (tourId || itinerary?.tourId) {
+                        paymentParams.set('tourId', tourId || itinerary.tourId);
+                        console.log('📖 Passing tourId to payment:', tourId || itinerary.tourId);
+                      }
                       navigate(`/payment?${paymentParams.toString()}`);
                     }
                   }}

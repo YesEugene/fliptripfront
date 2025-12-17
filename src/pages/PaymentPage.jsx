@@ -10,6 +10,7 @@ export default function PaymentPage() {
   
   // Extract data from URL params
   const itineraryId = searchParams.get('itineraryId');
+  const tourId = searchParams.get('tourId'); // Tour ID from database (for creator tours)
   const email = searchParams.get('email');
   const formData = {
     city: searchParams.get('city') || 'Barcelona',
@@ -18,6 +19,7 @@ export default function PaymentPage() {
     date: searchParams.get('date') || new Date().toISOString().slice(0, 10),
     budget: searchParams.get('budget') || '500',
     itineraryId: itineraryId,
+    tourId: tourId, // Pass tourId to checkout session
     email: email
   };
 

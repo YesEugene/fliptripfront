@@ -11,6 +11,7 @@ export default function SuccessPage() {
   
   // Extract form data from URL params
   const itineraryId = searchParams.get('itineraryId') || '';
+  const tourId = searchParams.get('tourId') || ''; // Tour ID from database (for creator tours)
   const formData = {
     city: searchParams.get('city') || 'Barcelona',
     audience: searchParams.get('audience') || 'him',
@@ -129,6 +130,11 @@ export default function SuccessPage() {
     // CRITICAL: Add itineraryId to load the full plan from Redis
     if (itineraryId) {
       queryParams.set('itineraryId', itineraryId);
+    }
+    // CRITICAL: Add tourId if present (for creator tours - needed to reload full tour from DB)
+    if (tourId) {
+      queryParams.set('tourId', tourId);
+      console.log('📖 Passing tourId to full plan page:', tourId);
     }
     // Add full=true to indicate this is a full plan (not preview)
     queryParams.set('full', 'true');
