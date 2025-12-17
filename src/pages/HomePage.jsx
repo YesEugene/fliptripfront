@@ -1234,13 +1234,13 @@ export default function HomePage() {
             {filtersApplied && personalizedTripPreview && (
               <div
                 className="personalized-trip-card"
-                style={{
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
-                  cursor: 'pointer',
-                  transition: 'transform 0.2s ease',
-                  position: 'relative',
+              style={{
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+                cursor: 'pointer',
+                transition: 'transform 0.2s ease',
+                position: 'relative',
                   gridColumn: 'span 2',
                   gridRow: 'span 2',
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -1415,7 +1415,7 @@ export default function HomePage() {
                   </h3>
                     
                     {/* Creator */}
-                    <div style={{
+                    <div className="tour-card-creator" style={{
                       fontSize: '12px',
                       color: 'rgba(255, 255, 255, 0.9)',
                       fontWeight: '500'
