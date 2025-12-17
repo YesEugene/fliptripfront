@@ -54,6 +54,11 @@ body {
   min-height: 0; /* Allow grid to control height */
 }
 
+/* Tour card title styles */
+.tour-card-title {
+  /* Default desktop styles are in inline styles */
+}
+
 /* Mobile styles - adjust heights for mobile devices */
 @media (max-width: 768px) {
   /* On mobile, adjust grid for 2 columns */
@@ -84,6 +89,15 @@ body {
     grid-column: span 1;
     grid-row: span 1; /* 1 row = 98px */
     width: 100%;
+  }
+  
+  /* Reduce title font size by 40% on mobile */
+  .tour-card-title {
+    font-size: 10.8px !important; /* 18px * 0.6 = 10.8px for vertical */
+  }
+  
+  .horizontal-card .tour-card-title {
+    font-size: 9.6px !important; /* 16px * 0.6 = 9.6px for horizontal */
   }
 }
 

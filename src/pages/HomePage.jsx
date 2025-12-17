@@ -28,7 +28,7 @@ const CATEGORY_NAMES = {
   'active': 'Active',
   'culture': 'Culture',
   'food': 'Food',
-  'nature': 'Nature',
+  'nature': 'Nature',в
   'nightlife': 'Nightlife',
   'family': 'Family',
   'romantic': 'Romantic',
@@ -1404,7 +1404,7 @@ export default function HomePage() {
                     justifyContent: 'flex-end'
                   }}>
                   {/* Title */}
-                  <h3 style={{
+                  <h3 className="tour-card-title" style={{
                       fontSize: isVertical ? '18px' : '16px',
                     fontWeight: 'bold',
                     color: 'white',
