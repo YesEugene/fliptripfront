@@ -15,6 +15,7 @@ export default function ItineraryPage() {
   const [email, setEmail] = useState('');
   const [itineraryId, setItineraryId] = useState(null);
   const [interestNames, setInterestNames] = useState([]); // Имена интересов для отображения
+  const [selectedDayIndex, setSelectedDayIndex] = useState(0); // Для переключения между днями
 
   // Генерация fallback заголовков согласно промптам
   const generateFallbackTitle = (formData) => {
@@ -156,15 +157,39 @@ export default function ItineraryPage() {
       const date = formData.date || new Date().toISOString().slice(0, 10);
       
       // Build daily_plan from tour structure (tour_days → tour_blocks → tour_items)
+      // IMPORTANT: Each day should be a separate element in daily_plan array
       // IMPORTANT: Save ALL blocks to Redis, not just 2. Preview display will show only 2.
-      const blocks = [];
+      const dailyPlan = [];
       let totalDays = 0;
       let totalBlocks = 0;
       let totalItems = 0;
       
+      // Helper function to parse time string to minutes for sorting
+      const parseTime = (timeStr) => {
+        if (!timeStr) return Infinity;
+        const match = timeStr.match(/(\d{1,2}):(\d{2})/);
+        if (match) {
+          return parseInt(match[1]) * 60 + parseInt(match[2]);
+        }
+        return Infinity;
+      };
+      
+      // Helper function to sort blocks by start time
+      const sortBlocksByTime = (blocks) => {
+        return blocks.sort((a, b) => {
+          const timeA = a.time ? parseTime(a.time.split(' - ')[0]) : Infinity;
+          const timeB = b.time ? parseTime(b.time.split(' - ')[0]) : Infinity;
+          return timeA - timeB;
+        });
+      };
+      
       if (tour.tour_days && Array.isArray(tour.tour_days)) {
         totalDays = tour.tour_days.length;
-        for (const day of tour.tour_days) {
+        // Sort days by day_number
+        const sortedDays = [...tour.tour_days].sort((a, b) => (a.day_number || 0) - (b.day_number || 0));
+        
+        for (const day of sortedDays) {
+          const dayBlocks = [];
           if (day.tour_blocks && Array.isArray(day.tour_blocks)) {
             totalBlocks += day.tour_blocks.length;
             for (const block of day.tour_blocks) {
@@ -195,20 +220,31 @@ export default function ItineraryPage() {
               }
               
               if (items.length > 0) {
-                blocks.push({
+                dayBlocks.push({
                   time: block.start_time && block.end_time 
                     ? `${block.start_time} - ${block.end_time}`
                     : block.title || 'TBD',
-                  items: items
+                  items: items,
+                  start_time: block.start_time // Keep for sorting
                 });
               }
             }
+          }
+          
+          // Sort blocks by time and add to daily plan
+          if (dayBlocks.length > 0) {
+            const sortedDayBlocks = sortBlocksByTime(dayBlocks);
+            dailyPlan.push({
+              date: date,
+              day_number: day.day_number || dailyPlan.length + 1,
+              blocks: sortedDayBlocks
+            });
           }
         }
       }
       
       console.log(`📊 Tour structure from DB (preview): ${totalDays} days, ${totalBlocks} blocks, ${totalItems} items`);
-      console.log(`📊 Built ${blocks.length} blocks for preview (will show 2, but all ${blocks.length} saved to Redis)`);
+      console.log(`📊 Built ${dailyPlan.length} days for preview`);
       
       // Build preview itinerary from tour data
       // Save ALL blocks to Redis, previewOnly flag controls display
@@ -218,10 +254,7 @@ export default function ItineraryPage() {
         date: date,
         budget: tour.price_pdf ? tour.price_pdf.toString() : '500',
         previewOnly: true, // Flag for display, but all blocks are saved
-        daily_plan: [{
-          date: date,
-          blocks: blocks // ALL blocks saved, not just 2
-        }],
+        daily_plan: dailyPlan, // Each day is separate
         tourId: tourIdParam
       };
       
@@ -233,6 +266,7 @@ export default function ItineraryPage() {
       }
       
       setItinerary(previewItinerary);
+      setSelectedDayIndex(0); // Reset to first day
       setLoading(false);
       console.log('✅ Preview itinerary created from tour data (no generation)');
     } catch (err) {
@@ -308,15 +342,38 @@ export default function ItineraryPage() {
               const cityName = typeof tour.city === 'string' ? tour.city : tour.city?.name || tour.city_id || 'Barcelona';
               const date = loadedItinerary.date || formData.date || new Date().toISOString().slice(0, 10);
               
-              // Build ALL blocks from tour
-              const allBlocks = [];
+              // Build daily_plan from tour structure - each day separate
+              // Helper function to parse time string to minutes for sorting
+              const parseTime = (timeStr) => {
+                if (!timeStr) return Infinity;
+                const match = timeStr.match(/(\d{1,2}):(\d{2})/);
+                if (match) {
+                  return parseInt(match[1]) * 60 + parseInt(match[2]);
+                }
+                return Infinity;
+              };
+              
+              // Helper function to sort blocks by start time
+              const sortBlocksByTime = (blocks) => {
+                return blocks.sort((a, b) => {
+                  const timeA = a.time ? parseTime(a.time.split(' - ')[0]) : Infinity;
+                  const timeB = b.time ? parseTime(b.time.split(' - ')[0]) : Infinity;
+                  return timeA - timeB;
+                });
+              };
+              
+              const dailyPlan = [];
               let totalDays = 0;
               let totalBlocks = 0;
               let totalItems = 0;
               
               if (tour.tour_days && Array.isArray(tour.tour_days)) {
                 totalDays = tour.tour_days.length;
-                for (const day of tour.tour_days) {
+                // Sort days by day_number
+                const sortedDays = [...tour.tour_days].sort((a, b) => (a.day_number || 0) - (b.day_number || 0));
+                
+                for (const day of sortedDays) {
+                  const dayBlocks = [];
                   if (day.tour_blocks && Array.isArray(day.tour_blocks)) {
                     totalBlocks += day.tour_blocks.length;
                     for (const block of day.tour_blocks) {
@@ -347,39 +404,48 @@ export default function ItineraryPage() {
                       }
                       
                       if (items.length > 0) {
-                        allBlocks.push({
+                        dayBlocks.push({
                           time: block.start_time && block.end_time 
                             ? `${block.start_time} - ${block.end_time}`
                             : block.title || 'TBD',
-                          items: items
+                          items: items,
+                          start_time: block.start_time // Keep for sorting
                         });
                       }
                     }
+                  }
+                  
+                  // Sort blocks by time and add to daily plan
+                  if (dayBlocks.length > 0) {
+                    const sortedDayBlocks = sortBlocksByTime(dayBlocks);
+                    dailyPlan.push({
+                      date: date,
+                      day_number: day.day_number || dailyPlan.length + 1,
+                      blocks: sortedDayBlocks
+                    });
                   }
                 }
               }
               
               console.log(`📊 Tour structure from DB: ${totalDays} days, ${totalBlocks} blocks, ${totalItems} items`);
-              console.log(`📊 Built ${allBlocks.length} blocks for display`);
+              console.log(`📊 Built ${dailyPlan.length} days for display`);
               
-              // Create full itinerary with all blocks
+              // Create full itinerary with all blocks separated by days
               const fullItinerary = {
                 ...loadedItinerary,
                 title: tour.title,
                 subtitle: tour.description || `Explore ${cityName} with this curated tour`,
                 previewOnly: false, // Full plan unlocked
-                daily_plan: [{
-                  date: date,
-                  blocks: allBlocks // ALL blocks
-                }]
+                daily_plan: dailyPlan // Each day is separate
               };
               
               // Update in Redis
               await saveItinerary(fullItinerary, itineraryId);
               
               setItinerary(fullItinerary);
+              setSelectedDayIndex(0); // Reset to first day
               setLoading(false);
-              console.log(`✅ Full tour loaded from database with ${allBlocks.length} blocks (${totalItems} total locations)`);
+              console.log(`✅ Full tour loaded from database with ${dailyPlan.length} days, ${totalBlocks} blocks (${totalItems} total locations)`);
               return;
             }
           } catch (tourError) {
@@ -397,53 +463,177 @@ export default function ItineraryPage() {
           // If isFullPlan=true OR previewOnly=false, show all blocks
           const shouldShowPreview = loadedItinerary.previewOnly === true && !isFullPlan;
           
+          // Helper function to parse time string to minutes for sorting
+          const parseTime = (timeStr) => {
+            if (!timeStr) return Infinity;
+            const match = timeStr.match(/(\d{1,2}):(\d{2})/);
+            if (match) {
+              return parseInt(match[1]) * 60 + parseInt(match[2]);
+            }
+            return Infinity;
+          };
+          
+          // Helper function to sort blocks by start time
+          const sortBlocksByTime = (blocks) => {
+            if (!blocks || !Array.isArray(blocks)) return [];
+            return [...blocks].sort((a, b) => {
+              const timeA = a.time ? parseTime(a.time.split(' - ')[0]) : Infinity;
+              const timeB = b.time ? parseTime(b.time.split(' - ')[0]) : Infinity;
+              return timeA - timeB;
+            });
+          };
+          
+          // Check if all blocks are in one day but should be split by time gaps
+          // If we have one day with many blocks, check if there's a time gap indicating multiple days
+          let processedDailyPlan = loadedItinerary.daily_plan;
+          
+          // If only one day exists, try to detect if it should be split
+          if (processedDailyPlan.length === 1 && processedDailyPlan[0].blocks && processedDailyPlan[0].blocks.length > 0) {
+            const allBlocks = sortBlocksByTime([...processedDailyPlan[0].blocks]);
+            console.log(`🔍 Checking ${allBlocks.length} blocks for day splitting...`);
+            
+            // Check for time gaps (if a block starts earlier than previous block ends, it's likely a new day)
+            const days = [];
+            let currentDayBlocks = [];
+            
+            for (let i = 0; i < allBlocks.length; i++) {
+              const block = allBlocks[i];
+              const blockStartTime = parseTime(block.time?.split(' - ')[0]);
+              
+              if (currentDayBlocks.length === 0) {
+                // First block of first day
+                currentDayBlocks.push(block);
+                console.log(`  Day 1, block ${i + 1}: ${block.time}`);
+              } else {
+                // Check if this block should start a new day
+                const prevBlock = currentDayBlocks[currentDayBlocks.length - 1];
+                const prevBlockEndTime = parseTime(prevBlock.time?.split(' - ')[1]);
+                
+                // If current block starts earlier than previous block ends, it's a new day
+                // Or if there's a large gap (more than 8 hours), it's likely a new day
+                const isNewDay = blockStartTime < prevBlockEndTime || (prevBlockEndTime !== Infinity && blockStartTime - prevBlockEndTime > 8 * 60);
+                
+                if (isNewDay) {
+                  console.log(`  ⚠️ Time gap detected: prev ends ${prevBlock.time?.split(' - ')[1]}, next starts ${block.time?.split(' - ')[0]} - starting new day`);
+                  // Save current day and start new day
+                  if (currentDayBlocks.length > 0) {
+                    days.push({
+                      date: processedDailyPlan[0].date,
+                      day_number: days.length + 1,
+                      blocks: currentDayBlocks
+                    });
+                  }
+                  currentDayBlocks = [block];
+                  console.log(`  Day ${days.length + 1}, block 1: ${block.time}`);
+                } else {
+                  currentDayBlocks.push(block);
+                  console.log(`  Day ${days.length + 1}, block ${currentDayBlocks.length}: ${block.time}`);
+                }
+              }
+            }
+            
+            // Add last day
+            if (currentDayBlocks.length > 0) {
+              days.push({
+                date: processedDailyPlan[0].date,
+                day_number: days.length + 1,
+                blocks: currentDayBlocks
+              });
+            }
+            
+            // If we detected multiple days, use them; otherwise keep original
+            if (days.length > 1) {
+              console.log(`🔄 Detected ${days.length} days from time gaps, splitting blocks`);
+              processedDailyPlan = days;
+            } else {
+              console.log(`✅ Single day confirmed, keeping as is`);
+              // Sort blocks in single day and ensure day_number is set
+              processedDailyPlan = [{
+                ...processedDailyPlan[0],
+                day_number: processedDailyPlan[0].day_number || 1,
+                blocks: sortBlocksByTime(processedDailyPlan[0].blocks || [])
+              }];
+            }
+          } else {
+            // Multiple days already exist, just sort blocks in each day
+            processedDailyPlan = processedDailyPlan.map(day => ({
+              ...day,
+              blocks: sortBlocksByTime(day.blocks || [])
+            }));
+          }
+          
           console.log('✅ Itinerary already in display format');
           console.log('📋 URL params - previewOnly:', previewOnly, 'isFullPlan:', isFullPlan);
           console.log('📋 Loaded data - previewOnly:', loadedItinerary.previewOnly);
           console.log('📋 Should show preview:', shouldShowPreview);
-          console.log('📊 Total blocks in daily_plan:', totalBlocks);
-          console.log('📊 Will show blocks:', shouldShowPreview ? 2 : totalBlocks);
+          console.log('📊 Total days in daily_plan:', processedDailyPlan.length);
+          console.log('📊 Blocks per day:', processedDailyPlan.map(d => d.blocks?.length || 0));
+          console.log('📊 Will show blocks:', shouldShowPreview ? 2 : 'all');
           
           const displayItinerary = { 
             ...loadedItinerary, 
             previewOnly: shouldShowPreview,
-            // Keep full daily_plan - slicing happens in render logic
-            daily_plan: loadedItinerary.daily_plan
+            // Keep full daily_plan with sorted blocks - slicing happens in render logic
+            daily_plan: processedDailyPlan
           };
           setItinerary(displayItinerary);
+          setSelectedDayIndex(0); // Reset to first day
           setLoading(false); // CRITICAL: Stop loading after setting itinerary
         } else if (loadedItinerary.activities && loadedItinerary.activities.length > 0) {
           // Need to convert from backend format to display format
           console.log('🔄 Converting itinerary from backend format to display format');
+          
+          // Helper function to parse time string to minutes for sorting
+          const parseTime = (timeStr) => {
+            if (!timeStr) return Infinity;
+            const match = timeStr.match(/(\d{1,2}):(\d{2})/);
+            if (match) {
+              return parseInt(match[1]) * 60 + parseInt(match[2]);
+            }
+            return Infinity;
+          };
+          
+          // Convert activities to blocks and sort by time
+          const blocks = loadedItinerary.activities.map(activity => ({
+            time: activity.time,
+            items: [{
+              title: activity.name || activity.title,
+              why: activity.description,
+              description: activity.description,
+              category: activity.category,
+              duration: `${activity.duration} min`,
+              price: activity.price,
+              location: activity.location,
+              address: activity.location,
+              photos: activity.photos ? activity.photos.map(photoUrl => ({
+                url: photoUrl,
+                thumbnail: photoUrl,
+                source: 'google_places'
+              })) : [],
+              approx_cost: activity.priceRange || `€${activity.price}`,
+              tips: activity.recommendations,
+              rating: activity.rating
+            }]
+          }));
+          
+          // Sort blocks by time
+          const sortedBlocks = blocks.sort((a, b) => {
+            const timeA = a.time ? parseTime(a.time.split(' - ')[0]) : Infinity;
+            const timeB = b.time ? parseTime(b.time.split(' - ')[0]) : Infinity;
+            return timeA - timeB;
+          });
+          
           const convertedData = {
             ...loadedItinerary,
             daily_plan: [{
               date: loadedItinerary.date,
-              blocks: loadedItinerary.activities.map(activity => ({
-                time: activity.time,
-                items: [{
-                  title: activity.name || activity.title,
-                  why: activity.description,
-                  description: activity.description,
-                  category: activity.category,
-                  duration: `${activity.duration} min`,
-                  price: activity.price,
-                  location: activity.location,
-                  address: activity.location,
-                  photos: activity.photos ? activity.photos.map(photoUrl => ({
-                    url: photoUrl,
-                    thumbnail: photoUrl,
-                    source: 'google_places'
-                  })) : [],
-                  approx_cost: activity.priceRange || `€${activity.price}`,
-                  tips: activity.recommendations,
-                  rating: activity.rating
-                }]
-              }))
+              day_number: 1,
+              blocks: sortedBlocks
             }]
           };
-          console.log('✅ Converted itinerary for display');
+          console.log('✅ Converted itinerary for display with sorted blocks');
           setItinerary(convertedData);
+          setSelectedDayIndex(0); // Reset to first day
           setLoading(false); // CRITICAL: Stop loading after setting itinerary
         } else {
           console.log('⚠️ Itinerary format not recognized, using as is');
@@ -510,31 +700,51 @@ export default function ItineraryPage() {
         const hasActivities = data.activities && data.activities.length > 0;
         
         if (hasActivities) {
+          // Helper function to parse time string to minutes for sorting
+          const parseTime = (timeStr) => {
+            if (!timeStr) return Infinity;
+            const match = timeStr.match(/(\d{1,2}):(\d{2})/);
+            if (match) {
+              return parseInt(match[1]) * 60 + parseInt(match[2]);
+            }
+            return Infinity;
+          };
+          
           // Конвертируем данные в нужный формат для отображения
+          const blocks = data.activities.map(activity => ({
+            time: activity.time,
+            items: [{
+              title: activity.name || activity.title,
+              why: activity.description,
+              photos: activity.photos ? activity.photos.map(photoUrl => ({
+                url: photoUrl,
+                thumbnail: photoUrl,
+                source: 'google_places'
+              })) : [],
+              address: activity.location,
+              approx_cost: activity.priceRange || `€${activity.price}`,
+              duration: `${activity.duration} min`,
+              tips: activity.recommendations,
+              rating: activity.rating
+            }]
+          }));
+          
+          // Sort blocks by time
+          const sortedBlocks = blocks.sort((a, b) => {
+            const timeA = a.time ? parseTime(a.time.split(' - ')[0]) : Infinity;
+            const timeB = b.time ? parseTime(b.time.split(' - ')[0]) : Infinity;
+            return timeA - timeB;
+          });
+          
           const convertedData = {
             ...data,
             daily_plan: [{
               date: data.date,
-              blocks: data.activities.map(activity => ({
-                time: activity.time,
-                items: [{
-                  title: activity.name || activity.title,
-                  why: activity.description,
-                  photos: activity.photos ? activity.photos.map(photoUrl => ({
-                    url: photoUrl,
-                    thumbnail: photoUrl,
-                    source: 'google_places'
-                  })) : [],
-                  address: activity.location,
-                  approx_cost: activity.priceRange || `€${activity.price}`,
-                  duration: `${activity.duration} min`,
-                  tips: activity.recommendations,
-                  rating: activity.rating
-                }]
-              }))
+              day_number: 1,
+              blocks: sortedBlocks
             }]
           };
-          console.log('✅ Converted data for display:', convertedData);
+          console.log('✅ Converted data for display with sorted blocks:', convertedData);
           
           // Save preview to Redis (only 2 locations for preview)
           let savedItineraryId = itineraryId; // Initialize with existing ID
@@ -586,6 +796,7 @@ export default function ItineraryPage() {
             daily_plan: convertedData.daily_plan
           };
           setItinerary(displayItinerary);
+          setSelectedDayIndex(0); // Reset to first day
           
           // Set itineraryId state if we have it
           if (savedItineraryId) {
@@ -1050,89 +1261,187 @@ export default function ItineraryPage() {
 
         {/* Itinerary Plan */}
         <div className="enhanced-card">
-          <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937', marginBottom: '24px' }}>
-            📅 Day Plan
-          </h2>
-          
           {(() => {
+            // Helper function to parse time string to minutes for sorting
+            const parseTime = (timeStr) => {
+              if (!timeStr) return Infinity;
+              const match = timeStr.match(/(\d{1,2}):(\d{2})/);
+              if (match) {
+                return parseInt(match[1]) * 60 + parseInt(match[2]);
+              }
+              return Infinity;
+            };
+            
+            // Helper function to sort blocks by start time
+            const sortBlocksByTime = (blocks) => {
+              if (!blocks || !Array.isArray(blocks)) return [];
+              return [...blocks].sort((a, b) => {
+                const timeA = a.time ? parseTime(a.time.split(' - ')[0]) : Infinity;
+                const timeB = b.time ? parseTime(b.time.split(' - ')[0]) : Infinity;
+                return timeA - timeB;
+              });
+            };
+            
+            // Helper function to format date (e.g., "Dec.17")
+            const formatDayDate = (baseDate, dayNumber) => {
+              try {
+                const date = new Date(baseDate);
+                date.setDate(date.getDate() + (dayNumber - 1));
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const month = monthNames[date.getMonth()];
+                const day = date.getDate();
+                return `${month}.${day}`;
+              } catch (e) {
+                return '';
+              }
+            };
+            
+            // Get all days from daily_plan
+            const allDays = itinerary?.daily_plan || [];
+            const baseDate = itinerary?.date || formData.date || new Date().toISOString().slice(0, 10);
+            
             // NEW APPROACH: Show only 2 blocks if previewOnly=true, all blocks otherwise
             const shouldShowPreview = itinerary?.previewOnly === true && !isFullPlan;
-            const totalBlocksInPlan = itinerary?.daily_plan?.[0]?.blocks?.length || 0;
-            const blocksToShow = shouldShowPreview 
-              ? (itinerary?.daily_plan?.[0]?.blocks?.slice(0, 2) || [])
-              : (itinerary?.daily_plan?.[0]?.blocks || []);
+            
             console.log('🔍 Display blocks:', { 
               shouldShowPreview, 
               isFullPlan, 
               previewOnly: itinerary?.previewOnly,
-              totalBlocks: totalBlocksInPlan,
-              showingBlocks: blocksToShow.length,
+              totalDays: allDays.length,
+              baseDate,
               tourId: itinerary?.tourId || tourId,
               itineraryId: itineraryId
             });
             
-            // If we're showing full plan but only 2 blocks, log warning
-            if (!shouldShowPreview && totalBlocksInPlan === 2) {
-              console.warn('⚠️ Full plan mode but tour has only 2 blocks - this is expected if tour was created with 2 locations');
-            }
+            console.log('🎨 Rendering itinerary:', {
+              totalDays: allDays.length,
+              itineraryDailyPlan: itinerary?.daily_plan,
+              allDays: allDays,
+              days: allDays.map(d => ({
+                day_number: d.day_number,
+                blocksCount: d.blocks?.length || 0,
+                firstBlockTime: d.blocks?.[0]?.time,
+                lastBlockTime: d.blocks?.[d.blocks?.length - 1]?.time,
+                hasDate: !!d.date
+              }))
+            });
             
-            return blocksToShow;
-          })()?.map((block, blockIndex) => (
-            <div key={blockIndex} style={blockStyle}>
-              <div className="time-block-enhanced">{block.time}</div>
-              {block.items?.map((item, itemIndex) => (
-                <div key={itemIndex} className="item-enhanced">
-                  <h3 className="item-title">
-                    <a 
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title + ' ' + item.address)}`} 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      className="enhanced-link"
-                    >
-                      {item.title}
-                    </a>
-                  </h3>
-                  {item.why && (
-                    <p className="item-description">{item.why}</p>
-                  )}
-                  {item.photos && item.photos.length > 0 && (
-                    <div className="photo-gallery-enhanced">
-                      <PhotoGallery photos={item.photos} placeName={item.title} />
+            return (
+              <>
+                <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937', marginBottom: '24px' }}>
+                  📅 Day Plan
+                </h2>
+                
+                {/* Show all days sequentially with headers */}
+                {allDays.length === 0 ? (
+                  <p style={{ color: '#6b7280', textAlign: 'center', padding: '40px' }}>
+                    No activities planned yet.
+                  </p>
+                ) : (
+                  allDays.map((day, dayIndex) => {
+                    const dayNumber = day.day_number || dayIndex + 1;
+                    const dayDate = formatDayDate(baseDate, dayNumber);
+                    const dayBlocks = day.blocks || [];
+                    
+                    // Sort blocks by time
+                    const sortedBlocks = sortBlocksByTime(dayBlocks);
+                    
+                    // For preview, show only first 2 blocks of first day
+                    const blocksToShow = (shouldShowPreview && dayIndex === 0)
+                      ? sortedBlocks.slice(0, 2)
+                      : sortedBlocks;
+                    
+                    // Don't render day if no blocks to show
+                    if (blocksToShow.length === 0) return null;
+                    
+                    console.log(`🎨 Rendering day ${dayNumber}:`, {
+                      dayIndex,
+                      dayNumber,
+                      dayDate,
+                      totalBlocks: sortedBlocks.length,
+                      showingBlocks: blocksToShow.length,
+                      firstBlockTime: blocksToShow[0]?.time,
+                      lastBlockTime: blocksToShow[blocksToShow.length - 1]?.time
+                    });
+                    
+                    return (
+                      <div key={dayIndex} style={{ marginBottom: dayIndex < allDays.length - 1 ? '48px' : '0' }}>
+                        {/* Day Header - ALWAYS show, even for single day */}
+                        <h3 style={{
+                          fontSize: '20px',
+                          fontWeight: 'bold',
+                          color: '#1f2937',
+                          marginBottom: '20px',
+                          paddingTop: dayIndex > 0 ? '20px' : '0',
+                          paddingBottom: '12px',
+                          borderBottom: '2px solid #e5e7eb'
+                        }}>
+                          План {dayNumber === 1 ? 'первого' : dayNumber === 2 ? 'второго' : `${dayNumber}-го`} дня {dayDate && `(${dayDate})`}
+                        </h3>
+                      
+                      {/* Day Blocks */}
+                      {blocksToShow.map((block, blockIndex) => (
+                        <div key={blockIndex} style={blockStyle}>
+                          <div className="time-block-enhanced">{block.time}</div>
+                          {block.items?.map((item, itemIndex) => (
+                            <div key={itemIndex} className="item-enhanced">
+                              <h3 className="item-title">
+                                <a 
+                                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title + ' ' + item.address)}`} 
+                                  target="_blank" 
+                                  rel="noreferrer" 
+                                  className="enhanced-link"
+                                >
+                                  {item.title}
+                                </a>
+                              </h3>
+                              {item.why && (
+                                <p className="item-description">{item.why}</p>
+                              )}
+                              {item.photos && item.photos.length > 0 && (
+                                <div className="photo-gallery-enhanced">
+                                  <PhotoGallery photos={item.photos} placeName={item.title} />
+                                </div>
+                              )}
+                              <div className="item-details">
+                                {item.address && (
+                                  <div style={{ marginBottom: '10px' }}>
+                                    📍 <a 
+                                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.address)}`} 
+                                      target="_blank" 
+                                      rel="noreferrer" 
+                                      className="enhanced-link"
+                                    >
+                                      {item.address}
+                                    </a>
+                                  </div>
+                                )}
+                                {item.approx_cost && (
+                                  <div style={{ marginBottom: '10px' }}>
+                                    💰 {item.approx_cost}
+                                  </div>
+                                )}
+                                {item.duration && (
+                                  <div style={{ marginBottom: '10px' }}>
+                                    ⏱️ {item.duration}
+                                  </div>
+                                )}
+                                {item.tips && (
+                                  <div style={{ marginBottom: '10px', color: '#3b82f6', fontStyle: 'italic' }}>
+                                    💡 {item.tips}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ))}
                     </div>
-                  )}
-                  <div className="item-details">
-                    {item.address && (
-                      <div style={{ marginBottom: '10px' }}>
-                        📍 <a 
-                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.address)}`} 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          className="enhanced-link"
-                        >
-                          {item.address}
-                        </a>
-                      </div>
-                    )}
-                    {item.approx_cost && (
-                      <div style={{ marginBottom: '10px' }}>
-                        💰 {item.approx_cost}
-                      </div>
-                    )}
-                    {item.duration && (
-                      <div style={{ marginBottom: '10px' }}>
-                        ⏱️ {item.duration}
-                      </div>
-                    )}
-                    {item.tips && (
-                      <div style={{ marginBottom: '10px', color: '#3b82f6', fontStyle: 'italic' }}>
-                        💡 {item.tips}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ))}
+                  );
+                })}
+              </>
+            );
+          })()}
         </div>
 
         {/* Footer */}
