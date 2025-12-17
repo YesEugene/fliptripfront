@@ -483,84 +483,13 @@ export default function ItineraryPage() {
             });
           };
           
-          // Check if all blocks are in one day but should be split by time gaps
-          // If we have one day with many blocks, check if there's a time gap indicating multiple days
-          let processedDailyPlan = loadedItinerary.daily_plan;
-          
-          // If only one day exists, try to detect if it should be split
-          if (processedDailyPlan.length === 1 && processedDailyPlan[0].blocks && processedDailyPlan[0].blocks.length > 0) {
-            const allBlocks = sortBlocksByTime([...processedDailyPlan[0].blocks]);
-            console.log(`🔍 Checking ${allBlocks.length} blocks for day splitting...`);
-            
-            // Check for time gaps (if a block starts earlier than previous block ends, it's likely a new day)
-            const days = [];
-            let currentDayBlocks = [];
-            
-            for (let i = 0; i < allBlocks.length; i++) {
-              const block = allBlocks[i];
-              const blockStartTime = parseTime(block.time?.split(' - ')[0]);
-              
-              if (currentDayBlocks.length === 0) {
-                // First block of first day
-                currentDayBlocks.push(block);
-                console.log(`  Day 1, block ${i + 1}: ${block.time}`);
-              } else {
-                // Check if this block should start a new day
-                const prevBlock = currentDayBlocks[currentDayBlocks.length - 1];
-                const prevBlockEndTime = parseTime(prevBlock.time?.split(' - ')[1]);
-                
-                // If current block starts earlier than previous block ends, it's a new day
-                // Or if there's a large gap (more than 8 hours), it's likely a new day
-                const isNewDay = blockStartTime < prevBlockEndTime || (prevBlockEndTime !== Infinity && blockStartTime - prevBlockEndTime > 8 * 60);
-                
-                if (isNewDay) {
-                  console.log(`  ⚠️ Time gap detected: prev ends ${prevBlock.time?.split(' - ')[1]}, next starts ${block.time?.split(' - ')[0]} - starting new day`);
-                  // Save current day and start new day
-                  if (currentDayBlocks.length > 0) {
-                    days.push({
-                      date: processedDailyPlan[0].date,
-                      day_number: days.length + 1,
-                      blocks: currentDayBlocks
-                    });
-                  }
-                  currentDayBlocks = [block];
-                  console.log(`  Day ${days.length + 1}, block 1: ${block.time}`);
-                } else {
-                  currentDayBlocks.push(block);
-                  console.log(`  Day ${days.length + 1}, block ${currentDayBlocks.length}: ${block.time}`);
-                }
-              }
-            }
-            
-            // Add last day
-            if (currentDayBlocks.length > 0) {
-              days.push({
-                date: processedDailyPlan[0].date,
-                day_number: days.length + 1,
-                blocks: currentDayBlocks
-              });
-            }
-            
-            // If we detected multiple days, use them; otherwise keep original
-            if (days.length > 1) {
-              console.log(`🔄 Detected ${days.length} days from time gaps, splitting blocks`);
-              processedDailyPlan = days;
-            } else {
-              console.log(`✅ Single day confirmed, keeping as is`);
-              // Sort blocks in single day and ensure day_number is set
-              processedDailyPlan = [{
-                ...processedDailyPlan[0],
-                day_number: processedDailyPlan[0].day_number || 1,
-                blocks: sortBlocksByTime(processedDailyPlan[0].blocks || [])
-              }];
-            }
-          } else {
-            // Multiple days already exist, just sort blocks in each day
-            processedDailyPlan = processedDailyPlan.map(day => ({
-              ...day,
-              blocks: sortBlocksByTime(day.blocks || [])
-            }));
-          }
+          // Use daily_plan as is from database - don't auto-split days
+          // Just sort blocks within each day
+          let processedDailyPlan = loadedItinerary.daily_plan.map(day => ({
+            ...day,
+            day_number: day.day_number || 1, // Ensure day_number is set
+            blocks: sortBlocksByTime(day.blocks || [])
+          }));
           
           console.log('✅ Itinerary already in display format');
           console.log('📋 URL params - previewOnly:', previewOnly, 'isFullPlan:', isFullPlan);
@@ -1328,17 +1257,15 @@ export default function ItineraryPage() {
             
             return (
               <>
-                <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937', marginBottom: '24px' }}>
-                  📅 Day Plan
-                </h2>
-                
                 {/* Show all days sequentially with headers */}
                 {allDays.length === 0 ? (
                   <p style={{ color: '#6b7280', textAlign: 'center', padding: '40px' }}>
                     No activities planned yet.
                   </p>
                 ) : (
-                  allDays.map((day, dayIndex) => {
+                  // For preview: show only first day with 2 blocks
+                  // For full plan: show all days with all blocks
+                  (shouldShowPreview ? allDays.slice(0, 1) : allDays).map((day, dayIndex) => {
                     const dayNumber = day.day_number || dayIndex + 1;
                     const dayDate = formatDayDate(baseDate, dayNumber);
                     const dayBlocks = day.blocks || [];
@@ -1347,7 +1274,8 @@ export default function ItineraryPage() {
                     const sortedBlocks = sortBlocksByTime(dayBlocks);
                     
                     // For preview, show only first 2 blocks of first day
-                    const blocksToShow = (shouldShowPreview && dayIndex === 0)
+                    // For full plan, show all blocks
+                    const blocksToShow = shouldShowPreview
                       ? sortedBlocks.slice(0, 2)
                       : sortedBlocks;
                     
@@ -1360,13 +1288,14 @@ export default function ItineraryPage() {
                       dayDate,
                       totalBlocks: sortedBlocks.length,
                       showingBlocks: blocksToShow.length,
+                      shouldShowPreview,
                       firstBlockTime: blocksToShow[0]?.time,
                       lastBlockTime: blocksToShow[blocksToShow.length - 1]?.time
                     });
                     
                     return (
-                      <div key={dayIndex} style={{ marginBottom: dayIndex < allDays.length - 1 ? '48px' : '0' }}>
-                        {/* Day Header - ALWAYS show, even for single day */}
+                      <div key={dayIndex} style={{ marginBottom: dayIndex < (shouldShowPreview ? 1 : allDays.length) - 1 ? '48px' : '0' }}>
+                        {/* Day Header */}
                         <h3 style={{
                           fontSize: '20px',
                           fontWeight: 'bold',
@@ -1376,7 +1305,7 @@ export default function ItineraryPage() {
                           paddingBottom: '12px',
                           borderBottom: '2px solid #e5e7eb'
                         }}>
-                          План {dayNumber === 1 ? 'первого' : dayNumber === 2 ? 'второго' : `${dayNumber}-го`} дня {dayDate && `(${dayDate})`}
+                          Day Plan {dayDate && `(${dayDate})`}
                         </h3>
                       
                       {/* Day Blocks */}
