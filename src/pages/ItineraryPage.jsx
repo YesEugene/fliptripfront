@@ -1062,14 +1062,73 @@ export default function ItineraryPage() {
       <div className="content-section">
         {/* Header */}
         <div className="enhanced-card">
-          <h1 className="title">
-{itinerary?.title || generateFallbackTitle(formData)}
-          </h1>
-          <p className="subtitle">
-{itinerary?.subtitle || generateFallbackSubtitle(formData)}
-          </p>
+          {/* Tour Image with Title and Download Button */}
+          {(() => {
+            // Get first photo from first block of first day, or use placeholder
+            const firstPhoto = itinerary?.daily_plan?.[0]?.blocks?.[0]?.items?.[0]?.photos?.[0]?.url || 
+                              itinerary?.daily_plan?.[0]?.blocks?.[0]?.items?.[0]?.photos?.[0] ||
+                              null;
+            const tourImage = firstPhoto || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200&h=600&fit=crop';
+            
+            return (
+              <div className="tour-hero-image" style={{
+                position: 'relative',
+                width: '100%',
+                height: '400px',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                marginBottom: '24px',
+                backgroundImage: `url(${tourImage})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                padding: '32px'
+              }}>
+                {/* Title overlay */}
+                <h1 className="title" style={{
+                  color: 'white',
+                  fontSize: '36px',
+                  fontWeight: 'bold',
+                  textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+                  margin: 0,
+                  zIndex: 1
+                }}>
+                  {itinerary?.title || generateFallbackTitle(formData)}
+                </h1>
+                
+                {/* Download PDF Button */}
+                {itinerary?.previewOnly !== true && (
+                  <button
+                    onClick={handleDownloadPDF}
+                    style={{
+                      alignSelf: 'flex-start',
+                      padding: '12px 24px',
+                      backgroundColor: 'white',
+                      color: '#1f2937',
+                      border: 'none',
+                      borderRadius: '12px',
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
+                      zIndex: 1
+                    }}
+                  >
+                    <span style={{ fontSize: '20px' }}>📄</span>
+                    Download PDF
+                  </button>
+                )}
+              </div>
+            );
+          })()}
           
-          <div className="badges">
+          {/* Tags/Badges */}
+          <div className="badges" style={{ marginBottom: '24px' }}>
             <span className="badge-enhanced" style={{ backgroundColor: '#dbeafe', color: '#1e40af' }}>
               🌍 {formData.city}
             </span>
@@ -1095,6 +1154,16 @@ export default function ItineraryPage() {
               </span>
             ))}
           </div>
+
+          {/* Tour Description */}
+          <p className="subtitle" style={{ 
+            fontSize: '16px', 
+            lineHeight: '1.6', 
+            color: '#4b5563',
+            marginBottom: '24px'
+          }}>
+            {itinerary?.subtitle || generateFallbackSubtitle(formData)}
+          </p>
 
           {itinerary?.weather && (
             <div className="weather-enhanced">
@@ -1175,15 +1244,6 @@ export default function ItineraryPage() {
                 </button>
               </div>
             </div>
-          )}
-
-          {itinerary?.previewOnly !== true && (
-          <button
-            onClick={handleDownloadPDF}
-            className="download-button"
-          >
-            📱 Download PDF
-          </button>
           )}
         </div>
 

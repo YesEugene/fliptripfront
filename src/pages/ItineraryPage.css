@@ -357,14 +357,14 @@
   box-shadow: none;
 }
 
-/* Improved time block styles - increased padding by 5px on all sides */
+/* Improved time block styles - reduced padding by 2px on all sides */
 .time-block-enhanced {
   font-size: 12px;
   font-weight: bold;
   margin-bottom: 16px;
   background-color: #3b82f6;
   color: white;
-  padding: 15px 20px; /* 10px+5px=15px, 15px+5px=20px (increased by 5px on all sides) */
+  padding: 13px 18px; /* 15px-2px=13px, 20px-2px=18px (reduced by 2px on all sides) */
   border-radius: 12px;
   display: inline-block;
   transition: background-color 0.2s ease;
