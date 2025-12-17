@@ -1137,22 +1137,12 @@ export default function HomePage() {
       {/* White Section with Tours from Database */}
       <div style={{ 
         backgroundColor: 'white', 
-        padding: '30px 20px',
+        padding: '15px 20px',
         maxWidth: '750px',
         margin: '0 auto',
         position: 'relative',
         zIndex: 1
       }}>
-        {(tours.length > 0 || filtersApplied) && (
-        <h2 style={{
-          fontSize: '20px',
-          fontWeight: 'bold',
-          color: '#1f2937',
-          marginBottom: '24px'
-        }}>
-          Take a look at our day plan
-        </h2>
-        )}
         
         {loadingTours ? (
           <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
@@ -1192,15 +1182,15 @@ export default function HomePage() {
                 }}
                 onClick={handleCreatePersonalizedTrip}
               >
-                <h2 style={{
+        <h2 style={{
                   fontSize: '28px',
-                  fontWeight: 'bold',
+          fontWeight: 'bold',
                   color: 'white',
                   marginBottom: '12px',
                   lineHeight: '1.2'
-                }}>
+        }}>
                   Create Personalized Trip
-                </h2>
+        </h2>
                 <p style={{
                   fontSize: '16px',
                   color: 'rgba(255, 255, 255, 0.95)',
