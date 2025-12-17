@@ -739,36 +739,8 @@ export default function HomePage() {
             WebkitOverflowScrolling: 'touch'
         }}>
             <form onSubmit={handleShowResults} style={{ paddingTop: '20px', position: 'relative' }}>
-            {/* Close button - positioned absolutely aligned with City label */}
-            <button
-              onClick={handleCloseFilterModal}
-              style={{
-                position: 'absolute',
-                top: '20px',
-                right: '0px',
-                backgroundColor: 'transparent',
-                border: 'none',
-                fontSize: '24px',
-                cursor: 'pointer',
-                color: '#6b7280',
-                padding: '0',
-                width: '32px',
-                height: '32px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 10000,
-                lineHeight: '1.5'
-              }}
-            >
-              ×
-            </button>
-            
-            {/* City Selection - First field in filter form */}
+            {/* City Selection - First field in filter form (no label, no close button) */}
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151', lineHeight: '1.5' }}>
-                City
-              </label>
               <div style={{ position: 'relative' }}>
                 <button
                   type="button"
