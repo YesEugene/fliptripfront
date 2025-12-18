@@ -366,20 +366,30 @@ export default function HomePage() {
   
   const handleShowResults = (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      setShowFilterModal(false);
-      setFiltersApplied(true);
-      // Generate personalized trip preview
-      const preview = {
-        city: formData.city,
-        title: `${formData.city} Adventure`,
-        subtitle: `Personalized trip for ${formData.audience}`,
-        image: randomCityImage
-      };
-      setPersonalizedTripPreview(preview);
-      // Reload tours with filters
-      // (tours will be reloaded automatically via useEffect)
+    // Only require city, other fields are optional
+    if (!formData.city) {
+      setErrors({ city: "Please select a city." });
+      return;
     }
+    
+    setShowFilterModal(false);
+    setFiltersApplied(true);
+    setErrors({});
+    
+    // Generate personalized trip preview
+    const subtitle = formData.audience 
+      ? `Personalized trip for ${AUDIENCES.find(a => a.value === formData.audience)?.label || formData.audience}`
+      : `Personalized trip in ${formData.city}`;
+    
+    const preview = {
+      city: formData.city,
+      title: `${formData.city} Adventure`,
+      subtitle: subtitle,
+      image: randomCityImage
+    };
+    setPersonalizedTripPreview(preview);
+    // Reload tours with filters
+    // (tours will be reloaded automatically via useEffect)
   };
 
   // Inline handlers used instead
@@ -1245,16 +1255,16 @@ export default function HomePage() {
                         <div style={{ textAlign: 'center' }}>
                           <button
                             type="submit"
-                            disabled={!formData.city || !formData.audience || formData.interest_ids.length === 0 || !formData.budget || formData.budget === "" || selectedDates.length === 0}
+                            disabled={!formData.city}
                             style={{
-                              backgroundColor: (!formData.city || !formData.audience || formData.interest_ids.length === 0 || !formData.budget || formData.budget === "" || selectedDates.length === 0) ? '#e0e0e0' : '#3E85FC',
+                              backgroundColor: !formData.city ? '#e0e0e0' : '#3E85FC',
                               color: 'white',
                               border: 'none',
                               borderRadius: '12px',
                               padding: '14px 28px',
                               fontSize: '18px',
                               fontWeight: 'bold',
-                              cursor: (!formData.city || !formData.audience || formData.interest_ids.length === 0 || !formData.budget || formData.budget === "" || selectedDates.length === 0) ? 'not-allowed' : 'pointer',
+                              cursor: !formData.city ? 'not-allowed' : 'pointer',
                               transition: 'background-color 0.2s ease',
                               width: '100%'
                             }}
