@@ -147,6 +147,13 @@ body {
   height: 330px !important;
 }
 
+/* Desktop styles - Increase hero text font size by 20% */
+@media (min-width: 769px) {
+  .hero-main-text {
+    font-size: 36px !important; /* 30px * 1.2 = 36px */
+  }
+}
+
 /* Modal animations */
 @keyframes fadeIn {
   from {

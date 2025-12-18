@@ -675,22 +675,25 @@ export default function HomePage() {
                 )}
               </div>
             </div>
-            <div style={{
-              color: 'white',
-              fontSize: '30px',
-              fontWeight: 'bold',
-              textAlign: 'center',
-              lineHeight: '1.3',
-              marginTop: '30px', // Added 30px top margin to move text down
-              marginBottom: '40px',
-              textShadow: '0 2px 8px rgba(0,0,0,0.5)',
-              width: '100%',
-              maxWidth: '750px',
-              marginLeft: 'auto',
-              marginRight: 'auto',
-              paddingLeft: '20px',
-              paddingRight: '20px'
-            }}>
+            <div 
+              className="hero-main-text"
+              style={{
+                color: 'white',
+                fontSize: '30px',
+                fontWeight: 'bold',
+                textAlign: 'center',
+                lineHeight: '1.3',
+                marginTop: '30px', // Added 30px top margin to move text down
+                marginBottom: '40px',
+                textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+                width: '100%',
+                maxWidth: '750px',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                paddingLeft: '20px',
+                paddingRight: '20px'
+              }}
+            >
               Choose a city.<br />
               We'll craft your journey.
             </div>
