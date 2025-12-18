@@ -804,10 +804,88 @@ export default function HomePage() {
           {/* Date Filter Button */}
           <button
             type="button"
-            onClick={() => {
-              setQuickFilterDateOpen(!quickFilterDateOpen);
+            onClick={(e) => {
+              e.stopPropagation();
               setQuickFilterBudgetOpen(false);
               setQuickFilterInterestsOpen(false);
+              
+              // Immediately open calendar picker
+              const dateInput = document.createElement('input');
+              dateInput.type = 'date';
+              dateInput.min = new Date().toISOString().slice(0, 10);
+              // Max date: today + 1 day (to allow max 2 days total)
+              const maxDate = new Date();
+              maxDate.setDate(maxDate.getDate() + 1);
+              dateInput.max = maxDate.toISOString().slice(0, 10);
+              dateInput.value = selectedDates.length > 0 ? selectedDates[0] : '';
+              
+              const rect = e.currentTarget.getBoundingClientRect();
+              dateInput.style.position = 'fixed';
+              dateInput.style.left = rect.left + 'px';
+              dateInput.style.top = (rect.bottom + 5) + 'px';
+              dateInput.style.zIndex = '9999';
+              dateInput.style.opacity = '0';
+              dateInput.style.pointerEvents = 'auto';
+              dateInput.style.width = '1px';
+              dateInput.style.height = '1px';
+              
+              document.body.appendChild(dateInput);
+              
+              setTimeout(() => {
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                if (isMobile || !dateInput.showPicker) {
+                  dateInput.focus();
+                  dateInput.click();
+                } else {
+                  dateInput.showPicker();
+                }
+              }, 10);
+              
+              dateInput.onchange = (changeEvent) => {
+                const selectedDate = changeEvent.target.value;
+                if (selectedDate) {
+                  setSelectedDates(prev => {
+                    if (prev.length === 0) {
+                      // First date selected
+                      setFormData(formData => ({ ...formData, date_from: selectedDate, date_to: selectedDate }));
+                      return [selectedDate];
+                    } else if (prev.length === 1) {
+                      // Second date selected - check if it's within 1 day
+                      const firstDate = new Date(prev[0]);
+                      const secondDate = new Date(selectedDate);
+                      const diffTime = Math.abs(secondDate - firstDate);
+                      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                      
+                      if (diffDays <= 1) {
+                        // Valid range (max 2 days)
+                        const dates = [prev[0], selectedDate].sort();
+                        setFormData(formData => ({ ...formData, date_from: dates[0], date_to: dates[1] }));
+                        return dates;
+                      } else {
+                        // Reset to new date
+                        setFormData(formData => ({ ...formData, date_from: selectedDate, date_to: selectedDate }));
+                        return [selectedDate];
+                      }
+                    } else {
+                      // Reset to new date
+                      setFormData(formData => ({ ...formData, date_from: selectedDate, date_to: selectedDate }));
+                      return [selectedDate];
+                    }
+                  });
+                } else {
+                  setSelectedDates([]);
+                  setFormData(prev => ({ ...prev, date_from: null, date_to: null }));
+                }
+                document.body.removeChild(dateInput);
+              };
+              
+              dateInput.onblur = () => {
+                setTimeout(() => {
+                  if (document.body.contains(dateInput)) {
+                    document.body.removeChild(dateInput);
+                  }
+                }, 100);
+              };
             }}
             style={{
               padding: '8px 16px',
@@ -826,12 +904,13 @@ export default function HomePage() {
             }}
           >
             <span>📅</span>
-            <span>Dates</span>
-            {selectedDates.length > 0 && (
-              <span style={{ fontSize: '12px', opacity: 0.9 }}>
-                ({selectedDates.length})
-              </span>
-            )}
+            <span>
+              {selectedDates.length > 0
+                ? selectedDates.length === 1
+                  ? new Date(selectedDates[0]).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                  : `${new Date(selectedDates[0]).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(selectedDates[selectedDates.length - 1]).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                : 'Dates'}
+            </span>
           </button>
 
           {/* Budget Filter Button */}
@@ -932,49 +1011,7 @@ export default function HomePage() {
           </button>
         </div>
 
-        {/* Quick Filter Dropdowns */}
-        {quickFilterDateOpen && (
-          <div 
-            style={{
-              marginTop: '12px',
-              padding: '12px',
-              backgroundColor: '#f9fafb',
-              borderRadius: '12px',
-              border: '1px solid #e5e7eb',
-              position: 'relative',
-              zIndex: 101
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <input
-              type="date"
-              min={new Date().toISOString().slice(0, 10)}
-              max={(() => {
-                const maxDate = new Date();
-                maxDate.setDate(maxDate.getDate() + 1);
-                return maxDate.toISOString().slice(0, 10);
-              })()}
-              value={selectedDates.length > 0 ? selectedDates[0] : ''}
-              onChange={(e) => {
-                const selectedDate = e.target.value;
-                if (selectedDate) {
-                  setSelectedDates([selectedDate]);
-                  setFormData(prev => ({ ...prev, date_from: selectedDate, date_to: selectedDate }));
-                } else {
-                  setSelectedDates([]);
-                  setFormData(prev => ({ ...prev, date_from: null, date_to: null }));
-                }
-              }}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                fontSize: '14px'
-              }}
-            />
-          </div>
-        )}
+        {/* Quick Filter Dropdowns - Date dropdown removed, calendar opens directly on button click */}
 
         {quickFilterBudgetOpen && (
           <div 
