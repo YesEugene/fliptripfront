@@ -31,7 +31,6 @@ export default function LocationFormModal({ location, onClose, onSave }) {
     name: '',
     city_id: '',
     address: '',
-    category: '',
     description: '',
     recommendations: '',
     price_level: '',
@@ -52,11 +51,7 @@ export default function LocationFormModal({ location, onClose, onSave }) {
   const [loadingCities, setLoadingCities] = useState(true);
   const [error, setError] = useState(null);
 
-  const categories = [
-    'restaurant', 'cafe', 'bar', 'museum', 'park', 'monument', 
-    'theater', 'beach', 'market', 'shopping', 'nightlife', 'sports',
-    'adventure', 'wellness', 'transport', 'accommodation', 'other'
-  ];
+  // Removed old category list - now using interest categories only
 
   useEffect(() => {
     loadCities();
@@ -68,7 +63,6 @@ export default function LocationFormModal({ location, onClose, onSave }) {
         name: location.name || '',
         city_id: location.city_id || location.city?.id || '',
         address: location.address || '',
-        category: location.category || '',
         description: location.description || '',
         recommendations: location.recommendations || '',
         price_level: location.price_level?.toString() || '',
@@ -203,8 +197,8 @@ export default function LocationFormModal({ location, onClose, onSave }) {
 
     try {
       // Validate required fields
-      if (!formData.name || !formData.city_id || !formData.category) {
-        throw new Error('Name, City, and Category are required');
+      if (!formData.name || !formData.city_id) {
+        throw new Error('Name and City are required');
       }
 
       // Prepare data for API
@@ -212,7 +206,7 @@ export default function LocationFormModal({ location, onClose, onSave }) {
         name: formData.name,
         city_id: formData.city_id || null,
         address: formData.address || null,
-        category: formData.category,
+        // category removed - now using interests only
         description: formData.description || null,
         recommendations: formData.recommendations || null,
         price_level: formData.price_level ? parseInt(formData.price_level) : null,
@@ -348,30 +342,7 @@ export default function LocationFormModal({ location, onClose, onSave }) {
               )}
             </div>
 
-            {/* Category */}
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
-                Category <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                required
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '16px'
-                }}
-              >
-                <option value="">Select category</option>
-                {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
-                ))}
-              </select>
-            </div>
+            {/* Category field removed - now using interest categories only */}
 
             {/* Address */}
             <div style={{ gridColumn: '1 / -1' }}>

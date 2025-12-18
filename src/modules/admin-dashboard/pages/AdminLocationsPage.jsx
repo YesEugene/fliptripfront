@@ -23,7 +23,6 @@ export default function AdminLocationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
   const [filterSource, setFilterSource] = useState('');
   const [filterTag, setFilterTag] = useState('');
   const [filterVerified, setFilterVerified] = useState('');
@@ -55,9 +54,6 @@ export default function AdminLocationsPage() {
       const filters = {};
       if (searchTerm) {
         filters.search = searchTerm;
-      }
-      if (filterCategory) {
-        filters.category = filterCategory;
       }
       if (filterSource) {
         filters.source = filterSource;
@@ -124,7 +120,7 @@ export default function AdminLocationsPage() {
       loadLocations();
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchTerm, filterCategory, filterSource, filterTag, filterVerified]);
+  }, [searchTerm, filterSource, filterTag, filterVerified]);
 
   if (!user) {
     return <div style={{ padding: '20px' }}>Loading...</div>;
@@ -225,29 +221,6 @@ export default function AdminLocationsPage() {
           {/* Filters Row */}
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
             <select
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-              style={{
-                padding: '8px 12px',
-                border: '1px solid #d1d5db',
-                borderRadius: '8px',
-                fontSize: '14px',
-                backgroundColor: 'white',
-                cursor: 'pointer'
-              }}
-            >
-              <option value="">All Categories</option>
-              <option value="restaurant">Restaurant</option>
-              <option value="cafe">Cafe</option>
-              <option value="museum">Museum</option>
-              <option value="bar">Bar</option>
-              <option value="attraction">Attraction</option>
-              <option value="hotel">Hotel</option>
-              <option value="shop">Shop</option>
-              <option value="park">Park</option>
-            </select>
-
-            <select
               value={filterSource}
               onChange={(e) => setFilterSource(e.target.value)}
               style={{
@@ -303,10 +276,9 @@ export default function AdminLocationsPage() {
               <option value="false">Not Verified</option>
             </select>
 
-            {(filterCategory || filterSource || filterTag || filterVerified) && (
+            {(filterSource || filterTag || filterVerified) && (
               <button
                 onClick={() => {
-                  setFilterCategory('');
                   setFilterSource('');
                   setFilterTag('');
                   setFilterVerified('');
@@ -368,7 +340,6 @@ export default function AdminLocationsPage() {
                 <tr style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Name</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>City</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Category</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Verified</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Actions</th>
                 </tr>
@@ -376,7 +347,7 @@ export default function AdminLocationsPage() {
               <tbody>
                 {locations.length === 0 ? (
                   <tr>
-                    <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+                    <td colSpan="4" style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
                       No locations found
                     </td>
                   </tr>
@@ -387,7 +358,6 @@ export default function AdminLocationsPage() {
                       <td style={{ padding: '12px' }}>
                         {location.city?.name || 'N/A'}
                       </td>
-                      <td style={{ padding: '12px' }}>{location.category || 'N/A'}</td>
                       <td style={{ padding: '12px' }}>
                         <span style={{
                           padding: '4px 8px',
