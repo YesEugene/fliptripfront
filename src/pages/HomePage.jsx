@@ -303,29 +303,37 @@ export default function HomePage() {
     setAvailableInterests([...categoryInterests, ...selectedInterestsFromOtherCategories]);
   }, [formData.interest_ids, selectedCategory, allInterests]);
 
+  // City images mapping
+  const cityImagesMap = {
+    'Paris': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&h=600&fit=crop&q=80',
+    'Barcelona': 'https://images.unsplash.com/photo-1539037116277-4db20889f2d2?w=1200&h=600&fit=crop&q=80',
+    'Amsterdam': 'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=1200&h=600&fit=crop&q=80',
+    'Berlin': 'https://images.unsplash.com/photo-1587330979470-3595ac045ab0?w=1200&h=600&fit=crop&q=80',
+    'London': 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&h=600&fit=crop&q=80',
+    'Rome': 'https://images.unsplash.com/photo-1529260830199-42c24126f198?w=1200&h=600&fit=crop&q=80',
+    'Madrid': 'https://images.unsplash.com/photo-1539037116277-4db20889f2d2?w=1200&h=600&fit=crop&q=80',
+    'Lisbon': 'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=1200&h=600&fit=crop&q=80',
+    'New York': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=1200&h=600&fit=crop&q=80',
+    'Tokyo': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1200&h=600&fit=crop&q=80',
+    'Prague': 'https://images.unsplash.com/photo-1541849546-216549ae216d?w=1200&h=600&fit=crop&q=80',
+    'Vienna': 'https://images.unsplash.com/photo-1516550893923-42d28e5677af?w=1200&h=600&fit=crop&q=80',
+    'Venice': 'https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?w=1200&h=600&fit=crop&q=80',
+    'Florence': 'https://images.unsplash.com/photo-1520175480921-4edfa2983e0f?w=1200&h=600&fit=crop&q=80',
+    'Moscow': 'https://images.unsplash.com/photo-1513326738677-b964603b136d?w=1200&h=600&fit=crop&q=80',
+    'Istanbul': 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=1200&h=600&fit=crop&q=80',
+    'Dubai': 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&h=600&fit=crop&q=80',
+    'Sydney': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=600&fit=crop&q=80',
+    'Singapore': 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=1200&h=600&fit=crop&q=80',
+    'Copenhagen': 'https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?w=1200&h=600&fit=crop&q=80'
+  };
+
   // Random city images for header background
-  const cityImages = [
-    'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&h=600&fit=crop&q=80', // Paris
-    'https://images.unsplash.com/photo-1539037116277-4db20889f2d2?w=1200&h=600&fit=crop&q=80', // Barcelona
-    'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=1200&h=600&fit=crop&q=80', // Amsterdam
-    'https://images.unsplash.com/photo-1587330979470-3595ac045ab0?w=1200&h=600&fit=crop&q=80', // Berlin
-    'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&h=600&fit=crop&q=80', // London
-    'https://images.unsplash.com/photo-1529260830199-42c24126f198?w=1200&h=600&fit=crop&q=80', // Rome
-    'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=1200&h=600&fit=crop&q=80', // Lisbon
-    'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=1200&h=600&fit=crop&q=80', // New York
-    'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1200&h=600&fit=crop&q=80', // Tokyo
-    'https://images.unsplash.com/photo-1541849546-216549ae216d?w=1200&h=600&fit=crop&q=80', // Prague
-    'https://images.unsplash.com/photo-1516550893923-42d28e5677af?w=1200&h=600&fit=crop&q=80', // Vienna
-    'https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?w=1200&h=600&fit=crop&q=80', // Venice
-    'https://images.unsplash.com/photo-1520175480921-4edfa2983e0f?w=1200&h=600&fit=crop&q=80', // Florence
-    'https://images.unsplash.com/photo-1513326738677-b964603b136d?w=1200&h=600&fit=crop&q=80', // Moscow
-    'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=1200&h=600&fit=crop&q=80', // Istanbul
-    'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&h=600&fit=crop&q=80', // Dubai
-    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=600&fit=crop&q=80', // Sydney
-    'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=1200&h=600&fit=crop&q=80', // Singapore
-    'https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?w=1200&h=600&fit=crop&q=80', // Copenhagen
-    'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&h=600&fit=crop&q=80&auto=format' // Generic beautiful city
-  ];
+  const cityImages = Object.values(cityImagesMap);
+  
+  // Get city image by city name
+  const getCityImage = (cityName) => {
+    return cityImagesMap[cityName] || cityImages[0] || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&h=600&fit=crop&q=80&auto=format';
+  };
 
   const [randomCityImage, setRandomCityImage] = useState('');
 
@@ -409,11 +417,14 @@ export default function HomePage() {
       ? `Personalized trip for ${AUDIENCES.find(a => a.value === formData.audience)?.label || formData.audience}`
       : `Personalized trip in ${formData.city}`;
     
+    // Get city image for the preview
+    const cityImage = getCityImage(formData.city);
+    
     const preview = {
       city: formData.city,
       title: `${formData.city} Adventure`,
       subtitle: subtitle,
-      image: randomCityImage
+      image: cityImage
     };
     setPersonalizedTripPreview(preview);
     // Reload tours with filters
@@ -1627,11 +1638,14 @@ export default function HomePage() {
         {filtersApplied && (
           <div style={{
             display: 'flex',
-            flexWrap: 'wrap',
+            flexWrap: 'nowrap',
             gap: '8px',
             marginBottom: '20px',
             paddingBottom: '15px',
-            borderBottom: '1px solid #e5e7eb'
+            borderBottom: '1px solid #e5e7eb',
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'thin'
           }}>
             {/* City Tag */}
             {formData.city && (
@@ -1937,31 +1951,32 @@ export default function HomePage() {
                 borderRadius: '12px',
                 overflow: 'hidden',
                 boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
-                cursor: 'pointer',
                 transition: 'transform 0.2s ease',
                 position: 'relative',
                   gridColumn: 'span 2',
                   gridRow: 'span 2',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  backgroundImage: personalizedTripPreview.image ? `url(${personalizedTripPreview.image})` : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   padding: '30px',
                   color: 'white'
                 }}
-                onClick={() => {
-                  const params = new URLSearchParams();
-                  if (formData.city) params.append('city', formData.city);
-                  if (formData.audience) params.append('audience', formData.audience);
-                  if (formData.interest_ids && formData.interest_ids.length > 0) {
-                    formData.interest_ids.forEach(id => {
-                      params.append('interest_ids', id);
-                    });
-                  }
-                  navigate(`/itinerary?${params.toString()}`);
-                }}
               >
-                <div>
+                {/* Dark overlay for text readability */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                  zIndex: 1
+                }} />
+                
+                <div style={{ position: 'relative', zIndex: 2 }}>
                   <h3 style={{
                     fontSize: '24px',
                     fontWeight: 'bold',
@@ -1979,6 +1994,30 @@ export default function HomePage() {
                   </p>
                 </div>
                 <button
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent card click
+                    const params = new URLSearchParams();
+                    if (formData.city) params.append('city', formData.city);
+                    if (formData.audience) params.append('audience', formData.audience);
+                    if (formData.interest_ids && formData.interest_ids.length > 0) {
+                      formData.interest_ids.forEach(id => {
+                        params.append('interest_ids', id);
+                      });
+                    }
+                    if (formData.budget && formData.budget !== "") {
+                      params.append('budget', formData.budget);
+                    }
+                    if (selectedDates.length > 0) {
+                      params.append('date_from', selectedDates[0]);
+                      if (selectedDates.length > 1) {
+                        params.append('date_to', selectedDates[selectedDates.length - 1]);
+                      } else {
+                        params.append('date_to', selectedDates[0]);
+                      }
+                    }
+                    params.append('previewOnly', 'true'); // Generate preview, not full tour
+                    navigate(`/itinerary?${params.toString()}`);
+                  }}
                   style={{
                     backgroundColor: 'white',
                     color: '#667eea',
@@ -1990,7 +2029,9 @@ export default function HomePage() {
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     alignSelf: 'flex-start',
-                    marginTop: '20px'
+                    marginTop: '20px',
+                    position: 'relative',
+                    zIndex: 2
                   }}
                   onMouseOver={(e) => e.target.style.backgroundColor = '#f3f4f6'}
                   onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
