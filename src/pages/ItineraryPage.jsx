@@ -1373,19 +1373,46 @@ export default function ItineraryPage() {
                       
                       {/* Day Blocks */}
                       {blocksToShow.map((block, blockIndex) => {
-                        // Format time: remove seconds from both start and end time (e.g., "09:00:00 - 10:30:00" -> "09:00 - 10:30")
+                        // Format time: ensure HH:MM format (e.g., "09" -> "09:00", "09:00:00" -> "09:00", "09:00 - 10:30:00" -> "09:00 - 10:30")
                         const formatTime = (timeStr) => {
                           if (!timeStr) return '';
                           // Split by " - " to get start and end times
                           const parts = timeStr.split(' - ');
                           if (parts.length === 2) {
-                            // Remove seconds from both times
-                            const startTime = parts[0].replace(/:\d{2}$/, '');
-                            const endTime = parts[1].replace(/:\d{2}$/, '');
+                            // Format both times
+                            const formatSingleTime = (t) => {
+                              t = t.trim();
+                              // Remove seconds if present
+                              t = t.replace(/:\d{2}$/, '');
+                              // If only hour (e.g., "09"), add ":00"
+                              if (/^\d{1,2}$/.test(t)) {
+                                return `${t.padStart(2, '0')}:00`;
+                              }
+                              // If already HH:MM format, return as is
+                              if (/^\d{1,2}:\d{2}$/.test(t)) {
+                                const [hours, mins] = t.split(':');
+                                return `${hours.padStart(2, '0')}:${mins.padStart(2, '0')}`;
+                              }
+                              return t;
+                            };
+                            const startTime = formatSingleTime(parts[0]);
+                            const endTime = formatSingleTime(parts[1]);
                             return `${startTime} - ${endTime}`;
                           }
-                          // If no " - " separator, just remove seconds
-                          return timeStr.replace(/:\d{2}$/, '');
+                          // If no " - " separator, format single time
+                          let singleTime = timeStr.trim();
+                          // Remove seconds if present
+                          singleTime = singleTime.replace(/:\d{2}$/, '');
+                          // If only hour (e.g., "09"), add ":00"
+                          if (/^\d{1,2}$/.test(singleTime)) {
+                            return `${singleTime.padStart(2, '0')}:00`;
+                          }
+                          // If already HH:MM format, ensure proper padding
+                          if (/^\d{1,2}:\d{2}$/.test(singleTime)) {
+                            const [hours, mins] = singleTime.split(':');
+                            return `${hours.padStart(2, '0')}:${mins.padStart(2, '0')}`;
+                          }
+                          return singleTime;
                         };
                         
                         return (
