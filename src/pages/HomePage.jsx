@@ -93,7 +93,7 @@ export default function HomePage() {
   const [quickFilterDateOpen, setQuickFilterDateOpen] = useState(false);
   const [quickFilterBudgetOpen, setQuickFilterBudgetOpen] = useState(false);
   const [quickFilterCategoryOpen, setQuickFilterCategoryOpen] = useState(false);
-  const [quickFilterSelectedCategory, setQuickFilterSelectedCategory] = useState(null);
+  const [quickFilterSelectedCategories, setQuickFilterSelectedCategories] = useState([]); // Array of category IDs
   
   // Removed '' state - using simple dropdown only
 
@@ -233,33 +233,34 @@ export default function HomePage() {
           filters.city = formData.city;
         }
         
-        // Quick filters: apply category if selected (real-time filtering)
-        if (quickFilterSelectedCategory && interestsStructure) {
-          const category = interestsStructure.find(c => c.id === quickFilterSelectedCategory);
-          if (category) {
-            // Filter tours by category - get all interests from this category
-            const categoryInterests = allInterests.filter(i => i.category_id === category.id);
-            if (categoryInterests.length > 0) {
-              const interestNames = categoryInterests.map(i => i.name).filter(Boolean);
-              if (interestNames.length > 0) {
-                filters.interests = interestNames;
+        // Quick filters: apply categories and specific interests
+        const selectedInterestNames = new Set();
+        
+        // 1. Add all interests from selected categories
+        if (quickFilterSelectedCategories.length > 0 && interestsStructure && allInterests.length > 0) {
+          quickFilterSelectedCategories.forEach(categoryId => {
+            const categoryInterests = allInterests.filter(i => i.category_id === categoryId);
+            categoryInterests.forEach(interest => {
+              if (interest.name) {
+                selectedInterestNames.add(interest.name);
               }
-            }
-          }
+            });
+          });
         }
         
-        // Quick filters: apply interests if selected (real-time filtering)
+        // 2. Add specific selected interests (if any)
         if (formData.interest_ids && formData.interest_ids.length > 0 && allInterests.length > 0) {
-          // Get interest names from IDs
-          const interestNames = formData.interest_ids
-            .map(id => {
-              const interest = allInterests.find(i => i.id === id);
-              return interest?.name;
-            })
-            .filter(Boolean);
-          if (interestNames.length > 0) {
-            filters.interests = interestNames;
-          }
+          formData.interest_ids.forEach(interestId => {
+            const interest = allInterests.find(i => i.id === interestId);
+            if (interest && interest.name) {
+              selectedInterestNames.add(interest.name);
+            }
+          });
+        }
+        
+        // 3. Apply filter if there are selected interests
+        if (selectedInterestNames.size > 0) {
+          filters.interests = Array.from(selectedInterestNames);
         }
         
         // Quick filters: apply budget if provided (real-time filtering)
@@ -297,7 +298,7 @@ export default function HomePage() {
     };
     // Load tours on mount and when filters change (real-time for quick filters)
     loadTours();
-  }, [formData.city, formData.interest_ids, formData.budget, selectedDates, allInterests, quickFilterSelectedCategory, interestsStructure]);
+  }, [formData.city, formData.interest_ids, formData.budget, selectedDates, allInterests, quickFilterSelectedCategories, interestsStructure]);
 
   // Update availableInterests when category or interest_ids change
   // Show all interests by default, or only interests from selected category
@@ -394,7 +395,7 @@ export default function HomePage() {
     });
     setSelectedDates([]);
     setSelectedCategory(null);
-    setQuickFilterSelectedCategory(null);
+    setQuickFilterSelectedCategories([]);
     setAvailableInterests(allInterests);
     setFiltersApplied(false);
     setPersonalizedTripPreview(null);
@@ -976,10 +977,10 @@ export default function HomePage() {
             }}
             style={{
               padding: '8px 16px',
-              border: `2px solid ${quickFilterSelectedCategory ? '#3E85FC' : '#e5e7eb'}`,
+              border: `2px solid ${quickFilterSelectedCategories.length > 0 ? '#3E85FC' : '#e5e7eb'}`,
               borderRadius: '20px',
-              backgroundColor: quickFilterSelectedCategory ? '#3E85FC' : 'white',
-              color: quickFilterSelectedCategory ? 'white' : '#6b7280',
+              backgroundColor: quickFilterSelectedCategories.length > 0 ? '#3E85FC' : 'white',
+              color: quickFilterSelectedCategories.length > 0 ? 'white' : '#6b7280',
               cursor: 'pointer',
               fontSize: '14px',
               fontWeight: 'bold',
@@ -992,9 +993,9 @@ export default function HomePage() {
           >
             <span>🏷️</span>
             <span>Category</span>
-            {quickFilterSelectedCategory && interestsStructure && (
+            {quickFilterSelectedCategories.length > 0 && (
               <span style={{ fontSize: '12px', opacity: 0.9 }}>
-                ({CATEGORY_NAMES[interestsStructure.find(c => c.id === quickFilterSelectedCategory)?.name] || ''})
+                ({quickFilterSelectedCategories.length})
               </span>
             )}
           </button>
@@ -1097,14 +1098,22 @@ export default function HomePage() {
               gap: '6px'
             }}>
               {interestsStructure.map(category => {
-                const isSelected = quickFilterSelectedCategory === category.id;
+                const isSelected = quickFilterSelectedCategories.includes(category.id);
                 return (
                   <button
                     key={category.id}
                     type="button"
                     onClick={() => {
-                      setQuickFilterSelectedCategory(isSelected ? null : category.id);
-                      setQuickFilterCategoryOpen(false);
+                      if (isSelected) {
+                        // Remove category from selection
+                        setQuickFilterSelectedCategories(prev => 
+                          prev.filter(id => id !== category.id)
+                        );
+                      } else {
+                        // Add category to selection
+                        setQuickFilterSelectedCategories(prev => [...prev, category.id]);
+                      }
+                      // Don't close dropdown to allow multiple selections
                     }}
                     style={{
                       padding: '8px 16px',
