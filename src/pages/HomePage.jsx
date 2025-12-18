@@ -87,7 +87,12 @@ export default function HomePage() {
   
   // Personalized trip preview (shown after filters are applied)
   const [personalizedTripPreview, setPersonalizedTripPreview] = useState(null);
-  const [filtersApplied, setFiltersApplied] = useState(false);
+  const [filtersApplied, setFiltersApplied] = useState(false); // true only for advanced filters (modal)
+  
+  // Quick filter states (for horizontal filter bar)
+  const [quickFilterDateOpen, setQuickFilterDateOpen] = useState(false);
+  const [quickFilterBudgetOpen, setQuickFilterBudgetOpen] = useState(false);
+  const [quickFilterInterestsOpen, setQuickFilterInterestsOpen] = useState(false);
   
   // Removed '' state - using simple dropdown only
 
@@ -215,19 +220,20 @@ export default function HomePage() {
     return fallbackCreators[index];
   };
 
-  // Load tours from database - filter by city and interests
-  // Load all tours on initial load, filter when filters are applied
+  // Load tours from database - filter in real-time for quick filters, or when advanced filters are applied
   useEffect(() => {
     const loadTours = async () => {
       try {
         setLoadingTours(true);
         const filters = {};
-        // Apply city filter if filters are applied
-        if (filtersApplied && formData.city) {
+        
+        // Quick filters: always apply city if selected (real-time filtering)
+        if (formData.city) {
           filters.city = formData.city;
         }
-        // Apply interest filter if filters are applied
-        if (filtersApplied && formData.interest_ids && formData.interest_ids.length > 0 && allInterests.length > 0) {
+        
+        // Quick filters: apply interests if selected (real-time filtering)
+        if (formData.interest_ids && formData.interest_ids.length > 0 && allInterests.length > 0) {
           // Get interest names from IDs
           const interestNames = formData.interest_ids
             .map(id => {
@@ -239,6 +245,22 @@ export default function HomePage() {
             filters.interests = interestNames;
           }
         }
+        
+        // Quick filters: apply budget if provided (real-time filtering)
+        if (formData.budget && formData.budget !== "") {
+          filters.budget = formData.budget;
+        }
+        
+        // Quick filters: apply dates if provided (real-time filtering)
+        if (selectedDates.length > 0) {
+          filters.date_from = selectedDates[0];
+          if (selectedDates.length > 1) {
+            filters.date_to = selectedDates[selectedDates.length - 1];
+          } else {
+            filters.date_to = selectedDates[0];
+          }
+        }
+        
         console.log('🔄 Loading tours with filters:', filters);
         const result = await getTours(filters);
         console.log('📥 Tours API response:', result);
@@ -257,9 +279,9 @@ export default function HomePage() {
         setLoadingTours(false);
       }
     };
-    // Load tours on mount and when filters change
+    // Load tours on mount and when filters change (real-time for quick filters)
     loadTours();
-  }, [formData.city, formData.interest_ids, allInterests, filtersApplied]);
+  }, [formData.city, formData.interest_ids, formData.budget, selectedDates, allInterests]);
 
   // Update availableInterests when category or interest_ids change
   // Show all interests by default, or only interests from selected category
@@ -313,10 +335,12 @@ export default function HomePage() {
     setRandomCityImage(cityImages[randomIndex]);
   }, []);
 
+  // Quick filter: city selection without opening modal
   const handleCitySelect = (city) => {
     setFormData(prev => ({ ...prev, city }));
     setIsDropdownOpen(false);
-    setShowFilterModal(true); // Open filter modal instead of showing filters inline
+    // Don't open modal, just filter tours in real-time
+    // Don't generate personalized trip (filtersApplied stays false)
   };
   
   const handleCreatePersonalizedTrip = () => {
@@ -733,6 +757,299 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+
+      {/* Quick Filter Bar - Horizontal filter strip below hero image */}
+      <div 
+        style={{
+          backgroundColor: 'white',
+          padding: '12px 20px',
+          maxWidth: '750px',
+          margin: '0 auto',
+          borderBottom: '1px solid #e5e7eb',
+          position: 'relative',
+          zIndex: 100
+        }}
+        onClick={(e) => {
+          // Close quick filter dropdowns when clicking outside
+          if (e.target === e.currentTarget || !e.target.closest('button') && !e.target.closest('input')) {
+            setQuickFilterDateOpen(false);
+            setQuickFilterBudgetOpen(false);
+            setQuickFilterInterestsOpen(false);
+          }
+        }}
+      >
+        <div style={{
+          display: 'flex',
+          gap: '8px',
+          alignItems: 'center',
+          overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'thin'
+        }}>
+          {/* Date Filter Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setQuickFilterDateOpen(!quickFilterDateOpen);
+              setQuickFilterBudgetOpen(false);
+              setQuickFilterInterestsOpen(false);
+            }}
+            style={{
+              padding: '8px 16px',
+              border: `2px solid ${selectedDates.length > 0 ? '#3E85FC' : '#e5e7eb'}`,
+              borderRadius: '20px',
+              backgroundColor: selectedDates.length > 0 ? '#3E85FC' : 'white',
+              color: selectedDates.length > 0 ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              whiteSpace: 'nowrap',
+              flexShrink: 0
+            }}
+          >
+            <span>📅</span>
+            <span>Dates</span>
+            {selectedDates.length > 0 && (
+              <span style={{ fontSize: '12px', opacity: 0.9 }}>
+                ({selectedDates.length})
+              </span>
+            )}
+          </button>
+
+          {/* Budget Filter Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setQuickFilterBudgetOpen(!quickFilterBudgetOpen);
+              setQuickFilterDateOpen(false);
+              setQuickFilterInterestsOpen(false);
+            }}
+            style={{
+              padding: '8px 16px',
+              border: `2px solid ${formData.budget && formData.budget !== "" ? '#3E85FC' : '#e5e7eb'}`,
+              borderRadius: '20px',
+              backgroundColor: formData.budget && formData.budget !== "" ? '#3E85FC' : 'white',
+              color: formData.budget && formData.budget !== "" ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              whiteSpace: 'nowrap',
+              flexShrink: 0
+            }}
+          >
+            <span>💰</span>
+            <span>Budget</span>
+            {formData.budget && formData.budget !== "" && (
+              <span style={{ fontSize: '12px', opacity: 0.9 }}>
+                ({formData.budget}€)
+              </span>
+            )}
+          </button>
+
+          {/* Interests Filter Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setQuickFilterInterestsOpen(!quickFilterInterestsOpen);
+              setQuickFilterDateOpen(false);
+              setQuickFilterBudgetOpen(false);
+            }}
+            style={{
+              padding: '8px 16px',
+              border: `2px solid ${formData.interest_ids && formData.interest_ids.length > 0 ? '#3E85FC' : '#e5e7eb'}`,
+              borderRadius: '20px',
+              backgroundColor: formData.interest_ids && formData.interest_ids.length > 0 ? '#3E85FC' : 'white',
+              color: formData.interest_ids && formData.interest_ids.length > 0 ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              whiteSpace: 'nowrap',
+              flexShrink: 0
+            }}
+          >
+            <span>🎯</span>
+            <span>Interests</span>
+            {formData.interest_ids && formData.interest_ids.length > 0 && (
+              <span style={{ fontSize: '12px', opacity: 0.9 }}>
+                ({formData.interest_ids.length})
+              </span>
+            )}
+          </button>
+
+          {/* Filters Button - Opens advanced filter modal */}
+          <button
+            type="button"
+            onClick={() => setShowFilterModal(true)}
+            style={{
+              padding: '8px 16px',
+              border: '2px solid #e5e7eb',
+              borderRadius: '20px',
+              backgroundColor: 'white',
+              color: '#6b7280',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              marginLeft: 'auto'
+            }}
+          >
+            <span>⚙️</span>
+            <span>Filters</span>
+          </button>
+        </div>
+
+        {/* Quick Filter Dropdowns */}
+        {quickFilterDateOpen && (
+          <div 
+            style={{
+              marginTop: '12px',
+              padding: '12px',
+              backgroundColor: '#f9fafb',
+              borderRadius: '12px',
+              border: '1px solid #e5e7eb',
+              position: 'relative',
+              zIndex: 101
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <input
+              type="date"
+              min={new Date().toISOString().slice(0, 10)}
+              max={(() => {
+                const maxDate = new Date();
+                maxDate.setDate(maxDate.getDate() + 1);
+                return maxDate.toISOString().slice(0, 10);
+              })()}
+              value={selectedDates.length > 0 ? selectedDates[0] : ''}
+              onChange={(e) => {
+                const selectedDate = e.target.value;
+                if (selectedDate) {
+                  setSelectedDates([selectedDate]);
+                  setFormData(prev => ({ ...prev, date_from: selectedDate, date_to: selectedDate }));
+                } else {
+                  setSelectedDates([]);
+                  setFormData(prev => ({ ...prev, date_from: null, date_to: null }));
+                }
+              }}
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+        )}
+
+        {quickFilterBudgetOpen && (
+          <div 
+            style={{
+              marginTop: '12px',
+              padding: '12px',
+              backgroundColor: '#f9fafb',
+              borderRadius: '12px',
+              border: '1px solid #e5e7eb',
+              position: 'relative',
+              zIndex: 101
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ position: 'relative' }}>
+              <input
+                type="number"
+                value={formData.budget}
+                onChange={(e) => setFormData(prev => ({ ...prev, budget: e.target.value }))}
+                placeholder="Enter budget"
+                min="1"
+                style={{
+                  width: '100%',
+                  padding: '8px 40px 8px 12px',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  fontSize: '14px'
+                }}
+              />
+              <span style={{
+                position: 'absolute',
+                right: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#6b7280',
+                fontSize: '14px',
+                fontWeight: 'bold'
+              }}>
+                €
+              </span>
+            </div>
+          </div>
+        )}
+
+        {quickFilterInterestsOpen && allInterests.length > 0 && (
+          <div 
+            style={{
+              marginTop: '12px',
+              padding: '12px',
+              backgroundColor: '#f9fafb',
+              borderRadius: '12px',
+              border: '1px solid #e5e7eb',
+              maxHeight: '200px',
+              overflowY: 'auto',
+              position: 'relative',
+              zIndex: 101
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '6px'
+            }}>
+              {allInterests.slice(0, 20).map(interest => {
+                const category = interestsStructure?.find(c => c.id === interest.category_id);
+                const isSelected = formData.interest_ids.includes(interest.id);
+                return (
+                  <button
+                    key={interest.id}
+                    type="button"
+                    onClick={() => handleInterestToggle(interest.id)}
+                    style={{
+                      padding: '6px 12px',
+                      border: `2px solid ${isSelected ? '#3E85FC' : '#e5e7eb'}`,
+                      borderRadius: '16px',
+                      backgroundColor: isSelected ? '#3E85FC' : 'white',
+                      color: isSelected ? 'white' : '#6b7280',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {category?.icon && <span>{category.icon}</span>}
+                    <span>{INTEREST_NAMES[interest.name] || interest.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Filter Modal - slides up from bottom */}
       {showFilterModal && (
@@ -1536,7 +1853,7 @@ export default function HomePage() {
           </div>
         ) : (
         <div className="masonry-grid">
-            {/* Red Banner - always first if filters not applied */}
+            {/* Red Banner - always first if advanced filters not applied (quick filters don't generate personalized trip) */}
             {!filtersApplied && (
               <div
                 className="red-banner-card"
