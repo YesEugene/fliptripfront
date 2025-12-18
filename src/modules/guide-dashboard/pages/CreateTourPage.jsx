@@ -405,7 +405,7 @@ export default function CreateTourPage() {
         address: '',
         description: '',
         recommendations: '', // New: Recommendations field for each location
-        duration: '',
+        price_level: '', // Price level (1-4)
         approx_cost: '',
         interest_ids: [], // Interests for this location
         selectedCategory: null, // For category selection UI
@@ -1267,40 +1267,67 @@ export default function CreateTourPage() {
                               gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
                               gap: '8px' 
                             }}>
-                              <input
-                                type="text"
-                                value={item.duration || ''}
-                                onChange={(e) => {
-                                  const newPlan = [...formData.daily_plan];
-                                  newPlan[dayIndex].blocks[blockIndex].items[itemIndex].duration = e.target.value;
-                                  setFormData({ ...formData, daily_plan: newPlan });
-                                }}
-                                placeholder="Duration"
-                                style={{
-                                  padding: '8px',
-                                  border: '1px solid #d1d5db',
-                                  borderRadius: '6px',
-                                  fontSize: '14px',
-                                  width: '100%'
-                                }}
-                              />
-                              <input
-                                type="text"
-                                value={item.approx_cost || ''}
-                                onChange={(e) => {
-                                  const newPlan = [...formData.daily_plan];
-                                  newPlan[dayIndex].blocks[blockIndex].items[itemIndex].approx_cost = e.target.value;
-                                  setFormData({ ...formData, daily_plan: newPlan });
-                                }}
-                                placeholder="Approximate Cost"
-                                style={{
-                                  padding: '8px',
-                                  border: '1px solid #d1d5db',
-                                  borderRadius: '6px',
-                                  fontSize: '14px',
-                                  width: '100%'
-                                }}
-                              />
+                              <div>
+                                <label style={{ 
+                                  display: 'block', 
+                                  marginBottom: '4px', 
+                                  fontSize: '12px', 
+                                  fontWeight: '500',
+                                  color: '#6b7280'
+                                }}>
+                                  Price Level (1-4)
+                                </label>
+                                <select
+                                  value={item.price_level || ''}
+                                  onChange={(e) => {
+                                    const newPlan = [...formData.daily_plan];
+                                    newPlan[dayIndex].blocks[blockIndex].items[itemIndex].price_level = e.target.value;
+                                    setFormData({ ...formData, daily_plan: newPlan });
+                                  }}
+                                  style={{
+                                    width: '100%',
+                                    padding: '8px',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '6px',
+                                    fontSize: '14px',
+                                    backgroundColor: 'white'
+                                  }}
+                                >
+                                  <option value="">Not specified</option>
+                                  <option value="1">1 - Inexpensive</option>
+                                  <option value="2">2 - Moderate</option>
+                                  <option value="3">3 - Expensive</option>
+                                  <option value="4">4 - Very Expensive</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label style={{ 
+                                  display: 'block', 
+                                  marginBottom: '4px', 
+                                  fontSize: '12px', 
+                                  fontWeight: '500',
+                                  color: '#6b7280'
+                                }}>
+                                  Approximate Cost
+                                </label>
+                                <input
+                                  type="text"
+                                  value={item.approx_cost || ''}
+                                  onChange={(e) => {
+                                    const newPlan = [...formData.daily_plan];
+                                    newPlan[dayIndex].blocks[blockIndex].items[itemIndex].approx_cost = e.target.value;
+                                    setFormData({ ...formData, daily_plan: newPlan });
+                                  }}
+                                  placeholder="Approximate Cost"
+                                  style={{
+                                    padding: '8px',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '6px',
+                                    fontSize: '14px',
+                                    width: '100%'
+                                  }}
+                                />
+                              </div>
                             </div>
                             
                             {/* Interests for Location */}
