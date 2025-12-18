@@ -92,7 +92,8 @@ export default function HomePage() {
   // Quick filter states (for horizontal filter bar)
   const [quickFilterDateOpen, setQuickFilterDateOpen] = useState(false);
   const [quickFilterBudgetOpen, setQuickFilterBudgetOpen] = useState(false);
-  const [quickFilterInterestsOpen, setQuickFilterInterestsOpen] = useState(false);
+  const [quickFilterCategoryOpen, setQuickFilterCategoryOpen] = useState(false);
+  const [quickFilterSelectedCategory, setQuickFilterSelectedCategory] = useState(null);
   
   // Removed '' state - using simple dropdown only
 
@@ -232,6 +233,21 @@ export default function HomePage() {
           filters.city = formData.city;
         }
         
+        // Quick filters: apply category if selected (real-time filtering)
+        if (quickFilterSelectedCategory && interestsStructure) {
+          const category = interestsStructure.find(c => c.id === quickFilterSelectedCategory);
+          if (category) {
+            // Filter tours by category - get all interests from this category
+            const categoryInterests = allInterests.filter(i => i.category_id === category.id);
+            if (categoryInterests.length > 0) {
+              const interestNames = categoryInterests.map(i => i.name).filter(Boolean);
+              if (interestNames.length > 0) {
+                filters.interests = interestNames;
+              }
+            }
+          }
+        }
+        
         // Quick filters: apply interests if selected (real-time filtering)
         if (formData.interest_ids && formData.interest_ids.length > 0 && allInterests.length > 0) {
           // Get interest names from IDs
@@ -281,7 +297,7 @@ export default function HomePage() {
     };
     // Load tours on mount and when filters change (real-time for quick filters)
     loadTours();
-  }, [formData.city, formData.interest_ids, formData.budget, selectedDates, allInterests]);
+  }, [formData.city, formData.interest_ids, formData.budget, selectedDates, allInterests, quickFilterSelectedCategory, interestsStructure]);
 
   // Update availableInterests when category or interest_ids change
   // Show all interests by default, or only interests from selected category
@@ -356,7 +372,7 @@ export default function HomePage() {
     // Close quick filter dropdowns
     setQuickFilterDateOpen(false);
     setQuickFilterBudgetOpen(false);
-    setQuickFilterInterestsOpen(false);
+    setQuickFilterCategoryOpen(false);
   };
   
   const handleCloseFilterModal = () => {
@@ -378,6 +394,7 @@ export default function HomePage() {
     });
     setSelectedDates([]);
     setSelectedCategory(null);
+    setQuickFilterSelectedCategory(null);
     setAvailableInterests(allInterests);
     setFiltersApplied(false);
     setPersonalizedTripPreview(null);
@@ -792,7 +809,7 @@ export default function HomePage() {
           if (e.target === e.currentTarget || !e.target.closest('button') && !e.target.closest('input')) {
             setQuickFilterDateOpen(false);
             setQuickFilterBudgetOpen(false);
-            setQuickFilterInterestsOpen(false);
+            setQuickFilterCategoryOpen(false);
           }
         }}
       >
@@ -810,7 +827,7 @@ export default function HomePage() {
             onClick={(e) => {
               e.stopPropagation();
               setQuickFilterBudgetOpen(false);
-              setQuickFilterInterestsOpen(false);
+              setQuickFilterCategoryOpen(false);
               
               // Immediately open calendar picker
               const dateInput = document.createElement('input');
@@ -922,7 +939,7 @@ export default function HomePage() {
             onClick={() => {
               setQuickFilterBudgetOpen(!quickFilterBudgetOpen);
               setQuickFilterDateOpen(false);
-              setQuickFilterInterestsOpen(false);
+              setQuickFilterCategoryOpen(false);
             }}
             style={{
               padding: '8px 16px',
@@ -949,20 +966,20 @@ export default function HomePage() {
             )}
           </button>
 
-          {/* Interests Filter Button */}
+          {/* Category Filter Button */}
           <button
             type="button"
             onClick={() => {
-              setQuickFilterInterestsOpen(!quickFilterInterestsOpen);
+              setQuickFilterCategoryOpen(!quickFilterCategoryOpen);
               setQuickFilterDateOpen(false);
               setQuickFilterBudgetOpen(false);
             }}
             style={{
               padding: '8px 16px',
-              border: `2px solid ${formData.interest_ids && formData.interest_ids.length > 0 ? '#3E85FC' : '#e5e7eb'}`,
+              border: `2px solid ${quickFilterSelectedCategory ? '#3E85FC' : '#e5e7eb'}`,
               borderRadius: '20px',
-              backgroundColor: formData.interest_ids && formData.interest_ids.length > 0 ? '#3E85FC' : 'white',
-              color: formData.interest_ids && formData.interest_ids.length > 0 ? 'white' : '#6b7280',
+              backgroundColor: quickFilterSelectedCategory ? '#3E85FC' : 'white',
+              color: quickFilterSelectedCategory ? 'white' : '#6b7280',
               cursor: 'pointer',
               fontSize: '14px',
               fontWeight: 'bold',
@@ -973,11 +990,11 @@ export default function HomePage() {
               flexShrink: 0
             }}
           >
-            <span>🎯</span>
-            <span>Interests</span>
-            {formData.interest_ids && formData.interest_ids.length > 0 && (
+            <span>🏷️</span>
+            <span>Category</span>
+            {quickFilterSelectedCategory && interestsStructure && (
               <span style={{ fontSize: '12px', opacity: 0.9 }}>
-                ({formData.interest_ids.length})
+                ({CATEGORY_NAMES[interestsStructure.find(c => c.id === quickFilterSelectedCategory)?.name] || ''})
               </span>
             )}
           </button>
@@ -990,7 +1007,7 @@ export default function HomePage() {
               // Close quick filter dropdowns when opening advanced modal
               setQuickFilterDateOpen(false);
               setQuickFilterBudgetOpen(false);
-              setQuickFilterInterestsOpen(false);
+              setQuickFilterCategoryOpen(false);
             }}
             style={{
               padding: '8px 16px',
@@ -1059,7 +1076,7 @@ export default function HomePage() {
           </div>
         )}
 
-        {quickFilterInterestsOpen && allInterests.length > 0 && (
+        {quickFilterCategoryOpen && interestsStructure && interestsStructure.length > 0 && (
           <div 
             style={{
               marginTop: '12px',
@@ -1079,31 +1096,34 @@ export default function HomePage() {
               flexWrap: 'wrap',
               gap: '6px'
             }}>
-              {allInterests.slice(0, 20).map(interest => {
-                const category = interestsStructure?.find(c => c.id === interest.category_id);
-                const isSelected = formData.interest_ids.includes(interest.id);
+              {interestsStructure.map(category => {
+                const isSelected = quickFilterSelectedCategory === category.id;
                 return (
                   <button
-                    key={interest.id}
+                    key={category.id}
                     type="button"
-                    onClick={() => handleInterestToggle(interest.id)}
+                    onClick={() => {
+                      setQuickFilterSelectedCategory(isSelected ? null : category.id);
+                      setQuickFilterCategoryOpen(false);
+                    }}
                     style={{
-                      padding: '6px 12px',
+                      padding: '8px 16px',
                       border: `2px solid ${isSelected ? '#3E85FC' : '#e5e7eb'}`,
-                      borderRadius: '16px',
+                      borderRadius: '20px',
                       backgroundColor: isSelected ? '#3E85FC' : 'white',
                       color: isSelected ? 'white' : '#6b7280',
                       cursor: 'pointer',
-                      fontSize: '12px',
+                      fontSize: '14px',
                       fontWeight: 'bold',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '4px',
-                      whiteSpace: 'nowrap'
+                      gap: '6px',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0
                     }}
                   >
-                    {category?.icon && <span>{category.icon}</span>}
-                    <span>{INTEREST_NAMES[interest.name] || interest.name}</span>
+                    {category.icon && <span>{category.icon}</span>}
+                    <span>{CATEGORY_NAMES[category.name] || category.name}</span>
                   </button>
                 );
               })}
