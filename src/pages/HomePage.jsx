@@ -344,7 +344,11 @@ export default function HomePage() {
   };
   
   const handleCreatePersonalizedTrip = () => {
-    setShowFilterModal(true); // Open filter modal
+    setShowFilterModal(true); // Open advanced filter modal
+    // Close quick filter dropdowns
+    setQuickFilterDateOpen(false);
+    setQuickFilterBudgetOpen(false);
+    setQuickFilterInterestsOpen(false);
   };
   
   const handleCloseFilterModal = () => {
@@ -888,7 +892,13 @@ export default function HomePage() {
           {/* Filters Button - Opens advanced filter modal */}
           <button
             type="button"
-            onClick={() => setShowFilterModal(true)}
+            onClick={() => {
+              setShowFilterModal(true);
+              // Close quick filter dropdowns when opening advanced modal
+              setQuickFilterDateOpen(false);
+              setQuickFilterBudgetOpen(false);
+              setQuickFilterInterestsOpen(false);
+            }}
             style={{
               padding: '8px 16px',
               border: '2px solid #e5e7eb',
