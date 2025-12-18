@@ -2204,7 +2204,11 @@ export default function HomePage() {
                       fontWeight: '500',
                       marginBottom: '6px'
                     }}>
-                      {tour.duration_value} {tour.duration_value === 1 ? 'day' : 'days'}
+                      {tour.duration_value} {
+                        tour.duration_type === 'days' 
+                          ? (tour.duration_value === 1 ? 'day' : 'days')
+                          : (tour.duration_value === 1 ? 'hour' : 'hours')
+                      }
                     </div>
                   )}
                     
