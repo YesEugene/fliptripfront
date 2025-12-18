@@ -423,22 +423,25 @@ export default function HomePage() {
   const validateForm = () => {
     const newErrors = {};
     if (!formData.city) newErrors.city = "Please select a city.";
-    if (!formData.audience) newErrors.audience = "Please select who this is for.";
-    if (formData.interest_ids.length === 0) newErrors.interests = "Please select at least one interest.";
-    if (!formData.budget || formData.budget === "" || parseInt(formData.budget) <= 0) newErrors.budget = "Please enter a valid budget.";
-    if (selectedDates.length === 0) newErrors.date = "Please select a date.";
     
-    // Check if dates are in the past
+    // Validate budget only if provided
+    if (formData.budget && formData.budget !== "" && parseInt(formData.budget) <= 0) {
+      newErrors.budget = "Please enter a valid budget.";
+    }
+    
+    // Validate dates only if provided
     if (selectedDates.length > 0) {
       const selectedDate = new Date(selectedDates[0]);
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Reset time to compare only dates
-      if (selectedDate < today) newErrors.date = "Please select a future date.";
-    }
-    
-    // Check if more than 2 days selected
-    if (selectedDates.length > 2) {
-      newErrors.date = "Maximum 2 days allowed.";
+      if (selectedDate < today) {
+        newErrors.date = "Please select a future date.";
+      }
+      
+      // Check if more than 2 days selected
+      if (selectedDates.length > 2) {
+        newErrors.date = "Maximum 2 days allowed.";
+      }
     }
     
     setErrors(newErrors);
