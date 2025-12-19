@@ -5,8 +5,13 @@ import { isAuthenticated, getCurrentUser, logout } from '../modules/auth/service
 import { getTours } from '../services/api';
 import './HomePage.css';
 
-// Cities will be loaded from database
-// Removed hardcoded TOP_CITIES - now loading from /api/admin-cities
+// Top cities - fallback if database fails
+const TOP_CITIES = [
+  'Barcelona', 'Paris', 'Amsterdam', 'Berlin', 'London', 
+  'Rome', 'Madrid', 'Lisbon', 'New York', 'Tokyo',
+  'Prague', 'Vienna', 'Venice', 'Florence', 'Moscow',
+  'Istanbul', 'Dubai', 'Sydney', 'Singapore', 'Copenhagen'
+];
 
 const AUDIENCES = [
   { value: 'solo', label: 'Solo' },
