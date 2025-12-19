@@ -114,18 +114,22 @@ body {
     width: 100%;
   }
   
-  /* Reduce title font size by 40% on mobile */
+  /* Title font size for mobile - same for all cards, increased by 2px */
   .tour-card-title {
-    font-size: 10.8px !important; /* 18px * 0.6 = 10.8px for vertical */
+    font-size: 12.8px !important; /* 10.8px + 2px = 12.8px (same for vertical and horizontal) */
   }
   
   .horizontal-card .tour-card-title {
-    font-size: 9.6px !important; /* 16px * 0.6 = 9.6px for horizontal */
+    font-size: 12.8px !important; /* Same as vertical cards */
   }
   
-  /* Reduce creator font size by 30% on mobile */
+  /* Duration and creator - same size, increased by 2px, displayed in one line */
   .tour-card-creator {
-    font-size: 8.4px !important; /* 12px * 0.7 = 8.4px */
+    font-size: 13px !important; /* 11px + 2px = 13px (same as duration) */
+  }
+  
+  .tour-card-duration {
+    font-size: 13px !important; /* 11px + 2px = 13px (same as creator) */
   }
 }
 

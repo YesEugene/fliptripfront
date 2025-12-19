@@ -2266,30 +2266,21 @@ export default function HomePage() {
                       {tour.title}
                   </h3>
                   
-                  {/* Duration */}
+                  {/* Duration and Creator in one line */}
                   {tour.duration_value && (
-                    <div style={{
+                    <div className="tour-card-duration" style={{
                       fontSize: '11px',
                       color: 'rgba(255, 255, 255, 0.85)',
                       fontWeight: '500',
-                      marginBottom: '6px'
+                      marginBottom: '0'
                     }}>
                       {tour.duration_value} {
                         tour.duration_type === 'days' 
                           ? (tour.duration_value === 1 ? 'day' : 'days')
                           : (tour.duration_value === 1 ? 'hour' : 'hours')
-                      }
+                      } <span className="tour-card-creator" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>· by {creator.name}</span>
                     </div>
                   )}
-                    
-                    {/* Creator */}
-                    <div className="tour-card-creator" style={{
-                      fontSize: '12px',
-                      color: 'rgba(255, 255, 255, 0.9)',
-                      fontWeight: '500'
-                    }}>
-                      by {creator.name}
-                </div>
               </div>
             </div>
               );
