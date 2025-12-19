@@ -2015,12 +2015,12 @@ export default function HomePage() {
                 <p style={{
                   fontSize: '16px',
                   color: 'rgba(255, 255, 255, 0.95)',
-                  marginTop: '20px',
+                  marginTop: '10px',
                   marginBottom: '0',
                   marginLeft: '0',
                   lineHeight: '1.5'
                 }}>
-                  Мы возьмем все ваши предпочтения и соберем трип с учетом всех деталей
+                  We'll gather all your preferences and craft a personalized trip with every detail in mind
                 </p>
                 <button
                   style={{
