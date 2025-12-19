@@ -430,6 +430,8 @@ export default function CreateTourPage() {
         } catch (citiesErr) {
           console.error('Error reloading cities:', citiesErr);
         }
+        // Show success message about moderation
+        alert('Tour created successfully! Your tour has been submitted for moderation and will be reviewed by an administrator.');
         navigate('/guide/dashboard');
       }
     } catch (err) {
