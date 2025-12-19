@@ -48,6 +48,12 @@ export default function CreateTourPage() {
   const [availableInterests, setAvailableInterests] = useState([]);
   const [loadingInterests, setLoadingInterests] = useState(false);
   
+  // City autocomplete state
+  const [cities, setCities] = useState([]);
+  const [citySuggestions, setCitySuggestions] = useState([]);
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
+  
   const [formData, setFormData] = useState({
     // country removed - not used
     city: '', // City field (moved up)
@@ -326,6 +332,61 @@ export default function CreateTourPage() {
     loadInterests();
   }, []);
 
+  // Load cities on component mount
+  useEffect(() => {
+    const loadCities = async () => {
+      try {
+        setLoadingCities(true);
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
+        const response = await fetch(`${API_BASE_URL}/api/admin-cities`);
+        const data = await response.json();
+        if (data.success && data.cities) {
+          setCities(data.cities);
+        }
+      } catch (err) {
+        console.error('Error loading cities:', err);
+      } finally {
+        setLoadingCities(false);
+      }
+    };
+    loadCities();
+  }, []);
+
+  // Handle city input change - show suggestions
+  const handleCityInputChange = (e) => {
+    const value = e.target.value;
+    setFormData({ ...formData, city: value });
+    
+    if (value.length > 1) {
+      const filtered = cities.filter(c => 
+        c.name.toLowerCase().includes(value.toLowerCase())
+      );
+      setCitySuggestions(filtered);
+      setShowCitySuggestions(filtered.length > 0);
+    } else {
+      setCitySuggestions([]);
+      setShowCitySuggestions(false);
+    }
+  };
+
+  // Handle city selection from suggestions
+  const handleCitySelect = (city) => {
+    setFormData({ ...formData, city: city.name });
+    setCitySuggestions([]);
+    setShowCitySuggestions(false);
+  };
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.city-autocomplete-container')) {
+        setShowCitySuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleTagInputChange = (e) => {
     const value = e.target.value;
     setTagInput(value);
@@ -559,14 +620,19 @@ export default function CreateTourPage() {
             <div style={{ 
               marginBottom: '20px' 
             }}>
-              <div>
+              <div className="city-autocomplete-container" style={{ position: 'relative' }}>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
                   City *
                 </label>
                 <input
                   type="text"
                   value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  onChange={handleCityInputChange}
+                  onFocus={() => {
+                    if (citySuggestions.length > 0) {
+                      setShowCitySuggestions(true);
+                    }
+                  }}
                   required
                   placeholder="e.g., Paris, Rome, Barcelona"
                   style={{
@@ -577,6 +643,48 @@ export default function CreateTourPage() {
                     fontSize: '16px'
                   }}
                 />
+                {showCitySuggestions && citySuggestions.length > 0 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    backgroundColor: 'white',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                    zIndex: 1000,
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    marginTop: '4px'
+                  }}>
+                    {citySuggestions.map((city) => (
+                      <div
+                        key={city.id}
+                        onClick={() => handleCitySelect(city)}
+                        style={{
+                          padding: '12px',
+                          cursor: 'pointer',
+                          borderBottom: '1px solid #f3f4f6',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#f3f4f6';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'white';
+                        }}
+                      >
+                        {city.name}
+                        {city.country && (
+                          <span style={{ color: '#6b7280', fontSize: '14px', marginLeft: '8px' }}>
+                            {city.country.name || city.country}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
