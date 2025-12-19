@@ -9,6 +9,25 @@ import { updateTour, getTourById } from '../../tours-database';
 import { getCurrentUser } from '../../auth/services/authService';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
 
+// Category name translations
+const CATEGORY_NAMES = {
+  'active': 'Active',
+  'culture': 'Culture',
+  'food': 'Food',
+  'nature': 'Nature',
+  'nightlife': 'Nightlife',
+  'family': 'Family',
+  'romantic': 'Romantic',
+  'health': 'Health',
+  'unique': 'Unique Experiences'
+};
+
+// Subcategory name translations
+const SUBCATEGORY_NAMES = {
+  'relaxation': 'Relaxation',
+  'events': 'Events'
+};
+
 export default function EditTourPage() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -149,17 +168,26 @@ export default function EditTourPage() {
                       time: time || '09:00 - 12:00',
                       start_time: block.start_time,
                       end_time: block.end_time,
-                      items: Array.isArray(block.items) ? block.items.map(item => ({
-                        title: item.custom_title || item.title || '',
-                        address: item.location?.address || item.address || '',
-                        description: item.custom_description || item.description || '',
-                        recommendations: item.custom_recommendations || item.recommendations || '',
-                        category: item.location?.category || item.category || '',
-                        duration: item.duration_minutes || item.duration || '',
-                        approx_cost: item.approx_cost || '',
-                        location_id: item.location_id || null,
-                        interest_ids: item.location?.interests?.map(li => li.interest?.id || li.interest_id).filter(Boolean) || []
-                      })) : []
+                      items: Array.isArray(block.items) ? block.items.map(item => {
+                        const interestIds = item.location?.interests?.map(li => li.interest?.id || li.interest_id).filter(Boolean) || [];
+                        // Determine selectedCategory and selectedSubcategory from interest_ids
+                        // This will be set after interestsStructure is loaded
+                        let selectedCategory = null;
+                        let selectedSubcategory = null;
+                        
+                        return {
+                          title: item.custom_title || item.title || '',
+                          address: item.location?.address || item.address || '',
+                          description: item.custom_description || item.description || '',
+                          recommendations: item.custom_recommendations || item.recommendations || '',
+                          price_level: item.location?.price_level || item.price_level || '',
+                          approx_cost: item.approx_cost || '',
+                          location_id: item.location_id || null,
+                          interest_ids: interestIds,
+                          selectedCategory: selectedCategory, // Will be set after interestsStructure loads
+                          selectedSubcategory: selectedSubcategory // Will be set after interestsStructure loads
+                        };
+                      }) : []
                     };
                   }) : []
                 }))
@@ -475,7 +503,7 @@ export default function EditTourPage() {
         const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
         const response = await fetch(`${API_BASE_URL}/api/interests?full_structure=true`);
         const data = await response.json();
-        if (data.success) {
+        if (data.success && data.categories) {
           setInterestsStructure(data.categories || []);
           // Flatten all interests for easy access
           const allInterests = [];
@@ -492,6 +520,59 @@ export default function EditTourPage() {
             }
           });
           setAvailableInterests(allInterests);
+          
+          // After interests are loaded, set selectedCategory and selectedSubcategory for existing items
+          if (formData.daily_plan && allInterests.length > 0 && data.categories.length > 0) {
+            setFormData(prev => {
+              const newPlan = prev.daily_plan.map(day => ({
+                ...day,
+                blocks: day.blocks.map(block => ({
+                  ...block,
+                  items: block.items.map(item => {
+                    if (!item.interest_ids || item.interest_ids.length === 0) {
+                      return item;
+                    }
+                    
+                    // Find the first interest to determine category/subcategory
+                    const firstInterestId = item.interest_ids[0];
+                    const firstInterest = allInterests.find(i => i.id === firstInterestId);
+                    
+                    if (firstInterest) {
+                      // Find category
+                      const category = data.categories.find(c => 
+                        c.id === firstInterest.category_id ||
+                        c.direct_interests?.some(interest => interest.id === firstInterestId) ||
+                        c.subcategories?.some(sub => sub.interests?.some(interest => interest.id === firstInterestId))
+                      );
+                      
+                      if (category) {
+                        const selectedCategory = category.id;
+                        
+                        // Find subcategory if interest has one
+                        let selectedSubcategory = null;
+                        if (firstInterest.subcategory_id) {
+                          const subcategory = category.subcategories?.find(s => s.id === firstInterest.subcategory_id);
+                          if (subcategory) {
+                            selectedSubcategory = subcategory.id;
+                          }
+                        }
+                        
+                        return {
+                          ...item,
+                          selectedCategory,
+                          selectedSubcategory
+                        };
+                      }
+                    }
+                    
+                    return item;
+                  })
+                }))
+              }));
+              
+              return { ...prev, daily_plan: newPlan };
+            });
+          }
         }
       } catch (err) {
         console.error('Error loading interests:', err);
@@ -500,7 +581,7 @@ export default function EditTourPage() {
       }
     };
     loadInterests();
-  }, []);
+  }, [formData.daily_plan.length]); // Only run when daily_plan changes (after initial load)
 
   const addItem = (dayIndex, blockIndex) => {
     setFormData(prev => {
@@ -510,13 +591,90 @@ export default function EditTourPage() {
         address: '',
         description: '',
         recommendations: '', // New: Recommendations field for each location
-        category: '',
-        duration: '',
+        price_level: '', // Price level (1-4)
         approx_cost: '',
-        interest_ids: [] // Interests for this location
+        interest_ids: [], // Interests for this location
+        selectedCategory: null, // For category selection UI
+        selectedSubcategory: null // For subcategory selection UI
       });
       return { ...prev, daily_plan: newPlan };
     });
+  };
+
+  // Handle category change for a specific location item
+  const handleItemCategoryChange = (dayIndex, blockIndex, itemIndex, categoryId) => {
+    setFormData(prev => {
+      const newPlan = [...prev.daily_plan];
+      const item = newPlan[dayIndex].blocks[blockIndex].items[itemIndex];
+      item.selectedCategory = categoryId;
+      item.selectedSubcategory = null; // Reset subcategory when category changes
+      return { ...prev, daily_plan: newPlan };
+    });
+  };
+
+  // Handle subcategory change for a specific location item
+  const handleItemSubcategoryChange = (dayIndex, blockIndex, itemIndex, subcategoryId) => {
+    setFormData(prev => {
+      const newPlan = [...prev.daily_plan];
+      const item = newPlan[dayIndex].blocks[blockIndex].items[itemIndex];
+      item.selectedSubcategory = subcategoryId;
+      return { ...prev, daily_plan: newPlan };
+    });
+  };
+
+  // Handle interest add for a specific location item
+  const handleItemInterestAdd = (dayIndex, blockIndex, itemIndex, interestId) => {
+    setFormData(prev => {
+      const newPlan = [...prev.daily_plan];
+      const item = newPlan[dayIndex].blocks[blockIndex].items[itemIndex];
+      const currentInterestIds = item.interest_ids || [];
+      if (!currentInterestIds.includes(interestId)) {
+        item.interest_ids = [...currentInterestIds, interestId];
+      }
+      return { ...prev, daily_plan: newPlan };
+    });
+  };
+
+  // Handle interest remove for a specific location item
+  const handleItemInterestRemove = (dayIndex, blockIndex, itemIndex, interestId) => {
+    setFormData(prev => {
+      const newPlan = [...prev.daily_plan];
+      const item = newPlan[dayIndex].blocks[blockIndex].items[itemIndex];
+      item.interest_ids = (item.interest_ids || []).filter(id => id !== interestId);
+      return { ...prev, daily_plan: newPlan };
+    });
+  };
+
+  // Get available interests for a specific location item based on selected category/subcategory
+  const getAvailableInterestsForItem = (item) => {
+    if (!item.selectedCategory || !interestsStructure) {
+      return [];
+    }
+    
+    const category = interestsStructure.find(c => c.id === item.selectedCategory);
+    if (!category) {
+      return [];
+    }
+
+    if (item.selectedSubcategory) {
+      // If subcategory is selected, return only interests from that subcategory
+      const subcategory = category.subcategories?.find(s => s.id === item.selectedSubcategory);
+      return subcategory?.interests || [];
+    } else {
+      // If no subcategory selected, return all interests from category
+      const interests = [];
+      if (category.direct_interests) {
+        interests.push(...category.direct_interests);
+      }
+      if (category.subcategories) {
+        category.subcategories.forEach(subcategory => {
+          if (subcategory.interests) {
+            interests.push(...subcategory.interests);
+          }
+        });
+      }
+      return interests;
+    }
   };
 
   if (loading) {
@@ -1302,60 +1460,70 @@ export default function EditTourPage() {
                             
                             <div style={{ 
                               display: 'grid', 
-                              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', 
+                              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
                               gap: '8px' 
                             }}>
-                              <input
-                                type="text"
-                                value={item.category || ''}
-                                onChange={(e) => {
-                                  const newPlan = [...formData.daily_plan];
-                                  newPlan[dayIndex].blocks[blockIndex].items[itemIndex].category = e.target.value;
-                                  setFormData({ ...formData, daily_plan: newPlan });
-                                }}
-                                placeholder="Category"
-                                style={{
-                                  padding: '8px',
-                                  border: '1px solid #d1d5db',
-                                  borderRadius: '6px',
-                                  fontSize: '14px',
-                                  width: '100%'
-                                }}
-                              />
-                              <input
-                                type="text"
-                                value={item.duration || ''}
-                                onChange={(e) => {
-                                  const newPlan = [...formData.daily_plan];
-                                  newPlan[dayIndex].blocks[blockIndex].items[itemIndex].duration = e.target.value;
-                                  setFormData({ ...formData, daily_plan: newPlan });
-                                }}
-                                placeholder="Duration"
-                                style={{
-                                  padding: '8px',
-                                  border: '1px solid #d1d5db',
-                                  borderRadius: '6px',
-                                  fontSize: '14px',
-                                  width: '100%'
-                                }}
-                              />
-                              <input
-                                type="text"
-                                value={item.approx_cost || ''}
-                                onChange={(e) => {
-                                  const newPlan = [...formData.daily_plan];
-                                  newPlan[dayIndex].blocks[blockIndex].items[itemIndex].approx_cost = e.target.value;
-                                  setFormData({ ...formData, daily_plan: newPlan });
-                                }}
-                                placeholder="Approximate Cost"
-                                style={{
-                                  padding: '8px',
-                                  border: '1px solid #d1d5db',
-                                  borderRadius: '6px',
-                                  fontSize: '14px',
-                                  width: '100%'
-                                }}
-                              />
+                              <div>
+                                <label style={{ 
+                                  display: 'block', 
+                                  marginBottom: '4px', 
+                                  fontSize: '12px', 
+                                  fontWeight: '500',
+                                  color: '#6b7280'
+                                }}>
+                                  Price Level (1-4)
+                                </label>
+                                <select
+                                  value={item.price_level || ''}
+                                  onChange={(e) => {
+                                    const newPlan = [...formData.daily_plan];
+                                    newPlan[dayIndex].blocks[blockIndex].items[itemIndex].price_level = e.target.value;
+                                    setFormData({ ...formData, daily_plan: newPlan });
+                                  }}
+                                  style={{
+                                    width: '100%',
+                                    padding: '8px',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '6px',
+                                    fontSize: '14px',
+                                    backgroundColor: 'white'
+                                  }}
+                                >
+                                  <option value="">Not specified</option>
+                                  <option value="1">1 - Inexpensive</option>
+                                  <option value="2">2 - Moderate</option>
+                                  <option value="3">3 - Expensive</option>
+                                  <option value="4">4 - Very Expensive</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label style={{ 
+                                  display: 'block', 
+                                  marginBottom: '4px', 
+                                  fontSize: '12px', 
+                                  fontWeight: '500',
+                                  color: '#6b7280'
+                                }}>
+                                  Approximate Cost
+                                </label>
+                                <input
+                                  type="text"
+                                  value={item.approx_cost || ''}
+                                  onChange={(e) => {
+                                    const newPlan = [...formData.daily_plan];
+                                    newPlan[dayIndex].blocks[blockIndex].items[itemIndex].approx_cost = e.target.value;
+                                    setFormData({ ...formData, daily_plan: newPlan });
+                                  }}
+                                  placeholder="Approximate Cost"
+                                  style={{
+                                    padding: '8px',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '6px',
+                                    fontSize: '14px',
+                                    width: '100%'
+                                  }}
+                                />
+                              </div>
                             </div>
                             
                             {/* Interests for Location */}
@@ -1366,112 +1534,163 @@ export default function EditTourPage() {
                                 fontWeight: '500',
                                 fontSize: '14px'
                               }}>
-                                Interests for this location
+                                Interests
                               </label>
                               {loadingInterests ? (
                                 <div style={{ padding: '8px', color: '#6b7280', fontSize: '12px' }}>Loading interests...</div>
                               ) : (
                                 <>
-                                  <div style={{ marginBottom: '8px' }}>
+                                  {/* Category Selection */}
+                                  <div style={{ marginBottom: '12px' }}>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>
+                                      Category
+                                    </label>
                                     <select
-                                      value=""
-                                      onChange={(e) => {
-                                        const interestId = e.target.value;
-                                        if (interestId) {
-                                          const newPlan = [...formData.daily_plan];
-                                          const currentInterestIds = newPlan[dayIndex].blocks[blockIndex].items[itemIndex].interest_ids || [];
-                                          if (!currentInterestIds.includes(interestId)) {
-                                            newPlan[dayIndex].blocks[blockIndex].items[itemIndex].interest_ids = [...currentInterestIds, interestId];
-                                            setFormData({ ...formData, daily_plan: newPlan });
-                                          }
-                                          e.target.value = '';
-                                        }
-                                      }}
+                                      value={item.selectedCategory || ''}
+                                      onChange={(e) => handleItemCategoryChange(dayIndex, blockIndex, itemIndex, e.target.value || null)}
                                       style={{
                                         width: '100%',
                                         padding: '8px',
                                         border: '1px solid #d1d5db',
                                         borderRadius: '6px',
-                                        fontSize: '14px',
-                                        backgroundColor: 'white'
+                                        fontSize: '14px'
                                       }}
                                     >
-                                      <option value="">Select an interest to add...</option>
-                                      {availableInterests
-                                        .filter(interest => {
-                                          const currentInterestIds = item.interest_ids || [];
-                                          return !currentInterestIds.includes(interest.id);
-                                        })
-                                        .map(interest => {
+                                      <option value="">Select a category...</option>
+                                      {interestsStructure?.map(category => (
+                                        <option key={category.id} value={category.id}>
+                                          {category.icon} {CATEGORY_NAMES[category.name] || category.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+
+                                  {/* Subcategory Selection (if category has subcategories) */}
+                                  {item.selectedCategory && interestsStructure?.find(c => c.id === item.selectedCategory)?.subcategories?.length > 0 && (
+                                    <div style={{ marginBottom: '12px' }}>
+                                      <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>
+                                        Subcategory (optional)
+                                      </label>
+                                      <select
+                                        value={item.selectedSubcategory || ''}
+                                        onChange={(e) => handleItemSubcategoryChange(dayIndex, blockIndex, itemIndex, e.target.value || null)}
+                                        style={{
+                                          width: '100%',
+                                          padding: '8px',
+                                          border: '1px solid #d1d5db',
+                                          borderRadius: '6px',
+                                          fontSize: '14px'
+                                        }}
+                                      >
+                                        <option value="">All interests in category</option>
+                                        {interestsStructure
+                                          .find(c => c.id === item.selectedCategory)
+                                          ?.subcategories?.map(subcategory => (
+                                            <option key={subcategory.id} value={subcategory.id}>
+                                              {SUBCATEGORY_NAMES[subcategory.name] || subcategory.name}
+                                            </option>
+                                          ))}
+                                      </select>
+                                    </div>
+                                  )}
+
+                                  {/* Interests Selection */}
+                                  {item.selectedCategory && getAvailableInterestsForItem(item).length > 0 && (
+                                    <div style={{ marginBottom: '12px' }}>
+                                      <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>
+                                        Select Interests
+                                      </label>
+                                      <div style={{
+                                        maxHeight: '200px',
+                                        overflowY: 'auto',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '6px',
+                                        padding: '8px'
+                                      }}>
+                                        {getAvailableInterestsForItem(item)
+                                          .filter(interest => {
+                                            const currentInterestIds = item.interest_ids || [];
+                                            return !currentInterestIds.includes(interest.id);
+                                          })
+                                          .map(interest => (
+                                            <button
+                                              key={interest.id}
+                                              type="button"
+                                              onClick={() => handleItemInterestAdd(dayIndex, blockIndex, itemIndex, interest.id)}
+                                              style={{
+                                                display: 'block',
+                                                width: '100%',
+                                                padding: '8px 12px',
+                                                marginBottom: '4px',
+                                                backgroundColor: '#f3f4f6',
+                                                border: '1px solid #e5e7eb',
+                                                borderRadius: '4px',
+                                                cursor: 'pointer',
+                                                fontSize: '14px',
+                                                textAlign: 'left',
+                                                transition: 'background-color 0.2s'
+                                              }}
+                                              onMouseEnter={(e) => e.target.style.backgroundColor = '#e5e7eb'}
+                                              onMouseLeave={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                                            >
+                                              + {interest.name}
+                                            </button>
+                                          ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Selected Interests */}
+                                  {(item.interest_ids || []).length > 0 && (
+                                    <div style={{ marginBottom: '12px' }}>
+                                      <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px', fontWeight: '500' }}>
+                                        Selected interests:
+                                      </div>
+                                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                        {(item.interest_ids || []).map(interestId => {
+                                          const interest = availableInterests.find(i => i.id === interestId);
+                                          if (!interest) return null;
+                                          
                                           const category = interestsStructure?.find(c => 
                                             c.id === interest.category_id || 
                                             c.subcategories?.some(s => s.id === interest.subcategory_id)
                                           );
+                                          
                                           return (
-                                            <option key={interest.id} value={interest.id}>
-                                              {category?.icon} {interest.name}
-                                            </option>
-                                          );
-                                        })}
-                                    </select>
-                                  </div>
-                                  
-                                  {/* Display selected interests */}
-                                  {(item.interest_ids || []).length > 0 && (
-                                    <div style={{ 
-                                      display: 'flex', 
-                                      flexWrap: 'wrap', 
-                                      gap: '6px',
-                                      marginTop: '8px'
-                                    }}>
-                                      {(item.interest_ids || []).map(interestId => {
-                                        const interest = availableInterests.find(i => i.id === interestId);
-                                        if (!interest) return null;
-                                        
-                                        const category = interestsStructure?.find(c => 
-                                          c.id === interest.category_id || 
-                                          c.subcategories?.some(s => s.id === interest.subcategory_id)
-                                        );
-                                        
-                                        return (
-                                          <span
-                                            key={interestId}
-                                            style={{
-                                              padding: '4px 10px',
-                                              backgroundColor: '#e0e7ff',
-                                              color: '#3730a3',
-                                              borderRadius: '6px',
-                                              fontSize: '12px',
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              gap: '6px'
-                                            }}
-                                          >
-                                            {category?.icon} {interest.name}
-                                            <button
-                                              type="button"
-                                              onClick={() => {
-                                                const newPlan = [...formData.daily_plan];
-                                                newPlan[dayIndex].blocks[blockIndex].items[itemIndex].interest_ids = 
-                                                  (newPlan[dayIndex].blocks[blockIndex].items[itemIndex].interest_ids || []).filter(id => id !== interestId);
-                                                setFormData({ ...formData, daily_plan: newPlan });
-                                              }}
+                                            <span
+                                              key={interestId}
                                               style={{
-                                                background: 'none',
-                                                border: 'none',
+                                                padding: '6px 12px',
+                                                backgroundColor: '#e0e7ff',
                                                 color: '#3730a3',
-                                                cursor: 'pointer',
-                                                fontSize: '14px',
-                                                padding: '0',
-                                                lineHeight: '1',
-                                                fontWeight: 'bold'
+                                                borderRadius: '6px',
+                                                fontSize: '12px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '6px'
                                               }}
                                             >
-                                              ×
-                                            </button>
-                                          </span>
-                                        );
-                                      })}
+                                              {category?.icon} {interest.name}
+                                              <button
+                                                type="button"
+                                                onClick={() => handleItemInterestRemove(dayIndex, blockIndex, itemIndex, interestId)}
+                                                style={{
+                                                  background: 'none',
+                                                  border: 'none',
+                                                  color: '#3730a3',
+                                                  cursor: 'pointer',
+                                                  fontSize: '16px',
+                                                  padding: '0',
+                                                  lineHeight: '1',
+                                                  fontWeight: 'bold'
+                                                }}
+                                              >
+                                                ×
+                                              </button>
+                                            </span>
+                                          );
+                                        })}
+                                      </div>
                                     </div>
                                   )}
                                 </>
