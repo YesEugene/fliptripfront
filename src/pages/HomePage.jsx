@@ -1980,7 +1980,7 @@ export default function HomePage() {
                 style={{
                   backgroundColor: '#ef4444',
                   borderRadius: '12px',
-                  padding: '20px',
+                  padding: '0 20px',
                   textAlign: 'left',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
@@ -2006,7 +2006,7 @@ export default function HomePage() {
           fontWeight: 'bold',
                   color: 'white',
                   marginTop: '20px',
-                  marginBottom: '20px',
+                  marginBottom: '0',
                   marginLeft: '0',
                   lineHeight: '1.2'
         }}>
