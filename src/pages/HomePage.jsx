@@ -429,6 +429,14 @@ export default function HomePage() {
     setErrors({});
   };
 
+  // Check if any filters are active
+  const hasActiveFilters = formData.city || 
+    formData.audience || 
+    (formData.interest_ids && formData.interest_ids.length > 0) ||
+    (selectedDates && selectedDates.length > 0) ||
+    formData.budget ||
+    (quickFilterSelectedCategories && quickFilterSelectedCategories.length > 0);
+
   // Prevent body scroll when filter modal is open
   useEffect(() => {
     if (showFilterModal) {
@@ -755,28 +763,53 @@ export default function HomePage() {
             zIndex: 1000,
             display: 'block'
           }}>
-            <div style={{ position: 'relative', zIndex: 1000 }}>
-                          <button
-                            type="button"
-                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            style={{
-                              backgroundColor: 'white',
-                              border: 'none',
-                              borderRadius: '12px',
-                              padding: '12px 20px',
-                              fontSize: '16px',
-                              color: '#6b7280',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px',
-                              width: '100%',
-                              boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-                            }}
-                          >
+            <div style={{ position: 'relative', zIndex: 1000, display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <button
+                type="button"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                style={{
+                  backgroundColor: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '12px 20px',
+                  fontSize: '16px',
+                  color: formData.city ? '#374151' : '#6b7280',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  flex: 1,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                }}
+              >
                 <span>{formData.city || 'Select a city to continue'}</span>
                 <span style={{ fontSize: '12px', marginLeft: 'auto' }}>▼</span>
               </button>
+              
+              {/* Clear filter button - appears when filters are active */}
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  style={{
+                    backgroundColor: 'white',
+                    border: 'none',
+                    borderRadius: '12px',
+                    padding: '12px 16px',
+                    fontSize: '14px',
+                    color: '#374151',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                >
+                  Clear filter
+                </button>
+              )}
+            </div>
               
               {isDropdownOpen && (
                 <div style={{
