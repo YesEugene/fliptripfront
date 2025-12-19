@@ -16,6 +16,7 @@ export default function ItineraryPage() {
   const [itineraryId, setItineraryId] = useState(null);
   const [interestNames, setInterestNames] = useState([]); // Имена интересов для отображения
   const [selectedDayIndex, setSelectedDayIndex] = useState(0); // Для переключения между днями
+  const [guide, setGuide] = useState(null); // Информация о креаторе тура (гиде)
 
   // Генерация fallback заголовков согласно промптам
   const generateFallbackTitle = (formData) => {
@@ -149,6 +150,12 @@ export default function ItineraryPage() {
       
       const tour = tourResponse.tour;
       console.log('✅ Tour loaded from DB (no generation needed):', tour);
+      
+      // Save guide info if available
+      if (tour.guide) {
+        setGuide(tour.guide);
+        console.log('👤 Guide info loaded:', tour.guide);
+      }
       
       // Extract city name from tour
       const cityName = typeof tour.city === 'string' ? tour.city : tour.city?.name || tour.city_id || 'Barcelona';
@@ -340,6 +347,13 @@ export default function ItineraryPage() {
             const tourResponse = await getTourById(tourIdToReload);
             if (tourResponse.success && tourResponse.tour) {
               const tour = tourResponse.tour;
+              
+              // Save guide info if available
+              if (tour.guide) {
+                setGuide(tour.guide);
+                console.log('👤 Guide info loaded (reload):', tour.guide);
+              }
+              
               const cityName = typeof tour.city === 'string' ? tour.city : tour.city?.name || tour.city_id || 'Barcelona';
               const date = loadedItinerary.date || formData.date || new Date().toISOString().slice(0, 10);
               
@@ -1100,6 +1114,41 @@ export default function ItineraryPage() {
                 }}>
                   {itinerary?.title || generateFallbackTitle(formData)}
                 </h1>
+                
+                {/* Creator info - only show if guide exists */}
+                {guide && guide.name && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    alignSelf: 'flex-start',
+                    zIndex: 1,
+                    marginTop: 'auto'
+                  }}>
+                    {guide.avatar_url && (
+                      <img 
+                        src={guide.avatar_url} 
+                        alt={guide.name}
+                        style={{
+                          width: '48px',
+                          height: '48px',
+                          borderRadius: '50%',
+                          border: '2px solid white',
+                          objectFit: 'cover',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                        }}
+                      />
+                    )}
+                    <span style={{
+                      color: 'white',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      textShadow: '1px 1px 2px rgba(0,0,0,0.5)'
+                    }}>
+                      Tour created by {guide.name}
+                    </span>
+                  </div>
+                )}
                 
                 {/* Download PDF Button */}
                 {itinerary?.previewOnly !== true && (
