@@ -1980,7 +1980,7 @@ export default function HomePage() {
                 style={{
                   backgroundColor: '#ef4444',
                   borderRadius: '12px',
-                  padding: '40px 30px',
+                  padding: '20px',
                   textAlign: 'left',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
@@ -2005,7 +2005,9 @@ export default function HomePage() {
                   fontSize: '28px',
           fontWeight: 'bold',
                   color: 'white',
-                  marginBottom: '12px',
+                  marginTop: '20px',
+                  marginBottom: '20px',
+                  marginLeft: '0',
                   lineHeight: '1.2'
         }}>
                   Create Personalized Trip
@@ -2013,7 +2015,9 @@ export default function HomePage() {
                 <p style={{
                   fontSize: '16px',
                   color: 'rgba(255, 255, 255, 0.95)',
-                  marginBottom: '20px',
+                  marginTop: '20px',
+                  marginBottom: '0',
+                  marginLeft: '0',
                   lineHeight: '1.5'
                 }}>
                   Мы возьмем все ваши предпочтения и соберем трип с учетом всех деталей
@@ -2029,7 +2033,10 @@ export default function HomePage() {
                     fontWeight: 'bold',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
-                    alignSelf: 'flex-start'
+                    alignSelf: 'flex-start',
+                    marginTop: 'auto',
+                    marginBottom: '20px',
+                    marginLeft: '0'
                   }}
                   onMouseOver={(e) => e.target.style.backgroundColor = '#f3f4f6'}
                   onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
@@ -2057,7 +2064,7 @@ export default function HomePage() {
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  padding: '30px',
+                  padding: '0',
                   color: 'white'
                 }}
               >
@@ -2072,19 +2079,21 @@ export default function HomePage() {
                   zIndex: 1
                 }} />
                 
-                <div style={{ position: 'relative', zIndex: 2 }}>
+                <div style={{ position: 'relative', zIndex: 2, paddingLeft: '20px', paddingTop: '20px' }}>
                   <h3 style={{
                     fontSize: '24px',
                     fontWeight: 'bold',
                     marginBottom: '12px',
-                    lineHeight: '1.2'
+                    lineHeight: '1.2',
+                    marginTop: '0'
                   }}>
                     {personalizedTripPreview.title}
                   </h3>
                   <p style={{
                     fontSize: '14px',
                     opacity: 0.9,
-                    lineHeight: '1.5'
+                    lineHeight: '1.5',
+                    marginTop: '20px'
                   }}>
                     {personalizedTripPreview.subtitle}
                   </p>
@@ -2115,8 +2124,8 @@ export default function HomePage() {
                     navigate(`/itinerary?${params.toString()}`);
                   }}
                   style={{
-                    backgroundColor: 'white',
-                    color: '#667eea',
+                    backgroundColor: '#FFE042',
+                    color: '#000',
                     border: 'none',
                     borderRadius: '8px',
                     padding: '12px 24px',
@@ -2125,14 +2134,17 @@ export default function HomePage() {
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     alignSelf: 'flex-start',
-                    marginTop: '20px',
+                    marginTop: 'auto',
+                    marginBottom: '20px',
+                    marginLeft: '20px',
                     position: 'relative',
-                    zIndex: 2
+                    zIndex: 2,
+                    textTransform: 'uppercase'
                   }}
-                  onMouseOver={(e) => e.target.style.backgroundColor = '#f3f4f6'}
-                  onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
+                  onMouseOver={(e) => e.target.style.backgroundColor = '#ffd700'}
+                  onMouseOut={(e) => e.target.style.backgroundColor = '#FFE042'}
                 >
-                  Your personal trip
+                  SHOW PERSONAL TRIP
                 </button>
               </div>
             )}
