@@ -2034,10 +2034,10 @@ export default function HomePage() {
                     fontWeight: 'bold',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
-                    alignSelf: 'flex-start',
-                    marginTop: 'auto',
-                    marginBottom: '20px',
-                    marginLeft: '0'
+                  alignSelf: 'flex-start',
+                  marginTop: 'auto',
+                  marginBottom: '0',
+                  marginLeft: '0'
                   }}
                   onMouseOver={(e) => e.target.style.backgroundColor = '#f3f4f6'}
                   onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
