@@ -2079,7 +2079,7 @@ export default function HomePage() {
                   zIndex: 1
                 }} />
                 
-                <div style={{ position: 'relative', zIndex: 2, paddingLeft: '20px', paddingTop: '20px' }}>
+                <div style={{ position: 'relative', zIndex: 2, paddingLeft: '20px', paddingTop: '0' }}>
                   <h3 style={{
                     fontSize: '28px',
                     fontWeight: 'bold',
@@ -2094,7 +2094,7 @@ export default function HomePage() {
                     fontSize: '16px',
                     color: 'rgba(255, 255, 255, 0.95)',
                     lineHeight: '1.5',
-                    marginTop: '10px',
+                    marginTop: '15px',
                     marginBottom: '0'
                   }}>
                     {personalizedTripPreview.subtitle}
