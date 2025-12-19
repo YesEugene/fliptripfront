@@ -2002,7 +2002,7 @@ export default function HomePage() {
                 onClick={handleCreatePersonalizedTrip}
               >
         <h2 style={{
-                  fontSize: '26px',
+                  fontSize: '28px',
           fontWeight: 'bold',
                   color: 'white',
                   marginTop: '20px',
@@ -2029,7 +2029,7 @@ export default function HomePage() {
                     border: 'none',
                     borderRadius: '8px',
                     padding: '12px 24px',
-                    fontSize: '10px',
+                    fontSize: '12px',
                     fontWeight: 'bold',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
