@@ -26,10 +26,11 @@ body {
   /* CURRENT SETTINGS (for rollback):
    * grid-auto-rows: minmax(114.12px, auto); - Original horizontal card height
    * grid-auto-rows: minmax(242px, auto); - Square horizontal cards (width = height = 242px)
-   * Vertical card = 2 rows = 484px
+   * grid-auto-rows: minmax(193.6px, auto); - First 20% reduction (242px * 0.8)
+   * Vertical card = 2 rows = 387.2px (after first reduction)
    * Card width = (750px - 2*12px) / 3 = 242px
    */
-  grid-auto-rows: minmax(193.6px, auto); /* Horizontal cards: 242px * 0.8 = 193.6px (20% reduction) */
+  grid-auto-rows: minmax(154.88px, auto); /* Horizontal cards: 193.6px * 0.8 = 154.88px (additional 20% reduction) */
 }
 
 /* Vertical cards (story format) - take 2 rows, height = 2 horizontal cards */
@@ -74,12 +75,13 @@ body {
     /* CURRENT SETTINGS (for rollback):
      * grid-auto-rows: minmax(98px, auto); - Original horizontal card height
      * grid-auto-rows: minmax(calc((100vw - 5px) / 2), auto); - Square horizontal cards
-     * Vertical card = 2 rows = 2 * square height
+     * grid-auto-rows: minmax(calc(((100vw - 5px) / 2) * 0.8), auto); - First 20% reduction
+     * Vertical card = 2 rows = 2 * card height
      * Card width = (viewport width - 5px) / 2
      */
-    /* Horizontal cards on mobile: 80% of square (20% reduction) */
-    /* Calculation: ((viewport width - gap) / 2) * 0.8 = card height */
-    grid-auto-rows: minmax(calc(((100vw - 5px) / 2) * 0.8), auto); /* Horizontal cards: 80% of square */
+    /* Horizontal cards on mobile: 64% of square (additional 20% reduction: 0.8 * 0.8 = 0.64) */
+    /* Calculation: ((viewport width - gap) / 2) * 0.64 = card height */
+    grid-auto-rows: minmax(calc(((100vw - 5px) / 2) * 0.64), auto); /* Horizontal cards: 64% of square */
   }
   
   /* Red banner - height = vertical card (span 1 but with min-height = 2 rows) */
@@ -91,9 +93,10 @@ body {
     /* CURRENT SETTINGS (for rollback):
      * min-height: 196px; - 2 * 98px = height of vertical card (2 rows)
      * min-height: calc(100vw - 5px); - 2 * square card height
+     * min-height: calc((100vw - 5px) * 0.8); - 2 * (80% of square card height)
      */
-    /* New: 2 * (80% of square card height) = 2 * ((100vw - 5px) / 2) * 0.8 = (100vw - 5px) * 0.8 */
-    min-height: calc((100vw - 5px) * 0.8); /* 2 * (80% of square card height) */
+    /* New: 2 * (64% of square card height) = 2 * ((100vw - 5px) / 2) * 0.64 = (100vw - 5px) * 0.64 */
+    min-height: calc((100vw - 5px) * 0.64); /* 2 * (64% of square card height) */
   }
   
   /* Vertical cards - 2 rows = 2 * square card height */
