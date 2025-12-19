@@ -51,13 +51,13 @@ body {
   min-height: 0; /* Allow grid to control height */
 }
 
-/* Red banner and personalized trip cards - 2 columns wide, 2 rows high */
+/* Red banner and personalized trip cards - 2 columns wide, 1 row high (same as horizontal cards) */
 .red-banner-card,
 .personalized-trip-card {
   grid-column: span 2;
-  grid-row: span 2;
+  grid-row: span 1; /* Changed from span 2 to span 1 to match horizontal card height */
   width: 100%;
-  height: 100%; /* Use grid row height to match vertical cards */
+  height: 100%; /* Use grid row height to match horizontal cards */
   min-height: 0; /* Allow grid to control height */
 }
 
@@ -84,19 +84,20 @@ body {
     grid-auto-rows: minmax(calc(((100vw - 5px) / 2) * 0.64), auto); /* Horizontal cards: 64% of square */
   }
   
-  /* Red banner - height = vertical card (span 1 but with min-height = 2 rows) */
+  /* Red banner - height = horizontal card (same as horizontal previews) */
   .red-banner-card,
   .personalized-trip-card {
     grid-column: span 2; /* Full width on mobile */
-    grid-row: span 1; /* 1 row */
+    grid-row: span 1; /* 1 row - same as horizontal cards */
     width: 100%;
     /* CURRENT SETTINGS (for rollback):
      * min-height: 196px; - 2 * 98px = height of vertical card (2 rows)
      * min-height: calc(100vw - 5px); - 2 * square card height
      * min-height: calc((100vw - 5px) * 0.8); - 2 * (80% of square card height)
+     * min-height: calc((100vw - 5px) * 0.64); - 2 * (64% of square card height)
      */
-    /* New: 2 * (64% of square card height) = 2 * ((100vw - 5px) / 2) * 0.64 = (100vw - 5px) * 0.64 */
-    min-height: calc((100vw - 5px) * 0.64); /* 2 * (64% of square card height) */
+    /* New: Same height as horizontal card = ((100vw - 5px) / 2) * 0.64 */
+    min-height: calc(((100vw - 5px) / 2) * 0.64); /* Same as horizontal card height */
   }
   
   /* Vertical cards - 2 rows = 2 * square card height */

@@ -1986,7 +1986,7 @@ export default function HomePage() {
                   transition: 'all 0.3s ease',
                   boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)',
                   gridColumn: 'span 2',
-                  gridRow: 'span 2',
+                  gridRow: 'span 1',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between'
@@ -2057,7 +2057,7 @@ export default function HomePage() {
                 transition: 'transform 0.2s ease',
                 position: 'relative',
                   gridColumn: 'span 2',
-                  gridRow: 'span 2',
+                  gridRow: 'span 1',
                   backgroundImage: personalizedTripPreview.image ? `url(${personalizedTripPreview.image})` : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
