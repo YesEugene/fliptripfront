@@ -25,35 +25,123 @@ export default function AdminLoginPage() {
     setError('');
     setLoading(true);
 
-    // Check hardcoded credentials
-    if (formData.email !== ADMIN_EMAIL || formData.password !== ADMIN_PASSWORD) {
+    try {
+      // First, try to login through API (database)
+      const API_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 
+                          import.meta.env.VITE_API_BASE_URL || 
+                          (import.meta.env.PROD ? 'https://fliptripback.vercel.app' : 'http://localhost:3000');
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth-login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success && data.user) {
+          // Check if user is admin
+          if (data.user.role !== 'admin') {
+            setError('Access denied. Admin role required.');
+            setLoading(false);
+            return;
+          }
+
+          // Save token and user data
+          if (data.token) {
+            localStorage.setItem('authToken', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+          }
+
+          // Redirect to admin dashboard
+          navigate('/admin/dashboard');
+          return;
+        }
+      } catch (apiError) {
+        console.warn('API login failed, trying hardcoded fallback:', apiError);
+        // Fall through to hardcoded credentials check
+      }
+
+      // Fallback: Check hardcoded credentials (for backward compatibility)
+      if (formData.email === ADMIN_EMAIL && formData.password === ADMIN_PASSWORD) {
+        // Try to setup admin in database
+        try {
+          const setupResponse = await fetch(`${API_BASE_URL}/api/setup-admin`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: ADMIN_EMAIL,
+              password: ADMIN_PASSWORD,
+              name: 'Admin'
+            }),
+          });
+
+          const setupData = await setupResponse.json();
+          
+          if (setupData.success) {
+            // Try login again after setup
+            const loginResponse = await fetch(`${API_BASE_URL}/api/auth-login`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                email: ADMIN_EMAIL,
+                password: ADMIN_PASSWORD
+              }),
+            });
+
+            const loginData = await loginResponse.json();
+
+            if (loginResponse.ok && loginData.success && loginData.user?.role === 'admin') {
+              localStorage.setItem('authToken', loginData.token);
+              localStorage.setItem('user', JSON.stringify(loginData.user));
+              navigate('/admin/dashboard');
+              return;
+            }
+          }
+        } catch (setupError) {
+          console.warn('Setup admin failed, using hardcoded login:', setupError);
+        }
+
+        // Last resort: hardcoded login (backward compatibility)
+        const adminUser = {
+          id: 'admin-1',
+          name: 'Admin',
+          email: ADMIN_EMAIL,
+          role: 'admin'
+        };
+
+        const tokenPayload = JSON.stringify({
+          userId: adminUser.id,
+          role: 'admin',
+          timestamp: Date.now()
+        });
+        const token = btoa(unescape(encodeURIComponent(tokenPayload)));
+
+        localStorage.setItem('authToken', token);
+        localStorage.setItem('user', JSON.stringify(adminUser));
+
+        navigate('/admin/dashboard');
+        return;
+      }
+
+      // Invalid credentials
       setError('Invalid credentials');
       setLoading(false);
-      return;
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('An error occurred. Please try again.');
+      setLoading(false);
     }
-
-    // Create admin user object and token
-    const adminUser = {
-      id: 'admin-1',
-      name: 'Admin',
-      email: ADMIN_EMAIL,
-      role: 'admin'
-    };
-
-    // Generate simple token (browser-compatible base64)
-    const tokenPayload = JSON.stringify({
-      userId: adminUser.id,
-      role: 'admin',
-      timestamp: Date.now()
-    });
-    const token = btoa(unescape(encodeURIComponent(tokenPayload)));
-
-    // Save to localStorage
-    localStorage.setItem('authToken', token);
-    localStorage.setItem('user', JSON.stringify(adminUser));
-
-    // Redirect to admin dashboard
-    navigate('/admin/dashboard');
   };
 
   return (
