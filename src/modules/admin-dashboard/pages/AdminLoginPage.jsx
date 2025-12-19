@@ -109,28 +109,15 @@ export default function AdminLoginPage() {
             }
           }
         } catch (setupError) {
-          console.warn('Setup admin failed, using hardcoded login:', setupError);
+          console.error('Setup admin failed:', setupError);
+          setError('Failed to setup admin account. Please contact system administrator.');
+          setLoading(false);
+          return;
         }
 
-        // Last resort: hardcoded login (backward compatibility)
-        const adminUser = {
-          id: 'admin-1',
-          name: 'Admin',
-          email: ADMIN_EMAIL,
-          role: 'admin'
-        };
-
-        const tokenPayload = JSON.stringify({
-          userId: adminUser.id,
-          role: 'admin',
-          timestamp: Date.now()
-        });
-        const token = btoa(unescape(encodeURIComponent(tokenPayload)));
-
-        localStorage.setItem('authToken', token);
-        localStorage.setItem('user', JSON.stringify(adminUser));
-
-        navigate('/admin/dashboard');
+        // If setup succeeded but login still failed, show error
+        setError('Admin account setup completed, but login failed. Please try again.');
+        setLoading(false);
         return;
       }
 
