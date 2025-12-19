@@ -23,7 +23,12 @@ body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px; /* Consistent gap between all blocks */
-  grid-auto-rows: minmax(114.12px, auto); /* Increased by 20%: 95.1px * 1.2 = 114.12px */
+  /* CURRENT SETTINGS (for rollback):
+   * grid-auto-rows: minmax(114.12px, auto); - Horizontal card height
+   * Vertical card = 2 rows = 228.24px
+   * Card width = (750px - 2*12px) / 3 = 242px
+   */
+  grid-auto-rows: minmax(242px, auto); /* Square horizontal cards: width = height = 242px */
 }
 
 /* Vertical cards (story format) - take 2 rows, height = 2 horizontal cards */
@@ -65,7 +70,15 @@ body {
   .masonry-grid {
     grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
     gap: 5px; /* 5px gap between preview cards on mobile */
-    grid-auto-rows: minmax(98px, auto); /* Base height: 140px * 0.7 = 98px per row */
+    /* CURRENT SETTINGS (for rollback):
+     * grid-auto-rows: minmax(98px, auto); - Horizontal card height
+     * Vertical card = 2 rows = 196px
+     * Card width = (750px - 5px) / 2 = 372.5px (but on mobile usually ~375px width)
+     * For typical mobile (375px): width = (375px - 5px) / 2 = 185px
+     */
+    /* Square horizontal cards on mobile: width = height */
+    /* Calculation: (viewport width - gap) / 2 columns = card width = card height */
+    grid-auto-rows: minmax(calc((100vw - 5px) / 2), auto); /* Square horizontal cards on mobile */
   }
   
   /* Red banner - height = vertical card (span 1 but with min-height = 2 rows) */
@@ -74,20 +87,24 @@ body {
     grid-column: span 2; /* Full width on mobile */
     grid-row: span 1; /* 1 row */
     width: 100%;
-    min-height: 196px; /* 2 * 98px = height of vertical card (2 rows) */
+    /* CURRENT SETTINGS (for rollback):
+     * min-height: 196px; - 2 * 98px = height of vertical card (2 rows)
+     */
+    /* New: 2 * square card height = 2 * ((100vw - 5px) / 2) = 100vw - 5px */
+    min-height: calc(100vw - 5px); /* 2 * square card height = full width on mobile */
   }
   
-  /* Vertical cards - 2 rows = 196px */
+  /* Vertical cards - 2 rows = 2 * square card height */
   .vertical-card {
     grid-column: span 1;
-    grid-row: span 2; /* 2 rows = 196px */
+    grid-row: span 2; /* 2 rows = 2 * square card height */
     width: 100%;
   }
   
-  /* Horizontal cards - 1 row = 98px, so 2 horizontal = 196px = 1 vertical */
+  /* Horizontal cards - 1 row = square card height */
   .horizontal-card {
     grid-column: span 1;
-    grid-row: span 1; /* 1 row = 98px */
+    grid-row: span 1; /* 1 row = square card height */
     width: 100%;
   }
   
