@@ -160,7 +160,7 @@ export default function GuideDashboardPage() {
                           </div>
                           <div style={{ display: 'flex', gap: '8px', marginLeft: '12px' }}>
                             <Link
-                              to={`/itinerary?tourId=${tour.id}`}
+                              to={`/itinerary?tourId=${tour.id}&full=true`}
                               target="_blank"
                               rel="noopener noreferrer"
                               style={{

@@ -543,7 +543,7 @@ export default function AdminToursPage() {
                       </td>
                       <td style={{ padding: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                         <Link
-                          to={`/itinerary?tourId=${tour.id}`}
+                          to={`/itinerary?tourId=${tour.id}&full=true`}
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{

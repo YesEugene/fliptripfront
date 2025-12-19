@@ -255,12 +255,13 @@ export default function ItineraryPage() {
       
       // Build preview itinerary from tour data
       // Save ALL blocks to Redis, previewOnly flag controls display
+      // If isFullPlan=true, show full tour without preview restrictions
       const previewItinerary = {
         title: tour.title,
         subtitle: tour.description || `Explore ${cityName} with this curated tour`,
         date: date,
         budget: tour.price_pdf ? tour.price_pdf.toString() : '500',
-        previewOnly: true, // Flag for display, but all blocks are saved
+        previewOnly: !isFullPlan, // Full plan if isFullPlan=true, preview otherwise
         daily_plan: dailyPlan, // Each day is separate
         tourId: tourIdParam,
         preview_media_url: tour.preview_media_url || null // Add preview image from tour
