@@ -26,6 +26,7 @@ export default function ProfileSettingsPage() {
   }, []);
 
   const [formData, setFormData] = useState({
+    name: '', // Guide name
     avatar: '', // URL or base64 string for avatar
     bio: '', // Biography/About me
     socialLinks: {
@@ -45,6 +46,7 @@ export default function ProfileSettingsPage() {
         const profile = await getGuideProfile();
         if (profile) {
           setFormData({
+            name: profile.name || '',
             avatar: profile.avatar || '',
             bio: profile.bio || '',
             socialLinks: profile.socialLinks || {
@@ -265,6 +267,41 @@ export default function ProfileSettingsPage() {
                   JPG, PNG or GIF. Max size 5MB
                 </p>
               </div>
+            </div>
+          </div>
+
+          {/* Name Section */}
+          <div style={{
+            backgroundColor: 'white',
+            padding: '24px',
+            borderRadius: '12px',
+            marginBottom: '24px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>
+              Personal Information
+            </h2>
+            
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Name
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Your name as it will appear to travelers"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '16px'
+                }}
+              />
+              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>
+                This name will be displayed in tour previews and your profile
+              </p>
             </div>
           </div>
 
