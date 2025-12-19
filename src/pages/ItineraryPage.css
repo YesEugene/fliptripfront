@@ -54,15 +54,15 @@
 }
 
 /* Tour hero title - large font size */
-.tour-hero-title {
-  font-size: 50px;
+.title.tour-hero-title {
+  font-size: 40px !important;
   font-weight: bold;
   line-height: 1.1;
 }
 
 @media (max-width: 768px) {
-  .tour-hero-title {
-    font-size: 60px;
+  .title.tour-hero-title {
+    font-size: 30px !important;
   }
 }
 
