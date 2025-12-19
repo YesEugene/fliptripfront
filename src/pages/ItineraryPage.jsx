@@ -1091,39 +1091,52 @@ export default function ItineraryPage() {
               <div className="tour-hero-image" style={{
                 position: 'relative',
                 width: '100%',
-                height: '400px',
+                height: '350px', // Reduced by 50px (was 400px)
                 borderRadius: '16px',
                 overflow: 'hidden',
                 marginBottom: '24px',
-                backgroundImage: `url(${tourImage})`,
+                backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 30%, transparent 60%), url(${tourImage})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'space-between',
+                justifyContent: 'flex-start',
                 padding: '32px'
               }}>
+                {/* Gradient overlay for better text readability */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 30%, transparent 60%)',
+                  zIndex: 0
+                }} />
+                
                 {/* Title overlay */}
                 <h1 className="title" style={{
                   color: 'white',
-                  fontSize: '36px',
+                  fontSize: '43px', // Increased by 20% (was 36px, 36 * 1.2 = 43.2)
                   fontWeight: 'bold',
                   textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
                   margin: 0,
-                  zIndex: 1
+                  marginBottom: '16px',
+                  zIndex: 1,
+                  position: 'relative'
                 }}>
                   {itinerary?.title || generateFallbackTitle(formData)}
                 </h1>
                 
-                {/* Creator info - only show if guide exists */}
+                {/* Creator info - only show if guide exists, positioned below title */}
                 {guide && guide.name && (
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '12px',
-                    alignSelf: 'flex-start',
                     zIndex: 1,
-                    marginTop: 'auto'
+                    position: 'relative',
+                    marginBottom: 'auto'
                   }}>
                     {guide.avatar_url && (
                       <img 
@@ -1156,6 +1169,7 @@ export default function ItineraryPage() {
                     onClick={handleDownloadPDF}
                     style={{
                       alignSelf: 'flex-start',
+                      marginTop: 'auto',
                       padding: '12px 24px',
                       backgroundColor: 'white',
                       color: '#1f2937',
@@ -1168,7 +1182,8 @@ export default function ItineraryPage() {
                       alignItems: 'center',
                       gap: '8px',
                       boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
-                      zIndex: 1
+                      zIndex: 1,
+                      position: 'relative'
                     }}
                   >
                     <span style={{ fontSize: '20px' }}>📄</span>
