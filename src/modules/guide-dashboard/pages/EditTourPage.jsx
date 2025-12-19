@@ -33,8 +33,12 @@ export default function EditTourPage() {
   const { id } = useParams();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [autoSaving, setAutoSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(''); // 'saved', 'saving', 'error'
   const [error, setError] = useState('');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const autoSaveTimeoutRef = useRef(null);
+  const [hasBeenModified, setHasBeenModified] = useState(false);
   
   useEffect(() => {
     const handleResize = () => {
@@ -120,8 +124,8 @@ export default function EditTourPage() {
             city: cityValue,
             title: tour.title || '',
             description: tour.description || '',
-            preview: tour.preview || '',
-            previewType: tour.previewType || 'image',
+            preview: tour.preview_media_url || tour.preview || '',
+            previewType: tour.preview_media_type || tour.previewType || 'image',
             tags: Array.isArray(tour.tags) ? tour.tags : [],
             duration: tour.duration || { type: 'hours', value: 6 },
             languages: Array.isArray(tour.languages) ? tour.languages : (tour.languages || ['en']),
@@ -444,22 +448,146 @@ export default function EditTourPage() {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  // Auto-save function (saves as draft)
+  const autoSave = async (dataToSave, showStatus = true) => {
+    if (showStatus) {
+      setAutoSaving(true);
+      setSaveStatus('saving');
+    }
+    
+    try {
+      const result = await updateTour(id, { ...dataToSave, status: 'draft' });
+      if (result.success) {
+        if (showStatus) {
+          setSaveStatus('saved');
+          setTimeout(() => setSaveStatus(''), 3000); // Clear status after 3 seconds
+        }
+      }
+    } catch (err) {
+      console.error('Auto-save error:', err);
+      if (showStatus) {
+        setSaveStatus('error');
+        setTimeout(() => setSaveStatus(''), 5000);
+      }
+    } finally {
+      if (showStatus) {
+        setAutoSaving(false);
+      }
+    }
+  };
+
+  // Track if form has been modified (to prevent auto-save on initial load)
+  const [hasBeenModified, setHasBeenModified] = useState(false);
+
+  // Auto-save with debounce (2.5 seconds)
+  useEffect(() => {
+    // Don't auto-save on initial load or if form hasn't been modified
+    if (loading || !hasBeenModified) {
+      return;
+    }
+
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Set new timeout for auto-save
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      autoSave(formData, true);
+    }, 2500);
+
+    // Cleanup on unmount
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [formData, loading, hasBeenModified]);
+
+  // Mark form as modified when user makes changes
+  useEffect(() => {
+    if (!loading) {
+      setHasBeenModified(true);
+    }
+  }, [formData.city, formData.title, formData.description, formData.preview, formData.daily_plan, loading]);
+
+  // Validate form before submitting for moderation
+  const validateForm = () => {
+    if (!formData.city || !formData.title || !formData.description) {
+      return 'Please fill in all required fields (City, Tour Name, Description)';
+    }
+    if (!formData.preview) {
+      return 'Please upload a preview image or video';
+    }
+    if (!formData.daily_plan || formData.daily_plan.length === 0) {
+      return 'Please add at least one day to your tour';
+    }
+    // Check if at least one day has at least one location
+    const hasLocations = formData.daily_plan.some(day =>
+      day.blocks?.some(block =>
+        block.items?.some(item => item.title && item.address)
+      )
+    );
+    if (!hasLocations) {
+      return 'Please add at least one location to your tour';
+    }
+    return null;
+  };
+
+  // Save as draft (manual)
+  const handleSaveDraft = async (e) => {
     e.preventDefault();
     setError('');
     setSaving(true);
+    setSaveStatus('saving');
 
     try {
-      const result = await updateTour(id, formData);
+      const result = await updateTour(id, { ...formData, status: 'draft' });
       if (result.success) {
-        navigate('/guide/dashboard');
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus(''), 3000);
       }
     } catch (err) {
-      setError(err.message || 'Error updating tour');
+      setError(err.message || 'Error saving draft');
+      setSaveStatus('error');
     } finally {
       setSaving(false);
     }
   };
+
+  // Submit for moderation
+  const handleSubmitForModeration = async (e) => {
+    e.preventDefault();
+    setError('');
+    
+    // Validate form
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setSaving(true);
+    setSaveStatus('saving');
+
+    try {
+      const result = await updateTour(id, { ...formData, status: 'pending' });
+      if (result.success) {
+        setSaveStatus('saved');
+        // Show success message and navigate after a short delay
+        setTimeout(() => {
+          navigate('/guide/dashboard');
+        }, 1500);
+      }
+    } catch (err) {
+      setError(err.message || 'Error submitting for moderation');
+      setSaveStatus('error');
+      setSaving(false);
+    }
+  };
+
+  // Legacy handleSubmit (for backward compatibility, now calls save draft)
+  const handleSubmit = handleSaveDraft;
 
   const addDay = () => {
     setFormData(prev => ({
@@ -1877,24 +2005,69 @@ export default function EditTourPage() {
             )}
           </div>
 
-          {/* Submit Button */}
-          <div style={{ marginBottom: '32px' }}>
+          {/* Auto-save Status Indicator */}
+          {saveStatus && (
+            <div style={{
+              marginBottom: '16px',
+              padding: '12px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              textAlign: 'center',
+              backgroundColor: saveStatus === 'saved' ? '#d1fae5' : saveStatus === 'saving' ? '#dbeafe' : '#fee2e2',
+              color: saveStatus === 'saved' ? '#065f46' : saveStatus === 'saving' ? '#1e40af' : '#991b1b',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}>
+              {saveStatus === 'saved' && '✓ Saved'}
+              {saveStatus === 'saving' && '⏳ Saving...'}
+              {saveStatus === 'error' && '✗ Save failed'}
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div style={{ 
+            marginBottom: '32px',
+            display: 'flex',
+            gap: '12px',
+            flexDirection: isMobile ? 'column' : 'row'
+          }}>
             <button
-              type="submit"
-              disabled={saving}
+              type="button"
+              onClick={handleSaveDraft}
+              disabled={saving || autoSaving}
               style={{
-                width: '100%',
+                flex: 1,
                 padding: '14px',
-                backgroundColor: saving ? '#9ca3af' : '#3b82f6',
+                backgroundColor: saving || autoSaving ? '#9ca3af' : '#6b7280',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
                 fontSize: '16px',
                 fontWeight: '600',
-                cursor: saving ? 'not-allowed' : 'pointer'
+                cursor: saving || autoSaving ? 'not-allowed' : 'pointer'
               }}
             >
-              {saving ? 'Saving Tour...' : 'Save Changes'}
+              {saving || autoSaving ? 'Saving...' : 'Save as Draft'}
+            </button>
+            <button
+              type="button"
+              onClick={handleSubmitForModeration}
+              disabled={saving || autoSaving}
+              style={{
+                flex: 1,
+                padding: '14px',
+                backgroundColor: saving || autoSaving ? '#9ca3af' : '#10b981',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: saving || autoSaving ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {saving ? 'Submitting...' : 'Submit for Moderation'}
             </button>
           </div>
         </form>

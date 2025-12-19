@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getTours, exportToCSV, getTourById, updateTour, getTags } from '../services/adminService';
+import { getTours, exportToCSV, getTourById, updateTour, getTags, getToursPendingModeration, moderateTour } from '../services/adminService';
 import { getCurrentUser } from '../../auth/services/authService';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
 
@@ -15,7 +15,12 @@ export default function AdminToursPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('all'); // 'all', 'pending', 'approved', 'rejected'
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectingTourId, setRejectingTourId] = useState(null);
+  const [rejectComment, setRejectComment] = useState('');
+  const [moderating, setModerating] = useState(false);
   const [editingTour, setEditingTour] = useState(null);
   const [editFormData, setEditFormData] = useState({
     title: '',
@@ -85,12 +90,23 @@ export default function AdminToursPage() {
     try {
       setLoading(true);
       setError(null);
-      const filters = {};
-      if (searchTerm) {
-        filters.search = searchTerm;
+      
+      if (activeTab === 'pending') {
+        // Load tours pending moderation
+        const data = await getToursPendingModeration();
+        setTours(data.tours || []);
+      } else {
+        // Load all tours with filters
+        const filters = {};
+        if (searchTerm) {
+          filters.search = searchTerm;
+        }
+        if (activeTab !== 'all') {
+          filters.status = activeTab; // 'approved', 'rejected', 'draft'
+        }
+        const data = await getTours(filters);
+        setTours(data.tours || []);
       }
-      const data = await getTours(filters);
-      setTours(data.tours || []);
     } catch (err) {
       console.error('Error loading tours:', err);
       setError(err.message);
@@ -217,6 +233,10 @@ export default function AdminToursPage() {
   }, []);
 
   useEffect(() => {
+    loadTours();
+  }, [activeTab]);
+
+  useEffect(() => {
     const timer = setTimeout(() => {
       if (searchTerm !== undefined) {
         loadTours();
@@ -224,6 +244,56 @@ export default function AdminToursPage() {
     }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm]);
+
+  // Handle approve tour
+  const handleApproveTour = async (tourId) => {
+    if (!window.confirm('Are you sure you want to approve this tour? It will be published and visible to all users.')) {
+      return;
+    }
+
+    try {
+      setModerating(true);
+      await moderateTour(tourId, 'approve');
+      alert('Tour approved successfully!');
+      loadTours(); // Reload tours list
+    } catch (err) {
+      console.error('Error approving tour:', err);
+      alert('Error approving tour: ' + err.message);
+    } finally {
+      setModerating(false);
+    }
+  };
+
+  // Handle reject tour
+  const handleRejectTour = async () => {
+    if (!rejectingTourId) return;
+    if (!rejectComment.trim()) {
+      alert('Please provide a reason for rejection');
+      return;
+    }
+
+    try {
+      setModerating(true);
+      await moderateTour(rejectingTourId, 'reject', rejectComment);
+      alert('Tour rejected successfully!');
+      setShowRejectModal(false);
+      setRejectingTourId(null);
+      setRejectComment('');
+      loadTours(); // Reload tours list
+    } catch (err) {
+      console.error('Error rejecting tour:', err);
+      alert('Error rejecting tour: ' + err.message);
+    } finally {
+      setModerating(false);
+    }
+  };
+
+  // Open reject modal
+  const handleRejectClick = (tourId) => {
+    setRejectingTourId(tourId);
+    setRejectComment('');
+    setShowRejectModal(true);
+  };
 
   if (!user) {
     return <div style={{ padding: '20px' }}>Loading...</div>;
@@ -284,6 +354,89 @@ export default function AdminToursPage() {
             }}
           >
             Export CSV
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div style={{ 
+          marginBottom: '24px',
+          display: 'flex',
+          gap: '8px',
+          borderBottom: '2px solid #e5e7eb'
+        }}>
+          <button
+            onClick={() => setActiveTab('all')}
+            style={{
+              padding: '12px 24px',
+              border: 'none',
+              borderBottom: activeTab === 'all' ? '3px solid #3b82f6' : '3px solid transparent',
+              backgroundColor: 'transparent',
+              color: activeTab === 'all' ? '#3b82f6' : '#6b7280',
+              cursor: 'pointer',
+              fontWeight: activeTab === 'all' ? '600' : '400',
+              fontSize: '16px'
+            }}
+          >
+            All Tours
+          </button>
+          <button
+            onClick={() => setActiveTab('pending')}
+            style={{
+              padding: '12px 24px',
+              border: 'none',
+              borderBottom: activeTab === 'pending' ? '3px solid #f59e0b' : '3px solid transparent',
+              backgroundColor: 'transparent',
+              color: activeTab === 'pending' ? '#f59e0b' : '#6b7280',
+              cursor: 'pointer',
+              fontWeight: activeTab === 'pending' ? '600' : '400',
+              fontSize: '16px',
+              position: 'relative'
+            }}
+          >
+            Pending Moderation
+            {tours.filter(t => t.status === 'pending').length > 0 && (
+              <span style={{
+                marginLeft: '8px',
+                padding: '2px 8px',
+                backgroundColor: '#f59e0b',
+                color: 'white',
+                borderRadius: '12px',
+                fontSize: '12px',
+                fontWeight: '600'
+              }}>
+                {tours.filter(t => t.status === 'pending').length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('approved')}
+            style={{
+              padding: '12px 24px',
+              border: 'none',
+              borderBottom: activeTab === 'approved' ? '3px solid #10b981' : '3px solid transparent',
+              backgroundColor: 'transparent',
+              color: activeTab === 'approved' ? '#10b981' : '#6b7280',
+              cursor: 'pointer',
+              fontWeight: activeTab === 'approved' ? '600' : '400',
+              fontSize: '16px'
+            }}
+          >
+            Approved
+          </button>
+          <button
+            onClick={() => setActiveTab('rejected')}
+            style={{
+              padding: '12px 24px',
+              border: 'none',
+              borderBottom: activeTab === 'rejected' ? '3px solid #ef4444' : '3px solid transparent',
+              backgroundColor: 'transparent',
+              color: activeTab === 'rejected' ? '#ef4444' : '#6b7280',
+              cursor: 'pointer',
+              fontWeight: activeTab === 'rejected' ? '600' : '400',
+              fontSize: '16px'
+            }}
+          >
+            Rejected
           </button>
         </div>
 
@@ -373,8 +526,16 @@ export default function AdminToursPage() {
                         <span style={{
                           padding: '4px 8px',
                           borderRadius: '4px',
-                          backgroundColor: tour.status === 'published' ? '#d1fae5' : '#fee2e2',
-                          color: tour.status === 'published' ? '#065f46' : '#991b1b',
+                          backgroundColor: 
+                            tour.status === 'approved' ? '#d1fae5' :
+                            tour.status === 'pending' ? '#fef3c7' :
+                            tour.status === 'rejected' ? '#fee2e2' :
+                            '#e5e7eb',
+                          color: 
+                            tour.status === 'approved' ? '#065f46' :
+                            tour.status === 'pending' ? '#92400e' :
+                            tour.status === 'rejected' ? '#991b1b' :
+                            '#374151',
                           fontSize: '12px',
                           fontWeight: '600',
                           textTransform: 'capitalize'
@@ -383,9 +544,46 @@ export default function AdminToursPage() {
                         </span>
                       </td>
                       <td style={{ padding: '12px', color: '#6b7280', fontSize: '14px' }}>
-                        {tour.createdAt ? new Date(tour.createdAt).toLocaleDateString() : 'N/A'}
+                        {tour.created_at ? new Date(tour.created_at).toLocaleDateString() : 
+                         tour.createdAt ? new Date(tour.createdAt).toLocaleDateString() : 'N/A'}
                       </td>
-                      <td style={{ padding: '12px' }}>
+                      <td style={{ padding: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        {tour.status === 'pending' && (
+                          <>
+                            <button
+                              onClick={() => handleApproveTour(tour.id)}
+                              disabled={moderating}
+                              style={{
+                                padding: '6px 12px',
+                                backgroundColor: moderating ? '#9ca3af' : '#10b981',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                cursor: moderating ? 'not-allowed' : 'pointer',
+                                fontSize: '14px',
+                                fontWeight: '500'
+                              }}
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => handleRejectClick(tour.id)}
+                              disabled={moderating}
+                              style={{
+                                padding: '6px 12px',
+                                backgroundColor: moderating ? '#9ca3af' : '#ef4444',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                cursor: moderating ? 'not-allowed' : 'pointer',
+                                fontSize: '14px',
+                                fontWeight: '500'
+                              }}
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
                         <button
                           onClick={() => handleEditClick(tour.id)}
                           style={{
@@ -569,7 +767,9 @@ export default function AdminToursPage() {
                     }}
                   >
                     <option value="draft">Draft</option>
-                    <option value="published">Published</option>
+                    <option value="pending">Pending Moderation</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
                   </select>
                 </div>
 
@@ -740,6 +940,91 @@ export default function AdminToursPage() {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Reject Tour Modal */}
+      {showRejectModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1001,
+          padding: '20px'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '24px',
+            borderRadius: '12px',
+            maxWidth: '500px',
+            width: '90%'
+          }}>
+            <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '20px' }}>
+              Reject Tour
+            </h2>
+            <p style={{ marginBottom: '16px', color: '#6b7280' }}>
+              Please provide a reason for rejecting this tour. This comment will be visible to the tour creator.
+            </p>
+            <textarea
+              value={rejectComment}
+              onChange={(e) => setRejectComment(e.target.value)}
+              placeholder="Enter rejection reason..."
+              rows={4}
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '16px',
+                marginBottom: '20px',
+                resize: 'vertical'
+              }}
+            />
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowRejectModal(false);
+                  setRejectingTourId(null);
+                  setRejectComment('');
+                }}
+                disabled={moderating}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#6b7280',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: moderating ? 'not-allowed' : 'pointer',
+                  fontSize: '16px',
+                  fontWeight: '500'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRejectTour}
+                disabled={moderating || !rejectComment.trim()}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: moderating || !rejectComment.trim() ? '#9ca3af' : '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: moderating || !rejectComment.trim() ? 'not-allowed' : 'pointer',
+                  fontSize: '16px',
+                  fontWeight: '500'
+                }}
+              >
+                {moderating ? 'Rejecting...' : 'Reject Tour'}
+              </button>
+            </div>
           </div>
         </div>
       )}

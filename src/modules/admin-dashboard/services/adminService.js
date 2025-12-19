@@ -235,6 +235,63 @@ export async function getTours(filters = {}) {
 /**
  * Get all tags
  */
+/**
+ * Get tours pending moderation
+ */
+export async function getToursPendingModeration() {
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/api/admin-moderate-tours?status=pending`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Error fetching tours pending moderation');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Get tours pending moderation error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Moderate tour (approve or reject)
+ */
+export async function moderateTour(tourId, action, comment = null) {
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/api/admin-moderate-tours`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        tourId,
+        action, // 'approve' or 'reject'
+        comment
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Error moderating tour');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Moderate tour error:', error);
+    throw error;
+  }
+}
+
 export async function getTags() {
   try {
     const token = getAuthToken();
