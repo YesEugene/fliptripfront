@@ -520,59 +520,6 @@ export default function EditTourPage() {
             }
           });
           setAvailableInterests(allInterests);
-          
-          // After interests are loaded, set selectedCategory and selectedSubcategory for existing items
-          if (formData.daily_plan && allInterests.length > 0 && data.categories.length > 0) {
-            setFormData(prev => {
-              const newPlan = prev.daily_plan.map(day => ({
-                ...day,
-                blocks: day.blocks.map(block => ({
-                  ...block,
-                  items: block.items.map(item => {
-                    if (!item.interest_ids || item.interest_ids.length === 0) {
-                      return item;
-                    }
-                    
-                    // Find the first interest to determine category/subcategory
-                    const firstInterestId = item.interest_ids[0];
-                    const firstInterest = allInterests.find(i => i.id === firstInterestId);
-                    
-                    if (firstInterest) {
-                      // Find category
-                      const category = data.categories.find(c => 
-                        c.id === firstInterest.category_id ||
-                        c.direct_interests?.some(interest => interest.id === firstInterestId) ||
-                        c.subcategories?.some(sub => sub.interests?.some(interest => interest.id === firstInterestId))
-                      );
-                      
-                      if (category) {
-                        const selectedCategory = category.id;
-                        
-                        // Find subcategory if interest has one
-                        let selectedSubcategory = null;
-                        if (firstInterest.subcategory_id) {
-                          const subcategory = category.subcategories?.find(s => s.id === firstInterest.subcategory_id);
-                          if (subcategory) {
-                            selectedSubcategory = subcategory.id;
-                          }
-                        }
-                        
-                        return {
-                          ...item,
-                          selectedCategory,
-                          selectedSubcategory
-                        };
-                      }
-                    }
-                    
-                    return item;
-                  })
-                }))
-              }));
-              
-              return { ...prev, daily_plan: newPlan };
-            });
-          }
         }
       } catch (err) {
         console.error('Error loading interests:', err);
@@ -581,7 +528,77 @@ export default function EditTourPage() {
       }
     };
     loadInterests();
-  }, [formData.daily_plan.length]); // Only run when daily_plan changes (after initial load)
+  }, []); // Run once on mount
+
+  // Set selectedCategory and selectedSubcategory for existing items after interests are loaded
+  useEffect(() => {
+    if (!interestsStructure || !availableInterests.length || !formData.daily_plan || formData.daily_plan.length === 0) {
+      return;
+    }
+
+    // Check if any item needs category/subcategory set
+    const needsUpdate = formData.daily_plan.some(day =>
+      day.blocks?.some(block =>
+        block.items?.some(item =>
+          item.interest_ids?.length > 0 && !item.selectedCategory
+        )
+      )
+    );
+
+    if (!needsUpdate) {
+      return;
+    }
+
+    setFormData(prev => {
+      const newPlan = prev.daily_plan.map(day => ({
+        ...day,
+        blocks: day.blocks.map(block => ({
+          ...block,
+          items: block.items.map(item => {
+            if (!item.interest_ids || item.interest_ids.length === 0 || item.selectedCategory) {
+              return item;
+            }
+            
+            // Find the first interest to determine category/subcategory
+            const firstInterestId = item.interest_ids[0];
+            const firstInterest = availableInterests.find(i => i.id === firstInterestId);
+            
+            if (firstInterest) {
+              // Find category
+              const category = interestsStructure.find(c => 
+                c.id === firstInterest.category_id ||
+                c.direct_interests?.some(interest => interest.id === firstInterestId) ||
+                c.subcategories?.some(sub => sub.interests?.some(interest => interest.id === firstInterestId))
+              );
+              
+              if (category) {
+                const selectedCategory = category.id;
+                
+                // Find subcategory if interest has one
+                let selectedSubcategory = null;
+                if (firstInterest.subcategory_id) {
+                  const subcategory = category.subcategories?.find(s => s.id === firstInterest.subcategory_id);
+                  if (subcategory) {
+                    selectedSubcategory = subcategory.id;
+                  }
+                }
+                
+                return {
+                  ...item,
+                  selectedCategory,
+                  selectedSubcategory
+                };
+              }
+            }
+            
+            return item;
+          })
+        }))
+      }));
+      
+      return { ...prev, daily_plan: newPlan };
+    });
+  }, [interestsStructure, availableInterests, formData.daily_plan]);
 
   const addItem = (dayIndex, blockIndex) => {
     setFormData(prev => {
