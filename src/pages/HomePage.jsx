@@ -2010,7 +2010,7 @@ export default function HomePage() {
                   marginLeft: '0',
                   lineHeight: '1.2'
         }}>
-                  Create Personalized Trip
+                  Create your perfect trip
         </h2>
                 <p style={{
                   fontSize: '16px',
@@ -2081,19 +2081,21 @@ export default function HomePage() {
                 
                 <div style={{ position: 'relative', zIndex: 2, paddingLeft: '20px', paddingTop: '20px' }}>
                   <h3 style={{
-                    fontSize: '24px',
+                    fontSize: '28px',
                     fontWeight: 'bold',
-                    marginBottom: '12px',
+                    marginBottom: '0',
                     lineHeight: '1.2',
-                    marginTop: '0'
+                    marginTop: '20px',
+                    color: 'white'
                   }}>
                     {personalizedTripPreview.title}
                   </h3>
                   <p style={{
-                    fontSize: '14px',
-                    opacity: 0.9,
+                    fontSize: '16px',
+                    color: 'rgba(255, 255, 255, 0.95)',
                     lineHeight: '1.5',
-                    marginTop: '20px'
+                    marginTop: '10px',
+                    marginBottom: '0'
                   }}>
                     {personalizedTripPreview.subtitle}
                   </p>
