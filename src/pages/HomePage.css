@@ -64,7 +64,7 @@ body {
   /* On mobile, adjust grid for 2 columns */
   .masonry-grid {
     grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
-    gap: 12px; /* Keep consistent gap */
+    gap: 5px; /* 5px gap between preview cards on mobile */
     grid-auto-rows: minmax(98px, auto); /* Base height: 140px * 0.7 = 98px per row */
   }
   
