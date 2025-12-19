@@ -542,6 +542,23 @@ export default function AdminToursPage() {
                          tour.createdAt ? new Date(tour.createdAt).toLocaleDateString() : 'N/A'}
                       </td>
                       <td style={{ padding: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <Link
+                          to={`/itinerary?tourId=${tour.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            padding: '6px 12px',
+                            backgroundColor: '#10b981',
+                            color: 'white',
+                            borderRadius: '6px',
+                            textDecoration: 'none',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            display: 'inline-block'
+                          }}
+                        >
+                          👁️ View
+                        </Link>
                         {tour.status === 'pending' && (
                           <>
                             <button

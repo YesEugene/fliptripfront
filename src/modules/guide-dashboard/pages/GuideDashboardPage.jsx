@@ -160,6 +160,23 @@ export default function GuideDashboardPage() {
                           </div>
                           <div style={{ display: 'flex', gap: '8px', marginLeft: '12px' }}>
                             <Link
+                              to={`/itinerary?tourId=${tour.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                padding: '6px 12px',
+                                backgroundColor: '#10b981',
+                                color: 'white',
+                                borderRadius: '6px',
+                                textDecoration: 'none',
+                                fontSize: '14px',
+                                fontWeight: '500',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              👁️ View
+                            </Link>
+                            <Link
                               to={`/guide/tours/edit/${tour.id}`}
                               style={{
                                 padding: '6px 12px',
