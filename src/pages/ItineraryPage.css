@@ -55,14 +55,14 @@
 
 /* Tour hero title - large font size */
 .tour-hero-title {
-  font-size: 112px;
+  font-size: 70px;
   font-weight: bold;
   line-height: 1.1;
 }
 
 @media (max-width: 768px) {
   .tour-hero-title {
-    font-size: 48px;
+    font-size: 55px;
   }
 }
 
