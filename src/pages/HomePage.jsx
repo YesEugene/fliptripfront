@@ -2002,7 +2002,7 @@ export default function HomePage() {
                 onClick={handleCreatePersonalizedTrip}
               >
         <h2 style={{
-                  fontSize: '28px',
+                  fontSize: '24px',
           fontWeight: 'bold',
                   color: 'white',
                   marginTop: '20px',
@@ -2010,7 +2010,7 @@ export default function HomePage() {
                   marginLeft: '0',
                   lineHeight: '1.2'
         }}>
-                  Create your perfect trip
+                  Create your<br />perfect trip
         </h2>
                 <p style={{
                   fontSize: '16px',
@@ -2020,7 +2020,7 @@ export default function HomePage() {
                   marginLeft: '0',
                   lineHeight: '1.5'
                 }}>
-                  Designed around what you love
+                  Designed around<br />what you love
                 </p>
                 <button
                   style={{
@@ -2033,15 +2033,15 @@ export default function HomePage() {
                     fontWeight: 'bold',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
-                  alignSelf: 'flex-start',
+                  alignSelf: 'flex-end',
                   marginTop: 'auto',
                   marginBottom: '20px',
-                  marginLeft: '0'
+                  marginRight: '0'
                   }}
                   onMouseOver={(e) => e.target.style.backgroundColor = '#f3f4f6'}
                   onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
                 >
-                  START CREATION
+                  GET STARTED
                 </button>
               </div>
             )}
