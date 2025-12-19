@@ -1118,7 +1118,7 @@ export default function ItineraryPage() {
                 {/* Title overlay */}
                 <h1 className="title" style={{
                   color: 'white',
-                  fontSize: '56px', // Increased by 30% (was 43px, 43 * 1.3 = 55.9)
+                  fontSize: '112px', // Doubled (was 56px, 56 * 2 = 112)
                   fontWeight: 'bold',
                   textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
                   margin: 0,
