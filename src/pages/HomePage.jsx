@@ -2138,7 +2138,7 @@ export default function HomePage() {
                     alignSelf: 'flex-end',
                     marginTop: 'auto',
                     marginBottom: '20px',
-                    marginRight: '0',
+                    marginRight: '20px',
                     position: 'relative',
                     zIndex: 2,
                     textTransform: 'uppercase'
@@ -2146,7 +2146,7 @@ export default function HomePage() {
                   onMouseOver={(e) => e.target.style.backgroundColor = '#ffd700'}
                   onMouseOut={(e) => e.target.style.backgroundColor = '#FFE042'}
                 >
-                  SHOW PERSONAL TRIP
+                  MY TRIP
                 </button>
               </div>
             )}
