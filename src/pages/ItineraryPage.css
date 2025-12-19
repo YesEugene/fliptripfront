@@ -53,6 +53,19 @@
   margin-bottom: 16px;
 }
 
+/* Tour hero title - large font size */
+.tour-hero-title {
+  font-size: 112px;
+  font-weight: bold;
+  line-height: 1.1;
+}
+
+@media (max-width: 768px) {
+  .tour-hero-title {
+    font-size: 48px;
+  }
+}
+
 .subtitle {
   font-size: 20px;
   color: #6b7280;

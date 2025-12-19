@@ -1116,16 +1116,14 @@ export default function ItineraryPage() {
                 }} />
                 
                 {/* Title overlay */}
-                <h1 className="title" style={{
+                <h1 className="title tour-hero-title" style={{
                   color: 'white',
-                  fontSize: window.innerWidth < 768 ? '48px' : '112px', // Responsive: 48px mobile, 112px desktop (doubled from 56px)
                   fontWeight: 'bold',
                   textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
                   margin: 0,
                   marginBottom: '16px',
                   zIndex: 1,
-                  position: 'relative',
-                  lineHeight: '1.1' // Tighter line height for large text
+                  position: 'relative'
                 }}>
                   {itinerary?.title || generateFallbackTitle(formData)}
                 </h1>
