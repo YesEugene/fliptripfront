@@ -1095,7 +1095,7 @@ export default function ItineraryPage() {
                 borderRadius: '16px',
                 overflow: 'hidden',
                 marginBottom: '24px',
-                backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 30%, transparent 60%), url(${tourImage})`,
+                backgroundImage: `url(${tourImage})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 display: 'flex',
@@ -1111,7 +1111,8 @@ export default function ItineraryPage() {
                   right: 0,
                   bottom: 0,
                   background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 30%, transparent 60%)',
-                  zIndex: 0
+                  zIndex: 0,
+                  pointerEvents: 'none'
                 }} />
                 
                 {/* Title overlay */}
