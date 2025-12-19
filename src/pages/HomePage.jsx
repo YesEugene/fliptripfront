@@ -5,13 +5,8 @@ import { isAuthenticated, getCurrentUser, logout } from '../modules/auth/service
 import { getTours } from '../services/api';
 import './HomePage.css';
 
-// Top 20 most popular travel destinations
-const TOP_CITIES = [
-  'Barcelona', 'Paris', 'Amsterdam', 'Berlin', 'London', 
-  'Rome', 'Madrid', 'Lisbon', 'New York', 'Tokyo',
-  'Prague', 'Vienna', 'Venice', 'Florence', 'Moscow',
-  'Istanbul', 'Dubai', 'Sydney', 'Singapore', 'Copenhagen'
-];
+// Cities will be loaded from database
+// Removed hardcoded TOP_CITIES - now loading from /api/admin-cities
 
 const AUDIENCES = [
   { value: 'solo', label: 'Solo' },
@@ -84,6 +79,10 @@ export default function HomePage() {
   // Tours from database
   const [tours, setTours] = useState([]);
   const [loadingTours, setLoadingTours] = useState(false);
+  
+  // Cities from database (replaces hardcoded TOP_CITIES)
+  const [cities, setCities] = useState([]);
+  const [loadingCities, setLoadingCities] = useState(false);
   
   // Personalized trip preview (shown after filters are applied)
   const [personalizedTripPreview, setPersonalizedTripPreview] = useState(null);
@@ -162,6 +161,29 @@ export default function HomePage() {
       }
     };
     loadInterests();
+  }, []);
+
+  // Load cities from database
+  useEffect(() => {
+    const loadCities = async () => {
+      try {
+        setLoadingCities(true);
+        const response = await fetch(`${API_BASE_URL}/api/admin-cities`);
+        const data = await response.json();
+        if (data.success && data.cities) {
+          // Extract city names from the cities array
+          const cityNames = data.cities.map(city => city.name);
+          setCities(cityNames);
+        }
+      } catch (err) {
+        console.error('Error loading cities:', err);
+        // Fallback to hardcoded cities if API fails
+        setCities(TOP_CITIES);
+      } finally {
+        setLoadingCities(false);
+      }
+    };
+    loadCities();
   }, []);
 
   // Sync selectedDates with formData
@@ -765,7 +787,7 @@ export default function HomePage() {
                   maxHeight: '320px',
                   overflowY: 'auto'
                 }}>
-                    {TOP_CITIES.map((city) => (
+                    {(cities.length > 0 ? cities : TOP_CITIES).map((city) => (
                       <button
                         key={city}
                         type="button"
@@ -1242,7 +1264,7 @@ export default function HomePage() {
                     maxHeight: '320px',
                     overflowY: 'auto'
                   }}>
-                    {TOP_CITIES.map((city) => (
+                    {(cities.length > 0 ? cities : TOP_CITIES).map((city) => (
                       <button
                         key={city}
                         type="button"
