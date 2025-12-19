@@ -1980,7 +1980,7 @@ export default function HomePage() {
                 style={{
                   backgroundColor: '#ef4444',
                   borderRadius: '12px',
-                  padding: '0 20px 20px 20px',
+                  padding: '0 20px',
                   textAlign: 'left',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
@@ -2035,7 +2035,7 @@ export default function HomePage() {
                     transition: 'all 0.2s ease',
                   alignSelf: 'flex-start',
                   marginTop: 'auto',
-                  marginBottom: '0',
+                  marginBottom: '20px',
                   marginLeft: '0'
                   }}
                   onMouseOver={(e) => e.target.style.backgroundColor = '#f3f4f6'}
