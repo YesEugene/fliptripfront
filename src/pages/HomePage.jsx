@@ -2029,7 +2029,7 @@ export default function HomePage() {
                     border: 'none',
                     borderRadius: '8px',
                     padding: '12px 24px',
-                    fontSize: '12px',
+                    fontSize: '14px',
                     fontWeight: 'bold',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
@@ -2094,7 +2094,7 @@ export default function HomePage() {
                     fontSize: '16px',
                     color: 'rgba(255, 255, 255, 0.95)',
                     lineHeight: '1.5',
-                    marginTop: '15px',
+                    marginTop: '10px',
                     marginBottom: '0'
                   }}>
                     {personalizedTripPreview.subtitle}
@@ -2131,14 +2131,14 @@ export default function HomePage() {
                     border: 'none',
                     borderRadius: '8px',
                     padding: '12px 24px',
-                    fontSize: '16px',
+                    fontSize: '14px',
                     fontWeight: 'bold',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
-                    alignSelf: 'flex-start',
+                    alignSelf: 'flex-end',
                     marginTop: 'auto',
                     marginBottom: '20px',
-                    marginLeft: '20px',
+                    marginRight: '0',
                     position: 'relative',
                     zIndex: 2,
                     textTransform: 'uppercase'
