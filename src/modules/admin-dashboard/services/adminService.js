@@ -241,7 +241,8 @@ export async function getTours(filters = {}) {
 export async function getToursPendingModeration() {
   try {
     const token = getAuthToken();
-    const response = await fetch(`${API_BASE_URL}/api/admin-moderate-tours?status=pending`, {
+    // Use admin-tours endpoint with status filter instead of admin-moderate-tours
+    const response = await fetch(`${API_BASE_URL}/api/admin-tours?status=pending`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

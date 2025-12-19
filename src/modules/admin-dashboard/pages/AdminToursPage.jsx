@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getTours, exportToCSV, getTourById, updateTour, getTags, getToursPendingModeration, moderateTour } from '../services/adminService';
+import { getTours, exportToCSV, getTourById, updateTour, getTags, moderateTour } from '../services/adminService';
 import { getCurrentUser } from '../../auth/services/authService';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
 
@@ -91,22 +91,16 @@ export default function AdminToursPage() {
       setLoading(true);
       setError(null);
       
-      if (activeTab === 'pending') {
-        // Load tours pending moderation
-        const data = await getToursPendingModeration();
-        setTours(data.tours || []);
-      } else {
-        // Load all tours with filters
-        const filters = {};
-        if (searchTerm) {
-          filters.search = searchTerm;
-        }
-        if (activeTab !== 'all') {
-          filters.status = activeTab; // 'approved', 'rejected', 'draft'
-        }
-        const data = await getTours(filters);
-        setTours(data.tours || []);
+      // Load tours with filters (works for all tabs including 'pending')
+      const filters = {};
+      if (searchTerm) {
+        filters.search = searchTerm;
       }
+      if (activeTab !== 'all') {
+        filters.status = activeTab; // 'pending', 'approved', 'rejected', 'draft'
+      }
+      const data = await getTours(filters);
+      setTours(data.tours || []);
     } catch (err) {
       console.error('Error loading tours:', err);
       setError(err.message);
