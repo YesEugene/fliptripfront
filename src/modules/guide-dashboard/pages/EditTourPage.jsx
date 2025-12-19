@@ -476,9 +476,6 @@ export default function EditTourPage() {
     }
   };
 
-  // Track if form has been modified (to prevent auto-save on initial load)
-  const [hasBeenModified, setHasBeenModified] = useState(false);
-
   // Auto-save with debounce (2.5 seconds)
   useEffect(() => {
     // Don't auto-save on initial load or if form hasn't been modified
