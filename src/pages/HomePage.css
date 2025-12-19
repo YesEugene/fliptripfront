@@ -24,11 +24,12 @@ body {
   grid-template-columns: repeat(3, 1fr);
   gap: 12px; /* Consistent gap between all blocks */
   /* CURRENT SETTINGS (for rollback):
-   * grid-auto-rows: minmax(114.12px, auto); - Horizontal card height
-   * Vertical card = 2 rows = 228.24px
+   * grid-auto-rows: minmax(114.12px, auto); - Original horizontal card height
+   * grid-auto-rows: minmax(242px, auto); - Square horizontal cards (width = height = 242px)
+   * Vertical card = 2 rows = 484px
    * Card width = (750px - 2*12px) / 3 = 242px
    */
-  grid-auto-rows: minmax(242px, auto); /* Square horizontal cards: width = height = 242px */
+  grid-auto-rows: minmax(193.6px, auto); /* Horizontal cards: 242px * 0.8 = 193.6px (20% reduction) */
 }
 
 /* Vertical cards (story format) - take 2 rows, height = 2 horizontal cards */
@@ -71,14 +72,14 @@ body {
     grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
     gap: 5px; /* 5px gap between preview cards on mobile */
     /* CURRENT SETTINGS (for rollback):
-     * grid-auto-rows: minmax(98px, auto); - Horizontal card height
-     * Vertical card = 2 rows = 196px
-     * Card width = (750px - 5px) / 2 = 372.5px (but on mobile usually ~375px width)
-     * For typical mobile (375px): width = (375px - 5px) / 2 = 185px
+     * grid-auto-rows: minmax(98px, auto); - Original horizontal card height
+     * grid-auto-rows: minmax(calc((100vw - 5px) / 2), auto); - Square horizontal cards
+     * Vertical card = 2 rows = 2 * square height
+     * Card width = (viewport width - 5px) / 2
      */
-    /* Square horizontal cards on mobile: width = height */
-    /* Calculation: (viewport width - gap) / 2 columns = card width = card height */
-    grid-auto-rows: minmax(calc((100vw - 5px) / 2), auto); /* Square horizontal cards on mobile */
+    /* Horizontal cards on mobile: 80% of square (20% reduction) */
+    /* Calculation: ((viewport width - gap) / 2) * 0.8 = card height */
+    grid-auto-rows: minmax(calc(((100vw - 5px) / 2) * 0.8), auto); /* Horizontal cards: 80% of square */
   }
   
   /* Red banner - height = vertical card (span 1 but with min-height = 2 rows) */
@@ -89,9 +90,10 @@ body {
     width: 100%;
     /* CURRENT SETTINGS (for rollback):
      * min-height: 196px; - 2 * 98px = height of vertical card (2 rows)
+     * min-height: calc(100vw - 5px); - 2 * square card height
      */
-    /* New: 2 * square card height = 2 * ((100vw - 5px) / 2) = 100vw - 5px */
-    min-height: calc(100vw - 5px); /* 2 * square card height = full width on mobile */
+    /* New: 2 * (80% of square card height) = 2 * ((100vw - 5px) / 2) * 0.8 = (100vw - 5px) * 0.8 */
+    min-height: calc((100vw - 5px) * 0.8); /* 2 * (80% of square card height) */
   }
   
   /* Vertical cards - 2 rows = 2 * square card height */
