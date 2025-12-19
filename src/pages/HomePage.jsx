@@ -2020,7 +2020,7 @@ export default function HomePage() {
                   marginLeft: '0',
                   lineHeight: '1.5'
                 }}>
-                  We'll gather all your preferences and craft a personalized trip with every detail in mind
+                  Designed around what you love
                 </p>
                 <button
                   style={{
