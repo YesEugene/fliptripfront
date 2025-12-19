@@ -1118,7 +1118,7 @@ export default function ItineraryPage() {
                 {/* Title overlay */}
                 <h1 className="title" style={{
                   color: 'white',
-                  fontSize: '43px', // Increased by 20% (was 36px, 36 * 1.2 = 43.2)
+                  fontSize: '56px', // Increased by 30% (was 43px, 43 * 1.3 = 55.9)
                   fontWeight: 'bold',
                   textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
                   margin: 0,
@@ -1147,20 +1147,34 @@ export default function ItineraryPage() {
                           width: '48px',
                           height: '48px',
                           borderRadius: '50%',
-                          border: '2px solid white',
+                          border: '3px solid white', // Increased by 1px (was 2px)
                           objectFit: 'cover',
                           boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
                         }}
                       />
                     )}
-                    <span style={{
-                      color: 'white',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      textShadow: '1px 1px 2px rgba(0,0,0,0.5)'
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      lineHeight: '1.2'
                     }}>
-                      Tour created by {guide.name}
-                    </span>
+                      <span style={{
+                        color: 'white',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.5)'
+                      }}>
+                        Tour created
+                      </span>
+                      <span style={{
+                        color: 'white',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.5)'
+                      }}>
+                        by {guide.name}
+                      </span>
+                    </div>
                   </div>
                 )}
                 
