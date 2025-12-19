@@ -151,6 +151,13 @@ export default function AdminToursPage() {
         previewMediaUrl: editFormData.previewMediaUrl
       });
 
+      // Reload cities list after successful tour update to include newly created city
+      try {
+        await loadCities();
+      } catch (citiesErr) {
+        console.error('Error reloading cities:', citiesErr);
+      }
+
       alert('Tour updated successfully!');
       setShowEditModal(false);
       setEditingTour(null);
@@ -533,12 +540,12 @@ export default function AdminToursPage() {
                               e.target.style.backgroundColor = 'white';
                             }}
                           >
-                            {city.name}
-                            {city.country && (
-                              <span style={{ color: '#6b7280', fontSize: '14px', marginLeft: '8px' }}>
-                                {city.country.name || city.country}
-                              </span>
-                            )}
+                        {city.name}
+                        {city.country && (
+                          <span style={{ color: '#6b7280', fontSize: '14px', marginLeft: '8px' }}>
+                            {typeof city.country === 'string' ? city.country : (city.country.name || city.country)}
+                          </span>
+                        )}
                           </div>
                         ))}
                       </div>

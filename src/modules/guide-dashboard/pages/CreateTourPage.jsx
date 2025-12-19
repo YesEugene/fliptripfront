@@ -419,6 +419,17 @@ export default function CreateTourPage() {
     try {
       const result = await createTour(formData);
       if (result.success) {
+        // Reload cities list after successful tour creation to include newly created city
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
+        try {
+          const citiesResponse = await fetch(`${API_BASE_URL}/api/admin-cities`);
+          const citiesData = await citiesResponse.json();
+          if (citiesData.success && citiesData.cities) {
+            setCities(citiesData.cities);
+          }
+        } catch (citiesErr) {
+          console.error('Error reloading cities:', citiesErr);
+        }
         navigate('/guide/dashboard');
       }
     } catch (err) {
@@ -678,7 +689,7 @@ export default function CreateTourPage() {
                         {city.name}
                         {city.country && (
                           <span style={{ color: '#6b7280', fontSize: '14px', marginLeft: '8px' }}>
-                            {city.country.name || city.country}
+                            {typeof city.country === 'string' ? city.country : (city.country.name || city.country)}
                           </span>
                         )}
                       </div>
