@@ -100,7 +100,10 @@ export default function AdminToursPage() {
         filters.status = activeTab; // 'pending', 'approved', 'rejected', 'draft'
       }
       const data = await getTours(filters);
-      setTours(data.tours || []);
+      const loadedTours = data.tours || [];
+      // Log tour IDs for debugging
+      console.log('Loaded tours:', loadedTours.map(t => ({ id: t.id, title: t.title, status: t.status })));
+      setTours(loadedTours);
     } catch (err) {
       console.error('Error loading tours:', err);
       setError(err.message);
@@ -241,12 +244,21 @@ export default function AdminToursPage() {
 
   // Handle approve tour
   const handleApproveTour = async (tourId) => {
+    // Validate tourId is a valid UUID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!tourId || !uuidRegex.test(tourId)) {
+      console.error('Invalid tourId format:', tourId, 'Type:', typeof tourId);
+      alert('Error: Invalid tour ID format. Please refresh the page and try again.');
+      return;
+    }
+
     if (!window.confirm('Are you sure you want to approve this tour? It will be published and visible to all users.')) {
       return;
     }
 
     try {
       setModerating(true);
+      console.log('Approving tour with ID:', tourId);
       await moderateTour(tourId, 'approve');
       alert('Tour approved successfully!');
       loadTours(); // Reload tours list
