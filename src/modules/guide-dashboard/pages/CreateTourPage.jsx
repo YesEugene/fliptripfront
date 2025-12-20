@@ -230,6 +230,87 @@ export default function CreateTourPage() {
     }
   };
 
+  const [tagSuggestions, setTagSuggestions] = useState([]);
+  const [tagInput, setTagInput] = useState('');
+  const [showTagSuggestions, setShowTagSuggestions] = useState(false);
+
+  // Generate tag suggestions based on tour description and locations
+  const generateTagSuggestions = async () => {
+    if (!formData.description && formData.daily_plan?.[0]?.blocks?.[0]?.items?.length === 0) {
+      setTagSuggestions([]);
+      return;
+    }
+
+    try {
+      // Collect text from description and location titles/descriptions
+      const locationTexts = formData.daily_plan
+        .flatMap(day => day.blocks)
+        .flatMap(block => block.items)
+        .map(item => `${item.title || ''} ${item.description || ''}`)
+        .join(' ');
+
+      const fullText = `${formData.description || ''} ${locationTexts}`.trim();
+
+      if (!fullText) {
+        setTagSuggestions([]);
+        return;
+      }
+
+      // Call backend API to generate tag suggestions (using smart-itinerary with action=generateTags)
+      const response = await fetch('https://fliptripback.vercel.app/api/smart-itinerary', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'generateTags', text: fullText })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setTagSuggestions(data.tags || []);
+      }
+    } catch (error) {
+      console.error('Error generating tag suggestions:', error);
+      // Fallback: simple keyword extraction
+      const keywords = extractKeywords(formData.description || '');
+      setTagSuggestions(keywords);
+    }
+  };
+
+  // Simple keyword extraction fallback
+  const extractKeywords = (text) => {
+    const commonWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'];
+    const words = text.toLowerCase()
+      .replace(/[^\w\s]/g, ' ')
+      .split(/\s+/)
+      .filter(word => word.length > 3 && !commonWords.includes(word));
+    
+    return [...new Set(words)].slice(0, 10);
+  };
+
+  const handleTagInputChange = (e) => {
+    const value = e.target.value;
+    setTagInput(value);
+    setShowTagSuggestions(value.length > 0 && tagSuggestions.length > 0);
+  };
+
+  const handleTagAdd = (tag) => {
+    if (tag && !formData.tags.includes(tag)) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, tag]
+      }));
+    }
+    setTagInput('');
+    setShowTagSuggestions(false);
+  };
+
+  const handleTagRemove = (tagToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(tag => tag !== tagToRemove)
+    }));
+  };
 
   // Load interests structure on component mount
   useEffect(() => {
@@ -1524,6 +1605,130 @@ export default function CreateTourPage() {
             ))}
           </div>
 
+
+          {/* Tags Section - Hidden but kept for future use */}
+          <div style={{
+            display: 'none', // Hidden but code preserved
+            backgroundColor: 'white',
+            padding: '24px',
+            borderRadius: '12px',
+            marginBottom: '24px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>
+              Tags
+            </h2>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Add Tags (for search and discovery)
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  value={tagInput}
+                  onChange={handleTagInputChange}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && tagInput.trim()) {
+                      e.preventDefault();
+                      handleTagAdd(tagInput.trim());
+                    }
+                  }}
+                  placeholder="Type to see suggestions or press Enter to add"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '16px'
+                  }}
+                />
+                {showTagSuggestions && tagSuggestions.length > 0 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    backgroundColor: 'white',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    marginTop: '4px',
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    zIndex: 1000,
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                  }}>
+                    {tagSuggestions
+                      .filter(tag => !formData.tags.includes(tag) && tag.toLowerCase().includes(tagInput.toLowerCase()))
+                      .slice(0, 5)
+                      .map((tag, index) => (
+                        <div
+                          key={index}
+                          onClick={() => handleTagAdd(tag)}
+                          style={{
+                            padding: '10px 12px',
+                            cursor: 'pointer',
+                            borderBottom: index < tagSuggestions.length - 1 ? '1px solid #e5e7eb' : 'none',
+                            hover: { backgroundColor: '#f3f4f6' }
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                        >
+                          {tag}
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>
+                Tags help travelers discover your tour. Suggestions are generated based on your tour description and locations.
+              </p>
+            </div>
+
+            {/* Display selected tags */}
+            {formData.tags.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {formData.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      padding: '6px 12px',
+                      backgroundColor: '#eff6ff',
+                      color: '#1e40af',
+                      borderRadius: '20px',
+                      fontSize: '14px',
+                      fontWeight: '500'
+                    }}
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => handleTagRemove(tag)}
+                      style={{
+                        marginLeft: '8px',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        color: '#1e40af',
+                        cursor: 'pointer',
+                        fontSize: '16px',
+                        lineHeight: '1',
+                        padding: '0',
+                        width: '18px',
+                        height: '18px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Submit Button */}
           <div style={{ marginBottom: '32px' }}>
