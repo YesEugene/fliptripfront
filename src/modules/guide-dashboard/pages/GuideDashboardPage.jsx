@@ -16,6 +16,7 @@ export default function GuideDashboardPage() {
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('tours'); // 'tours', 'profile', 'statistics'
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   
   // Profile state
   const [profileLoading, setProfileLoading] = useState(true);
@@ -39,6 +40,13 @@ export default function GuideDashboardPage() {
     setUser(currentUser);
     loadGuideTours();
     loadProfile();
+    
+    // Handle window resize for mobile detection
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const loadGuideTours = async () => {
@@ -679,15 +687,15 @@ export default function GuideDashboardPage() {
             {/* Profile Cards Grid */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-              gap: '20px',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: isMobile ? '16px' : '20px',
               marginBottom: '24px'
             }}>
               {/* Profile Photo Card */}
               <div style={{
                 backgroundColor: 'white',
                 borderRadius: '12px',
-                padding: '24px',
+                padding: isMobile ? '16px' : '24px',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
               }}>
                 <h2 style={{ 
@@ -702,12 +710,13 @@ export default function GuideDashboardPage() {
                 <div style={{ 
                   display: 'flex', 
                   alignItems: 'center', 
-                  gap: '20px',
-                  flexWrap: 'wrap'
+                  gap: isMobile ? '16px' : '20px',
+                  flexWrap: 'wrap',
+                  flexDirection: isMobile ? 'column' : 'row'
                 }}>
                   <div style={{
-                    width: '100px',
-                    height: '100px',
+                    width: isMobile ? '80px' : '100px',
+                    height: isMobile ? '80px' : '100px',
                     borderRadius: '50%',
                     backgroundColor: '#e5e7eb',
                     display: 'flex',
@@ -732,17 +741,19 @@ export default function GuideDashboardPage() {
                     )}
                   </div>
                   
-                  <div style={{ flex: 1, minWidth: '150px' }}>
+                  <div style={{ flex: 1, minWidth: isMobile ? '100%' : '150px', width: isMobile ? '100%' : 'auto' }}>
                     <label style={{
                       display: 'inline-block',
-                      padding: '10px 20px',
+                      padding: isMobile ? '10px 16px' : '10px 20px',
                       backgroundColor: '#3b82f6',
                       color: 'white',
                       borderRadius: '8px',
                       cursor: 'pointer',
                       fontWeight: '500',
-                      fontSize: '14px',
-                      marginBottom: '8px'
+                      fontSize: isMobile ? '13px' : '14px',
+                      marginBottom: '8px',
+                      width: isMobile ? '100%' : 'auto',
+                      textAlign: isMobile ? 'center' : 'left'
                     }}>
                       <input
                         type="file"
@@ -763,7 +774,7 @@ export default function GuideDashboardPage() {
               <div style={{
                 backgroundColor: 'white',
                 borderRadius: '12px',
-                padding: '24px',
+                padding: isMobile ? '16px' : '24px',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
               }}>
                 <h2 style={{ 
@@ -808,9 +819,9 @@ export default function GuideDashboardPage() {
               <div style={{
                 backgroundColor: 'white',
                 borderRadius: '12px',
-                padding: '24px',
+                padding: isMobile ? '16px' : '24px',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                gridColumn: 'span 2'
+                gridColumn: isMobile ? 'span 1' : 'span 2'
               }}>
                 <h2 style={{ 
                   fontSize: '18px', 
@@ -853,9 +864,9 @@ export default function GuideDashboardPage() {
               <div style={{
                 backgroundColor: 'white',
                 borderRadius: '12px',
-                padding: '24px',
+                padding: isMobile ? '16px' : '24px',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                gridColumn: 'span 2'
+                gridColumn: isMobile ? 'span 1' : 'span 2'
               }}>
                 <h2 style={{ 
                   fontSize: '18px', 
@@ -868,8 +879,8 @@ export default function GuideDashboardPage() {
                 
                 <div style={{ 
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                  gap: '16px'
+                  gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(250px, 1fr))',
+                  gap: isMobile ? '12px' : '16px'
                 }}>
                   <div>
                     <label style={{ 
@@ -977,7 +988,8 @@ export default function GuideDashboardPage() {
             {/* Action Buttons */}
             <div style={{ 
               display: 'flex', 
-              gap: '12px',
+              flexDirection: isMobile ? 'column' : 'row',
+              gap: isMobile ? '12px' : '12px',
               marginTop: '20px'
             }}>
               <button
