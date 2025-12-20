@@ -1195,6 +1195,7 @@ export default function CreateTourPage() {
               </div>
             </div>
           </div>
+          )}
 
           {/* Daily Plan Tab */}
           {activeTab === 'daily' && (
