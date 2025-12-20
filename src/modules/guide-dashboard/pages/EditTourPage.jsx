@@ -186,7 +186,7 @@ export default function EditTourPage() {
                       time: time || '09:00 - 12:00',
                       start_time: block.start_time,
                       end_time: block.end_time,
-                      items: Array.isArray(block.items) ? block.items.map(item => {
+                      items: Array.isArray(block.items) && block.items.length > 0 ? block.items.map(item => {
                         // Extract interest_ids from multiple possible sources
                         let interestIds = [];
                         if (item.interest_ids && Array.isArray(item.interest_ids)) {
@@ -219,7 +219,7 @@ export default function EditTourPage() {
                           selectedCategory: selectedCategory, // Will be set after interestsStructure loads
                           selectedSubcategory: selectedSubcategory // Will be set after interestsStructure loads
                         };
-                      }) : []
+                      }) : (Array.isArray(block.items) ? [] : [])
                     };
                   }) : []
                 }))
@@ -1601,7 +1601,7 @@ export default function EditTourPage() {
                     />
                     
                     {/* Locations in block */}
-                    {Array.isArray(block.items) && block.items.length > 0 && (
+                    {Array.isArray(block.items) && block.items.length > 0 ? (
                       <div style={{ marginBottom: '12px' }}>
                         {block.items.map((item, itemIndex) => (
                           <div key={itemIndex} style={{
@@ -2046,23 +2046,35 @@ export default function EditTourPage() {
                           </div>
                         ))}
                       </div>
-                    )}
+                    ) : null}
                     
-                    <button
-                      type="button"
-                      onClick={() => addItem(dayIndex, blockIndex)}
-                      style={{
-                        padding: '8px 16px',
-                        backgroundColor: '#10b981',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px'
-                      }}
-                    >
-                      + Add Location
-                    </button>
+                    {/* Ensure items array exists before adding */}
+                    <div style={{ marginTop: '12px' }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // Ensure items array exists
+                          const newPlan = [...formData.daily_plan];
+                          if (!Array.isArray(newPlan[dayIndex].blocks[blockIndex].items)) {
+                            newPlan[dayIndex].blocks[blockIndex].items = [];
+                          }
+                          setFormData({ ...formData, daily_plan: newPlan });
+                          // Then add item
+                          addItem(dayIndex, blockIndex);
+                        }}
+                        style={{
+                          padding: '8px 16px',
+                          backgroundColor: '#10b981',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '14px'
+                        }}
+                      >
+                        + Add Location
+                      </button>
+                    </div>
                   </div>
                 ))}
 
