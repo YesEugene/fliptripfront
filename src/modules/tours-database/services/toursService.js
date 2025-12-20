@@ -131,6 +131,8 @@ export async function getTours(filters = {}) {
  */
 export async function getTourById(tourId) {
   try {
+    console.log(`🔍 Fetching tour with ID: ${tourId} from ${API_BASE_URL}/api/tours`);
+    
     const response = await fetch(`${API_BASE_URL}/api/tours?id=${tourId}`, {
       method: 'GET',
       headers: {
@@ -138,15 +140,26 @@ export async function getTourById(tourId) {
       }
     });
 
+    console.log(`📡 Response status: ${response.status}, ok: ${response.ok}`);
+
     const data = await response.json();
+    console.log(`📡 Response data:`, data);
 
     if (!response.ok || !data.success) {
-      throw new Error(data.message || 'Тур не найден');
+      const errorMessage = data.message || 'Тур не найден';
+      console.error(`❌ Tour not found: ${errorMessage}`);
+      throw new Error(errorMessage);
     }
 
+    if (!data.tour) {
+      console.error(`❌ Tour data is missing in response`);
+      throw new Error('Тур не найден');
+    }
+
+    console.log(`✅ Tour loaded successfully: ${data.tour.id}`);
     return data.tour;
   } catch (error) {
-    console.error('Get tour error:', error);
+    console.error('❌ Get tour error:', error);
     throw error;
   }
 }
