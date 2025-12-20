@@ -190,27 +190,50 @@ export default function ItineraryPage() {
         });
       };
       
+      console.log('📋 Tour data structure:', {
+        hasTourDays: !!tour.tour_days,
+        tourDaysLength: tour.tour_days?.length || 0,
+        tourDays: tour.tour_days
+      });
+      
       if (tour.tour_days && Array.isArray(tour.tour_days)) {
         totalDays = tour.tour_days.length;
         // Sort days by day_number
         const sortedDays = [...tour.tour_days].sort((a, b) => (a.day_number || 0) - (b.day_number || 0));
         
+        console.log('📅 Processing days:', sortedDays.length);
+        
         for (const day of sortedDays) {
+          console.log('📅 Processing day:', { dayNumber: day.day_number, blocksCount: day.tour_blocks?.length || 0 });
           const dayBlocks = [];
           if (day.tour_blocks && Array.isArray(day.tour_blocks)) {
             totalBlocks += day.tour_blocks.length;
             for (const block of day.tour_blocks) {
               const items = [];
+              console.log('📦 Processing block:', { blockTitle: block.title, itemsCount: block.tour_items?.length || 0 });
               if (block.tour_items && Array.isArray(block.tour_items)) {
                 totalItems += block.tour_items.length;
                 for (const item of block.tour_items) {
                   const location = item.location;
                   console.log('🔍 Processing item:', { 
+                    itemId: item.id,
+                    locationId: item.location_id,
                     hasLocation: !!location, 
                     locationName: location?.name,
                     hasLocationPhotos: !!location?.location_photos,
-                    locationPhotosCount: location?.location_photos?.length || 0
+                    locationPhotosCount: location?.location_photos?.length || 0,
+                    itemData: item
                   });
+                  
+                  if (!location) {
+                    console.error('❌ Item has no location object:', { 
+                      itemId: item.id, 
+                      locationId: item.location_id,
+                      item: item 
+                    });
+                    continue; // Skip items without location
+                  }
+                  
                   if (location) {
                     // Handle location_photos array from database
                     const photos = location.location_photos && Array.isArray(location.location_photos)
