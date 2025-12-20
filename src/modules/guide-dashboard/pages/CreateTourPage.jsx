@@ -660,12 +660,12 @@ export default function CreateTourPage() {
           {/* Basic Information Tab */}
           {activeTab === 'basic' && (
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+            display: 'flex',
+            flexDirection: 'column',
             gap: '24px',
             marginBottom: '24px'
           }}>
-            {/* Left Column - Form Fields */}
+            {/* Form Fields Section */}
             <div style={{
               backgroundColor: 'white',
               padding: '24px',
@@ -711,7 +711,7 @@ export default function CreateTourPage() {
                   marginBottom: 0,
                   lineHeight: '1.5'
                 }}>
-                  Введите название города, в котором вы создаете трип (надо сформулировать на английском)
+                  Enter the name of the city where you are creating the trip (must be in English)
                 </p>
                 {showCitySuggestions && citySuggestions.length > 0 && (
                   <div style={{
@@ -784,7 +784,7 @@ export default function CreateTourPage() {
                 marginBottom: 0,
                 lineHeight: '1.5'
               }}>
-                Мы рекомендуем создавать понятные названия туров, состоящие из города, идея/концепция тура и для кого. Например "Paris Romantic Evening Walk" или "Rome Food Lovers Adventure"
+                We recommend creating clear tour names, consisting of the city, tour idea/concept, and target audience. For example "Paris Romantic Evening Walk" or "Rome Food Lovers Adventure"
               </p>
             </div>
 
@@ -796,7 +796,7 @@ export default function CreateTourPage() {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 required
-                placeholder="Опишите концепцию вашего тура"
+                placeholder="Describe the concept of your tour"
                 rows={5}
                 style={{
                   width: '100%',
@@ -816,7 +816,7 @@ export default function CreateTourPage() {
                 marginBottom: 0,
                 lineHeight: '1.5'
               }}>
-                Нужно придумать рекомендацию, каким должно быть описание тура и привести пример.
+                Create a recommendation on what the tour description should be like and provide an example.
               </p>
               <div style={{
                 marginTop: '12px',
@@ -832,7 +832,7 @@ export default function CreateTourPage() {
                   fontWeight: '500',
                   marginBottom: '8px'
                 }}>
-                  💡 Рекомендация по написанию:
+                  💡 Writing Recommendation:
                 </p>
                 <p style={{ 
                   fontSize: '13px', 
@@ -841,7 +841,7 @@ export default function CreateTourPage() {
                   lineHeight: '1.6',
                   marginBottom: '8px'
                 }}>
-                  Описание должно быть по существу, но не лишено эмоций. Расскажите о реальных впечатлениях, которые получит путешественник. Используйте конкретные детали и создавайте атмосферу места.
+                  The description should be to the point, but not devoid of emotion. Tell about the real experiences travelers will have. Use specific details and create the atmosphere of the place.
                 </p>
                 <p style={{ 
                   fontSize: '13px', 
@@ -850,7 +850,7 @@ export default function CreateTourPage() {
                   lineHeight: '1.6',
                   fontStyle: 'italic'
                 }}>
-                  <strong>Пример:</strong> "Discover the hidden gems of Montmartre as the sun sets over Paris. This romantic evening walk takes you through cobblestone streets where artists once lived, past charming cafés where you can stop for a glass of wine, and to the iconic Sacré-Cœur Basilica with breathtaking city views. Feel the bohemian spirit of Paris come alive as you explore this magical neighborhood."
+                  <strong>Example:</strong> "Discover the hidden gems of Montmartre as the sun sets over Paris. This romantic evening walk takes you through cobblestone streets where artists once lived, past charming cafés where you can stop for a glass of wine, and to the iconic Sacré-Cœur Basilica with breathtaking city views. Feel the bohemian spirit of Paris come alive as you explore this magical neighborhood."
                 </p>
               </div>
             </div>
@@ -938,21 +938,19 @@ export default function CreateTourPage() {
                       marginBottom: 0,
                       lineHeight: '1.5'
                     }}>
-                      Используйте фотографию, отражающую концепцию вашего тура/предложения.
+                      Use a photo that reflects the concept of your tour/offer. This could be a scenic view, a unique place, or a vivid moment that conveys the atmosphere of the adventure. Avoid blurry or low-quality images.
                     </p>
                   </div>
                 )}
               </div>
             </div>
-            </div>
 
-            {/* Right Column - Tour Format & Pricing */}
+            {/* Tour Format & Pricing Section */}
             <div style={{
               backgroundColor: 'white',
               padding: '24px',
               borderRadius: '12px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              alignSelf: 'start'
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}>
             {/* Pricing and Format Section */}
             <div style={{ marginBottom: '20px' }}>
@@ -1318,10 +1316,7 @@ export default function CreateTourPage() {
 
             {formData.daily_plan.map((day, dayIndex) => (
               <div key={dayIndex} style={{
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                padding: '20px',
-                marginBottom: '20px'
+                marginBottom: '24px'
               }}>
                 <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px' }}>
                   Day {day.day}
@@ -1469,7 +1464,7 @@ export default function CreateTourPage() {
                                   fontWeight: '500',
                                   marginBottom: '6px'
                                 }}>
-                                  💡 Рекомендация:
+                                  💡 Recommendation:
                                 </p>
                                 <p style={{ 
                                   fontSize: '12px', 
@@ -1478,7 +1473,7 @@ export default function CreateTourPage() {
                                   lineHeight: '1.5',
                                   marginBottom: '6px'
                                 }}>
-                                  Описание должно быть по существу, но не лишено эмоций. Расскажите о реальных впечатлениях, которые получит путешественник. Используйте конкретные детали.
+                                  The description should be to the point, but not devoid of emotion. Tell about the real experiences travelers will have. Use specific details.
                                 </p>
                                 <p style={{ 
                                   fontSize: '12px', 
@@ -1487,7 +1482,7 @@ export default function CreateTourPage() {
                                   lineHeight: '1.5',
                                   fontStyle: 'italic'
                                 }}>
-                                  <strong>Пример:</strong> "This charming café tucked away in a quiet Montmartre street is where locals come for their morning espresso. The aroma of freshly baked croissants fills the air, and the owner, a friendly Parisian, greets every customer by name. Sit by the window to watch the neighborhood come alive."
+                                  <strong>Example:</strong> "This charming café tucked away in a quiet Montmartre street is where locals come for their morning espresso. The aroma of freshly baked croissants fills the air, and the owner, a friendly Parisian, greets every customer by name. Sit by the window to watch the neighborhood come alive."
                                 </p>
                               </div>
                             </div>
@@ -1535,7 +1530,7 @@ export default function CreateTourPage() {
                                   fontWeight: '500',
                                   marginBottom: '6px'
                                 }}>
-                                  💡 Рекомендация:
+                                  💡 Recommendation:
                                 </p>
                                 <p style={{ 
                                   fontSize: '12px', 
@@ -1544,7 +1539,7 @@ export default function CreateTourPage() {
                                   lineHeight: '1.5',
                                   marginBottom: '6px'
                                 }}>
-                                  Дайте практические советы с эмоциональной окраской. Расскажите о лучшем времени для посещения, что обязательно попробовать, и какие впечатления ждут путешественника.
+                                  Give practical advice with emotional coloring. Tell about the best time to visit, what to try, and what experiences await the traveler.
                                 </p>
                                 <p style={{ 
                                   fontSize: '12px', 
@@ -1553,7 +1548,7 @@ export default function CreateTourPage() {
                                   lineHeight: '1.5',
                                   fontStyle: 'italic'
                                 }}>
-                                  <strong>Пример:</strong> "Best visited in the morning when the light streams through the windows. Try their signature croissant with homemade jam - it's a revelation. The owner loves sharing stories about the neighborhood's history, so don't hesitate to ask. Perfect spot for a quiet moment before exploring Montmartre."
+                                  <strong>Example:</strong> "Best visited in the morning when the light streams through the windows. Try their signature croissant with homemade jam - it's a revelation. The owner loves sharing stories about the neighborhood's history, so don't hesitate to ask. Perfect spot for a quiet moment before exploring Montmartre."
                                 </p>
                               </div>
                             </div>
