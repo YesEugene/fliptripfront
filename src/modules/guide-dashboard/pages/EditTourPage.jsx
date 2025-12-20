@@ -1537,7 +1537,8 @@ export default function EditTourPage() {
               </div>
             </div>
             </div>
-          </div>
+            </div>
+            </div>
           )}
 
           {/* Daily Plan Tab */}
@@ -2211,8 +2212,6 @@ export default function EditTourPage() {
               </div>
             )}
             </div>
-          )}
-          </div>
           )}
 
           {/* Auto-save Status Indicator */}
