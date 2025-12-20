@@ -488,32 +488,6 @@ export default function GuideDashboardPage() {
           </>
         )}
 
-        {activeTab === 'profile' && (
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '12px',
-            padding: '40px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            textAlign: 'center'
-          }}>
-            <p style={{ color: '#6b7280', fontSize: '16px' }}>
-              Profile settings will be available here
-            </p>
-            <Link
-              to="/guide/settings"
-              style={{
-                display: 'inline-block',
-                marginTop: '20px',
-                color: '#3b82f6',
-                textDecoration: 'none',
-                fontWeight: '600'
-              }}
-            >
-              Go to Profile Settings →
-            </Link>
-          </div>
-        )}
-
         {activeTab === 'statistics' && (
           <div style={{
             backgroundColor: 'white',
