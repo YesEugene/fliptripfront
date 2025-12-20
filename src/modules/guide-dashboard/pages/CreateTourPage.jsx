@@ -944,6 +944,7 @@ export default function CreateTourPage() {
                 )}
               </div>
             </div>
+            </div>
 
             {/* Tour Format & Pricing Section */}
             <div style={{
@@ -1143,13 +1144,14 @@ export default function CreateTourPage() {
                           fontSize: '13px',
                           color: '#92400e'
                         }}>
-                          No dates added. Click "+ Add Date" to add available dates for your guided tour.
+                          No dates added. Click &quot;+ Add Date&quot; to add available dates for your guided tour.
                         </div>
                       )}
                     </div>
                   </div>
                 )}
               </div>
+            </div>
             </div>
             
             {/* Additional Options - Platform Options (Informational Only) */}
@@ -1281,7 +1283,7 @@ export default function CreateTourPage() {
                 })}
               </div>
             </div>
-          </div>
+            </div>
           )}
 
           {/* Daily Plan Tab */}
@@ -1812,8 +1814,6 @@ export default function CreateTourPage() {
                     </button>
                   </div>
                 ))}
-                      </div>
-                    )}
 
                 <button
                   type="button"
@@ -1830,10 +1830,10 @@ export default function CreateTourPage() {
                 >
                   + Add Time Block
                 </button>
-                </div>
-              ))}
               </div>
             ))}
+          </div>
+          )}
 
           {/* Tags Section - Hidden but kept for future use */}
           {false && (
@@ -1897,8 +1897,7 @@ export default function CreateTourPage() {
                           style={{
                             padding: '10px 12px',
                             cursor: 'pointer',
-                            borderBottom: index < tagSuggestions.length - 1 ? '1px solid #e5e7eb' : 'none',
-                            hover: { backgroundColor: '#f3f4f6' }
+                            borderBottom: index < tagSuggestions.length - 1 ? '1px solid #e5e7eb' : 'none'
                           }}
                           onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
                           onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
@@ -1958,8 +1957,6 @@ export default function CreateTourPage() {
               </div>
             )}
             </div>
-          )}
-          </div>
           )}
 
           {/* Submit Button - Visible on both tabs */}

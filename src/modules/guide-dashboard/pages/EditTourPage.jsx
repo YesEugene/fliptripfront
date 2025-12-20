@@ -2084,10 +2084,10 @@ export default function EditTourPage() {
                 >
                   + Add Time Block
                 </button>
-                </div>
-              ))}
               </div>
             ))}
+          </div>
+          )}
 
           {/* Tags Section - Hidden but kept for future use */}
           {false && (
