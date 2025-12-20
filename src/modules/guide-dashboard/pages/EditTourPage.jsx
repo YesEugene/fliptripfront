@@ -2030,6 +2030,9 @@ export default function EditTourPage() {
               </div>
             )}
           </div>
+          )}
+          </div>
+          )}
 
           {/* Auto-save Status Indicator */}
           {saveStatus && (
