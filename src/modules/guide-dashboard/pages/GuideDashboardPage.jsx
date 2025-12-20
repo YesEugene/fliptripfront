@@ -55,28 +55,92 @@ export default function GuideDashboardPage() {
     }
   };
 
-  // Helper function to get location count (assuming tour has tour_days or similar structure)
+  // Helper function to get location count from tour structure
   const getLocationCount = (tour) => {
-    // Try to get from tour_days or tour_blocks
-    if (tour.tour_days && Array.isArray(tour.tour_days)) {
-      return tour.tour_days.reduce((count, day) => {
-        if (day.tour_blocks && Array.isArray(day.tour_blocks)) {
-          return count + day.tour_blocks.length;
+    // Count locations from daily_plan structure
+    if (tour.daily_plan && Array.isArray(tour.daily_plan)) {
+      let locationCount = 0;
+      tour.daily_plan.forEach(day => {
+        if (day.blocks && Array.isArray(day.blocks)) {
+          day.blocks.forEach(block => {
+            if (block.items && Array.isArray(block.items)) {
+              locationCount += block.items.length;
+            }
+          });
         }
-        return count;
-      }, 0);
+      });
+      return locationCount;
     }
-    // Fallback: return 0 or a default value
+    // Try to get from tour_days structure (if API returns it)
+    if (tour.tour_days && Array.isArray(tour.tour_days)) {
+      let locationCount = 0;
+      tour.tour_days.forEach(day => {
+        if (day.tour_blocks && Array.isArray(day.tour_blocks)) {
+          day.tour_blocks.forEach(block => {
+            if (block.tour_items && Array.isArray(block.tour_items)) {
+              locationCount += block.tour_items.length;
+            }
+          });
+        }
+      });
+      return locationCount;
+    }
     return 0;
   };
 
-  // Helper function to format duration
+  // Helper function to format duration (same logic as homepage)
+  // If tour is 1 day, show hours. If more than 1 day, show days.
   const formatDuration = (tour) => {
+    // Use duration object from API response
+    if (tour.duration && tour.duration.type && tour.duration.value) {
+      const { type, value } = tour.duration;
+      
+      // If it's a single day tour, show hours instead
+      if (type === 'days' && value === 1) {
+        // Calculate hours from daily_plan or use default
+        let totalHours = 0;
+        if (tour.daily_plan && Array.isArray(tour.daily_plan)) {
+          tour.daily_plan.forEach(day => {
+            if (day.blocks && Array.isArray(day.blocks)) {
+              totalHours += day.blocks.length * 3; // Estimate 3 hours per block
+            }
+          });
+        }
+        // Use calculated hours or default to 6 hours
+        const hours = totalHours > 0 ? Math.max(3, Math.min(totalHours, 12)) : 6;
+        return `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
+      }
+      
+      // For multi-day tours, show days
+      if (type === 'days' && value > 1) {
+        return `${value} ${value === 1 ? 'day' : 'days'}`;
+      }
+      
+      // For hours (single day tours that are already in hours)
+      if (type === 'hours') {
+        return `${value} ${value === 1 ? 'hour' : 'hours'}`;
+      }
+    }
+    
+    // Fallback: try legacy format
     if (tour.duration_value && tour.duration_type) {
       const value = tour.duration_value;
-      const type = tour.duration_type === 'hours' ? 'hours' : 'days';
-      return `${value} ${type}`;
+      const type = tour.duration_type;
+      
+      // If single day, show hours
+      if (type === 'days' && value === 1) {
+        return '6 hours'; // Default for single day
+      }
+      
+      // Format normally
+      if (type === 'days') {
+        return `${value} ${value === 1 ? 'day' : 'days'}`;
+      }
+      if (type === 'hours') {
+        return `${value} ${value === 1 ? 'hour' : 'hours'}`;
+      }
     }
+    
     return '0 hours';
   };
 
