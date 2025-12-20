@@ -41,12 +41,6 @@ export default function EditTourPage() {
   const [hasBeenModified, setHasBeenModified] = useState(false);
   const [activeTab, setActiveTab] = useState('basic'); // 'basic' or 'daily'
   
-  // Debug: Log activeTab changes
-  useEffect(() => {
-    console.log('🔍 Active tab changed to:', activeTab);
-    console.log('🔍 formData.daily_plan:', formData.daily_plan);
-  }, [activeTab, formData.daily_plan]);
-  
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -241,8 +235,7 @@ export default function EditTourPage() {
             }
           });
           
-          console.log('✅ Tour loaded, daily_plan:', formData.daily_plan);
-          console.log('✅ Full tour data:', tour);
+          console.log('✅ Tour loaded, daily_plan:', tour.daily_plan);
         }
       } catch (err) {
         console.error('❌ Error loading tour:', err);
@@ -1556,12 +1549,6 @@ export default function EditTourPage() {
             marginBottom: '24px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
           }}>
-            {/* Debug info */}
-            {process.env.NODE_ENV === 'development' && (
-              <div style={{ padding: '10px', backgroundColor: '#f0f0f0', marginBottom: '10px', fontSize: '12px' }}>
-                Debug: activeTab={activeTab}, daily_plan length={formData.daily_plan?.length || 0}
-              </div>
-            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ fontSize: '20px', fontWeight: 'bold' }}>
                 Daily Plan
@@ -1595,9 +1582,6 @@ export default function EditTourPage() {
                     }]
                   }];
               
-              console.log('📅 Daily Plan data:', plan);
-              console.log('📅 formData.daily_plan:', formData.daily_plan);
-              
               return plan.map((day, dayIndex) => {
                 // Ensure blocks is always an array with at least one block
                 const dayBlocks = Array.isArray(day.blocks) && day.blocks.length > 0
@@ -1606,8 +1590,6 @@ export default function EditTourPage() {
                       time: '09:00 - 12:00',
                       items: []
                     }];
-                
-                console.log(`📅 Day ${dayIndex + 1} blocks:`, dayBlocks);
                 
                 return (
                   <div key={dayIndex} style={{
