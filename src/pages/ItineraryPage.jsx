@@ -205,7 +205,26 @@ export default function ItineraryPage() {
                 totalItems += block.tour_items.length;
                 for (const item of block.tour_items) {
                   const location = item.location;
+                  console.log('🔍 Processing item:', { 
+                    hasLocation: !!location, 
+                    locationName: location?.name,
+                    hasLocationPhotos: !!location?.location_photos,
+                    locationPhotosCount: location?.location_photos?.length || 0
+                  });
                   if (location) {
+                    // Handle location_photos array from database
+                    const photos = location.location_photos && Array.isArray(location.location_photos)
+                      ? location.location_photos.map(p => ({
+                          url: p.url || p,
+                          thumbnail: p.url || p,
+                          source: 'database'
+                        }))
+                      : (location.photos ? (Array.isArray(location.photos) ? location.photos.map(p => ({
+                          url: p.url || p,
+                          thumbnail: p.url || p,
+                          source: 'database'
+                        })) : []) : []);
+                    
                     items.push({
                       title: item.custom_title || location.name,
                       description: item.custom_description || location.description || '',
@@ -213,11 +232,7 @@ export default function ItineraryPage() {
                       category: location.category || 'attraction',
                       location: location.name,
                       address: location.address || '',
-                      photos: location.photos ? (Array.isArray(location.photos) ? location.photos.map(p => ({
-                        url: p.url || p,
-                        thumbnail: p.url || p,
-                        source: 'database'
-                      })) : []) : [],
+                      photos: photos,
                       tips: item.custom_recommendations || location.recommendations || '',
                       approx_cost: item.approx_cost ? `€${item.approx_cost}` : 'Free',
                       rating: 4.5
@@ -234,6 +249,8 @@ export default function ItineraryPage() {
                   items: items,
                   start_time: block.start_time // Keep for sorting
                 });
+              } else {
+                console.log('⚠️ Block has no items:', { blockTitle: block.title, blockItems: block.tour_items?.length || 0 });
               }
             }
           }
@@ -246,12 +263,15 @@ export default function ItineraryPage() {
               day_number: day.day_number || dailyPlan.length + 1,
               blocks: sortedDayBlocks
             });
+          } else {
+            console.log('⚠️ Day has no blocks:', { dayNumber: day.day_number, dayBlocks: day.tour_blocks?.length || 0 });
           }
         }
       }
       
       console.log(`📊 Tour structure from DB (preview): ${totalDays} days, ${totalBlocks} blocks, ${totalItems} items`);
       console.log(`📊 Built ${dailyPlan.length} days for preview`);
+      console.log(`📊 Daily plan details:`, dailyPlan.map(d => ({ day: d.day_number, blocks: d.blocks?.length || 0 })));
       
       // Build preview itinerary from tour data
       // Save ALL blocks to Redis, previewOnly flag controls display
@@ -399,6 +419,19 @@ export default function ItineraryPage() {
                         for (const item of block.tour_items) {
                           const location = item.location;
                           if (location) {
+                            // Handle location_photos array from database
+                            const photos = location.location_photos && Array.isArray(location.location_photos)
+                              ? location.location_photos.map(p => ({
+                                  url: p.url || p,
+                                  thumbnail: p.url || p,
+                                  source: 'database'
+                                }))
+                              : (location.photos ? (Array.isArray(location.photos) ? location.photos.map(p => ({
+                                  url: p.url || p,
+                                  thumbnail: p.url || p,
+                                  source: 'database'
+                                })) : []) : []);
+                            
                             items.push({
                               title: item.custom_title || location.name,
                               description: item.custom_description || location.description || '',
@@ -406,11 +439,7 @@ export default function ItineraryPage() {
                               category: location.category || 'attraction',
                               location: location.name,
                               address: location.address || '',
-                              photos: location.photos ? (Array.isArray(location.photos) ? location.photos.map(p => ({
-                                url: p.url || p,
-                                thumbnail: p.url || p,
-                                source: 'database'
-                              })) : []) : [],
+                              photos: photos,
                               tips: item.custom_recommendations || location.recommendations || '',
                               approx_cost: item.approx_cost ? `€${item.approx_cost}` : 'Free',
                               rating: 4.5
