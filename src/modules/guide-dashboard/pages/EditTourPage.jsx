@@ -1156,7 +1156,7 @@ export default function EditTourPage() {
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}>
             {/* Pricing and Format Section */}
-            <div style={{ marginBottom: '20px' }}> 
+            <div style={{ 
               display: 'grid', 
               gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
               gap: '20px', 
