@@ -337,8 +337,11 @@ export default function GuideDashboardPage() {
           display: 'flex', 
           gap: '8px', 
           marginBottom: '24px',
-          flexWrap: 'wrap'
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between'
         }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button
             onClick={() => setActiveTab('tours')}
             style={{
