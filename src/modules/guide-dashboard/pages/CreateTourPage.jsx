@@ -196,7 +196,60 @@ export default function CreateTourPage() {
     });
   };
 
-  const handlePreviewChange = (e) => {
+  // Function to compress image
+  const compressImage = (file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Calculate new dimensions
+          if (width > height) {
+            if (width > maxWidth) {
+              height = (height * maxWidth) / width;
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = (width * maxHeight) / height;
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+              } else {
+                reject(new Error('Failed to compress image'));
+              }
+            },
+            'image/jpeg',
+            quality
+          );
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handlePreviewChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
       // Validate file type
@@ -215,19 +268,36 @@ export default function CreateTourPage() {
         return;
       }
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({
-          ...prev,
-          preview: reader.result, // base64 string
-          previewType: isImage ? 'image' : 'video'
-        }));
-        setError('');
-      };
-      reader.onerror = () => {
-        setError('Error reading file');
-      };
-      reader.readAsDataURL(file);
+      try {
+        if (isImage) {
+          // Compress image before converting to base64
+          const compressedBase64 = await compressImage(file);
+          setFormData(prev => ({
+            ...prev,
+            preview: compressedBase64,
+            previewType: 'image'
+          }));
+          setError('');
+        } else {
+          // For videos, use original file (but limit size)
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setFormData(prev => ({
+              ...prev,
+              preview: reader.result, // base64 string
+              previewType: 'video'
+            }));
+            setError('');
+          };
+          reader.onerror = () => {
+            setError('Error reading file');
+          };
+          reader.readAsDataURL(file);
+        }
+      } catch (error) {
+        console.error('Error processing file:', error);
+        setError('Error processing file. Please try again.');
+      }
     }
   };
 
