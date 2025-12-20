@@ -164,8 +164,19 @@ export default function EditTourPage() {
                   blocks: Array.isArray(day.blocks) ? day.blocks.map(block => {
                     // Format time from start_time and end_time if needed
                     let time = block.time;
-                    if (!time && (block.start_time || block.end_time)) {
-                      time = `${block.start_time || ''} - ${block.end_time || ''}`.trim();
+                    if (!time && block.start_time && block.end_time) {
+                      // Ensure time format is HH:MM (not HH:MM:SS)
+                      const formatTime = (timeStr) => {
+                        if (!timeStr) return null;
+                        // If time is in HH:MM:SS format, convert to HH:MM
+                        const match = timeStr.match(/^(\d{1,2}):(\d{2})/);
+                        return match ? `${match[1].padStart(2, '0')}:${match[2]}` : timeStr;
+                      };
+                      const startFormatted = formatTime(block.start_time);
+                      const endFormatted = formatTime(block.end_time);
+                      if (startFormatted && endFormatted) {
+                        time = `${startFormatted} - ${endFormatted}`;
+                      }
                     }
                     return {
                       ...block,
