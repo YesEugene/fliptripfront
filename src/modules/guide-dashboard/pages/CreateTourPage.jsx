@@ -1607,8 +1607,8 @@ export default function CreateTourPage() {
 
 
           {/* Tags Section - Hidden but kept for future use */}
+          {false && (
           <div style={{
-            display: 'none', // Hidden but code preserved
             backgroundColor: 'white',
             padding: '24px',
             borderRadius: '12px',
@@ -1729,6 +1729,7 @@ export default function CreateTourPage() {
               </div>
             )}
           </div>
+          )}
 
           {/* Submit Button */}
           <div style={{ marginBottom: '32px' }}>
