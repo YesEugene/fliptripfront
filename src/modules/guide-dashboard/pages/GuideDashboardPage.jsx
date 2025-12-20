@@ -10,6 +10,7 @@ import { getGuideTours, deleteTour } from '../../tours-database';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
 
 export default function GuideDashboardPage() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -240,28 +241,24 @@ export default function GuideDashboardPage() {
             My tours
           </button>
           <button
-            onClick={() => setActiveTab('profile')}
+            onClick={() => navigate('/guide/settings')}
             style={{
               padding: '10px 20px',
-              backgroundColor: activeTab === 'profile' ? '#111827' : 'white',
-              color: activeTab === 'profile' ? 'white' : '#111827',
+              backgroundColor: 'white',
+              color: '#111827',
               border: 'none',
               borderRadius: '8px',
               cursor: 'pointer',
               fontSize: '16px',
               fontWeight: '500',
               transition: 'all 0.2s',
-              boxShadow: activeTab === 'profile' ? 'none' : '0 1px 2px rgba(0,0,0,0.1)'
+              boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
             }}
             onMouseEnter={(e) => {
-              if (activeTab !== 'profile') {
-                e.target.style.backgroundColor = '#f3f4f6';
-              }
+              e.target.style.backgroundColor = '#f3f4f6';
             }}
             onMouseLeave={(e) => {
-              if (activeTab !== 'profile') {
-                e.target.style.backgroundColor = 'white';
-              }
+              e.target.style.backgroundColor = 'white';
             }}
           >
             Profile
