@@ -1156,58 +1156,6 @@ export default function EditTourPage() {
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}>
             {/* Pricing and Format Section */}
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
-              gap: '20px', 
-              marginBottom: '20px' 
-            }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                  Duration
-                </label>
-                <select
-                  value={formData.duration.type}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    duration: { ...formData.duration, type: e.target.value }
-                  })}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '8px',
-                    fontSize: '16px'
-                  }}
-                >
-                  <option value="hours">Hours</option>
-                  <option value="days">Days</option>
-                </select>
-              </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                  Value
-                </label>
-                <input
-                  type="number"
-                  value={formData.duration.value}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    duration: { ...formData.duration, value: parseInt(e.target.value) }
-                  })}
-                  min="1"
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '8px',
-                    fontSize: '16px'
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Pricing and Format Section */}
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500' }}>
                 Tour Format & Pricing
