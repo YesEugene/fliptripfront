@@ -1569,37 +1569,31 @@ export default function EditTourPage() {
               </button>
             </div>
 
-            {(() => {
-              // Ensure daily_plan is always an array with at least one day
-              const plan = Array.isArray(formData.daily_plan) && formData.daily_plan.length > 0 
-                ? formData.daily_plan 
-                : [{
-                    day: 1,
-                    date: new Date().toISOString().slice(0, 10),
-                    blocks: [{
-                      time: '09:00 - 12:00',
-                      items: []
-                    }]
-                  }];
-              
-              return plan.map((day, dayIndex) => {
-                // Ensure blocks is always an array with at least one block
-                const dayBlocks = Array.isArray(day.blocks) && day.blocks.length > 0
+            {(Array.isArray(formData.daily_plan) && formData.daily_plan.length > 0 
+              ? formData.daily_plan 
+              : [{
+                  day: 1,
+                  date: new Date().toISOString().slice(0, 10),
+                  blocks: [{
+                    time: '09:00 - 12:00',
+                    items: []
+                  }]
+                }]
+            ).map((day, dayIndex) => (
+              <div key={dayIndex} style={{
+                marginBottom: '24px'
+              }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px' }}>
+                  Day {day.day || dayIndex + 1}
+                </h3>
+
+                {(Array.isArray(day.blocks) && day.blocks.length > 0
                   ? day.blocks
                   : [{
                       time: '09:00 - 12:00',
                       items: []
-                    }];
-                
-                return (
-                  <div key={dayIndex} style={{
-                    marginBottom: '24px'
-                  }}>
-                    <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px' }}>
-                      Day {day.day || dayIndex + 1}
-                    </h3>
-
-                    {dayBlocks.map((block, blockIndex) => (
+                    }]
+                ).map((block, blockIndex) => (
                   <div key={blockIndex} style={{
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
@@ -2119,9 +2113,7 @@ export default function EditTourPage() {
                   + Add Time Block
                 </button>
               </div>
-            );
-          });
-        })()}
+            ))}
           </div>
           )}
 
