@@ -39,6 +39,7 @@ export default function EditTourPage() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const autoSaveTimeoutRef = useRef(null);
   const [hasBeenModified, setHasBeenModified] = useState(false);
+  const [activeTab, setActiveTab] = useState('basic'); // 'basic' or 'daily'
   
   useEffect(() => {
     const handleResize = () => {
@@ -906,7 +907,8 @@ export default function EditTourPage() {
         )}
 
         <form onSubmit={handleSubmit}>
-          {/* Basic Information */}
+          {/* Basic Information Tab */}
+          {activeTab === 'basic' && (
           <div style={{
             backgroundColor: 'white',
             padding: '24px',
@@ -1446,8 +1448,10 @@ export default function EditTourPage() {
               </div>
             </div>
           </div>
+          )}
 
-          {/* Daily Plan */}
+          {/* Daily Plan Tab */}
+          {activeTab === 'daily' && (
           <div style={{
             backgroundColor: 'white',
             padding: '24px',
@@ -1904,8 +1908,10 @@ export default function EditTourPage() {
               </div>
             ))}
           </div>
+          )}
 
-          {/* Tags Section */}
+          {/* Tags Section - Hidden but kept for future use */}
+          {false && (
           <div style={{
             backgroundColor: 'white',
             padding: '24px',

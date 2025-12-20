@@ -33,6 +33,7 @@ export default function CreateTourPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [activeTab, setActiveTab] = useState('basic'); // 'basic' or 'daily'
   
   useEffect(() => {
     const handleResize = () => {
@@ -608,8 +609,56 @@ export default function CreateTourPage() {
           </div>
         )}
 
+        {/* Tabs */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '8px', 
+          marginBottom: '24px',
+          borderBottom: '1px solid #e5e7eb'
+        }}>
+          <button
+            type="button"
+            onClick={() => setActiveTab('basic')}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: 'transparent',
+              color: activeTab === 'basic' ? '#111827' : '#6b7280',
+              border: 'none',
+              borderBottom: activeTab === 'basic' ? '2px solid #111827' : '2px solid transparent',
+              borderRadius: '0',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: activeTab === 'basic' ? '600' : '500',
+              transition: 'all 0.2s',
+              marginBottom: '-1px'
+            }}
+          >
+            Basic Information
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('daily')}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: 'transparent',
+              color: activeTab === 'daily' ? '#111827' : '#6b7280',
+              border: 'none',
+              borderBottom: activeTab === 'daily' ? '2px solid #111827' : '2px solid transparent',
+              borderRadius: '0',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: activeTab === 'daily' ? '600' : '500',
+              transition: 'all 0.2s',
+              marginBottom: '-1px'
+            }}
+          >
+            Daily Plan
+          </button>
+        </div>
+
         <form onSubmit={handleSubmit}>
-          {/* Basic Information */}
+          {/* Basic Information Tab */}
+          {activeTab === 'basic' && (
           <div style={{
             backgroundColor: 'white',
             padding: '24px',
@@ -1147,7 +1196,8 @@ export default function CreateTourPage() {
             </div>
           </div>
 
-          {/* Daily Plan */}
+          {/* Daily Plan Tab */}
+          {activeTab === 'daily' && (
           <div style={{
             backgroundColor: 'white',
             padding: '24px',
@@ -1731,7 +1781,7 @@ export default function CreateTourPage() {
           </div>
           )}
 
-          {/* Submit Button */}
+          {/* Submit Button - Visible on both tabs */}
           <div style={{ marginBottom: '32px' }}>
             <button
               type="submit"
