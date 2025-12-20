@@ -660,15 +660,21 @@ export default function CreateTourPage() {
           {/* Basic Information Tab */}
           {activeTab === 'basic' && (
           <div style={{
-            backgroundColor: 'white',
-            padding: '24px',
-            borderRadius: '12px',
-            marginBottom: '24px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+            gap: '24px',
+            marginBottom: '24px'
           }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>
-              Basic Information
-            </h2>
+            {/* Left Column - Form Fields */}
+            <div style={{
+              backgroundColor: 'white',
+              padding: '24px',
+              borderRadius: '12px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>
+                Basic Information
+              </h2>
 
             {/* City - At the top */}
             <div style={{ 
@@ -694,9 +700,19 @@ export default function CreateTourPage() {
                     padding: '12px',
                     border: '1px solid #d1d5db',
                     borderRadius: '8px',
-                    fontSize: '16px'
+                    fontSize: '16px',
+                    boxSizing: 'border-box'
                   }}
                 />
+                <p style={{ 
+                  fontSize: '13px', 
+                  color: '#6b7280', 
+                  marginTop: '8px', 
+                  marginBottom: 0,
+                  lineHeight: '1.5'
+                }}>
+                  Введите название города, в котором вы создаете трип (надо сформулировать на английском)
+                </p>
                 {showCitySuggestions && citySuggestions.length > 0 && (
                   <div style={{
                     position: 'absolute',
@@ -751,14 +767,25 @@ export default function CreateTourPage() {
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 required
+                placeholder="Trip name"
                 style={{
                   width: '100%',
                   padding: '12px',
                   border: '1px solid #d1d5db',
                   borderRadius: '8px',
-                  fontSize: '16px'
+                  fontSize: '16px',
+                  boxSizing: 'border-box'
                 }}
               />
+              <p style={{ 
+                fontSize: '13px', 
+                color: '#6b7280', 
+                marginTop: '8px', 
+                marginBottom: 0,
+                lineHeight: '1.5'
+              }}>
+                Мы рекомендуем создавать понятные названия туров, состоящие из города, идея/концепция тура и для кого. Например "Paris Romantic Evening Walk" или "Rome Food Lovers Adventure"
+              </p>
             </div>
 
             <div style={{ marginBottom: '20px' }}>
@@ -769,7 +796,7 @@ export default function CreateTourPage() {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 required
-                placeholder="Describe your tour, what makes it special, what travelers will experience..."
+                placeholder="Опишите концепцию вашего тура"
                 rows={5}
                 style={{
                   width: '100%',
@@ -778,9 +805,54 @@ export default function CreateTourPage() {
                   borderRadius: '8px',
                   fontSize: '16px',
                   resize: 'vertical',
-                  fontFamily: 'inherit'
+                  fontFamily: 'inherit',
+                  boxSizing: 'border-box'
                 }}
               />
+              <p style={{ 
+                fontSize: '13px', 
+                color: '#6b7280', 
+                marginTop: '8px', 
+                marginBottom: 0,
+                lineHeight: '1.5'
+              }}>
+                Нужно придумать рекомендацию, каким должно быть описание тура и привести пример.
+              </p>
+              <div style={{
+                marginTop: '12px',
+                padding: '12px',
+                backgroundColor: '#f0f9ff',
+                borderRadius: '8px',
+                borderLeft: '3px solid #3b82f6'
+              }}>
+                <p style={{ 
+                  fontSize: '13px', 
+                  color: '#1e40af', 
+                  margin: 0,
+                  fontWeight: '500',
+                  marginBottom: '8px'
+                }}>
+                  💡 Рекомендация по написанию:
+                </p>
+                <p style={{ 
+                  fontSize: '13px', 
+                  color: '#1e3a8a', 
+                  margin: 0,
+                  lineHeight: '1.6',
+                  marginBottom: '8px'
+                }}>
+                  Описание должно быть по существу, но не лишено эмоций. Расскажите о реальных впечатлениях, которые получит путешественник. Используйте конкретные детали и создавайте атмосферу места.
+                </p>
+                <p style={{ 
+                  fontSize: '13px', 
+                  color: '#1e3a8a', 
+                  margin: 0,
+                  lineHeight: '1.6',
+                  fontStyle: 'italic'
+                }}>
+                  <strong>Пример:</strong> "Discover the hidden gems of Montmartre as the sun sets over Paris. This romantic evening walk takes you through cobblestone streets where artists once lived, past charming cafés where you can stop for a glass of wine, and to the iconic Sacré-Cœur Basilica with breathtaking city views. Feel the bohemian spirit of Paris come alive as you explore this magical neighborhood."
+                </p>
+              </div>
             </div>
 
             {/* Preview Upload Section */}
@@ -856,15 +928,32 @@ export default function CreateTourPage() {
                       />
                       Choose Photo or Video
                     </label>
-                    <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>
-                      JPG, PNG, GIF, MP4, MOV. Max 10MB (images) or 50MB (videos)
+                    <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px', marginBottom: 0 }}>
+                      JPG, PNG or GIF. Max size 5MB
+                    </p>
+                    <p style={{ 
+                      fontSize: '13px', 
+                      color: '#6b7280', 
+                      marginTop: '8px', 
+                      marginBottom: 0,
+                      lineHeight: '1.5'
+                    }}>
+                      Используйте фотографию, отражающую концепцию вашего тура/предложения.
                     </p>
                   </div>
                 )}
               </div>
             </div>
+            </div>
 
-
+            {/* Right Column - Tour Format & Pricing */}
+            <div style={{
+              backgroundColor: 'white',
+              padding: '24px',
+              borderRadius: '12px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              alignSelf: 'start'
+            }}>
             {/* Pricing and Format Section */}
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500' }}>
@@ -1194,6 +1283,7 @@ export default function CreateTourPage() {
                 })}
               </div>
             </div>
+            </div>
           </div>
           )}
 
@@ -1336,45 +1426,137 @@ export default function CreateTourPage() {
                               }}
                             />
                             
-                            <textarea
-                              value={item.description || ''}
-                              onChange={(e) => {
-                                const newPlan = [...formData.daily_plan];
-                                newPlan[dayIndex].blocks[blockIndex].items[itemIndex].description = e.target.value;
-                                setFormData({ ...formData, daily_plan: newPlan });
-                              }}
-                              placeholder="Location Description"
-                              rows={3}
-                              style={{
-                                width: '100%',
-                                padding: '8px',
-                                border: '1px solid #d1d5db',
+                            <div style={{ marginBottom: '8px' }}>
+                              <label style={{ 
+                                display: 'block', 
+                                marginBottom: '4px', 
+                                fontSize: '14px', 
+                                fontWeight: '500',
+                                color: '#111827'
+                              }}>
+                                Location Description
+                              </label>
+                              <textarea
+                                value={item.description || ''}
+                                onChange={(e) => {
+                                  const newPlan = [...formData.daily_plan];
+                                  newPlan[dayIndex].blocks[blockIndex].items[itemIndex].description = e.target.value;
+                                  setFormData({ ...formData, daily_plan: newPlan });
+                                }}
+                                placeholder="Describe this location..."
+                                rows={3}
+                                style={{
+                                  width: '100%',
+                                  padding: '8px',
+                                  border: '1px solid #d1d5db',
+                                  borderRadius: '6px',
+                                  fontSize: '14px',
+                                  resize: 'vertical',
+                                  boxSizing: 'border-box'
+                                }}
+                              />
+                              <div style={{
+                                marginTop: '8px',
+                                padding: '10px',
+                                backgroundColor: '#f0f9ff',
                                 borderRadius: '6px',
-                                marginBottom: '8px',
-                                fontSize: '14px',
-                                resize: 'vertical'
-                              }}
-                            />
+                                borderLeft: '3px solid #3b82f6'
+                              }}>
+                                <p style={{ 
+                                  fontSize: '12px', 
+                                  color: '#1e40af', 
+                                  margin: 0,
+                                  fontWeight: '500',
+                                  marginBottom: '6px'
+                                }}>
+                                  💡 Рекомендация:
+                                </p>
+                                <p style={{ 
+                                  fontSize: '12px', 
+                                  color: '#1e3a8a', 
+                                  margin: 0,
+                                  lineHeight: '1.5',
+                                  marginBottom: '6px'
+                                }}>
+                                  Описание должно быть по существу, но не лишено эмоций. Расскажите о реальных впечатлениях, которые получит путешественник. Используйте конкретные детали.
+                                </p>
+                                <p style={{ 
+                                  fontSize: '12px', 
+                                  color: '#1e3a8a', 
+                                  margin: 0,
+                                  lineHeight: '1.5',
+                                  fontStyle: 'italic'
+                                }}>
+                                  <strong>Пример:</strong> "This charming café tucked away in a quiet Montmartre street is where locals come for their morning espresso. The aroma of freshly baked croissants fills the air, and the owner, a friendly Parisian, greets every customer by name. Sit by the window to watch the neighborhood come alive."
+                                </p>
+                              </div>
+                            </div>
                             
-                            <textarea
-                              value={item.recommendations || ''}
-                              onChange={(e) => {
-                                const newPlan = [...formData.daily_plan];
-                                newPlan[dayIndex].blocks[blockIndex].items[itemIndex].recommendations = e.target.value;
-                                setFormData({ ...formData, daily_plan: newPlan });
-                              }}
-                              placeholder="Recommendations (tips, best time to visit, what to try, etc.)"
-                              rows={3}
-                              style={{
-                                width: '100%',
-                                padding: '8px',
-                                border: '1px solid #d1d5db',
+                            <div style={{ marginBottom: '8px' }}>
+                              <label style={{ 
+                                display: 'block', 
+                                marginBottom: '4px', 
+                                fontSize: '14px', 
+                                fontWeight: '500',
+                                color: '#111827'
+                              }}>
+                                Recommendations
+                              </label>
+                              <textarea
+                                value={item.recommendations || ''}
+                                onChange={(e) => {
+                                  const newPlan = [...formData.daily_plan];
+                                  newPlan[dayIndex].blocks[blockIndex].items[itemIndex].recommendations = e.target.value;
+                                  setFormData({ ...formData, daily_plan: newPlan });
+                                }}
+                                placeholder="Recommendations (tips, best time to visit, what to try, etc.)"
+                                rows={3}
+                                style={{
+                                  width: '100%',
+                                  padding: '8px',
+                                  border: '1px solid #d1d5db',
+                                  borderRadius: '6px',
+                                  fontSize: '14px',
+                                  resize: 'vertical',
+                                  boxSizing: 'border-box'
+                                }}
+                              />
+                              <div style={{
+                                marginTop: '8px',
+                                padding: '10px',
+                                backgroundColor: '#f0f9ff',
                                 borderRadius: '6px',
-                                marginBottom: '8px',
-                                fontSize: '14px',
-                                resize: 'vertical'
-                              }}
-                            />
+                                borderLeft: '3px solid #3b82f6'
+                              }}>
+                                <p style={{ 
+                                  fontSize: '12px', 
+                                  color: '#1e40af', 
+                                  margin: 0,
+                                  fontWeight: '500',
+                                  marginBottom: '6px'
+                                }}>
+                                  💡 Рекомендация:
+                                </p>
+                                <p style={{ 
+                                  fontSize: '12px', 
+                                  color: '#1e3a8a', 
+                                  margin: 0,
+                                  lineHeight: '1.5',
+                                  marginBottom: '6px'
+                                }}>
+                                  Дайте практические советы с эмоциональной окраской. Расскажите о лучшем времени для посещения, что обязательно попробовать, и какие впечатления ждут путешественника.
+                                </p>
+                                <p style={{ 
+                                  fontSize: '12px', 
+                                  color: '#1e3a8a', 
+                                  margin: 0,
+                                  lineHeight: '1.5',
+                                  fontStyle: 'italic'
+                                }}>
+                                  <strong>Пример:</strong> "Best visited in the morning when the light streams through the windows. Try their signature croissant with homemade jam - it's a revelation. The owner loves sharing stories about the neighborhood's history, so don't hesitate to ask. Perfect spot for a quiet moment before exploring Montmartre."
+                                </p>
+                              </div>
+                            </div>
                             
                             <div style={{ 
                               display: 'grid', 
