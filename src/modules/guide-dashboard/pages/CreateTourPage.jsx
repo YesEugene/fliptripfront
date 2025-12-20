@@ -1830,6 +1830,8 @@ export default function CreateTourPage() {
                 </button>
               </div>
             ))}
+              </div>
+            ))}
 
           {/* Tags Section - Hidden but kept for future use */}
           {false && (
@@ -1953,7 +1955,7 @@ export default function CreateTourPage() {
                 ))}
               </div>
             )}
-          </div>
+            </div>
           )}
           </div>
           )}
