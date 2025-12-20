@@ -279,13 +279,14 @@ export default function GuideDashboardPage() {
       {/* Header */}
       <div style={{
         backgroundColor: 'white',
-        padding: '16px 20px',
         borderBottom: '1px solid #e5e7eb',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        width: '100%'
       }}>
         <div style={{
           maxWidth: '1200px',
           margin: '0 auto',
+          padding: '16px 20px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
@@ -320,7 +321,7 @@ export default function GuideDashboardPage() {
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 20px' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 20px', width: '100%' }}>
         {/* Title */}
         <h1 style={{ 
           fontSize: '32px', 
