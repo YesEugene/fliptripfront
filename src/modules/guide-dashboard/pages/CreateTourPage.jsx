@@ -1658,7 +1658,7 @@ export default function CreateTourPage() {
 
           {/* Tags Section - Hidden but kept for future use */}
           {false && (
-            <div style={{
+          <div style={{
             backgroundColor: 'white',
             padding: '24px',
             borderRadius: '12px',
