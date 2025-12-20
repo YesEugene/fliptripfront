@@ -1282,7 +1282,6 @@ export default function CreateTourPage() {
               </div>
             </div>
           </div>
-          </div>
           )}
 
           {/* Daily Plan Tab */}
