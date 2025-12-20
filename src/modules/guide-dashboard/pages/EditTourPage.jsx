@@ -1569,31 +1569,15 @@ export default function EditTourPage() {
               </button>
             </div>
 
-            {(Array.isArray(formData.daily_plan) && formData.daily_plan.length > 0 
-              ? formData.daily_plan 
-              : [{
-                  day: 1,
-                  date: new Date().toISOString().slice(0, 10),
-                  blocks: [{
-                    time: '09:00 - 12:00',
-                    items: []
-                  }]
-                }]
-            ).map((day, dayIndex) => (
+            {formData.daily_plan.map((day, dayIndex) => (
               <div key={dayIndex} style={{
                 marginBottom: '24px'
               }}>
                 <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px' }}>
-                  Day {day.day || dayIndex + 1}
+                  Day {day.day}
                 </h3>
 
-                {(Array.isArray(day.blocks) && day.blocks.length > 0
-                  ? day.blocks
-                  : [{
-                      time: '09:00 - 12:00',
-                      items: []
-                    }]
-                ).map((block, blockIndex) => (
+                {day.blocks.map((block, blockIndex) => (
                   <div key={blockIndex} style={{
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
@@ -1620,7 +1604,7 @@ export default function EditTourPage() {
                     />
                     
                     {/* Locations in block */}
-                    {Array.isArray(block.items) && block.items.length > 0 ? (
+                    {block.items && block.items.length > 0 && (
                       <div style={{ marginBottom: '12px' }}>
                         {block.items.map((item, itemIndex) => (
                           <div key={itemIndex} style={{
@@ -2065,35 +2049,23 @@ export default function EditTourPage() {
                           </div>
                         ))}
                       </div>
-                    ) : null}
+                    )}
                     
-                    {/* Ensure items array exists before adding */}
-                    <div style={{ marginTop: '12px' }}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          // Ensure items array exists
-                          const newPlan = [...formData.daily_plan];
-                          if (!Array.isArray(newPlan[dayIndex].blocks[blockIndex].items)) {
-                            newPlan[dayIndex].blocks[blockIndex].items = [];
-                          }
-                          setFormData({ ...formData, daily_plan: newPlan });
-                          // Then add item
-                          addItem(dayIndex, blockIndex);
-                        }}
-                        style={{
-                          padding: '8px 16px',
-                          backgroundColor: '#10b981',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          fontSize: '14px'
-                        }}
-                      >
-                        + Add Location
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => addItem(dayIndex, blockIndex)}
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#10b981',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '14px'
+                      }}
+                    >
+                      + Add Location
+                    </button>
                   </div>
                 ))}
                 
