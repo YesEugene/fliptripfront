@@ -173,7 +173,20 @@ export default function EditTourPage() {
                       start_time: block.start_time,
                       end_time: block.end_time,
                       items: Array.isArray(block.items) ? block.items.map(item => {
-                        const interestIds = item.location?.interests?.map(li => li.interest?.id || li.interest_id).filter(Boolean) || [];
+                        // Extract interest_ids from multiple possible sources
+                        let interestIds = [];
+                        if (item.interest_ids && Array.isArray(item.interest_ids)) {
+                          interestIds = item.interest_ids;
+                        } else if (item.location?.location_interests && Array.isArray(item.location.location_interests)) {
+                          interestIds = item.location.location_interests.map(li => 
+                            li.interest?.id || li.interest_id
+                          ).filter(Boolean);
+                        } else if (item.location?.interests && Array.isArray(item.location.interests)) {
+                          interestIds = item.location.interests.map(li => 
+                            li.interest?.id || li.interest_id
+                          ).filter(Boolean);
+                        }
+                        
                         // Determine selectedCategory and selectedSubcategory from interest_ids
                         // This will be set after interestsStructure is loaded
                         let selectedCategory = null;
@@ -182,10 +195,11 @@ export default function EditTourPage() {
                         return {
                           title: item.custom_title || item.title || '',
                           address: item.location?.address || item.address || '',
-                          description: item.custom_description || item.description || '',
-                          recommendations: item.custom_recommendations || item.recommendations || '',
+                          // Support both legacy (why/tips/cost) and new (description/recommendations/approx_cost) field names
+                          description: item.custom_description || item.description || item.why || '',
+                          recommendations: item.custom_recommendations || item.recommendations || item.tips || '',
                           price_level: item.location?.price_level || item.price_level || '',
-                          approx_cost: item.approx_cost || '',
+                          approx_cost: item.approx_cost || item.cost || '',
                           location_id: item.location_id || null,
                           interest_ids: interestIds,
                           selectedCategory: selectedCategory, // Will be set after interestsStructure loads
