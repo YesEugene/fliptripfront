@@ -1780,6 +1780,7 @@ export default function CreateTourPage() {
             )}
           </div>
           )}
+          </div>
           )}
 
           {/* Submit Button - Visible on both tabs */}
