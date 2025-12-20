@@ -1833,13 +1833,13 @@ export default function CreateTourPage() {
 
           {/* Tags Section - Hidden but kept for future use */}
           {false && (
-          <div style={{
-            backgroundColor: 'white',
-            padding: '24px',
-            borderRadius: '12px',
-            marginBottom: '24px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-          }}>
+            <div style={{
+              backgroundColor: 'white',
+              padding: '24px',
+              borderRadius: '12px',
+              marginBottom: '24px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}>
             <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>
               Tags
             </h2>
