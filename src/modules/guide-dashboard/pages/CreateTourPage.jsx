@@ -1828,8 +1828,8 @@ export default function CreateTourPage() {
                 >
                   + Add Time Block
                 </button>
-              </div>
-            ))}
+                </div>
+              ))}
               </div>
             ))}
 
