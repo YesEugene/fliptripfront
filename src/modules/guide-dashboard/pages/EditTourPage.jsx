@@ -1907,8 +1907,6 @@ export default function EditTourPage() {
                 </button>
               </div>
             ))}
-          </div>
-          )}
 
           {/* Tags Section - Hidden but kept for future use */}
           {false && (
