@@ -1281,7 +1281,7 @@ export default function CreateTourPage() {
                 })}
               </div>
             </div>
-            </div>
+          </div>
           </div>
           )}
 
