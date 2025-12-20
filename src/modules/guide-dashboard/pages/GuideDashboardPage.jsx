@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getCurrentUser, logout } from '../../auth/services/authService';
 import { getGuideTours, deleteTour } from '../../tours-database';
+import { getGuideProfile, updateGuideProfile } from '../../../modules/guide-profile';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
 
 export default function GuideDashboardPage() {
@@ -15,11 +16,29 @@ export default function GuideDashboardPage() {
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('tours'); // 'tours', 'profile', 'statistics'
+  
+  // Profile state
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileError, setProfileError] = useState('');
+  const [profileSuccess, setProfileSuccess] = useState('');
+  const [profileData, setProfileData] = useState({
+    name: '',
+    avatar: '',
+    bio: '',
+    socialLinks: {
+      instagram: '',
+      facebook: '',
+      twitter: '',
+      website: ''
+    }
+  });
 
   useEffect(() => {
     const currentUser = getCurrentUser();
     setUser(currentUser);
     loadGuideTours();
+    loadProfile();
   }, []);
 
   const loadGuideTours = async () => {
@@ -53,6 +72,112 @@ export default function GuideDashboardPage() {
     } catch (error) {
       console.error('Error deleting tour:', error);
       alert('Failed to delete tour. Please try again.');
+    }
+  };
+
+  // Load profile data
+  const loadProfile = async () => {
+    try {
+      setProfileLoading(true);
+      const profile = await getGuideProfile();
+      if (profile) {
+        setProfileData({
+          name: profile.name || '',
+          avatar: profile.avatar || '',
+          bio: profile.bio || '',
+          socialLinks: profile.socialLinks || {
+            instagram: '',
+            facebook: '',
+            twitter: '',
+            website: ''
+          }
+        });
+      } else {
+        // Initialize with user name if profile doesn't exist
+        const currentUser = getCurrentUser();
+        if (currentUser) {
+          setProfileData(prev => ({
+            ...prev,
+            name: currentUser.name || ''
+          }));
+        }
+      }
+    } catch (err) {
+      console.error('Error loading profile:', err);
+      // Profile might not exist yet, that's okay
+      const currentUser = getCurrentUser();
+      if (currentUser) {
+        setProfileData(prev => ({
+          ...prev,
+          name: currentUser.name || ''
+        }));
+      }
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  // Handle avatar change
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setProfileError('Please select an image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setProfileError('Image size should be less than 5MB');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileData(prev => ({
+          ...prev,
+          avatar: reader.result // base64 string
+        }));
+        setProfileError('');
+      };
+      reader.onerror = () => {
+        setProfileError('Error reading image file');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle social link change
+  const handleSocialLinkChange = (platform, value) => {
+    setProfileData(prev => ({
+      ...prev,
+      socialLinks: {
+        ...prev.socialLinks,
+        [platform]: value
+      }
+    }));
+  };
+
+  // Handle profile save
+  const handleProfileSave = async (e) => {
+    e.preventDefault();
+    setProfileError('');
+    setProfileSuccess('');
+    setProfileSaving(true);
+
+    try {
+      const result = await updateGuideProfile(profileData);
+      if (result.success) {
+        setProfileSuccess('Profile updated successfully!');
+        setTimeout(() => {
+          setProfileSuccess('');
+        }, 3000);
+      }
+    } catch (err) {
+      setProfileError(err.message || 'Error updating profile');
+    } finally {
+      setProfileSaving(false);
     }
   };
 
@@ -241,24 +366,28 @@ export default function GuideDashboardPage() {
             My tours
           </button>
           <button
-            onClick={() => navigate('/guide/settings')}
+            onClick={() => setActiveTab('profile')}
             style={{
               padding: '10px 20px',
-              backgroundColor: 'white',
-              color: '#111827',
+              backgroundColor: activeTab === 'profile' ? '#111827' : 'white',
+              color: activeTab === 'profile' ? 'white' : '#111827',
               border: 'none',
               borderRadius: '8px',
               cursor: 'pointer',
               fontSize: '16px',
               fontWeight: '500',
               transition: 'all 0.2s',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+              boxShadow: activeTab === 'profile' ? 'none' : '0 1px 2px rgba(0,0,0,0.1)'
             }}
             onMouseEnter={(e) => {
-              e.target.style.backgroundColor = '#f3f4f6';
+              if (activeTab !== 'profile') {
+                e.target.style.backgroundColor = '#f3f4f6';
+              }
             }}
             onMouseLeave={(e) => {
-              e.target.style.backgroundColor = 'white';
+              if (activeTab !== 'profile') {
+                e.target.style.backgroundColor = 'white';
+              }
             }}
           >
             Profile
@@ -486,6 +615,392 @@ export default function GuideDashboardPage() {
               </div>
             )}
           </>
+        )}
+
+        {activeTab === 'profile' && (
+          <form onSubmit={handleProfileSave}>
+            {/* Error/Success Messages */}
+            {profileError && (
+              <div style={{
+                backgroundColor: '#fee2e2',
+                color: '#dc2626',
+                padding: '12px',
+                borderRadius: '8px',
+                marginBottom: '20px'
+              }}>
+                {profileError}
+              </div>
+            )}
+
+            {profileSuccess && (
+              <div style={{
+                backgroundColor: '#d1fae5',
+                color: '#065f46',
+                padding: '12px',
+                borderRadius: '8px',
+                marginBottom: '20px'
+              }}>
+                {profileSuccess}
+              </div>
+            )}
+
+            {/* Profile Cards Grid */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: '20px',
+              marginBottom: '24px'
+            }}>
+              {/* Profile Photo Card */}
+              <div style={{
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                padding: '24px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+              }}>
+                <h2 style={{ 
+                  fontSize: '18px', 
+                  fontWeight: 'bold', 
+                  color: '#111827',
+                  marginBottom: '20px'
+                }}>
+                  Profile photo
+                </h2>
+                
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '20px',
+                  flexWrap: 'wrap'
+                }}>
+                  <div style={{
+                    width: '100px',
+                    height: '100px',
+                    borderRadius: '50%',
+                    backgroundColor: '#e5e7eb',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                    border: '2px solid #d1d5db',
+                    flexShrink: 0
+                  }}>
+                    {profileData.avatar ? (
+                      <img 
+                        src={profileData.avatar} 
+                        alt="Avatar" 
+                        style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          objectFit: 'cover' 
+                        }} 
+                      />
+                    ) : (
+                      <span style={{ fontSize: '40px', color: '#9ca3af' }}>👤</span>
+                    )}
+                  </div>
+                  
+                  <div style={{ flex: 1, minWidth: '150px' }}>
+                    <label style={{
+                      display: 'inline-block',
+                      padding: '10px 20px',
+                      backgroundColor: '#3b82f6',
+                      color: 'white',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontWeight: '500',
+                      fontSize: '14px',
+                      marginBottom: '8px'
+                    }}>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarChange}
+                        style={{ display: 'none' }}
+                      />
+                      Choose photo
+                    </label>
+                    <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>
+                      JPG, PNG or GIF. Max size 5MB
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Personal Information Card */}
+              <div style={{
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                padding: '24px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+              }}>
+                <h2 style={{ 
+                  fontSize: '18px', 
+                  fontWeight: 'bold', 
+                  color: '#111827',
+                  marginBottom: '20px'
+                }}>
+                  Personal information
+                </h2>
+                
+                <div>
+                  <label style={{ 
+                    display: 'block', 
+                    marginBottom: '8px', 
+                    fontWeight: '500',
+                    color: '#111827'
+                  }}>
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    value={profileData.name}
+                    onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                    placeholder="Your name"
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                  <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px', margin: 0 }}>
+                    This name will be displayed in tour previews and your profile
+                  </p>
+                </div>
+              </div>
+
+              {/* About Me Card */}
+              <div style={{
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                padding: '24px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                gridColumn: 'span 2'
+              }}>
+                <h2 style={{ 
+                  fontSize: '18px', 
+                  fontWeight: 'bold', 
+                  color: '#111827',
+                  marginBottom: '20px'
+                }}>
+                  About me
+                </h2>
+                
+                <div>
+                  <label style={{ 
+                    display: 'block', 
+                    marginBottom: '8px', 
+                    fontWeight: '500',
+                    color: '#111827'
+                  }}>
+                    Biography
+                  </label>
+                  <textarea
+                    value={profileData.bio}
+                    onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
+                    placeholder="Share your story and expertise with potential travelers."
+                    rows={6}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      resize: 'vertical',
+                      fontFamily: 'inherit',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Social Media & Links Card */}
+              <div style={{
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                padding: '24px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                gridColumn: 'span 2'
+              }}>
+                <h2 style={{ 
+                  fontSize: '18px', 
+                  fontWeight: 'bold', 
+                  color: '#111827',
+                  marginBottom: '20px'
+                }}>
+                  Social Media & Links
+                </h2>
+                
+                <div style={{ 
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                  gap: '16px'
+                }}>
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '8px', 
+                      fontWeight: '500',
+                      color: '#111827'
+                    }}>
+                      Instagram
+                    </label>
+                    <input
+                      type="text"
+                      value={profileData.socialLinks.instagram}
+                      onChange={(e) => handleSocialLinkChange('instagram', e.target.value)}
+                      placeholder="@yourname"
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '8px', 
+                      fontWeight: '500',
+                      color: '#111827'
+                    }}>
+                      Facebook
+                    </label>
+                    <input
+                      type="text"
+                      value={profileData.socialLinks.facebook}
+                      onChange={(e) => handleSocialLinkChange('facebook', e.target.value)}
+                      placeholder="@yourname"
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '8px', 
+                      fontWeight: '500',
+                      color: '#111827'
+                    }}>
+                      Twitter (X)
+                    </label>
+                    <input
+                      type="text"
+                      value={profileData.socialLinks.twitter}
+                      onChange={(e) => handleSocialLinkChange('twitter', e.target.value)}
+                      placeholder="@yourname"
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '8px', 
+                      fontWeight: '500',
+                      color: '#111827'
+                    }}>
+                      Website
+                    </label>
+                    <input
+                      type="text"
+                      value={profileData.socialLinks.website}
+                      onChange={(e) => handleSocialLinkChange('website', e.target.value)}
+                      placeholder="yourwebsite.com"
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ 
+              display: 'flex', 
+              gap: '12px',
+              marginTop: '20px'
+            }}>
+              <button
+                type="submit"
+                disabled={profileSaving}
+                style={{
+                  flex: 1,
+                  padding: '14px',
+                  backgroundColor: profileSaving ? '#9ca3af' : '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: profileSaving ? 'not-allowed' : 'pointer',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  if (!profileSaving) {
+                    e.target.style.backgroundColor = '#2563eb';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!profileSaving) {
+                    e.target.style.backgroundColor = '#3b82f6';
+                  }
+                }}
+              >
+                {profileSaving ? 'Saving...' : 'Save changes'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setProfileError('');
+                  setProfileSuccess('');
+                  loadProfile(); // Reset to saved values
+                }}
+                style={{
+                  padding: '14px 24px',
+                  backgroundColor: '#6b7280',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#4b5563'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#6b7280'}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
         )}
 
         {activeTab === 'statistics' && (
