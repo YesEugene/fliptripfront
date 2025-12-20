@@ -131,7 +131,9 @@ export default function EditTourPage() {
             duration: tour.duration || { type: 'hours', value: 6 },
             languages: Array.isArray(tour.languages) ? tour.languages : (tour.languages || ['en']),
             format: tour.format || 'self-guided',
-            withGuide: tour.format === 'guided' || tour.withGuide || false,
+            // Check withGuide from multiple sources: direct property, format field, or default_format
+            withGuide: tour.withGuide !== undefined ? tour.withGuide : 
+                      (tour.format === 'guided' || tour.default_format === 'with_guide') || false,
             price: legacyPrice ? {
               pdfPrice: tour.price?.format === 'pdf' ? (tour.price?.amount || 16) : 16,
               guidedPrice: tour.price?.format === 'guided' ? (tour.price?.amount || 0) : 0,
