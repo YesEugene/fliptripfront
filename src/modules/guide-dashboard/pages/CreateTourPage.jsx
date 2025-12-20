@@ -1656,10 +1656,9 @@ export default function CreateTourPage() {
             ))}
           </div>
 
-
           {/* Tags Section - Hidden but kept for future use */}
           {false && (
-          <div style={{
+            <div style={{
             backgroundColor: 'white',
             padding: '24px',
             borderRadius: '12px',
@@ -1780,6 +1779,7 @@ export default function CreateTourPage() {
               </div>
             )}
           </div>
+          )}
           )}
 
           {/* Submit Button - Visible on both tabs */}
