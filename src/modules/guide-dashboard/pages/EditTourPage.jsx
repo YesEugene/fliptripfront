@@ -908,6 +908,53 @@ export default function EditTourPage() {
           </div>
         )}
 
+        {/* Tabs */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '8px', 
+          marginBottom: '24px',
+          borderBottom: '1px solid #e5e7eb'
+        }}>
+          <button
+            type="button"
+            onClick={() => setActiveTab('basic')}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: 'transparent',
+              color: activeTab === 'basic' ? '#111827' : '#6b7280',
+              border: 'none',
+              borderBottom: activeTab === 'basic' ? '2px solid #111827' : '2px solid transparent',
+              borderRadius: '0',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: activeTab === 'basic' ? '600' : '500',
+              transition: 'all 0.2s',
+              marginBottom: '-1px'
+            }}
+          >
+            Basic Information
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('daily')}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: 'transparent',
+              color: activeTab === 'daily' ? '#111827' : '#6b7280',
+              border: 'none',
+              borderBottom: activeTab === 'daily' ? '2px solid #111827' : '2px solid transparent',
+              borderRadius: '0',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: activeTab === 'daily' ? '600' : '500',
+              transition: 'all 0.2s',
+              marginBottom: '-1px'
+            }}
+          >
+            Daily Plan
+          </button>
+        </div>
+
         <form onSubmit={handleSubmit}>
           {/* Basic Information Tab */}
           {activeTab === 'basic' && (
