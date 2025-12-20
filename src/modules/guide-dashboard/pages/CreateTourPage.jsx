@@ -1812,6 +1812,8 @@ export default function CreateTourPage() {
                     </button>
                   </div>
                 ))}
+                      </div>
+                    )}
 
                 <button
                   type="button"
