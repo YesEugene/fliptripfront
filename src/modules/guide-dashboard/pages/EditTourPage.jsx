@@ -2084,6 +2084,8 @@ export default function EditTourPage() {
                 >
                   + Add Time Block
                 </button>
+                </div>
+              ))}
               </div>
             ))}
 
