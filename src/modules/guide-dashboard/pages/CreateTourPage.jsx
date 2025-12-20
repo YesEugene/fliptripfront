@@ -230,72 +230,6 @@ export default function CreateTourPage() {
     }
   };
 
-  const [tagSuggestions, setTagSuggestions] = useState([]);
-  const [tagInput, setTagInput] = useState('');
-  const [showTagSuggestions, setShowTagSuggestions] = useState(false);
-
-  // Generate tag suggestions based on tour description and locations
-  const generateTagSuggestions = async () => {
-    if (!formData.description && formData.daily_plan?.[0]?.blocks?.[0]?.items?.length === 0) {
-      setTagSuggestions([]);
-      return;
-    }
-
-    try {
-      // Collect text from description and location titles/descriptions
-      const locationTexts = formData.daily_plan
-        .flatMap(day => day.blocks)
-        .flatMap(block => block.items)
-        .map(item => `${item.title || ''} ${item.description || ''}`)
-        .join(' ');
-
-      const fullText = `${formData.description || ''} ${locationTexts}`.trim();
-
-      if (!fullText) {
-        setTagSuggestions([]);
-        return;
-      }
-
-      // Call backend API to generate tag suggestions (using smart-itinerary with action=generateTags)
-      const response = await fetch('https://fliptripback.vercel.app/api/smart-itinerary', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ action: 'generateTags', text: fullText })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setTagSuggestions(data.tags || []);
-      }
-    } catch (error) {
-      console.error('Error generating tag suggestions:', error);
-      // Fallback: simple keyword extraction
-      const keywords = extractKeywords(formData.description || '');
-      setTagSuggestions(keywords);
-    }
-  };
-
-  // Simple keyword extraction fallback
-  const extractKeywords = (text) => {
-    const commonWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'];
-    const words = text.toLowerCase()
-      .replace(/[^\w\s]/g, ' ')
-      .split(/\s+/)
-      .filter(word => word.length > 3 && !commonWords.includes(word));
-    
-    return [...new Set(words)].slice(0, 10);
-  };
-
-  // REMOVED: Automatic tag suggestion generation to prevent unnecessary API calls
-  // Tag suggestions should only be generated when user clicks "Generate Tags" button
-  // useEffect(() => {
-  //   const timer = setTimeout(() => {
-  //     generateTagSuggestions();
-  //   }, 1000);
-  //   return () => clearTimeout(timer);
-  // }, [formData.description, formData.daily_plan]);
 
   // Load interests structure on component mount
   useEffect(() => {
@@ -387,29 +321,6 @@ export default function CreateTourPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleTagInputChange = (e) => {
-    const value = e.target.value;
-    setTagInput(value);
-    setShowTagSuggestions(value.length > 0 && tagSuggestions.length > 0);
-  };
-
-  const handleTagAdd = (tag) => {
-    if (tag && !formData.tags.includes(tag)) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, tag]
-      }));
-    }
-    setTagInput('');
-    setShowTagSuggestions(false);
-  };
-
-  const handleTagRemove = (tagToRemove) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }));
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
