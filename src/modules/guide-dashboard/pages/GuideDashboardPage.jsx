@@ -13,6 +13,7 @@ export default function GuideDashboardPage() {
   const [user, setUser] = useState(null);
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('tours'); // 'tours', 'profile', 'statistics'
 
   useEffect(() => {
     const currentUser = getCurrentUser();
@@ -54,18 +55,43 @@ export default function GuideDashboardPage() {
     }
   };
 
+  // Helper function to get location count (assuming tour has tour_days or similar structure)
+  const getLocationCount = (tour) => {
+    // Try to get from tour_days or tour_blocks
+    if (tour.tour_days && Array.isArray(tour.tour_days)) {
+      return tour.tour_days.reduce((count, day) => {
+        if (day.tour_blocks && Array.isArray(day.tour_blocks)) {
+          return count + day.tour_blocks.length;
+        }
+        return count;
+      }, 0);
+    }
+    // Fallback: return 0 or a default value
+    return 0;
+  };
+
+  // Helper function to format duration
+  const formatDuration = (tour) => {
+    if (tour.duration_value && tour.duration_type) {
+      const value = tour.duration_value;
+      const type = tour.duration_type === 'hours' ? 'hours' : 'days';
+      return `${value} ${type}`;
+    }
+    return '0 hours';
+  };
+
   if (!user) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
       {/* Header */}
       <div style={{
         backgroundColor: 'white',
-        padding: '20px',
+        padding: '16px 20px',
         borderBottom: '1px solid #e5e7eb',
-        marginBottom: '24px'
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
       }}>
         <div style={{
           maxWidth: '1200px',
@@ -74,11 +100,13 @@ export default function GuideDashboardPage() {
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          <Link to="/">
+          <Link to="/" style={{ textDecoration: 'none' }}>
             <img src={FlipTripLogo} alt="FlipTrip" style={{ height: '40px' }} />
           </Link>
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <span style={{ color: '#6b7280' }}>{user.name}</span>
+            <span style={{ color: '#374151', fontSize: '16px', fontWeight: '500' }}>
+              {user.name || 'User'}
+            </span>
             <button
               onClick={handleLogout}
               style={{
@@ -87,8 +115,13 @@ export default function GuideDashboardPage() {
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500',
+                transition: 'background-color 0.2s'
               }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#dc2626'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#ef4444'}
             >
               Logout
             </button>
@@ -97,161 +130,342 @@ export default function GuideDashboardPage() {
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h1 style={{ fontSize: '32px', fontWeight: 'bold' }}>
-            Guide Dashboard
-          </h1>
-          <Link
-            to="/guide/tours/create"
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 20px' }}>
+        {/* Title */}
+        <h1 style={{ 
+          fontSize: '32px', 
+          fontWeight: 'bold', 
+          color: '#111827',
+          marginBottom: '24px'
+        }}>
+          Guide dashboard
+        </h1>
+
+        {/* Tabs */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '8px', 
+          marginBottom: '24px',
+          flexWrap: 'wrap'
+        }}>
+          <button
+            onClick={() => setActiveTab('tours')}
             style={{
-              padding: '12px 24px',
-              backgroundColor: '#3b82f6',
-              color: 'white',
+              padding: '10px 20px',
+              backgroundColor: activeTab === 'tours' ? '#111827' : 'white',
+              color: activeTab === 'tours' ? 'white' : '#111827',
+              border: 'none',
               borderRadius: '8px',
-              textDecoration: 'none',
-              fontWeight: '600'
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: '500',
+              transition: 'all 0.2s',
+              boxShadow: activeTab === 'tours' ? 'none' : '0 1px 2px rgba(0,0,0,0.1)'
+            }}
+            onMouseEnter={(e) => {
+              if (activeTab !== 'tours') {
+                e.target.style.backgroundColor = '#f3f4f6';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeTab !== 'tours') {
+                e.target.style.backgroundColor = 'white';
+              }
             }}
           >
-            + Create Tour
-          </Link>
+            My tours
+          </button>
+          <button
+            onClick={() => setActiveTab('profile')}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: activeTab === 'profile' ? '#111827' : 'white',
+              color: activeTab === 'profile' ? 'white' : '#111827',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: '500',
+              transition: 'all 0.2s',
+              boxShadow: activeTab === 'profile' ? 'none' : '0 1px 2px rgba(0,0,0,0.1)'
+            }}
+            onMouseEnter={(e) => {
+              if (activeTab !== 'profile') {
+                e.target.style.backgroundColor = '#f3f4f6';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeTab !== 'profile') {
+                e.target.style.backgroundColor = 'white';
+              }
+            }}
+          >
+            Profile
+          </button>
+          <button
+            onClick={() => setActiveTab('statistics')}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: activeTab === 'statistics' ? '#111827' : 'white',
+              color: activeTab === 'statistics' ? 'white' : '#111827',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: '500',
+              transition: 'all 0.2s',
+              boxShadow: activeTab === 'statistics' ? 'none' : '0 1px 2px rgba(0,0,0,0.1)'
+            }}
+            onMouseEnter={(e) => {
+              if (activeTab !== 'statistics') {
+                e.target.style.backgroundColor = '#f3f4f6';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeTab !== 'statistics') {
+                e.target.style.backgroundColor = 'white';
+              }
+            }}
+          >
+            Statistics
+          </button>
         </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '24px',
-          marginBottom: '32px'
-        }}>
-          {/* My Tours */}
-          <div style={{
-            backgroundColor: 'white',
-            padding: '24px',
-            borderRadius: '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-          }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '16px' }}>
-              My Tours
-            </h2>
+        {/* Tab Content */}
+        {activeTab === 'tours' && (
+          <>
+            {/* Total tours count */}
+            <div style={{ marginBottom: '20px' }}>
+              <p style={{ 
+                color: '#6b7280', 
+                fontSize: '16px',
+                margin: 0
+              }}>
+                Total tours: {tours.length}
+              </p>
+            </div>
+
+            {/* Tours Grid */}
             {loading ? (
-              <p style={{ color: '#6b7280' }}>Loading...</p>
-            ) : (
-              <>
-                <p style={{ color: '#6b7280', marginBottom: '16px' }}>
-                  Total Tours: {tours.length}
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '40px',
+                color: '#6b7280'
+              }}>
+                Loading...
+              </div>
+            ) : tours.length === 0 ? (
+              <div style={{ 
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                padding: '40px',
+                textAlign: 'center',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+              }}>
+                <p style={{ color: '#6b7280', fontSize: '16px', marginBottom: '20px' }}>
+                  No tours yet. Create your first tour!
                 </p>
-                {tours.length > 0 && (
-                  <div style={{ marginTop: '16px' }}>
-                    {tours.slice(0, 3).map((tour) => (
-                      <div key={tour.id} style={{
-                        padding: '12px',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        marginBottom: '8px'
+                <Link
+                  to="/guide/tours/create"
+                  style={{
+                    display: 'inline-block',
+                    padding: '12px 24px',
+                    backgroundColor: '#3b82f6',
+                    color: 'white',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    fontWeight: '600',
+                    fontSize: '16px',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#2563eb'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#3b82f6'}
+                >
+                  + Create Tour
+                </Link>
+              </div>
+            ) : (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                gap: '20px',
+                marginBottom: '32px'
+              }}>
+                {tours.map((tour) => {
+                  const locationCount = getLocationCount(tour);
+                  return (
+                    <div 
+                      key={tour.id} 
+                      style={{
+                        backgroundColor: 'white',
+                        borderRadius: '12px',
+                        padding: '20px',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                        transition: 'box-shadow 0.2s',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '16px'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)'}
+                      onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)'}
+                    >
+                      {/* Tour Title */}
+                      <h3 style={{ 
+                        fontSize: '18px', 
+                        fontWeight: 'bold', 
+                        color: '#111827',
+                        margin: 0,
+                        lineHeight: '1.3'
                       }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                          <div style={{ flex: 1 }}>
-                            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>
-                              {tour.title}
-                            </h3>
-                            <p style={{ color: '#6b7280', fontSize: '14px' }}>
-                              {tour.city || 'No city'} • {tour.duration?.value || 0} {tour.duration?.type === 'hours' ? 'hours' : 'days'}
-                            </p>
-                          </div>
-                          <div style={{ display: 'flex', gap: '8px', marginLeft: '12px' }}>
-                            <Link
-                              to={`/itinerary?tourId=${tour.id}&full=true`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{
-                                padding: '6px 12px',
-                                backgroundColor: '#10b981',
-                                color: 'white',
-                                borderRadius: '6px',
-                                textDecoration: 'none',
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                whiteSpace: 'nowrap'
-                              }}
-                            >
-                              👁️ View
-                            </Link>
-                            <Link
-                              to={`/guide/tours/edit/${tour.id}`}
-                              style={{
-                                padding: '6px 12px',
-                                backgroundColor: '#3b82f6',
-                                color: 'white',
-                                borderRadius: '6px',
-                                textDecoration: 'none',
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                whiteSpace: 'nowrap'
-                              }}
-                            >
-                              Edit
-                            </Link>
-                            <button
-                              onClick={() => handleDeleteTour(tour.id, tour.title)}
-                              style={{
-                                padding: '6px 12px',
-                                backgroundColor: '#ef4444',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '6px',
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                cursor: 'pointer',
-                                whiteSpace: 'nowrap'
-                              }}
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </div>
+                        {tour.title || 'Untitled Tour'}
+                      </h3>
+
+                      {/* Tour Details */}
+                      <div style={{ 
+                        display: 'flex', 
+                        flexDirection: 'column',
+                        gap: '4px'
+                      }}>
+                        <p style={{ 
+                          color: '#6b7280', 
+                          fontSize: '14px',
+                          margin: 0
+                        }}>
+                          {tour.city || 'No city'}
+                        </p>
+                        <p style={{ 
+                          color: '#6b7280', 
+                          fontSize: '14px',
+                          margin: 0
+                        }}>
+                          {locationCount} {locationCount === 1 ? 'location' : 'locations'}
+                        </p>
+                        <p style={{ 
+                          color: '#6b7280', 
+                          fontSize: '14px',
+                          margin: 0
+                        }}>
+                          {formatDuration(tour)}
+                        </p>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </>
+
+                      {/* Action Buttons */}
+                      <div style={{ 
+                        display: 'flex', 
+                        gap: '8px',
+                        marginTop: 'auto',
+                        flexWrap: 'wrap'
+                      }}>
+                        <Link
+                          to={`/itinerary?tourId=${tour.id}&full=true`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            flex: 1,
+                            minWidth: '80px',
+                            padding: '10px 16px',
+                            backgroundColor: '#10b981',
+                            color: 'white',
+                            borderRadius: '8px',
+                            textDecoration: 'none',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            textAlign: 'center',
+                            transition: 'background-color 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = '#10b981'}
+                        >
+                          View
+                        </Link>
+                        <Link
+                          to={`/guide/tours/edit/${tour.id}`}
+                          style={{
+                            flex: 1,
+                            minWidth: '80px',
+                            padding: '10px 16px',
+                            backgroundColor: '#3b82f6',
+                            color: 'white',
+                            borderRadius: '8px',
+                            textDecoration: 'none',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            textAlign: 'center',
+                            transition: 'background-color 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = '#2563eb'}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = '#3b82f6'}
+                        >
+                          Edit
+                        </Link>
+                        <button
+                          onClick={() => handleDeleteTour(tour.id, tour.title)}
+                          style={{
+                            flex: 1,
+                            minWidth: '80px',
+                            padding: '10px 16px',
+                            backgroundColor: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            transition: 'background-color 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = '#dc2626'}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = '#ef4444'}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             )}
-          </div>
+          </>
+        )}
 
-          {/* Statistics */}
+        {activeTab === 'profile' && (
           <div style={{
             backgroundColor: 'white',
-            padding: '24px',
             borderRadius: '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            padding: '40px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            textAlign: 'center'
           }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '16px' }}>
-              Statistics
-            </h2>
-            <p style={{ color: '#6b7280' }}>Sales statistics will be displayed here</p>
-          </div>
-
-          {/* Settings */}
-          <div style={{
-            backgroundColor: 'white',
-            padding: '24px',
-            borderRadius: '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-          }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '16px' }}>
-              Settings
-            </h2>
+            <p style={{ color: '#6b7280', fontSize: '16px' }}>
+              Profile settings will be available here
+            </p>
             <Link
               to="/guide/settings"
               style={{
+                display: 'inline-block',
+                marginTop: '20px',
                 color: '#3b82f6',
                 textDecoration: 'none',
                 fontWeight: '600'
               }}
             >
-              Profile Settings →
+              Go to Profile Settings →
             </Link>
           </div>
-        </div>
+        )}
+
+        {activeTab === 'statistics' && (
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '40px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            textAlign: 'center'
+          }}>
+            <p style={{ color: '#6b7280', fontSize: '16px' }}>
+              Statistics will be displayed here
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
