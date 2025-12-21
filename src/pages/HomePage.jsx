@@ -2163,6 +2163,26 @@ export default function HomePage() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation(); // Prevent card click
+                    // Save filters to sessionStorage before navigation
+                    try {
+                      const filtersToSave = {
+                        formData: {
+                          city: formData.city,
+                          audience: formData.audience || '',
+                          interest_ids: formData.interest_ids || [],
+                          date_from: formData.date_from || null,
+                          date_to: formData.date_to || null,
+                          budget: formData.budget || ''
+                        },
+                        selectedDates: selectedDates || [],
+                        timestamp: Date.now()
+                      };
+                      sessionStorage.setItem('fliptrip_filters', JSON.stringify(filtersToSave));
+                      console.log('💾 Filters saved to sessionStorage');
+                    } catch (error) {
+                      console.error('Error saving filters to sessionStorage:', error);
+                    }
+
                     const params = new URLSearchParams();
                     if (formData.city) params.append('city', formData.city);
                     if (formData.audience) params.append('audience', formData.audience);
