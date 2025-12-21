@@ -772,15 +772,29 @@ export default function ItineraryPage() {
               </span>
             )}
             
-            {/* Budget tag - use filter budget if provided, otherwise calculated from tour */}
+            {/* Budget tag - always show if available */}
             {itinerary?.tags?.budget && (
               <span className="badge-enhanced" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>
                 Budget: {itinerary.tags.budget}
               </span>
             )}
             
-            {/* Interests tags */}
-            {(itinerary?.tags?.interests || formData.interests) && (itinerary?.tags?.interests || formData.interests).map((interest, index) => (
+            {/* Fallback: show budget from itinerary.budget if tags.budget is not available */}
+            {!itinerary?.tags?.budget && itinerary?.budget && (
+              <span className="badge-enhanced" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>
+                Budget: {itinerary.budget}
+              </span>
+            )}
+            
+            {/* Interests tags - show from tags if available, otherwise from formData */}
+            {(itinerary?.tags?.interests && itinerary.tags.interests.length > 0) && itinerary.tags.interests.map((interest, index) => (
+              <span key={index} className="badge-enhanced" style={{ backgroundColor: '#fde7e7', color: '#b91c1c' }}>
+                🎯 {interest}
+              </span>
+            ))}
+            
+            {/* Fallback: show interests from formData if tags.interests is empty */}
+            {(!itinerary?.tags?.interests || itinerary.tags.interests.length === 0) && formData.interests && formData.interests.length > 0 && formData.interests.map((interest, index) => (
               <span key={index} className="badge-enhanced" style={{ backgroundColor: '#fde7e7', color: '#b91c1c' }}>
                 🎯 {interest}
               </span>
