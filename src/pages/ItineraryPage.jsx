@@ -1284,7 +1284,7 @@ export default function ItineraryPage() {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            padding: '20px'
+            padding: '20px 20px 20px 30px' // 30px left padding, 20px for others
           }}
         >
           {/* Black Gradient Overlay - from black to transparent (top to bottom) */}
@@ -1303,7 +1303,7 @@ export default function ItineraryPage() {
             position: 'relative',
             zIndex: 2,
             color: 'white',
-            marginTop: '20px'
+            marginTop: '0px' // 20px - 20px = 0px (raised by 20px)
           }}>
             <h1 style={{
               fontSize: '36px',
@@ -1363,7 +1363,7 @@ export default function ItineraryPage() {
             <div style={{
               position: 'relative',
               zIndex: 2,
-              marginBottom: '20px'
+              marginBottom: '40px' // 20px + 20px = 40px (lowered by 20px)
             }}>
               <button
                 onClick={handleDownloadPDF}
