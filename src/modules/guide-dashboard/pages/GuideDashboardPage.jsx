@@ -8,6 +8,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getCurrentUser, logout } from '../../auth/services/authService';
 import { getGuideTours, deleteTour } from '../../tours-database';
 import { getGuideProfile, updateGuideProfile } from '../../../modules/guide-profile';
+import AvailabilityManager from '../components/AvailabilityManager';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
 
 export default function GuideDashboardPage() {
@@ -648,6 +649,29 @@ export default function GuideDashboardPage() {
                         >
                           Delete
                         </button>
+                        {/* Manage Availability button - only for tours with guide */}
+                        {(tour.withGuide || tour.default_format === 'with_guide' || tour.format === 'guided') && (
+                          <button
+                            onClick={() => setAvailabilityTour(tour)}
+                            style={{
+                              flex: 1,
+                              minWidth: '80px',
+                              padding: '10px 16px',
+                              backgroundColor: '#8b5cf6',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '8px',
+                              fontSize: '14px',
+                              fontWeight: '500',
+                              cursor: 'pointer',
+                              transition: 'background-color 0.2s'
+                            }}
+                            onMouseEnter={(e) => e.target.style.backgroundColor = '#7c3aed'}
+                            onMouseLeave={(e) => e.target.style.backgroundColor = '#8b5cf6'}
+                          >
+                            Availability
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
@@ -1061,6 +1085,17 @@ export default function GuideDashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Availability Manager Modal */}
+      {availabilityTour && (
+        <AvailabilityManager
+          tour={availabilityTour}
+          onClose={() => {
+            setAvailabilityTour(null);
+            loadGuideTours(); // Reload tours to refresh availability info
+          }}
+        />
+      )}
     </div>
   );
 }
