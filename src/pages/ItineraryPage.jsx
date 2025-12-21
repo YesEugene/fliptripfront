@@ -772,6 +772,64 @@ export default function ItineraryPage() {
     };
   };
 
+  // Handle payment checkout
+  const handlePayment = async () => {
+    if (!email || !email.includes('@')) {
+      alert('Please enter a valid email address');
+      return;
+    }
+
+    if (!itinerary) {
+      alert('Itinerary data is not available');
+      return;
+    }
+
+    try {
+      setProcessingPayment(true);
+      
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
+      
+      // Prepare checkout session data
+      const checkoutData = {
+        email: email,
+        itineraryId: itinerary.tourId || null,
+        tourId: tourId || itinerary.tourId || null, // Add tourId for database tours
+        city: itinerary.city || formData.city,
+        audience: itinerary.tags?.audience || formData.audience || null,
+        interests: (itinerary.tags?.interests || formData.interests || []).join(','),
+        date: itinerary.date || formData.date,
+        budget: itinerary.tags?.budget || itinerary.budget || formData.budget || '800'
+      };
+
+      console.log('💳 Creating checkout session:', checkoutData);
+
+      const response = await fetch(`${API_BASE_URL}/api/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(checkoutData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Failed to create checkout session');
+      }
+
+      // Redirect to Stripe Checkout
+      if (data.sessionUrl) {
+        window.location.href = data.sessionUrl;
+      } else {
+        throw new Error('No checkout URL received');
+      }
+    } catch (err) {
+      console.error('❌ Payment error:', err);
+      alert(err.message || 'Failed to process payment. Please try again.');
+      setProcessingPayment(false);
+    }
+  };
+
   const handleDownloadPDF = async () => {
     try {
       // Находим элемент для конвертации в PDF
