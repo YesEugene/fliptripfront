@@ -501,12 +501,21 @@ export default function ItineraryPage() {
             }],
             tags: { // Add tags for generated itineraries
               city: formData.city || 'Unknown',
-              date: formData.date || new Date().toISOString().slice(0, 10),
+              date: formData.date || new Date().toISOString().slice(0, 10), // Use formatted date from formData
               audience: formData.audience || null, // Include audience tag
               budget: formData.budget ? `€${formData.budget}` : `€${data.totalCost || '800'}`,
-              interests: formData.interests && Array.isArray(formData.interests) && formData.interests.length > 0 
-                ? formData.interests 
-                : [] // Include interests from filters
+              interests: (() => {
+                // Handle interests - can be array or null
+                if (!formData.interests) return [];
+                if (Array.isArray(formData.interests)) {
+                  return formData.interests.length > 0 ? formData.interests : [];
+                }
+                // If it's a string, convert to array
+                if (typeof formData.interests === 'string') {
+                  return formData.interests.split(',').filter(Boolean);
+                }
+                return [];
+              })() // Include interests from filters
             }
           };
           console.log('✅ Converted data for display:', convertedData);
