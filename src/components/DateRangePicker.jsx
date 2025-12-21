@@ -361,6 +361,17 @@ const DateRangePicker = ({
           >
             Today
           </button>
+          <button
+            type="button"
+            className="calendar-action-btn apply-btn"
+            onClick={() => {
+              if (onClose) {
+                onClose();
+              }
+            }}
+          >
+            Применить
+          </button>
         </div>
       </div>
     </div>
