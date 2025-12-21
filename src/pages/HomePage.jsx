@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import { isAuthenticated, getCurrentUser, logout } from '../modules/auth/services/authService';
 import { getTours } from '../services/api';
+import DateRangePicker from '../components/DateRangePicker';
 import './HomePage.css';
 
 // Top cities - fallback if database fails
@@ -95,6 +96,7 @@ export default function HomePage() {
   
   // Quick filter states (for horizontal filter bar)
   const [quickFilterDateOpen, setQuickFilterDateOpen] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [quickFilterBudgetOpen, setQuickFilterBudgetOpen] = useState(false);
   const [quickFilterCategoryOpen, setQuickFilterCategoryOpen] = useState(false);
   const [quickFilterSelectedCategories, setQuickFilterSelectedCategories] = useState([]); // Array of category IDs
@@ -890,84 +892,7 @@ export default function HomePage() {
               e.stopPropagation();
               setQuickFilterBudgetOpen(false);
               setQuickFilterCategoryOpen(false);
-              
-              // Immediately open calendar picker
-              const dateInput = document.createElement('input');
-              dateInput.type = 'date';
-              dateInput.min = new Date().toISOString().slice(0, 10);
-              // Max date: today + 1 day (to allow max 2 days total)
-              const maxDate = new Date();
-              maxDate.setDate(maxDate.getDate() + 1);
-              dateInput.max = maxDate.toISOString().slice(0, 10);
-              dateInput.value = selectedDates.length > 0 ? selectedDates[0] : '';
-              
-              const rect = e.currentTarget.getBoundingClientRect();
-              dateInput.style.position = 'fixed';
-              dateInput.style.left = rect.left + 'px';
-              dateInput.style.top = (rect.bottom + 5) + 'px';
-              dateInput.style.zIndex = '9999';
-              dateInput.style.opacity = '0';
-              dateInput.style.pointerEvents = 'auto';
-              dateInput.style.width = '1px';
-              dateInput.style.height = '1px';
-              
-              document.body.appendChild(dateInput);
-              
-              setTimeout(() => {
-                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-                if (isMobile || !dateInput.showPicker) {
-                  dateInput.focus();
-                  dateInput.click();
-                } else {
-                  dateInput.showPicker();
-                }
-              }, 10);
-              
-              dateInput.onchange = (changeEvent) => {
-                const selectedDate = changeEvent.target.value;
-                if (selectedDate) {
-                  setSelectedDates(prev => {
-                    if (prev.length === 0) {
-                      // First date selected
-                      setFormData(formData => ({ ...formData, date_from: selectedDate, date_to: selectedDate }));
-                      return [selectedDate];
-                    } else if (prev.length === 1) {
-                      // Second date selected - check if it's within 1 day
-                      const firstDate = new Date(prev[0]);
-                      const secondDate = new Date(selectedDate);
-                      const diffTime = Math.abs(secondDate - firstDate);
-                      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                      
-                      if (diffDays <= 1) {
-                        // Valid range (max 2 days)
-                        const dates = [prev[0], selectedDate].sort();
-                        setFormData(formData => ({ ...formData, date_from: dates[0], date_to: dates[1] }));
-                        return dates;
-                      } else {
-                        // Reset to new date
-                        setFormData(formData => ({ ...formData, date_from: selectedDate, date_to: selectedDate }));
-                        return [selectedDate];
-                      }
-                    } else {
-                      // Reset to new date
-                      setFormData(formData => ({ ...formData, date_from: selectedDate, date_to: selectedDate }));
-                      return [selectedDate];
-                    }
-                  });
-                } else {
-                  setSelectedDates([]);
-                  setFormData(prev => ({ ...prev, date_from: null, date_to: null }));
-                }
-                document.body.removeChild(dateInput);
-              };
-              
-              dateInput.onblur = () => {
-                setTimeout(() => {
-                  if (document.body.contains(dateInput)) {
-                    document.body.removeChild(dateInput);
-                  }
-                }, 100);
-              };
+              setShowDatePicker(true);
             }}
             style={{
               padding: '8px 16px',
@@ -2322,6 +2247,27 @@ export default function HomePage() {
         </div>
         )}
       </div>
+
+      {/* Date Range Picker Modal */}
+      {showDatePicker && (
+        <DateRangePicker
+          selectedDates={selectedDates}
+          onChange={(dates) => {
+            if (dates.length === 0) {
+              setSelectedDates([]);
+              setFormData(prev => ({ ...prev, date_from: null, date_to: null }));
+            } else if (dates.length === 1) {
+              setSelectedDates(dates);
+              setFormData(prev => ({ ...prev, date_from: dates[0], date_to: dates[0] }));
+            } else {
+              const sortedDates = [...dates].sort();
+              setSelectedDates(sortedDates);
+              setFormData(prev => ({ ...prev, date_from: sortedDates[0], date_to: sortedDates[1] }));
+            }
+          }}
+          onClose={() => setShowDatePicker(false)}
+        />
+      )}
     </div>
   );
 }
