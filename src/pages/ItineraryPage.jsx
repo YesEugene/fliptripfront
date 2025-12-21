@@ -1140,57 +1140,190 @@ export default function ItineraryPage() {
     color: '#9ca3af'
   };
 
+  // Get city name for hero image
+  const cityName = itinerary?.tags?.city || formData.city || 'Barcelona';
+  const cityImage = getCityImage(cityName);
+  
+  // Get guide info from tour data
+  const guideInfo = tourData?.guide || null;
+  const guideName = guideInfo?.name || 'Local Guide';
+  const guideAvatar = guideInfo?.avatar_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&q=80';
+
   return (
     <div className="itinerary-container">
-      {/* Header with Logo and Back Button */}
-      <div className="header-section">
-        {/* Back Button */}
-        <button
-          onClick={handleBack}
-          style={{
-            position: 'absolute',
-            left: '20px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            padding: '8px 16px',
-            fontSize: '14px',
-            fontWeight: '500',
-            color: '#374151',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-            transition: 'all 0.2s ease',
-            zIndex: 10
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.backgroundColor = '#f9fafb';
-            e.target.style.borderColor = '#3b82f6';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.backgroundColor = 'white';
-            e.target.style.borderColor = '#e5e7eb';
-          }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          Back
-        </button>
-        
-        {/* Centered Logo */}
-        <div className="logo-container">
+      {/* Hero Section with City Image */}
+      <div 
+        className="hero-section"
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '400px',
+          backgroundImage: `url(${cityImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          padding: '20px',
+          maxWidth: '750px',
+          margin: '0 auto'
+        }}
+      >
+        {/* Dark Overlay */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.4)',
+          zIndex: 1
+        }} />
+
+        {/* Top Bar with Back Button and Logo */}
+        <div style={{
+          position: 'relative',
+          zIndex: 2,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 'auto'
+        }}>
+          {/* Back Button */}
+          <button
+            onClick={handleBack}
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              borderRadius: '8px',
+              padding: '8px 16px',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: '#374151',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+              transition: 'all 0.2s ease',
+              backdropFilter: 'blur(10px)'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = 'rgba(255, 255, 255, 1)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Back
+          </button>
+          
+          {/* Logo */}
           <img 
             src={FlipTripLogo} 
             alt="FlipTrip" 
-            className="logo-image"
             onClick={() => navigate('/')}
-            style={{ cursor: 'pointer' }}
+            style={{ 
+              cursor: 'pointer',
+              height: '40px',
+              width: 'auto',
+              filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))'
+            }}
           />
+        </div>
+
+        {/* Content Overlay: Title and Guide Info */}
+        <div style={{
+          position: 'relative',
+          zIndex: 2,
+          color: 'white',
+          paddingBottom: '20px'
+        }}>
+          <h1 style={{
+            fontSize: '36px',
+            fontWeight: 'bold',
+            marginBottom: '16px',
+            textShadow: '0 2px 8px rgba(0, 0, 0, 0.5)',
+            lineHeight: '1.2'
+          }}>
+            {itinerary?.title || generateFallbackTitle(formData)}
+          </h1>
+          
+          {/* Guide Info */}
+          {guideInfo && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              marginBottom: '16px'
+            }}>
+              <img 
+                src={guideAvatar}
+                alt={guideName}
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  border: '2px solid rgba(255, 255, 255, 0.8)',
+                  objectFit: 'cover',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
+                }}
+              />
+              <div>
+                <div style={{
+                  fontSize: '14px',
+                  opacity: 0.9,
+                  marginBottom: '2px'
+                }}>
+                  Guide
+                </div>
+                <div style={{
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  textShadow: '0 1px 4px rgba(0, 0, 0, 0.5)'
+                }}>
+                  {guideName}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Download PDF Button - Show only after payment or if not preview */}
+          {(!previewOnly || isPaid) && (
+            <button
+              onClick={handleDownloadPDF}
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                color: '#1f2937',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '12px 24px',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                transition: 'all 0.2s ease',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'rgba(255, 255, 255, 1)';
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+              }}
+            >
+              📱 Download PDF
+            </button>
+          )}
         </div>
       </div>
 
