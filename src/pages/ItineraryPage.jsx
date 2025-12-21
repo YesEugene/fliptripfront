@@ -1480,7 +1480,15 @@ export default function ItineraryPage() {
                 🎯 {interest}
               </span>
             ))}
-          </div>
+        </div>
+      </div>
+
+      <div className="content-section">
+        {/* Subtitle Card - Description only */}
+        <div className="enhanced-card">
+          <p className="subtitle">
+{itinerary?.subtitle || generateFallbackSubtitle(formData)}
+          </p>
 
           {itinerary?.weather && (
             <div className="weather-enhanced">
