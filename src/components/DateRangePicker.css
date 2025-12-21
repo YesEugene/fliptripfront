@@ -12,6 +12,13 @@
   animation: fadeIn 0.2s ease;
 }
 
+@media (max-width: 768px) {
+  .date-range-picker {
+    align-items: flex-end;
+    justify-content: center;
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -31,15 +38,17 @@
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.3s ease;
+  position: relative;
+  margin: auto;
 }
 
 @keyframes slideUp {
   from {
-    transform: translateY(20px);
+    transform: translateY(20px) translateX(0);
     opacity: 0;
   }
   to {
-    transform: translateY(0);
+    transform: translateY(0) translateX(0);
     opacity: 1;
   }
 }
@@ -269,6 +278,19 @@
     border-radius: 20px 20px 0 0;
     padding: 20px;
     max-height: 85vh;
+    margin: 0;
+    animation: slideUpMobile 0.3s ease;
+  }
+
+  @keyframes slideUpMobile {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
 
   .quick-select-buttons {
