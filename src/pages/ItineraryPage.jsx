@@ -6,6 +6,7 @@ import { isAuthenticated, getCurrentUser, logout } from '../modules/auth/service
 import html2pdf from 'html2pdf.js';
 import PhotoGallery from '../components/PhotoGallery';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
+import PDFIcon from '../assets/PDF.svg';
 // import SkateboardingGif from '../assets/Skateboarding.gif'; // File not found, commented out
 import './ItineraryPage.css';
 
@@ -1381,7 +1382,7 @@ export default function ItineraryPage() {
             <div style={{
               position: 'relative',
               zIndex: 2,
-              marginBottom: '40px' // 20px + 20px = 40px (lowered by 20px)
+              marginBottom: '20px' // 20px from bottom
             }}>
               <button
                 onClick={handleDownloadPDF}
@@ -1411,7 +1412,16 @@ export default function ItineraryPage() {
                   e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
                 }}
               >
-                📱 Download PDF
+                <img 
+                  src={PDFIcon} 
+                  alt="PDF" 
+                  style={{
+                    width: '20px',
+                    height: '20px',
+                    objectFit: 'contain'
+                  }}
+                />
+                Download PDF
               </button>
             </div>
           )}
