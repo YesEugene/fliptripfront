@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail } from '../services/api';
+import { getTourById } from '../modules/tours-database';
 import html2pdf from 'html2pdf.js';
 import PhotoGallery from '../components/PhotoGallery';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
@@ -102,6 +103,11 @@ export default function ItineraryPage() {
   const isExample = location.state?.isExample;
   const exampleItinerary = location.state?.itinerary;
   
+  // Extract URL parameters
+  const tourId = searchParams.get('tourId');
+  const previewOnly = searchParams.get('previewOnly') === 'true';
+  const isFullPlan = searchParams.get('full') === 'true';
+  
   // Extract form data from URL params
   const formData = {
     city: searchParams.get('city') || 'Barcelona',
@@ -111,16 +117,87 @@ export default function ItineraryPage() {
     budget: searchParams.get('budget') || '500'
   };
 
+  // Load tour from database
+  const loadTourFromDatabase = async (tourIdParam, isPreviewOnly, isFull) => {
+    try {
+      setLoading(true);
+      setError('');
+      console.log('📖 Loading tour from database:', tourIdParam, 'previewOnly:', isPreviewOnly, 'full:', isFull);
+      
+      const tour = await getTourById(tourIdParam);
+      console.log('✅ Tour loaded from DB:', tour);
+      
+      // Extract city name
+      const cityName = typeof tour.city === 'string' ? tour.city : tour.city?.name || 'Unknown City';
+      
+      // Get first day from daily_plan
+      const firstDay = tour.daily_plan && tour.daily_plan.length > 0 ? tour.daily_plan[0] : null;
+      
+      if (!firstDay || !firstDay.blocks || firstDay.blocks.length === 0) {
+        throw new Error('Tour has no daily plan or blocks');
+      }
+      
+      // If preview only (and not full plan), limit to first 2 blocks
+      // If full=true, show all blocks
+      let blocksToShow = firstDay.blocks;
+      if (isPreviewOnly && !isFull && blocksToShow.length > 2) {
+        blocksToShow = blocksToShow.slice(0, 2);
+        console.log('📋 Preview mode: showing first 2 blocks out of', firstDay.blocks.length);
+      } else if (isFull) {
+        console.log('📋 Full plan mode: showing all', blocksToShow.length, 'blocks');
+      }
+      
+      // Convert tour data to itinerary format
+      const itineraryData = {
+        title: tour.title || 'Tour',
+        subtitle: tour.description || `Explore ${cityName} with this curated tour`,
+        city: cityName,
+        date: formData.date || new Date().toISOString().slice(0, 10),
+        budget: tour.price?.pdfPrice || tour.price_pdf || '500',
+        daily_plan: [{
+          blocks: blocksToShow.map(block => ({
+            time: block.time || '09:00 - 12:00',
+            title: block.title || null,
+            items: block.items.map(item => ({
+              title: item.title || '',
+              address: item.address || '',
+              why: item.why || item.description || '',
+              tips: item.tips || item.recommendations || '',
+              photos: item.photos || [],
+              cost: item.cost || item.approx_cost || 0,
+              duration: item.duration || null,
+              approx_cost: item.approx_cost || item.cost || 'Free'
+            }))
+          }))
+        }],
+        // Add tour metadata
+        tourId: tourIdParam,
+        preview_media_url: tour.preview_media_url || tour.preview || null
+      };
+      
+      console.log('✅ Converted tour to itinerary format:', itineraryData);
+      setItinerary(itineraryData);
+      setLoading(false);
+    } catch (err) {
+      console.error('❌ Error loading tour from database:', err);
+      setError(err.message || 'Failed to load tour');
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (isExample && exampleItinerary) {
       // Use example data directly
       setItinerary(exampleItinerary);
       setLoading(false);
+    } else if (tourId) {
+      // Load tour from database
+      loadTourFromDatabase(tourId, previewOnly, isFullPlan);
     } else {
       // Generate new itinerary
       generateItineraryData();
     }
-  }, [isExample, exampleItinerary]);
+  }, [isExample, exampleItinerary, tourId, previewOnly, isFullPlan]);
 
   const generateItineraryData = async () => {
     try {
