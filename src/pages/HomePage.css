@@ -58,7 +58,7 @@ body {
   grid-row: span 1; /* Changed from span 2 to span 1 to match horizontal card height */
   width: 100%;
   height: 100%; /* Use grid row height to match horizontal cards */
-  min-height: 0; /* Allow grid to control height */
+  min-height: 154.88px; /* Match horizontal card height from grid-auto-rows */
 }
 
 /* Tour card title styles */

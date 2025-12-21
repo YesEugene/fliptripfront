@@ -2139,14 +2139,15 @@ export default function HomePage() {
                   zIndex: 1
                 }} />
                 
-                <div style={{ position: 'relative', zIndex: 2, paddingLeft: '20px', paddingTop: '0' }}>
+                <div style={{ position: 'relative', zIndex: 2, paddingLeft: '20px', paddingTop: '0', width: '60%' }}>
                   <h3 style={{
                     fontSize: '28px',
                     fontWeight: 'bold',
                     marginBottom: '0',
                     lineHeight: '1.2',
                     marginTop: '20px',
-                    color: 'white'
+                    color: 'white',
+                    width: '100%'
                   }}>
                     {personalizedTripPreview.title}
                   </h3>
@@ -2155,7 +2156,8 @@ export default function HomePage() {
                     color: 'rgba(255, 255, 255, 0.95)',
                     lineHeight: '1.5',
                     marginTop: '10px',
-                    marginBottom: '0'
+                    marginBottom: '0',
+                    width: '100%'
                   }}>
                     {personalizedTripPreview.subtitle}
                   </p>
