@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail } from '../services/api';
 import { getTourById } from '../modules/tours-database';
+import { isAuthenticated, getCurrentUser, logout } from '../modules/auth/services/authService';
 import html2pdf from 'html2pdf.js';
 import PhotoGallery from '../components/PhotoGallery';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
@@ -19,6 +20,7 @@ export default function ItineraryPage() {
   const [isPaid, setIsPaid] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [tourData, setTourData] = useState(null); // Store full tour data for guide info
+  const [user, setUser] = useState(null); // User state for auth buttons
 
   // City images mapping
   const cityImagesMap = {
@@ -503,6 +505,18 @@ export default function ItineraryPage() {
       setLoading(false);
     }
   };
+
+  // Check authentication on mount
+  useEffect(() => {
+    try {
+      const currentUser = getCurrentUser();
+      if (currentUser) {
+        setUser(currentUser);
+      }
+    } catch (error) {
+      console.error('Error checking auth:', error);
+    }
+  }, []);
 
   // Check if payment was successful from URL params (from success page redirect)
   useEffect(() => {
