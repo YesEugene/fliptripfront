@@ -18,6 +18,36 @@ export default function ItineraryPage() {
   const [email, setEmail] = useState('');
   const [isPaid, setIsPaid] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [tourData, setTourData] = useState(null); // Store full tour data for guide info
+
+  // City images mapping
+  const cityImagesMap = {
+    'Paris': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&h=600&fit=crop&q=80',
+    'Barcelona': 'https://images.unsplash.com/photo-1539037116277-4db20889f2d2?w=1200&h=600&fit=crop&q=80',
+    'Amsterdam': 'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=1200&h=600&fit=crop&q=80',
+    'Berlin': 'https://images.unsplash.com/photo-1587330979470-3595ac045ab0?w=1200&h=600&fit=crop&q=80',
+    'London': 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&h=600&fit=crop&q=80',
+    'Rome': 'https://images.unsplash.com/photo-1529260830199-42c24126f198?w=1200&h=600&fit=crop&q=80',
+    'Madrid': 'https://images.unsplash.com/photo-1539037116277-4db20889f2d2?w=1200&h=600&fit=crop&q=80',
+    'Lisbon': 'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=1200&h=600&fit=crop&q=80',
+    'Vienna': 'https://images.unsplash.com/photo-1516550164669-0e0f8c4b4e1c?w=1200&h=600&fit=crop&q=80',
+    'Prague': 'https://images.unsplash.com/photo-1541849546-216549ae216d?w=1200&h=600&fit=crop&q=80',
+    'Moscow': 'https://images.unsplash.com/photo-1512496015851-a90fb38cd796?w=1200&h=600&fit=crop&q=80',
+    'Istanbul': 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=1200&h=600&fit=crop&q=80',
+    'Dubai': 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&h=600&fit=crop&q=80',
+    'Tokyo': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1200&h=600&fit=crop&q=80',
+    'New York': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=1200&h=600&fit=crop&q=80',
+    'Sydney': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=600&fit=crop&q=80',
+    'Singapore': 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=1200&h=600&fit=crop&q=80',
+    'Copenhagen': 'https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?w=1200&h=600&fit=crop&q=80',
+    'Venice': 'https://images.unsplash.com/photo-1514890547357-a9e192465165?w=1200&h=600&fit=crop&q=80',
+    'Florence': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=1200&h=600&fit=crop&q=80'
+  };
+
+  // Get city image by city name
+  const getCityImage = (cityName) => {
+    return cityImagesMap[cityName] || cityImagesMap['Barcelona'] || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&h=600&fit=crop&q=80&auto=format';
+  };
 
   // Генерация fallback заголовков согласно промптам
   const generateFallbackTitle = (formData) => {
@@ -1165,11 +1195,8 @@ export default function ItineraryPage() {
       </div>
 
       <div className="content-section">
-        {/* Header */}
+        {/* Subtitle and Badges Card */}
         <div className="enhanced-card">
-          <h1 className="title">
-{itinerary?.title || generateFallbackTitle(formData)}
-          </h1>
           <p className="subtitle">
 {itinerary?.subtitle || generateFallbackSubtitle(formData)}
           </p>
@@ -1237,13 +1264,6 @@ export default function ItineraryPage() {
               )}
             </div>
           )}
-
-          <button
-            onClick={handleDownloadPDF}
-            className="download-button"
-          >
-            📱 Download PDF
-          </button>
         </div>
 
         {/* Email and Payment Block - Show only if preview and not paid */}
