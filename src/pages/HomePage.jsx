@@ -570,15 +570,50 @@ export default function HomePage() {
     }
   };
 
-  // Handle tour card click - navigate to preview page with tourId
+  // Handle tour card click - navigate to preview page with tourId and all filter parameters
   const handleTourClick = (tour) => {
     const params = new URLSearchParams();
     params.append('tourId', tour.id);
     params.append('previewOnly', 'true');
-    // Add city from tour if available
-    if (tour.city) {
-      params.append('city', typeof tour.city === 'string' ? tour.city : tour.city.name || '');
+    
+    // Add all filter parameters that user selected
+    if (formData.city) {
+      params.append('city', formData.city);
     }
+    
+    // Add dates if selected
+    if (selectedDates.length > 0) {
+      params.append('date', selectedDates[0]); // Use first date for display
+      if (selectedDates.length > 1) {
+        params.append('date_to', selectedDates[selectedDates.length - 1]);
+      }
+    }
+    
+    // Add audience if selected
+    if (formData.audience) {
+      params.append('audience', formData.audience);
+    }
+    
+    // Add budget if selected
+    if (formData.budget) {
+      params.append('budget', formData.budget);
+    }
+    
+    // Add interests if selected
+    if (formData.interest_ids && formData.interest_ids.length > 0 && allInterests.length > 0) {
+      // Convert interest IDs to names for display
+      const interestNames = formData.interest_ids
+        .map(id => {
+          const interest = allInterests.find(i => i.id === id);
+          return interest ? interest.name : null;
+        })
+        .filter(Boolean);
+      
+      if (interestNames.length > 0) {
+        params.append('interests', interestNames.join(','));
+      }
+    }
+    
     navigate(`/itinerary?${params.toString()}`);
   };
 
