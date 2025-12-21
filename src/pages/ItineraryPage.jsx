@@ -1390,26 +1390,26 @@ export default function ItineraryPage() {
                   backgroundColor: 'rgba(255, 255, 255, 0.95)',
                   color: '#1f2937',
                   border: 'none',
-                  borderRadius: '8px',
-                  padding: '12px 24px',
-                  fontSize: '16px',
+                  borderRadius: '6px', // Reduced by 30% (8px * 0.7 = 5.6px, rounded to 6px)
+                  padding: '8px 17px', // Reduced by 30% (12px * 0.7 = 8.4px, 24px * 0.7 = 16.8px, rounded)
+                  fontSize: '11px', // Reduced by 30% (16px * 0.7 = 11.2px, rounded to 11px)
                   fontWeight: '600',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                  boxShadow: '0 3px 8px rgba(0, 0, 0, 0.3)', // Reduced by 30%
                   transition: 'all 0.2s ease',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '8px'
+                  gap: '6px' // Reduced by 30% (8px * 0.7 = 5.6px, rounded to 6px)
                 }}
                 onMouseEnter={(e) => {
                   e.target.style.backgroundColor = 'rgba(255, 255, 255, 1)';
                   e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.4)';
+                  e.target.style.boxShadow = '0 4px 11px rgba(0, 0, 0, 0.4)'; // Reduced by 30%
                 }}
                 onMouseLeave={(e) => {
                   e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
                   e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+                  e.target.style.boxShadow = '0 3px 8px rgba(0, 0, 0, 0.3)'; // Reduced by 30%
                 }}
               >
                 <img 
