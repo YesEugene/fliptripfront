@@ -1532,7 +1532,7 @@ export default function HomePage() {
                   {errors.budget && <p style={{ color: '#ef4444', fontSize: '14px', marginTop: '8px' }}>{errors.budget}</p>}
                 </div>
 
-                {/* Trip Date - Single calendar for range selection (max 2 days) */}
+                {/* Trip Date - Custom date range picker */}
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>
                     Trip date {selectedDates.length > 0 && `(${selectedDates.length} day${selectedDates.length > 1 ? 's' : ''})`}
@@ -1547,81 +1547,7 @@ export default function HomePage() {
                         : ''}
                       placeholder="Select date(s)"
                       readOnly
-                      onClick={(e) => {
-                        const dateInput = document.createElement('input');
-                        dateInput.type = 'date';
-                        dateInput.min = new Date().toISOString().slice(0, 10);
-                        // Max date: today + 1 day (to allow max 2 days total)
-                        const maxDate = new Date();
-                        maxDate.setDate(maxDate.getDate() + 1);
-                        dateInput.max = maxDate.toISOString().slice(0, 10);
-                        dateInput.value = selectedDates.length > 0 ? selectedDates[0] : '';
-                        
-                        const rect = e.target.getBoundingClientRect();
-                        dateInput.style.position = 'fixed';
-                        dateInput.style.left = rect.left + 'px';
-                        dateInput.style.top = (rect.bottom + 5) + 'px';
-                        dateInput.style.zIndex = '9999';
-                        dateInput.style.opacity = '0';
-                        dateInput.style.pointerEvents = 'auto';
-                        dateInput.style.width = '1px';
-                        dateInput.style.height = '1px';
-                        
-                        document.body.appendChild(dateInput);
-                        
-                        setTimeout(() => {
-                          const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-                          if (isMobile || !dateInput.showPicker) {
-                            dateInput.focus();
-                            dateInput.click();
-                          } else {
-                            dateInput.showPicker();
-                          }
-                        }, 10);
-                        
-                        dateInput.onchange = (e) => {
-                          const selectedDate = e.target.value;
-                          if (!selectedDate) return;
-                          
-                          setSelectedDates(prev => {
-                            if (prev.length === 0) {
-                              // First date selected
-                              setFormData(formData => ({ ...formData, date_from: selectedDate, date_to: null }));
-                              return [selectedDate];
-                            } else if (prev.length === 1) {
-                              // Second date selected - check if it's within 1 day
-                              const firstDate = new Date(prev[0]);
-                              const secondDate = new Date(selectedDate);
-                              const diffTime = Math.abs(secondDate - firstDate);
-                              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                              
-                              if (diffDays <= 1) {
-                                // Valid range (max 2 days)
-                                const dates = [prev[0], selectedDate].sort();
-                                setFormData(formData => ({ ...formData, date_from: dates[0], date_to: dates[1] }));
-                                return dates;
-                              } else {
-                                // Reset to new date
-                                setFormData(formData => ({ ...formData, date_from: selectedDate, date_to: null }));
-                                return [selectedDate];
-                              }
-                            } else {
-                              // Reset to new date
-                              setFormData(formData => ({ ...formData, date_from: selectedDate, date_to: null }));
-                              return [selectedDate];
-                            }
-                          });
-                          document.body.removeChild(dateInput);
-                        };
-                        
-                        dateInput.onblur = () => {
-                          setTimeout(() => {
-                            if (document.body.contains(dateInput)) {
-                              document.body.removeChild(dateInput);
-                            }
-                          }, 100);
-                        };
-                      }}
+                      onClick={() => setShowFilterModalDatePicker(true)}
                       style={{
                         width: '100%',
                         padding: '12px 40px 12px 16px',
