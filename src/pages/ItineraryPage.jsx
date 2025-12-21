@@ -249,6 +249,8 @@ export default function ItineraryPage() {
     tags.interests = Array.from(allInterests).slice(0, 5);
 
     console.log('📊 Calculated tour tags:', tags);
+    console.log(`📊 Final interests for tour ${tour.id}:`, tags.interests);
+    console.log(`📊 Total unique interests collected: ${allInterests.size}, limited to: ${tags.interests.length}`);
     return tags;
   };
 
