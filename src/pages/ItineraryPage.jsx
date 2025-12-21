@@ -472,9 +472,25 @@ export default function ItineraryPage() {
                   rating: activity.rating
                 }]
               }))
-            }]
+            }],
+            tags: { // Add tags for generated itineraries
+              city: formData.city || 'Unknown',
+              date: formData.date || new Date().toISOString().slice(0, 10),
+              audience: formData.audience || null, // Include audience tag
+              budget: formData.budget ? `€${formData.budget}` : `€${data.totalCost || '800'}`,
+              interests: formData.interests && Array.isArray(formData.interests) && formData.interests.length > 0 
+                ? formData.interests 
+                : [] // Include interests from filters
+            }
           };
           console.log('✅ Converted data for display:', convertedData);
+          console.log('📊 Tags in converted data:', convertedData.tags);
+          console.log('📊 FormData for tags:', {
+            city: formData.city,
+            audience: formData.audience,
+            interests: formData.interests,
+            budget: formData.budget
+          });
           setItinerary(convertedData);
           return;
         } else {
