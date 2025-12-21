@@ -109,10 +109,10 @@ export default function ItineraryPage() {
   const isFullPlan = searchParams.get('full') === 'true';
   
   // Extract form data from URL params
-  // Note: budget and interests should be null if not in URL (not default values)
+  // Note: budget, interests, and audience should be null if not in URL (not default values)
   const formData = {
     city: searchParams.get('city') || 'Barcelona',
-    audience: searchParams.get('audience') || 'him',
+    audience: searchParams.get('audience') || null, // null if not specified, not default to 'him'
     interests: searchParams.get('interests')?.split(',').filter(Boolean) || null, // null if not specified, not default to ['Romantic']
     date: searchParams.get('date') || new Date().toISOString().slice(0, 10),
     budget: searchParams.get('budget') || null // null if not specified, not default to '500'
