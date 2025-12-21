@@ -477,12 +477,29 @@ export default function ItineraryPage() {
   // Check if payment was successful from URL params (from success page redirect)
   useEffect(() => {
     const sessionId = searchParams.get('session_id');
-    // If session_id is present, payment was successful
-    if (sessionId) {
+    const paidParam = searchParams.get('paid');
+    
+    // If session_id or paid=true is present, payment was successful
+    if (sessionId || paidParam === 'true') {
       setIsPaid(true);
       console.log('✅ Payment confirmed, unlocking full itinerary');
+      
+      // Clean up URL to remove session_id and paid params, but keep tourId
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete('session_id');
+      newSearchParams.delete('paid');
+      
+      // Keep essential params for tour loading
+      if (tourId) {
+        newSearchParams.set('tourId', tourId);
+      }
+      if (previewOnly) {
+        newSearchParams.set('previewOnly', 'true');
+      }
+      
+      navigate(`${location.pathname}?${newSearchParams.toString()}`, { replace: true });
     }
-  }, [searchParams]);
+  }, [searchParams, navigate, location.pathname, tourId, previewOnly]);
 
   useEffect(() => {
     if (isExample && exampleItinerary) {
