@@ -195,16 +195,16 @@ const DateRangePicker = ({
   const todayDate = new Date();
   todayDate.setHours(0, 0, 0, 0);
 
-  // Close on backdrop click
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget && onClose) {
-      onClose();
-    }
-  };
+  // Close on backdrop click - removed, now only close via button
+  // const handleBackdropClick = (e) => {
+  //   if (e.target === e.currentTarget && onClose) {
+  //     onClose();
+  //   }
+  // };
 
   return (
-    <div className="date-range-picker" ref={calendarRef} onClick={handleBackdropClick}>
-      <div className="date-range-picker-container" onClick={(e) => e.stopPropagation()}>
+    <div className="date-range-picker" ref={calendarRef}>
+      <div className="date-range-picker-container">
         {/* Quick Select Buttons */}
         <div className="quick-select-buttons">
           <button

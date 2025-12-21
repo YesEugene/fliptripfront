@@ -214,7 +214,7 @@
 .calendar-actions {
   display: flex;
   gap: 12px;
-  justify-content: flex-end;
+  justify-content: space-between;
   padding-top: 16px;
   border-top: 1px solid #e5e7eb;
 }
@@ -244,6 +244,19 @@
 .calendar-action-btn.today-btn {
   color: #3E85FC;
   border-color: #3E85FC;
+}
+
+.calendar-action-btn.apply-btn {
+  background: #3E85FC;
+  color: white;
+  border-color: #3E85FC;
+  margin-left: auto;
+}
+
+.calendar-action-btn.apply-btn:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: white;
 }
 
 /* Mobile Responsive */
