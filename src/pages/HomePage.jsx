@@ -549,8 +549,11 @@ export default function HomePage() {
       // Build query params manually to handle interest_ids array
       const params = new URLSearchParams();
       params.append('city', formData.city);
-      params.append('audience', formData.audience);
+      if (formData.audience) {
+        params.append('audience', formData.audience);
+      }
       if (selectedDates.length > 0) {
+        params.append('date', selectedDates[0]); // Use first date for display
         params.append('date_from', selectedDates[0]);
         if (selectedDates.length > 1) {
           params.append('date_to', selectedDates[selectedDates.length - 1]);
@@ -558,10 +561,26 @@ export default function HomePage() {
           params.append('date_to', selectedDates[0]); // If only one date selected, use same date for both
         }
       }
-      params.append('budget', formData.budget);
+      if (formData.budget) {
+        params.append('budget', formData.budget);
+      }
       params.append('previewOnly', 'true');
       
-      // Add each interest_id as separate parameter
+      // Convert interest_ids to interest names and add to URL
+      if (formData.interest_ids && formData.interest_ids.length > 0 && allInterests.length > 0) {
+        const interestNames = formData.interest_ids
+          .map(id => {
+            const interest = allInterests.find(i => i.id === id);
+            return interest ? interest.name : null;
+          })
+          .filter(Boolean);
+        
+        if (interestNames.length > 0) {
+          params.append('interests', interestNames.join(','));
+        }
+      }
+      
+      // Also add interest_ids for API calls if needed
       formData.interest_ids.forEach(id => {
         params.append('interest_ids', id);
       });
