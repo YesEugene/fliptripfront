@@ -1158,187 +1158,277 @@ export default function ItineraryPage() {
   const cityName = itinerary?.tags?.city || formData.city || 'Barcelona';
   const cityImage = getCityImage(cityName);
   
-  // Get guide info from tour data
-  const guideInfo = tourData?.guide || null;
-  const guideName = guideInfo?.name || 'Local Guide';
-  const guideAvatar = guideInfo?.avatar_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&q=80';
+  // Get guide info from tour data (only for DB tours, not generated)
+  const isGeneratedTour = !tourId; // If no tourId, it's a generated tour
+  const guideInfo = !isGeneratedTour && tourData?.guide ? tourData.guide : null;
+  const guideName = guideInfo?.name || null;
+  const guideAvatar = guideInfo?.avatar_url || null;
 
   return (
     <div className="itinerary-container">
-      {/* Hero Section with City Image */}
-      <div 
-        className="hero-section"
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: '400px',
-          backgroundImage: `url(${cityImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          padding: '20px',
-          maxWidth: '750px',
-          margin: '0 auto'
-        }}
-      >
-        {/* Dark Overlay */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.4)',
-          zIndex: 1
-        }} />
-
-        {/* Top Bar with Back Button and Logo */}
-        <div style={{
-          position: 'relative',
-          zIndex: 2,
-          display: 'flex',
-          justifyContent: 'space-between',
+      {/* White Header with Logo and Auth Buttons */}
+      <div style={{
+        backgroundColor: 'white',
+        padding: '20px',
+        maxWidth: '750px',
+        margin: '0 auto',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%'
+      }}>
+        {/* Logo */}
+        <img 
+          src={FlipTripLogo} 
+          alt="FlipTrip" 
+          onClick={() => navigate('/')}
+          style={{ 
+            cursor: 'pointer',
+            height: '60px',
+            width: 'auto'
+          }}
+        />
+        
+        {/* Auth Buttons */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '12px',
           alignItems: 'center',
-          marginBottom: 'auto'
+          height: '60px'
         }}>
-          {/* Back Button */}
-          <button
-            onClick={handleBack}
-            style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.9)',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              borderRadius: '8px',
-              padding: '8px 16px',
-              fontSize: '14px',
-              fontWeight: '500',
-              color: '#374151',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
-              transition: 'all 0.2s ease',
-              backdropFilter: 'blur(10px)'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = 'rgba(255, 255, 255, 1)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Back
-          </button>
-          
-          {/* Logo */}
-          <img 
-            src={FlipTripLogo} 
-            alt="FlipTrip" 
-            onClick={() => navigate('/')}
-            style={{ 
-              cursor: 'pointer',
-              height: '40px',
-              width: 'auto',
-              filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))'
-            }}
-          />
-        </div>
-
-        {/* Content Overlay: Title and Guide Info */}
-        <div style={{
-          position: 'relative',
-          zIndex: 2,
-          color: 'white',
-          paddingBottom: '20px'
-        }}>
-          <h1 style={{
-            fontSize: '36px',
-            fontWeight: 'bold',
-            marginBottom: '16px',
-            textShadow: '0 2px 8px rgba(0, 0, 0, 0.5)',
-            lineHeight: '1.2'
-          }}>
-            {itinerary?.title || generateFallbackTitle(formData)}
-          </h1>
-          
-          {/* Guide Info */}
-          {guideInfo && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              marginBottom: '16px'
-            }}>
-              <img 
-                src={guideAvatar}
-                alt={guideName}
+          {user ? (
+            <>
+              <Link
+                to={user.role === 'guide' ? '/guide/dashboard' : '/user/dashboard'}
                 style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '50%',
-                  border: '2px solid rgba(255, 255, 255, 0.8)',
-                  objectFit: 'cover',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
-                }}
-              />
-              <div>
-                <div style={{
+                  color: '#374151',
+                  textDecoration: 'none',
                   fontSize: '14px',
-                  opacity: 0.9,
-                  marginBottom: '2px'
-                }}>
-                  Guide
-                </div>
-                <div style={{
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  textShadow: '0 1px 4px rgba(0, 0, 0, 0.5)'
-                }}>
-                  {guideName}
-                </div>
-              </div>
-            </div>
+                  fontWeight: '600'
+                }}
+              >
+                {user.name}
+              </Link>
+              <button
+                onClick={() => {
+                  logout();
+                  setUser(null);
+                  window.location.reload();
+                }}
+                style={{
+                  backgroundColor: '#f3f4f6',
+                  color: '#374151',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  fontWeight: '600'
+                }}
+              >
+                Выйти
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                style={{
+                  color: '#374151',
+                  textDecoration: 'none',
+                  fontSize: '14px',
+                  fontWeight: '600'
+                }}
+              >
+                Вход
+              </Link>
+              <Link
+                to="/register"
+                style={{
+                  backgroundColor: '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  textDecoration: 'none',
+                  fontWeight: '600'
+                }}
+              >
+                Регистрация
+              </Link>
+            </>
           )}
+        </div>
+      </div>
 
-          {/* Download PDF Button - Show only after payment or if not preview */}
-          {(!previewOnly || isPaid) && (
+      {/* Hero Image Section with Rounded Corners */}
+      <div style={{
+        maxWidth: '750px',
+        margin: '0 auto',
+        padding: '0 20px',
+        marginBottom: '20px'
+      }}>
+        <div 
+          style={{
+            position: 'relative',
+            width: '100%',
+            height: '400px',
+            backgroundImage: `url(${cityImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            borderRadius: '16px',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            padding: '20px'
+          }}
+        >
+          {/* Black Gradient Overlay */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.6) 100%)',
+            zIndex: 1
+          }} />
+
+          {/* Top Bar with Back Button */}
+          <div style={{
+            position: 'relative',
+            zIndex: 2,
+            display: 'flex',
+            justifyContent: 'flex-start',
+            alignItems: 'center'
+          }}>
             <button
-              onClick={handleDownloadPDF}
+              onClick={handleBack}
               style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                color: '#1f2937',
-                border: 'none',
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
                 borderRadius: '8px',
-                padding: '12px 24px',
-                fontSize: '16px',
-                fontWeight: '600',
+                padding: '8px 16px',
+                fontSize: '14px',
+                fontWeight: '500',
+                color: '#374151',
                 cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-                transition: 'all 0.2s ease',
-                display: 'inline-flex',
+                display: 'flex',
                 alignItems: 'center',
-                gap: '8px'
+                gap: '8px',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                transition: 'all 0.2s ease',
+                backdropFilter: 'blur(10px)'
               }}
               onMouseEnter={(e) => {
                 e.target.style.backgroundColor = 'rgba(255, 255, 255, 1)';
-                e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.4)';
               }}
               onMouseLeave={(e) => {
-                e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+                e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
               }}
             >
-              📱 Download PDF
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Back
             </button>
-          )}
+          </div>
+
+          {/* Title at Top */}
+          <div style={{
+            position: 'relative',
+            zIndex: 2,
+            color: 'white',
+            marginTop: 'auto',
+            marginBottom: 'auto'
+          }}>
+            <h1 style={{
+              fontSize: '36px',
+              fontWeight: 'bold',
+              marginBottom: '16px',
+              textShadow: '0 2px 8px rgba(0, 0, 0, 0.7)',
+              lineHeight: '1.2'
+            }}>
+              {itinerary?.title || generateFallbackTitle(formData)}
+            </h1>
+
+            {/* Download PDF Button - Show only after payment or if not preview */}
+            {(!previewOnly || isPaid) && (
+              <button
+                onClick={handleDownloadPDF}
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  color: '#1f2937',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                  transition: 'all 0.2s ease',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 1)';
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+                }}
+              >
+                📱 Download PDF
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Author Info Below Image - Only for DB tours */}
+        {guideInfo && guideName && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            marginTop: '16px',
+            padding: '0 4px'
+          }}>
+            <img 
+              src={guideAvatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&q=80'}
+              alt={guideName}
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                border: '2px solid #e5e7eb',
+                objectFit: 'cover',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+              }}
+            />
+            <div>
+              <div style={{
+                fontSize: '12px',
+                color: '#6b7280',
+                marginBottom: '2px'
+              }}>
+                Tour created by
+              </div>
+              <div style={{
+                fontSize: '16px',
+                fontWeight: '600',
+                color: '#1f2937'
+              }}>
+                {guideName}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="content-section">
