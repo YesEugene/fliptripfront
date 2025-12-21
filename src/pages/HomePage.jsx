@@ -2175,7 +2175,7 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Date Range Picker Modal */}
+      {/* Date Range Picker Modal - Quick Filter */}
       {showDatePicker && (
         <DateRangePicker
           selectedDates={selectedDates}
@@ -2193,6 +2193,27 @@ export default function HomePage() {
             }
           }}
           onClose={() => setShowDatePicker(false)}
+        />
+      )}
+
+      {/* Date Range Picker Modal - Filter Modal */}
+      {showFilterModalDatePicker && (
+        <DateRangePicker
+          selectedDates={selectedDates}
+          onChange={(dates) => {
+            if (dates.length === 0) {
+              setSelectedDates([]);
+              setFormData(prev => ({ ...prev, date_from: null, date_to: null }));
+            } else if (dates.length === 1) {
+              setSelectedDates(dates);
+              setFormData(prev => ({ ...prev, date_from: dates[0], date_to: dates[0] }));
+            } else {
+              const sortedDates = [...dates].sort();
+              setSelectedDates(sortedDates);
+              setFormData(prev => ({ ...prev, date_from: sortedDates[0], date_to: sortedDates[1] }));
+            }
+          }}
+          onClose={() => setShowFilterModalDatePicker(false)}
         />
       )}
     </div>
