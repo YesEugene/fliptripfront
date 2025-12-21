@@ -117,6 +117,85 @@ export default function ItineraryPage() {
     budget: searchParams.get('budget') || '500'
   };
 
+  // Calculate tour tags from tour data (budget, interests, etc.)
+  const calculateTourTags = (tour) => {
+    const tags = {
+      city: typeof tour.city === 'string' ? tour.city : tour.city?.name || 'Unknown City',
+      date: formData.date || new Date().toISOString().slice(0, 10),
+      audience: null, // Not shown for tours from DB
+      budget: null,
+      interests: []
+    };
+
+    // Calculate budget from all locations' approx_cost
+    let totalBudget = 0;
+    const allInterests = new Set();
+
+    if (tour.daily_plan && Array.isArray(tour.daily_plan)) {
+      tour.daily_plan.forEach(day => {
+        if (day.blocks && Array.isArray(day.blocks)) {
+          day.blocks.forEach(block => {
+            if (block.items && Array.isArray(block.items)) {
+              block.items.forEach(item => {
+                // Sum up budget
+                const cost = parseFloat(item.approx_cost) || parseFloat(item.cost) || 0;
+                totalBudget += cost;
+
+                // Collect interests from location
+                if (item.location?.location_interests && Array.isArray(item.location.location_interests)) {
+                  item.location.location_interests.forEach(li => {
+                    if (li.interest?.name) {
+                      allInterests.add(li.interest.name);
+                    }
+                  });
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+
+    // Format budget
+    if (totalBudget > 0) {
+      tags.budget = `€${Math.round(totalBudget)}`;
+    } else {
+      tags.budget = 'Free';
+    }
+
+    // Convert interests set to array and limit to 5
+    tags.interests = Array.from(allInterests).slice(0, 5);
+
+    console.log('📊 Calculated tour tags:', tags);
+    return tags;
+  };
+
+  // Get tags to display based on filters or tour data
+  const getTagsToDisplay = (tour, hasFilters) => {
+    if (hasFilters) {
+      // Use filter tags (from URL params)
+      return {
+        city: formData.city || 'Unknown',
+        date: formData.date || new Date().toISOString().slice(0, 10),
+        audience: formData.audience || null,
+        budget: formData.budget ? `€${formData.budget}` : null,
+        interests: formData.interests || []
+      };
+    } else if (tour) {
+      // Use tour tags (calculated from tour data)
+      return calculateTourTags(tour);
+    } else {
+      // Fallback to formData
+      return {
+        city: formData.city || 'Unknown',
+        date: formData.date || new Date().toISOString().slice(0, 10),
+        audience: formData.audience || null,
+        budget: formData.budget ? `€${formData.budget}` : null,
+        interests: formData.interests || []
+      };
+    }
+  };
+
   // Load tour from database
   const loadTourFromDatabase = async (tourIdParam, isPreviewOnly, isFull) => {
     try {
@@ -147,13 +226,37 @@ export default function ItineraryPage() {
         console.log('📋 Full plan mode: showing all', blocksToShow.length, 'blocks');
       }
       
+      // Check if user has filters in URL (excluding budget, as budget logic is separate)
+      const hasFilters = searchParams.get('city') || 
+                         searchParams.get('audience') || 
+                         searchParams.get('interests') || 
+                         searchParams.get('date');
+      
+      // Calculate tags from tour
+      const tourTags = calculateTourTags(tour);
+      
+      // Override budget: use filter budget if provided, otherwise use calculated from tour
+      const finalBudget = formData.budget ? `€${formData.budget}` : tourTags.budget;
+      
+      // Get tags to display
+      const tags = hasFilters ? {
+        city: formData.city || tourTags.city,
+        date: formData.date || tourTags.date,
+        audience: formData.audience || null,
+        budget: finalBudget,
+        interests: formData.interests && formData.interests.length > 0 ? formData.interests : tourTags.interests
+      } : {
+        ...tourTags,
+        budget: finalBudget // Use calculated budget if no filter budget
+      };
+      
       // Convert tour data to itinerary format
       const itineraryData = {
         title: tour.title || 'Tour',
         subtitle: tour.description || `Explore ${cityName} with this curated tour`,
         city: cityName,
         date: formData.date || new Date().toISOString().slice(0, 10),
-        budget: tour.price?.pdfPrice || tour.price_pdf || '500',
+        budget: finalBudget,
         daily_plan: [{
           blocks: blocksToShow.map(block => ({
             time: block.time || '09:00 - 12:00',
@@ -172,7 +275,9 @@ export default function ItineraryPage() {
         }],
         // Add tour metadata
         tourId: tourIdParam,
-        preview_media_url: tour.preview_media_url || tour.preview || null
+        preview_media_url: tour.preview_media_url || tour.preview || null,
+        // Add tags for display
+        tags: tags
       };
       
       console.log('✅ Converted tour to itinerary format:', itineraryData);
@@ -250,6 +355,16 @@ export default function ItineraryPage() {
         // Используем локальный fallback с правильной структурой
         console.log('🔄 Using local fallback itinerary...');
         const fallbackData = generateFallbackItinerary(formData);
+        
+        // Add tags to fallback data
+        fallbackData.tags = {
+          city: formData.city || 'Unknown',
+          date: formData.date || new Date().toISOString().slice(0, 10),
+          audience: formData.audience || null,
+          budget: formData.budget ? `€${formData.budget}` : null,
+          interests: formData.interests || []
+        };
+        
         setItinerary(fallbackData);
         return;
       }
@@ -629,19 +744,32 @@ export default function ItineraryPage() {
           </p>
           
           <div className="badges">
+            {/* City tag */}
             <span className="badge-enhanced" style={{ backgroundColor: '#dbeafe', color: '#1e40af' }}>
-              🌍 {formData.city}
+              🌍 {itinerary?.tags?.city || formData.city || 'Unknown'}
             </span>
+            
+            {/* Date tag */}
             <span className="badge-enhanced" style={{ backgroundColor: '#f3e8ff', color: '#7c3aed' }}>
-              📅 {formData.date}
+              📅 {itinerary?.tags?.date || formData.date || new Date().toISOString().slice(0, 10)}
             </span>
-            <span className="badge-enhanced" style={{ backgroundColor: '#dcfce7', color: '#166534' }}>
-              For: {formData.audience}
-            </span>
-            <span className="badge-enhanced" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>
-              Budget: {itinerary?.meta?.total_estimated_cost || `${formData.budget}€`}
-            </span>
-            {formData.interests && formData.interests.map((interest, index) => (
+            
+            {/* Audience tag - only show if from filters */}
+            {itinerary?.tags?.audience && (
+              <span className="badge-enhanced" style={{ backgroundColor: '#dcfce7', color: '#166534' }}>
+                For: {itinerary.tags.audience}
+              </span>
+            )}
+            
+            {/* Budget tag - use filter budget if provided, otherwise calculated from tour */}
+            {itinerary?.tags?.budget && (
+              <span className="badge-enhanced" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>
+                Budget: {itinerary.tags.budget}
+              </span>
+            )}
+            
+            {/* Interests tags */}
+            {(itinerary?.tags?.interests || formData.interests) && (itinerary?.tags?.interests || formData.interests).map((interest, index) => (
               <span key={index} className="badge-enhanced" style={{ backgroundColor: '#fde7e7', color: '#b91c1c' }}>
                 🎯 {interest}
               </span>
