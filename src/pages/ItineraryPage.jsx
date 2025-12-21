@@ -109,12 +109,13 @@ export default function ItineraryPage() {
   const isFullPlan = searchParams.get('full') === 'true';
   
   // Extract form data from URL params
+  // Note: budget should be null if not in URL (not default to '500')
   const formData = {
     city: searchParams.get('city') || 'Barcelona',
     audience: searchParams.get('audience') || 'him',
     interests: searchParams.get('interests')?.split(',') || ['Romantic'],
     date: searchParams.get('date') || new Date().toISOString().slice(0, 10),
-    budget: searchParams.get('budget') || '500'
+    budget: searchParams.get('budget') || null // null if not specified, not default to '500'
   };
 
   // Calculate tour tags from tour data (budget, interests, etc.)
@@ -232,11 +233,21 @@ export default function ItineraryPage() {
                          searchParams.get('interests') || 
                          searchParams.get('date');
       
+      // Check if budget was explicitly provided in URL (not default)
+      const hasBudgetFilter = searchParams.get('budget') !== null;
+      
+      console.log('🔍 Filter check:', {
+        hasFilters: !!hasFilters,
+        hasBudgetFilter,
+        budgetFromURL: searchParams.get('budget'),
+        formDataBudget: formData.budget
+      });
+      
       // Calculate tags from tour
       const tourTags = calculateTourTags(tour);
       
-      // Override budget: use filter budget if provided, otherwise use calculated from tour
-      const finalBudget = formData.budget ? `€${formData.budget}` : tourTags.budget;
+      // Override budget: use filter budget ONLY if explicitly provided in URL, otherwise use calculated from tour
+      const finalBudget = hasBudgetFilter && formData.budget ? `€${formData.budget}` : tourTags.budget;
       
       // Get tags to display
       const tags = hasFilters ? {
