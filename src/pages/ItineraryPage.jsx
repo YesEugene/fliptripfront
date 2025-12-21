@@ -15,6 +15,9 @@ export default function ItineraryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [itinerary, setItinerary] = useState(null);
+  const [email, setEmail] = useState('');
+  const [isPaid, setIsPaid] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
 
   // Генерация fallback заголовков согласно промптам
   const generateFallbackTitle = (formData) => {
@@ -375,14 +378,26 @@ export default function ItineraryPage() {
         throw new Error('Tour has no daily plan or blocks');
       }
       
-      // If preview only (and not full plan), limit to first 2 blocks
-      // If full=true, show all blocks
+      // If preview only (and not full plan) and not paid, limit to first 2 items total
+      // If full=true or paid=true, show all blocks and items
       let blocksToShow = firstDay.blocks;
-      if (isPreviewOnly && !isFull && blocksToShow.length > 2) {
-        blocksToShow = blocksToShow.slice(0, 2);
-        console.log('📋 Preview mode: showing first 2 blocks out of', firstDay.blocks.length);
-      } else if (isFull) {
-        console.log('📋 Full plan mode: showing all', blocksToShow.length, 'blocks');
+      let shouldLimitItems = isPreviewOnly && !isFull && !isPaid;
+      
+      if (shouldLimitItems) {
+        // Limit to first 2 items total across all blocks
+        let itemCount = 0;
+        blocksToShow = blocksToShow.map(block => {
+          if (itemCount >= 2) {
+            return { ...block, items: [] }; // Empty items if we've reached limit
+          }
+          const limitedItems = block.items.slice(0, 2 - itemCount);
+          itemCount += limitedItems.length;
+          return { ...block, items: limitedItems };
+        }).filter(block => block.items && block.items.length > 0); // Remove blocks with no items
+        
+        console.log('📋 Preview mode: showing first 2 items out of all blocks');
+      } else if (isFull || isPaid) {
+        console.log('📋 Full plan mode: showing all', blocksToShow.length, 'blocks with all items');
       }
       
       // Check if user has filters in URL (excluding budget, as budget logic is separate)
@@ -1042,6 +1057,92 @@ export default function ItineraryPage() {
           </button>
         </div>
 
+        {/* Email and Payment Block - Show only if preview and not paid */}
+        {previewOnly && !isPaid && (
+          <div className="enhanced-card" style={{ 
+            backgroundColor: '#f9fafb', 
+            border: '2px solid #e5e7eb',
+            marginTop: '24px',
+            marginBottom: '24px'
+          }}>
+            <h3 style={{ 
+              fontSize: '20px', 
+              fontWeight: 'bold', 
+              color: '#1f2937', 
+              marginBottom: '16px',
+              textAlign: 'center'
+            }}>
+              🔒 Unlock Full Itinerary
+            </h3>
+            <p style={{ 
+              color: '#6b7280', 
+              marginBottom: '20px',
+              textAlign: 'center',
+              fontSize: '14px'
+            }}>
+              Get access to all locations and complete details
+            </p>
+            
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: '12px',
+              maxWidth: '400px',
+              margin: '0 auto'
+            }}>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={{
+                  padding: '12px 16px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  width: '100%'
+                }}
+              />
+              <button
+                onClick={handlePayment}
+                disabled={processingPayment || !email}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: processingPayment ? '#9ca3af' : '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: processingPayment || !email ? 'not-allowed' : 'pointer',
+                  width: '100%',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  if (!processingPayment && email) {
+                    e.target.style.backgroundColor = '#2563eb';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!processingPayment && email) {
+                    e.target.style.backgroundColor = '#3b82f6';
+                  }
+                }}
+              >
+                {processingPayment ? 'Processing...' : '💳 Pay & Unlock Full Plan'}
+              </button>
+            </div>
+            
+            <p style={{ 
+              color: '#9ca3af', 
+              marginTop: '16px',
+              textAlign: 'center',
+              fontSize: '12px'
+            }}>
+              Secure payment via Stripe
+            </p>
+          </div>
+        )}
 
         {/* Itinerary Plan */}
         <div className="enhanced-card">
