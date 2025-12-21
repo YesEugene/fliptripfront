@@ -1154,9 +1154,11 @@ export default function ItineraryPage() {
     color: '#9ca3af'
   };
 
-  // Get city name for hero image
+  // Get image for hero - use tour preview_media_url if available, otherwise city image
+  const tourPreviewImage = itinerary?.preview_media_url || tourData?.preview_media_url || tourData?.preview || null;
   const cityName = itinerary?.tags?.city || formData.city || 'Barcelona';
   const cityImage = getCityImage(cityName);
+  const heroImage = tourPreviewImage || cityImage; // Use tour preview if available, otherwise city image
   
   // Get guide info from tour data (only for DB tours, not generated)
   const isGeneratedTour = !tourId; // If no tourId, it's a generated tour
@@ -1177,11 +1179,11 @@ export default function ItineraryPage() {
         alignItems: 'center',
         width: '100%'
       }}>
-        {/* Logo */}
+        {/* Logo - Clickable with filter restoration */}
         <img 
           src={FlipTripLogo} 
           alt="FlipTrip" 
-          onClick={() => navigate('/')}
+          onClick={handleBack}
           style={{ 
             cursor: 'pointer',
             height: '60px',
@@ -1274,75 +1276,34 @@ export default function ItineraryPage() {
             position: 'relative',
             width: '100%',
             height: '400px',
-            backgroundImage: `url(${cityImage})`,
+            backgroundImage: `url(${heroImage})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             borderRadius: '16px',
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'space-between',
+            justifyContent: 'flex-start',
             padding: '20px'
           }}
         >
-          {/* Black Gradient Overlay */}
+          {/* Black Gradient Overlay - from top */}
           <div style={{
             position: 'absolute',
             top: 0,
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.6) 100%)',
+            background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 100%)',
             zIndex: 1
           }} />
 
-          {/* Top Bar with Back Button */}
-          <div style={{
-            position: 'relative',
-            zIndex: 2,
-            display: 'flex',
-            justifyContent: 'flex-start',
-            alignItems: 'center'
-          }}>
-            <button
-              onClick={handleBack}
-              style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                borderRadius: '8px',
-                padding: '8px 16px',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#374151',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
-                transition: 'all 0.2s ease',
-                backdropFilter: 'blur(10px)'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = 'rgba(255, 255, 255, 1)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Back
-            </button>
-          </div>
-
-          {/* Title at Top */}
+          {/* Title at Top - 30px from top */}
           <div style={{
             position: 'relative',
             zIndex: 2,
             color: 'white',
-            marginTop: 'auto',
-            marginBottom: 'auto'
+            marginTop: '30px'
           }}>
             <h1 style={{
               fontSize: '36px',
@@ -1415,16 +1376,17 @@ export default function ItineraryPage() {
               <div style={{
                 fontSize: '12px',
                 color: '#6b7280',
-                marginBottom: '2px'
+                marginBottom: '2px',
+                lineHeight: '1.4'
               }}>
-                Tour created by
+                Tour created
               </div>
               <div style={{
-                fontSize: '16px',
-                fontWeight: '600',
-                color: '#1f2937'
+                fontSize: '12px',
+                color: '#6b7280',
+                lineHeight: '1.4'
               }}>
-                {guideName}
+                by {guideName}
               </div>
             </div>
           </div>
