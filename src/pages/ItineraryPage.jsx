@@ -534,12 +534,26 @@ export default function ItineraryPage() {
         const hasActivities = data.activities && data.activities.length > 0;
         
         if (hasActivities) {
+          // Limit to first 2 items if preview and not paid
+          const shouldLimitItems = previewOnly && !isFullPlan && !isPaid;
+          let itemCount = 0;
+          
+          const activitiesToShow = shouldLimitItems 
+            ? data.activities.filter(() => {
+                if (itemCount >= 2) return false;
+                itemCount++;
+                return true;
+              })
+            : data.activities;
+          
+          console.log(`📋 Generated tour: ${shouldLimitItems ? 'Preview mode' : 'Full mode'}, showing ${activitiesToShow.length} out of ${data.activities.length} activities`);
+          
           // Конвертируем данные в нужный формат для отображения
           const convertedData = {
             ...data,
             daily_plan: [{
               date: data.date,
-              blocks: data.activities.map(activity => ({
+              blocks: activitiesToShow.map(activity => ({
                 time: activity.time,
                 items: [{
                   title: activity.name || activity.title,
