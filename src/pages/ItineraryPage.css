@@ -414,7 +414,7 @@
   border-radius: 0;
   box-shadow: none;
   padding: 20px 0;
-  margin-bottom: 24px;
+  margin-bottom: 12px; /* Reduced from 24px to 12px */
   transition: none;
 }
 

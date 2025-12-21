@@ -1433,7 +1433,7 @@ export default function ItineraryPage() {
         maxWidth: '750px',
         margin: '0 auto',
         padding: '0 20px',
-        marginBottom: '20px'
+        marginBottom: '10px' // Reduced from 20px to 10px
       }}>
         <div className="badges">
             {/* City tag */}
