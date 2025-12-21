@@ -110,13 +110,39 @@ export default function ItineraryPage() {
   
   // Extract form data from URL params
   // Note: budget, interests, and audience should be null if not in URL (not default values)
+  const dateFrom = searchParams.get('date_from');
+  const dateTo = searchParams.get('date_to');
+  const dateParam = searchParams.get('date');
+  
+  // Use date_from if available, otherwise use date param, otherwise use today
+  let displayDate = dateFrom || dateParam || new Date().toISOString().slice(0, 10);
+  
+  // If we have both date_from and date_to, format as range
+  if (dateFrom && dateTo && dateFrom !== dateTo) {
+    displayDate = `${dateFrom} - ${dateTo}`;
+  }
+  
   const formData = {
     city: searchParams.get('city') || 'Barcelona',
     audience: searchParams.get('audience') || null, // null if not specified, not default to 'him'
     interests: searchParams.get('interests')?.split(',').filter(Boolean) || null, // null if not specified, not default to ['Romantic']
-    date: searchParams.get('date') || new Date().toISOString().slice(0, 10),
+    date: displayDate,
+    date_from: dateFrom,
+    date_to: dateTo,
     budget: searchParams.get('budget') || null // null if not specified, not default to '500'
   };
+  
+  console.log('🔍 Extracted formData from URL:', {
+    city: formData.city,
+    audience: formData.audience,
+    interests: formData.interests,
+    date: formData.date,
+    date_from: formData.date_from,
+    date_to: formData.date_to,
+    budget: formData.budget,
+    rawInterests: searchParams.get('interests'),
+    allParams: Array.from(searchParams.entries())
+  });
 
   // Calculate tour tags from tour data (budget, interests, etc.)
   const calculateTourTags = (tour) => {
