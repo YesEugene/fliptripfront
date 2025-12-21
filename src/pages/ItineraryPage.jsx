@@ -794,12 +794,14 @@ export default function ItineraryPage() {
         email: email,
         itineraryId: itinerary.tourId || null,
         tourId: tourId || itinerary.tourId || null, // Add tourId for database tours
-        city: itinerary.city || formData.city,
-        audience: itinerary.tags?.audience || formData.audience || null,
+        city: itinerary.city || formData.city || 'Unknown',
+        audience: itinerary.tags?.audience || formData.audience || null, // Can be null for DB tours
         interests: (itinerary.tags?.interests || formData.interests || []).join(','),
-        date: itinerary.date || formData.date,
-        budget: itinerary.tags?.budget || itinerary.budget || formData.budget || '800'
+        date: itinerary.date || formData.date || new Date().toISOString().slice(0, 10),
+        budget: itinerary.tags?.budget || itinerary.budget || formData.budget || null
       };
+      
+      console.log('💳 Checkout data prepared:', checkoutData);
 
       console.log('💳 Creating checkout session:', checkoutData);
 
