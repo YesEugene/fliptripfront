@@ -360,7 +360,14 @@ export default function ItineraryPage() {
       console.log('📖 Loading tour from database:', tourIdParam, 'previewOnly:', isPreviewOnly, 'full:', isFull);
       
       const tour = await getTourById(tourIdParam);
+      setTourData(tour); // Save raw tour data for guide info
       console.log('✅ Tour loaded from DB:', tour);
+      console.log('🔍 Tour guide info:', {
+        hasGuide: !!tour.guide,
+        guide: tour.guide,
+        guideName: tour.guide?.name,
+        guideAvatar: tour.guide?.avatar_url
+      });
       console.log('🔍 Tour structure check:', {
         hasDailyPlan: !!tour.daily_plan,
         hasTourDays: !!tour.tour_days,
@@ -1165,6 +1172,17 @@ export default function ItineraryPage() {
   const guideInfo = !isGeneratedTour && tourData?.guide ? tourData.guide : null;
   const guideName = guideInfo?.name || null;
   const guideAvatar = guideInfo?.avatar_url || null;
+  
+  // Debug logging for author display
+  console.log('🔍 Author display check:', {
+    tourId,
+    isGeneratedTour,
+    hasTourData: !!tourData,
+    hasGuide: !!tourData?.guide,
+    guideInfo,
+    guideName,
+    guideAvatar
+  });
 
   return (
     <div className="itinerary-container">
