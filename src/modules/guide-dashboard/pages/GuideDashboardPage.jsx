@@ -18,6 +18,7 @@ export default function GuideDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('tours'); // 'tours', 'profile', 'statistics'
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [availabilityTour, setAvailabilityTour] = useState(null); // Tour for which to manage availability
   
   // Profile state
   const [profileLoading, setProfileLoading] = useState(true);
