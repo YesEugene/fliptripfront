@@ -40,7 +40,7 @@
   }
   
   .hero-section h1 {
-    font-size: 28px !important;
+    font-size: 31px !important; /* Reduced by 5px from 36px */
   }
 }
 
@@ -51,7 +51,7 @@
   }
   
   .hero-section h1 {
-    font-size: 24px !important;
+    font-size: 31px !important; /* Reduced by 5px from 36px */
   }
 }
 
