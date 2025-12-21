@@ -370,7 +370,7 @@ const DateRangePicker = ({
               }
             }}
           >
-            Применить
+            OK
           </button>
         </div>
       </div>
