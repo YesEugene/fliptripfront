@@ -478,9 +478,41 @@ export default function ItineraryPage() {
       setLoading(true);
       console.log('🌍 Starting REAL PLACES itinerary generation...');
       
+      // If we have interest_ids but no interests (names), try to fetch interest names
+      let finalInterests = formData.interests;
+      if (!finalInterests && formData.interest_ids && formData.interest_ids.length > 0) {
+        try {
+          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
+          const response = await fetch(`${API_BASE_URL}/api/interests`);
+          if (response.ok) {
+            const interestsData = await response.json();
+            if (interestsData.success && interestsData.interests) {
+              const interestNames = formData.interest_ids
+                .map(id => {
+                  const interest = interestsData.interests.find(i => i.id === id);
+                  return interest ? interest.name : null;
+                })
+                .filter(Boolean);
+              if (interestNames.length > 0) {
+                finalInterests = interestNames;
+                console.log('✅ Converted interest_ids to names:', interestNames);
+              }
+            }
+          }
+        } catch (err) {
+          console.warn('⚠️ Could not fetch interests to convert IDs:', err);
+        }
+      }
+      
+      // Update formData with final interests
+      const formDataWithInterests = {
+        ...formData,
+        interests: finalInterests
+      };
+      
       try {
         // ОСНОВНАЯ система с реальными местами
-        const data = await generateSmartItinerary(formData);
+        const data = await generateSmartItinerary(formDataWithInterests);
         console.log('✅ Received smart itinerary data:', data);
         
         // Проверяем, есть ли активности в плане
@@ -511,19 +543,20 @@ export default function ItineraryPage() {
               }))
             }],
             tags: { // Add tags for generated itineraries
-              city: formData.city || 'Unknown',
-              date: formData.date || new Date().toISOString().slice(0, 10), // Use formatted date from formData
-              audience: formData.audience || null, // Include audience tag
-              budget: formData.budget ? `€${formData.budget}` : `€${data.totalCost || '800'}`,
+              city: formDataWithInterests.city || 'Unknown',
+              date: formDataWithInterests.date || new Date().toISOString().slice(0, 10), // Use formatted date from formData
+              audience: formDataWithInterests.audience || null, // Include audience tag
+              budget: formDataWithInterests.budget ? `€${formDataWithInterests.budget}` : `€${data.totalCost || '800'}`,
               interests: (() => {
                 // Handle interests - can be array or null
-                if (!formData.interests) return [];
-                if (Array.isArray(formData.interests)) {
-                  return formData.interests.length > 0 ? formData.interests : [];
+                const interests = finalInterests || formDataWithInterests.interests;
+                if (!interests) return [];
+                if (Array.isArray(interests)) {
+                  return interests.length > 0 ? interests : [];
                 }
                 // If it's a string, convert to array
-                if (typeof formData.interests === 'string') {
-                  return formData.interests.split(',').filter(Boolean);
+                if (typeof interests === 'string') {
+                  return interests.split(',').filter(Boolean);
                 }
                 return [];
               })() // Include interests from filters
@@ -532,10 +565,10 @@ export default function ItineraryPage() {
           console.log('✅ Converted data for display:', convertedData);
           console.log('📊 Tags in converted data:', convertedData.tags);
           console.log('📊 FormData for tags:', {
-            city: formData.city,
-            audience: formData.audience,
-            interests: formData.interests,
-            budget: formData.budget
+            city: formDataWithInterests.city,
+            audience: formDataWithInterests.audience,
+            interests: finalInterests || formDataWithInterests.interests,
+            budget: formDataWithInterests.budget
           });
           setItinerary(convertedData);
           return;
