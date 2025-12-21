@@ -816,14 +816,16 @@ export default function ItineraryPage() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.message || 'Failed to create checkout session');
+        throw new Error(data.message || data.error || 'Failed to create checkout session');
       }
 
       // Redirect to Stripe Checkout
-      if (data.sessionUrl) {
-        window.location.href = data.sessionUrl;
+      const checkoutUrl = data.sessionUrl || data.url;
+      if (checkoutUrl) {
+        console.log('✅ Redirecting to Stripe Checkout:', checkoutUrl);
+        window.location.href = checkoutUrl;
       } else {
-        throw new Error('No checkout URL received');
+        throw new Error('No checkout URL received from server');
       }
     } catch (err) {
       console.error('❌ Payment error:', err);
