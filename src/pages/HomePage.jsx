@@ -97,6 +97,7 @@ export default function HomePage() {
   // Quick filter states (for horizontal filter bar)
   const [quickFilterDateOpen, setQuickFilterDateOpen] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showFilterModalDatePicker, setShowFilterModalDatePicker] = useState(false);
   const [quickFilterBudgetOpen, setQuickFilterBudgetOpen] = useState(false);
   const [quickFilterCategoryOpen, setQuickFilterCategoryOpen] = useState(false);
   const [quickFilterSelectedCategories, setQuickFilterSelectedCategories] = useState([]); // Array of category IDs
