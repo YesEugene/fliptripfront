@@ -486,7 +486,7 @@ export default function ItineraryPage() {
       // Generate new itinerary
       generateItineraryData();
     }
-  }, [isExample, exampleItinerary, tourId, previewOnly, isFullPlan]);
+  }, [isExample, exampleItinerary, tourId, previewOnly, isFullPlan, isPaid]);
 
   const generateItineraryData = async () => {
     try {
