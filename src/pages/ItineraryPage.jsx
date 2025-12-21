@@ -182,15 +182,30 @@ export default function ItineraryPage() {
 
                 // Collect interests from location
                 if (location) {
+                  console.log(`  🔍 Processing location "${location.name}" (ID: ${location.id}):`, {
+                    hasLocationInterests: !!location.location_interests,
+                    locationInterestsCount: location.location_interests?.length || 0,
+                    locationInterests: location.location_interests?.map(li => ({
+                      interestId: li.interest?.id,
+                      interestName: li.interest?.name,
+                      interestCategoryId: li.interest?.category_id
+                    })) || []
+                  });
+                  
                   // Path 1: location.location_interests (from backend query) - PRIMARY PATH
                   if (location.location_interests && Array.isArray(location.location_interests)) {
                     location.location_interests.forEach(li => {
                       if (li.interest?.name) {
-                        allInterests.add(li.interest.name);
+                        const interestName = li.interest.name;
+                        allInterests.add(interestName);
                         itemsWithInterests++;
-                        console.log(`  ✅ Found interest: ${li.interest.name}`);
+                        console.log(`  ✅ Added interest "${interestName}" from location "${location.name}" (location ID: ${location.id}, interest ID: ${li.interest.id})`);
+                      } else {
+                        console.log(`  ⚠️ location_interests entry missing interest.name:`, li);
                       }
                     });
+                  } else {
+                    console.log(`  ⚠️ Location "${location.name}" has no location_interests array`);
                   }
                   
                   // Path 2: Check if interests are directly in location
@@ -198,11 +213,15 @@ export default function ItineraryPage() {
                     location.interests.forEach(interest => {
                       if (typeof interest === 'string') {
                         allInterests.add(interest);
+                        console.log(`  ✅ Added interest (string) "${interest}" from location "${location.name}"`);
                       } else if (interest.name) {
                         allInterests.add(interest.name);
+                        console.log(`  ✅ Added interest (object) "${interest.name}" from location "${location.name}"`);
                       }
                     });
                   }
+                } else {
+                  console.log(`  ⚠️ Item ${itemsProcessed} has no location object`);
                 }
                 
                 // Path 3: Check interest_ids if available (fallback)
