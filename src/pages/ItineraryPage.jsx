@@ -122,10 +122,22 @@ export default function ItineraryPage() {
     displayDate = `${dateFrom} - ${dateTo}`;
   }
   
+  // Extract interests - try both 'interests' (names) and 'interest_ids' (IDs)
+  let interestsFromURL = searchParams.get('interests')?.split(',').filter(Boolean) || null;
+  const interestIdsFromURL = searchParams.getAll('interest_ids'); // getAll because there can be multiple
+  
+  console.log('🔍 Extracting interests from URL:', {
+    interestsParam: searchParams.get('interests'),
+    interestIdsParam: interestIdsFromURL,
+    interestsFromURL,
+    allParams: Array.from(searchParams.entries())
+  });
+  
   const formData = {
     city: searchParams.get('city') || 'Barcelona',
     audience: searchParams.get('audience') || null, // null if not specified, not default to 'him'
-    interests: searchParams.get('interests')?.split(',').filter(Boolean) || null, // null if not specified, not default to ['Romantic']
+    interests: interestsFromURL, // Will be set below if we have interest_ids
+    interest_ids: interestIdsFromURL.length > 0 ? interestIdsFromURL : null,
     date: displayDate,
     date_from: dateFrom,
     date_to: dateTo,
@@ -136,12 +148,11 @@ export default function ItineraryPage() {
     city: formData.city,
     audience: formData.audience,
     interests: formData.interests,
+    interest_ids: formData.interest_ids,
     date: formData.date,
     date_from: formData.date_from,
     date_to: formData.date_to,
-    budget: formData.budget,
-    rawInterests: searchParams.get('interests'),
-    allParams: Array.from(searchParams.entries())
+    budget: formData.budget
   });
 
   // Calculate tour tags from tour data (budget, interests, etc.)
