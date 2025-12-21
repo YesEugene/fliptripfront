@@ -131,24 +131,68 @@ export default function ItineraryPage() {
     // Calculate budget from all locations' approx_cost
     let totalBudget = 0;
     const allInterests = new Set();
+    let itemsProcessed = 0;
+    let itemsWithInterests = 0;
+
+    console.log('🔍 Starting calculateTourTags for tour:', tour.id);
+    console.log('📋 Tour daily_plan structure:', {
+      hasDailyPlan: !!tour.daily_plan,
+      dailyPlanLength: tour.daily_plan?.length || 0,
+      firstDayBlocks: tour.daily_plan?.[0]?.blocks?.length || 0
+    });
 
     if (tour.daily_plan && Array.isArray(tour.daily_plan)) {
-      tour.daily_plan.forEach(day => {
+      tour.daily_plan.forEach((day, dayIndex) => {
         if (day.blocks && Array.isArray(day.blocks)) {
-          day.blocks.forEach(block => {
+          day.blocks.forEach((block, blockIndex) => {
             if (block.items && Array.isArray(block.items)) {
-              block.items.forEach(item => {
+              block.items.forEach((item, itemIndex) => {
+                itemsProcessed++;
+                
                 // Sum up budget
                 const cost = parseFloat(item.approx_cost) || parseFloat(item.cost) || 0;
                 totalBudget += cost;
 
+                // Debug: Check item structure
+                console.log(`📦 Item ${itemsProcessed} (day ${dayIndex}, block ${blockIndex}, item ${itemIndex}):`, {
+                  hasLocation: !!item.location,
+                  locationName: item.location?.name,
+                  hasLocationInterests: !!item.location?.location_interests,
+                  locationInterestsType: Array.isArray(item.location?.location_interests) ? 'array' : typeof item.location?.location_interests,
+                  locationInterestsLength: item.location?.location_interests?.length || 0,
+                  approx_cost: item.approx_cost,
+                  cost: item.cost
+                });
+
                 // Collect interests from location
-                if (item.location?.location_interests && Array.isArray(item.location.location_interests)) {
-                  item.location.location_interests.forEach(li => {
-                    if (li.interest?.name) {
-                      allInterests.add(li.interest.name);
-                    }
-                  });
+                // Try multiple paths to find interests
+                if (item.location) {
+                  // Path 1: location.location_interests (from backend query)
+                  if (item.location.location_interests && Array.isArray(item.location.location_interests)) {
+                    item.location.location_interests.forEach(li => {
+                      if (li.interest?.name) {
+                        allInterests.add(li.interest.name);
+                        itemsWithInterests++;
+                        console.log(`  ✅ Found interest: ${li.interest.name}`);
+                      }
+                    });
+                  }
+                  
+                  // Path 2: Check if interests are directly in location
+                  if (item.location.interests && Array.isArray(item.location.interests)) {
+                    item.location.interests.forEach(interest => {
+                      if (typeof interest === 'string') {
+                        allInterests.add(interest);
+                      } else if (interest.name) {
+                        allInterests.add(interest.name);
+                      }
+                    });
+                  }
+                  
+                  // Path 3: Check interest_ids if available
+                  if (item.interest_ids && Array.isArray(item.interest_ids) && item.interest_ids.length > 0) {
+                    console.log(`  ⚠️ Item has interest_ids but we need names. IDs:`, item.interest_ids);
+                  }
                 }
               });
             }
@@ -156,6 +200,9 @@ export default function ItineraryPage() {
         }
       });
     }
+
+    console.log(`📊 Budget calculation: ${itemsProcessed} items processed, total budget: ${totalBudget}€`);
+    console.log(`📊 Interests calculation: ${itemsWithInterests} items with interests, unique interests: ${allInterests.size}`);
 
     // Format budget
     if (totalBudget > 0) {
@@ -206,6 +253,20 @@ export default function ItineraryPage() {
       
       const tour = await getTourById(tourIdParam);
       console.log('✅ Tour loaded from DB:', tour);
+      console.log('🔍 Tour structure check:', {
+        hasDailyPlan: !!tour.daily_plan,
+        dailyPlanLength: tour.daily_plan?.length || 0,
+        firstDayHasBlocks: !!tour.daily_plan?.[0]?.blocks,
+        firstDayBlocksLength: tour.daily_plan?.[0]?.blocks?.length || 0,
+        firstBlockHasItems: !!tour.daily_plan?.[0]?.blocks?.[0]?.items,
+        firstBlockItemsLength: tour.daily_plan?.[0]?.blocks?.[0]?.items?.length || 0,
+        firstItemHasLocation: !!tour.daily_plan?.[0]?.blocks?.[0]?.items?.[0]?.location,
+        firstItemLocationName: tour.daily_plan?.[0]?.blocks?.[0]?.items?.[0]?.location?.name,
+        firstItemHasLocationInterests: !!tour.daily_plan?.[0]?.blocks?.[0]?.items?.[0]?.location?.location_interests,
+        firstItemLocationInterestsType: Array.isArray(tour.daily_plan?.[0]?.blocks?.[0]?.items?.[0]?.location?.location_interests) ? 'array' : typeof tour.daily_plan?.[0]?.blocks?.[0]?.items?.[0]?.location?.location_interests,
+        firstItemLocationInterestsLength: tour.daily_plan?.[0]?.blocks?.[0]?.items?.[0]?.location?.location_interests?.length || 0,
+        firstItemApproxCost: tour.daily_plan?.[0]?.blocks?.[0]?.items?.[0]?.approx_cost
+      });
       
       // Extract city name
       const cityName = typeof tour.city === 'string' ? tour.city : tour.city?.name || 'Unknown City';
