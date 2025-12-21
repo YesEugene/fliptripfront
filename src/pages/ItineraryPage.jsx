@@ -1294,7 +1294,7 @@ export default function ItineraryPage() {
           style={{
             position: 'relative',
             width: '100%',
-            height: '400px',
+            height: '300px', // Reduced by 100px (was 400px)
             backgroundImage: `url(${heroImage})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
@@ -1346,10 +1346,10 @@ export default function ItineraryPage() {
                   src={guideAvatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&q=80'}
                   alt={guideName}
                   style={{
-                    width: '48px',
-                    height: '48px',
+                    width: '34px', // Reduced by 30% (48px * 0.7 = 33.6px, rounded to 34px)
+                    height: '34px', // Reduced by 30% (48px * 0.7 = 33.6px, rounded to 34px)
                     borderRadius: '50%',
-                    border: '2px solid rgba(255, 255, 255, 0.8)',
+                    border: '2px solid rgba(255, 255, 255, 0.8)', // 2px border
                     objectFit: 'cover',
                     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
                   }}
