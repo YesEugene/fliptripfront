@@ -1428,14 +1428,14 @@ export default function ItineraryPage() {
         </div>
       </div>
 
-      <div className="content-section">
-        {/* Subtitle and Badges Card */}
-        <div className="enhanced-card">
-          <p className="subtitle">
-{itinerary?.subtitle || generateFallbackSubtitle(formData)}
-          </p>
-          
-          <div className="badges">
+      {/* Tags Section - Moved below hero image, before description */}
+      <div style={{
+        maxWidth: '750px',
+        margin: '0 auto',
+        padding: '0 20px',
+        marginBottom: '20px'
+      }}>
+        <div className="badges">
             {/* City tag */}
             <span className="badge-enhanced" style={{ backgroundColor: '#dbeafe', color: '#1e40af' }}>
               🌍 {itinerary?.tags?.city || formData.city || 'Unknown'}
