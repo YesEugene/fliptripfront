@@ -910,6 +910,54 @@ export default function ItineraryPage() {
 
 
   const handleBack = () => {
+    // Try to restore filters from sessionStorage
+    try {
+      const savedFilters = sessionStorage.getItem('fliptrip_filters');
+      if (savedFilters) {
+        const filters = JSON.parse(savedFilters);
+        // Check if filters are not too old (1 hour max)
+        const oneHourAgo = Date.now() - 60 * 60 * 1000;
+        if (filters.timestamp && filters.timestamp > oneHourAgo) {
+          // Build URL with filter parameters
+          const params = new URLSearchParams();
+          if (filters.formData?.city) {
+            params.append('city', filters.formData.city);
+          }
+          if (filters.formData?.audience) {
+            params.append('audience', filters.formData.audience);
+          }
+          if (filters.formData?.budget) {
+            params.append('budget', filters.formData.budget);
+          }
+          if (filters.formData?.date_from) {
+            params.append('date_from', filters.formData.date_from);
+          }
+          if (filters.formData?.date_to) {
+            params.append('date_to', filters.formData.date_to);
+          }
+          if (filters.formData?.interest_ids && Array.isArray(filters.formData.interest_ids)) {
+            filters.formData.interest_ids.forEach(id => {
+              params.append('interest_ids', id);
+            });
+          }
+          if (filters.selectedDates && Array.isArray(filters.selectedDates)) {
+            if (filters.selectedDates.length > 0) {
+              params.append('date', filters.selectedDates[0]);
+            }
+          }
+          navigate(`/?${params.toString()}`);
+          return;
+        } else {
+          // Remove stale filters
+          sessionStorage.removeItem('fliptrip_filters');
+        }
+      }
+    } catch (error) {
+      console.error('Error restoring filters:', error);
+      sessionStorage.removeItem('fliptrip_filters');
+    }
+    
+    // Fallback: navigate without filters
     navigate('/');
   };
 
@@ -1064,8 +1112,46 @@ export default function ItineraryPage() {
 
   return (
     <div className="itinerary-container">
-      {/* Header with Logo */}
+      {/* Header with Logo and Back Button */}
       <div className="header-section">
+        {/* Back Button */}
+        <button
+          onClick={handleBack}
+          style={{
+            position: 'absolute',
+            left: '20px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            padding: '8px 16px',
+            fontSize: '14px',
+            fontWeight: '500',
+            color: '#374151',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+            transition: 'all 0.2s ease',
+            zIndex: 10
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = '#f9fafb';
+            e.target.style.borderColor = '#3b82f6';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = 'white';
+            e.target.style.borderColor = '#e5e7eb';
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Back
+        </button>
+        
         {/* Centered Logo */}
         <div className="logo-container">
           <img 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import { isAuthenticated, getCurrentUser, logout } from '../modules/auth/services/authService';
 import { getTours } from '../services/api';
@@ -57,6 +57,7 @@ const INTEREST_NAMES = {
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState({
     city: "",
     audience: "",
@@ -115,6 +116,85 @@ export default function HomePage() {
       console.error('Error checking auth:', error);
     }
   }, []);
+
+  // Restore filters from URL params or sessionStorage on mount
+  useEffect(() => {
+    // First, try to restore from URL parameters (if coming from Back button)
+    const urlCity = searchParams.get('city');
+    const urlAudience = searchParams.get('audience');
+    const urlBudget = searchParams.get('budget');
+    const urlDateFrom = searchParams.get('date_from');
+    const urlDateTo = searchParams.get('date_to');
+    const urlInterestIds = searchParams.getAll('interest_ids');
+    const urlDate = searchParams.get('date');
+
+    if (urlCity || urlAudience || urlBudget || urlDateFrom || urlDateTo || urlInterestIds.length > 0) {
+      // Restore from URL parameters
+      const restoredFormData = {
+        city: urlCity || '',
+        audience: urlAudience || '',
+        interest_ids: urlInterestIds || [],
+        date_from: urlDateFrom || null,
+        date_to: urlDateTo || null,
+        budget: urlBudget || ''
+      };
+      setFormData(prev => ({
+        ...prev,
+        ...restoredFormData
+      }));
+
+      // Restore selectedDates from URL
+      if (urlDateFrom) {
+        const dates = [urlDateFrom];
+        if (urlDateTo && urlDateTo !== urlDateFrom) {
+          dates.push(urlDateTo);
+          dates.sort();
+        }
+        setSelectedDates(dates);
+      } else if (urlDate) {
+        setSelectedDates([urlDate]);
+      }
+
+      // Clean up URL parameters
+      const newSearchParams = new URLSearchParams();
+      navigate(`/?${newSearchParams.toString()}`, { replace: true });
+      console.log('✅ Filters restored from URL parameters');
+      return;
+    }
+
+    // Fallback: try to restore from sessionStorage
+    try {
+      const savedFilters = sessionStorage.getItem('fliptrip_filters');
+      if (savedFilters) {
+        const filters = JSON.parse(savedFilters);
+        // Check if filters are not too old (1 hour max)
+        const oneHourAgo = Date.now() - 60 * 60 * 1000;
+        if (filters.timestamp && filters.timestamp > oneHourAgo) {
+          // Restore formData
+          if (filters.formData) {
+            setFormData(prev => ({
+              ...prev,
+              ...filters.formData,
+              interest_ids: filters.formData.interest_ids || []
+            }));
+          }
+          // Restore selectedDates
+          if (filters.selectedDates && Array.isArray(filters.selectedDates)) {
+            setSelectedDates(filters.selectedDates);
+          }
+          // Clear sessionStorage after restoration
+          sessionStorage.removeItem('fliptrip_filters');
+          console.log('✅ Filters restored from sessionStorage');
+        } else {
+          // Remove stale filters
+          sessionStorage.removeItem('fliptrip_filters');
+        }
+      }
+    } catch (error) {
+      console.error('Error restoring filters from sessionStorage:', error);
+      sessionStorage.removeItem('fliptrip_filters');
+    }
+  }, [searchParams, navigate]);
 
   // Track window size for mobile detection
   useEffect(() => {
@@ -546,6 +626,26 @@ export default function HomePage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
+      // Save filters to sessionStorage before navigation
+      try {
+        const filtersToSave = {
+          formData: {
+            city: formData.city,
+            audience: formData.audience || '',
+            interest_ids: formData.interest_ids || [],
+            date_from: formData.date_from || null,
+            date_to: formData.date_to || null,
+            budget: formData.budget || ''
+          },
+          selectedDates: selectedDates || [],
+          timestamp: Date.now()
+        };
+        sessionStorage.setItem('fliptrip_filters', JSON.stringify(filtersToSave));
+        console.log('💾 Filters saved to sessionStorage');
+      } catch (error) {
+        console.error('Error saving filters to sessionStorage:', error);
+      }
+
       // Build query params manually to handle interest_ids array
       const params = new URLSearchParams();
       params.append('city', formData.city);
@@ -591,6 +691,26 @@ export default function HomePage() {
 
   // Handle tour card click - navigate to preview page with tourId and all filter parameters
   const handleTourClick = (tour) => {
+    // Save filters to sessionStorage before navigation
+    try {
+      const filtersToSave = {
+        formData: {
+          city: formData.city,
+          audience: formData.audience || '',
+          interest_ids: formData.interest_ids || [],
+          date_from: formData.date_from || null,
+          date_to: formData.date_to || null,
+          budget: formData.budget || ''
+        },
+        selectedDates: selectedDates || [],
+        timestamp: Date.now()
+      };
+      sessionStorage.setItem('fliptrip_filters', JSON.stringify(filtersToSave));
+      console.log('💾 Filters saved to sessionStorage');
+    } catch (error) {
+      console.error('Error saving filters to sessionStorage:', error);
+    }
+
     const params = new URLSearchParams();
     params.append('tourId', tour.id);
     params.append('previewOnly', 'true');
