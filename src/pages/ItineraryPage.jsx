@@ -474,6 +474,16 @@ export default function ItineraryPage() {
     }
   };
 
+  // Check if payment was successful from URL params (from success page redirect)
+  useEffect(() => {
+    const sessionId = searchParams.get('session_id');
+    // If session_id is present, payment was successful
+    if (sessionId) {
+      setIsPaid(true);
+      console.log('✅ Payment confirmed, unlocking full itinerary');
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     if (isExample && exampleItinerary) {
       // Use example data directly
