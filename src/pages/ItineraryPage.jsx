@@ -109,11 +109,11 @@ export default function ItineraryPage() {
   const isFullPlan = searchParams.get('full') === 'true';
   
   // Extract form data from URL params
-  // Note: budget should be null if not in URL (not default to '500')
+  // Note: budget and interests should be null if not in URL (not default values)
   const formData = {
     city: searchParams.get('city') || 'Barcelona',
     audience: searchParams.get('audience') || 'him',
-    interests: searchParams.get('interests')?.split(',') || ['Romantic'],
+    interests: searchParams.get('interests')?.split(',').filter(Boolean) || null, // null if not specified, not default to ['Romantic']
     date: searchParams.get('date') || new Date().toISOString().slice(0, 10),
     budget: searchParams.get('budget') || null // null if not specified, not default to '500'
   };
@@ -227,19 +227,19 @@ export default function ItineraryPage() {
         date: formData.date || new Date().toISOString().slice(0, 10),
         audience: formData.audience || null,
         budget: formData.budget ? `€${formData.budget}` : null,
-        interests: formData.interests || []
+        interests: formData.interests || [] // Use filter interests if provided
       };
     } else if (tour) {
       // Use tour tags (calculated from tour data)
       return calculateTourTags(tour);
     } else {
-      // Fallback to formData
+      // Fallback to formData (but interests should be null if not specified)
       return {
         city: formData.city || 'Unknown',
         date: formData.date || new Date().toISOString().slice(0, 10),
         audience: formData.audience || null,
         budget: formData.budget ? `€${formData.budget}` : null,
-        interests: formData.interests || []
+        interests: formData.interests || [] // Empty array if not specified
       };
     }
   };
