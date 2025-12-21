@@ -1283,27 +1283,27 @@ export default function ItineraryPage() {
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'flex-start',
+            justifyContent: 'space-between',
             padding: '20px'
           }}
         >
-          {/* Black Gradient Overlay - from top */}
+          {/* Black Gradient Overlay - from black to transparent (top to bottom) */}
           <div style={{
             position: 'absolute',
             top: 0,
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 100%)',
+            background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%)',
             zIndex: 1
           }} />
 
-          {/* Title at Top - 30px from top */}
+          {/* Title and Author at Top */}
           <div style={{
             position: 'relative',
             zIndex: 2,
             color: 'white',
-            marginTop: '30px'
+            marginTop: '20px'
           }}>
             <h1 style={{
               fontSize: '36px',
@@ -1315,8 +1315,56 @@ export default function ItineraryPage() {
               {itinerary?.title || generateFallbackTitle(formData)}
             </h1>
 
-            {/* Download PDF Button - Show only after payment or if not preview */}
-            {(!previewOnly || isPaid) && (
+            {/* Author Info Below Title - Only for DB tours */}
+            {guideInfo && guideName && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                marginTop: '12px'
+              }}>
+                <img 
+                  src={guideAvatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&q=80'}
+                  alt={guideName}
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '50%',
+                    border: '2px solid rgba(255, 255, 255, 0.8)',
+                    objectFit: 'cover',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
+                  }}
+                />
+                <div>
+                  <div style={{
+                    fontSize: '12px',
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    marginBottom: '2px',
+                    lineHeight: '1.4',
+                    textShadow: '0 1px 4px rgba(0, 0, 0, 0.5)'
+                  }}>
+                    Tour created
+                  </div>
+                  <div style={{
+                    fontSize: '12px',
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    lineHeight: '1.4',
+                    textShadow: '0 1px 4px rgba(0, 0, 0, 0.5)'
+                  }}>
+                    by {guideName}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Download PDF Button at Bottom - Show only after payment or if not preview */}
+          {(!previewOnly || isPaid) && (
+            <div style={{
+              position: 'relative',
+              zIndex: 2,
+              marginBottom: '20px'
+            }}>
               <button
                 onClick={handleDownloadPDF}
                 style={{
@@ -1347,50 +1395,9 @@ export default function ItineraryPage() {
               >
                 📱 Download PDF
               </button>
-            )}
-          </div>
-        </div>
-
-        {/* Author Info Below Image - Only for DB tours */}
-        {guideInfo && guideName && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            marginTop: '16px',
-            padding: '0 4px'
-          }}>
-            <img 
-              src={guideAvatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&q=80'}
-              alt={guideName}
-              style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                border: '2px solid #e5e7eb',
-                objectFit: 'cover',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-              }}
-            />
-            <div>
-              <div style={{
-                fontSize: '12px',
-                color: '#6b7280',
-                marginBottom: '2px',
-                lineHeight: '1.4'
-              }}>
-                Tour created
-              </div>
-              <div style={{
-                fontSize: '12px',
-                color: '#6b7280',
-                lineHeight: '1.4'
-              }}>
-                by {guideName}
-              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <div className="content-section">
