@@ -289,7 +289,9 @@ export default function ItineraryPage() {
       console.log('✅ Tour loaded from DB:', tour);
       console.log('🔍 Tour structure check:', {
         hasDailyPlan: !!tour.daily_plan,
+        hasTourDays: !!tour.tour_days,
         dailyPlanLength: tour.daily_plan?.length || 0,
+        tourDaysLength: tour.tour_days?.length || 0,
         firstDayHasBlocks: !!tour.daily_plan?.[0]?.blocks,
         firstDayBlocksLength: tour.daily_plan?.[0]?.blocks?.length || 0,
         firstBlockHasItems: !!tour.daily_plan?.[0]?.blocks?.[0]?.items,
@@ -301,6 +303,28 @@ export default function ItineraryPage() {
         firstItemLocationInterestsLength: tour.daily_plan?.[0]?.blocks?.[0]?.items?.[0]?.location?.location_interests?.length || 0,
         firstItemApproxCost: tour.daily_plan?.[0]?.blocks?.[0]?.items?.[0]?.approx_cost
       });
+      
+      // Debug: Check tour_days structure for interests
+      if (tour.tour_days && Array.isArray(tour.tour_days)) {
+        console.log('🔍 Checking tour_days structure for location interests:');
+        tour.tour_days.forEach((day, dayIdx) => {
+          if (day.tour_blocks && Array.isArray(day.tour_blocks)) {
+            day.tour_blocks.forEach((block, blockIdx) => {
+              if (block.tour_items && Array.isArray(block.tour_items)) {
+                block.tour_items.forEach((item, itemIdx) => {
+                  if (item.location) {
+                    console.log(`  📍 Day ${dayIdx}, Block ${blockIdx}, Item ${itemIdx}: Location "${item.location.name}" (ID: ${item.location.id})`, {
+                      hasLocationInterests: !!item.location.location_interests,
+                      locationInterestsCount: item.location.location_interests?.length || 0,
+                      interests: item.location.location_interests?.map(li => li.interest?.name).filter(Boolean) || []
+                    });
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
       
       // Extract city name
       const cityName = typeof tour.city === 'string' ? tour.city : tour.city?.name || 'Unknown City';
