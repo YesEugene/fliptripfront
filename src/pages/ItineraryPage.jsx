@@ -1555,6 +1555,20 @@ export default function ItineraryPage() {
                                 tourData?.format === 'guided' ||
                                 (tourData?.price?.guidedPrice && tourData.price.guidedPrice > 0);
           
+          console.log('🔍 Payment block debug:', {
+            tourData: !!tourData,
+            withGuide: tourData?.withGuide,
+            default_format: tourData?.default_format,
+            format: tourData?.format,
+            guidedPrice: tourData?.price?.guidedPrice || tourData?.price_guided,
+            supportsGuide,
+            tourId,
+            tourType,
+            quantity,
+            selectedDate,
+            availableSpots
+          });
+          
           // Get prices
           const pdfPrice = tourData?.price?.pdfPrice || tourData?.price_pdf || 16;
           const guidedPrice = tourData?.price?.guidedPrice || tourData?.price_guided || null;
@@ -1563,6 +1577,15 @@ export default function ItineraryPage() {
           const basePrice = tourType === 'with-guide' && guidedPrice ? guidedPrice : pdfPrice;
           const currentPrice = tourType === 'with-guide' ? basePrice * quantity : basePrice;
           const currency = tourData?.price?.currency || tourData?.currency || 'USD';
+          
+          console.log('💰 Price calculation:', {
+            pdfPrice,
+            guidedPrice,
+            basePrice,
+            quantity,
+            currentPrice,
+            currency
+          });
           
           return (
             <div style={{
