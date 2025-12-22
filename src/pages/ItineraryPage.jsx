@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
-import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail } from '../services/api';
+import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail, checkPayment } from '../services/api';
 import { getTourById } from '../modules/tours-database';
 import { isAuthenticated, getCurrentUser, logout } from '../modules/auth/services/authService';
 import html2pdf from 'html2pdf.js';
@@ -365,6 +365,28 @@ export default function ItineraryPage() {
       setLoading(true);
       setError('');
       console.log('📖 Loading tour from database:', tourIdParam, 'previewOnly:', isPreviewOnly, 'full:', isFull);
+      
+      // Check if user has paid for this tour (if email is available)
+      const emailFromUrl = searchParams.get('email');
+      if (emailFromUrl && tourIdParam) {
+        try {
+          const paymentCheck = await checkPayment(tourIdParam, emailFromUrl);
+          if (paymentCheck.success && paymentCheck.hasPaid) {
+            console.log('✅ User has paid for this tour, unlocking full itinerary');
+            setIsPaid(true);
+            // Remove previewOnly flag if paid
+            if (isPreviewOnly) {
+              isPreviewOnly = false;
+            }
+          } else {
+            console.log('ℹ️ User has not paid for this tour yet');
+            setIsPaid(false);
+          }
+        } catch (paymentError) {
+          console.warn('⚠️ Error checking payment status (non-critical):', paymentError);
+          // Don't fail the whole load if payment check fails
+        }
+      }
       
       const tour = await getTourById(tourIdParam);
       setTourData(tour); // Save raw tour data for guide info

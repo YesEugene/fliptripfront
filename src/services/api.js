@@ -289,6 +289,22 @@ export const getTours = async (filters = {}) => {
 };
 
 // Get single tour by ID
+// Check if user has paid for a tour
+export const checkPayment = async (tourId, email) => {
+  try {
+    const response = await api.get('/api/check-payment', {
+      params: {
+        tourId,
+        email
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Check payment error:', error);
+    throw error;
+  }
+};
+
 export const getTourById = async (tourId) => {
   try {
     const response = await api.get(`/api/tours?id=${tourId}`);
