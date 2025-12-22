@@ -1569,7 +1569,7 @@ export default function ItineraryPage() {
                   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                 }}>
                   <h4 style={{
-                    fontSize: '16px',
+                    fontSize: '21px',
                     fontWeight: '600',
                     color: '#111827',
                     marginBottom: '20px'
@@ -1703,11 +1703,11 @@ export default function ItineraryPage() {
                   backgroundColor: 'white',
                   borderRadius: '12px',
                   padding: '24px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  border: 'none',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
                 }}>
                   <h4 style={{
-                    fontSize: '16px',
+                    fontSize: '21px',
                     fontWeight: '600',
                     color: '#111827',
                     marginBottom: '8px',
