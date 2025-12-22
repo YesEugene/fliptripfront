@@ -365,7 +365,10 @@ export default function ItineraryPage() {
     try {
       setLoading(true);
       setError('');
-      console.log('📖 Loading tour from database:', tourIdParam, 'previewOnly:', isPreviewOnly, 'full:', isFull);
+      // Ensure previewOnly is correctly determined from URL if not explicitly passed
+      const previewOnlyFromUrl = searchParams.get('previewOnly') === 'true';
+      const actualPreviewOnly = isPreviewOnly !== undefined ? isPreviewOnly : previewOnlyFromUrl;
+      console.log('📖 Loading tour from database:', tourIdParam, 'previewOnly:', actualPreviewOnly, 'full:', isFull);
       
       // Check if user has paid for this tour (if email is available)
       const emailFromUrl = searchParams.get('email');
@@ -450,7 +453,8 @@ export default function ItineraryPage() {
       // If preview only (and not full plan) and not paid, limit to first 2 items total
       // If full=true or paid=true, show all blocks and items
       let blocksToShow = firstDay.blocks;
-      let shouldLimitItems = isPreviewOnly && !isFull && !isPaid;
+      const actualPreviewOnly = isPreviewOnly !== undefined ? isPreviewOnly : (searchParams.get('previewOnly') === 'true');
+      let shouldLimitItems = actualPreviewOnly && !isFull && !isPaid;
       
       if (shouldLimitItems) {
         // Limit to first 2 items total across all blocks
@@ -662,7 +666,10 @@ export default function ItineraryPage() {
         
         if (hasActivities) {
           // Limit to first 2 items if preview and not paid
-          const shouldLimitItems = previewOnly && !isFullPlan && !isPaid;
+          // CRITICAL: Check previewOnly from URL params, not just state
+          const previewOnlyFromUrl = searchParams.get('previewOnly') === 'true';
+          const actualPreviewOnly = previewOnly !== undefined ? previewOnly : previewOnlyFromUrl;
+          const shouldLimitItems = actualPreviewOnly && !isFullPlan && !isPaid;
           let itemCount = 0;
           
           const activitiesToShow = shouldLimitItems 
@@ -674,6 +681,7 @@ export default function ItineraryPage() {
             : data.activities;
           
           console.log(`📋 Generated tour: ${shouldLimitItems ? 'Preview mode' : 'Full mode'}, showing ${activitiesToShow.length} out of ${data.activities.length} activities`);
+          console.log(`📋 Preview check: previewOnly=${previewOnly}, previewOnlyFromUrl=${previewOnlyFromUrl}, actualPreviewOnly=${actualPreviewOnly}, shouldLimitItems=${shouldLimitItems}`);
           
           // Конвертируем данные в нужный формат для отображения
           const convertedData = {
@@ -732,13 +740,16 @@ export default function ItineraryPage() {
             console.log('💾 Saving tourId to state and URL:', data.tourId);
             setTourId(data.tourId);
             
-            // Update URL with tourId for bookmarking
-            const newSearchParams = new URLSearchParams(searchParams);
+            // Update URL with tourId for bookmarking - use window.history for immediate update
+            const newSearchParams = new URLSearchParams(window.location.search);
             newSearchParams.set('tourId', data.tourId);
             if (previewOnly) {
               newSearchParams.set('previewOnly', 'true');
             }
-            navigate(`${location.pathname}?${newSearchParams.toString()}`, { replace: true });
+            // Preserve all existing params
+            const newUrl = `${window.location.pathname}?${newSearchParams.toString()}`;
+            window.history.replaceState({}, '', newUrl);
+            console.log('✅ URL updated with tourId:', newUrl);
           }
           
           setItinerary(convertedData);
@@ -941,10 +952,19 @@ export default function ItineraryPage() {
       }
 
       // Prepare checkout session data
+      // CRITICAL: Ensure tourId is included - check state, URL, and itinerary
+      const finalTourId = tourId || searchParams.get('tourId') || itinerary?.tourId || null;
+      console.log('💳 Payment tourId check:', { 
+        tourIdFromState: tourId, 
+        tourIdFromURL: searchParams.get('tourId'),
+        tourIdFromItinerary: itinerary?.tourId,
+        finalTourId 
+      });
+      
       const checkoutData = {
         email: email,
-        itineraryId: itinerary.tourId || null,
-        tourId: tourId || itinerary.tourId || null, // Add tourId for database tours
+        itineraryId: finalTourId || null,
+        tourId: finalTourId, // Use finalTourId for database tours
         city: itinerary.city || formData.city || 'Unknown',
         audience: itinerary.tags?.audience || formData.audience || null, // Can be null for DB tours
         interests: (itinerary.tags?.interests || formData.interests || []).join(','),
