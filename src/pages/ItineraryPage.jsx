@@ -647,8 +647,15 @@ export default function ItineraryPage() {
       
       try {
         // ОСНОВНАЯ система с реальными местами
-        const data = await generateSmartItinerary(formDataWithInterests);
+        // Add email to formData if available (for tour creation)
+        const formDataWithEmail = {
+          ...formDataWithInterests,
+          email: email || searchParams.get('email') || null,
+          previewOnly: previewOnly || false
+        };
+        const data = await generateSmartItinerary(formDataWithEmail);
         console.log('✅ Received smart itinerary data:', data);
+        console.log('📋 Tour ID from API:', data.tourId);
         
         // Проверяем, есть ли активности в плане
         const hasActivities = data.activities && data.activities.length > 0;
@@ -719,6 +726,21 @@ export default function ItineraryPage() {
             interests: finalInterests || formDataWithInterests.interests,
             budget: formDataWithInterests.budget
           });
+          
+          // If tourId is returned from API, save it and update URL
+          if (data.tourId) {
+            console.log('💾 Saving tourId to state and URL:', data.tourId);
+            setTourId(data.tourId);
+            
+            // Update URL with tourId for bookmarking
+            const newSearchParams = new URLSearchParams(searchParams);
+            newSearchParams.set('tourId', data.tourId);
+            if (previewOnly) {
+              newSearchParams.set('previewOnly', 'true');
+            }
+            navigate(`${location.pathname}?${newSearchParams.toString()}`, { replace: true });
+          }
+          
           setItinerary(convertedData);
           return;
         } else {
