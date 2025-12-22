@@ -5,6 +5,7 @@ import { getTourById } from '../modules/tours-database';
 import { isAuthenticated, getCurrentUser, logout } from '../modules/auth/services/authService';
 import html2pdf from 'html2pdf.js';
 import PhotoGallery from '../components/PhotoGallery';
+import AvailabilityCalendar from '../components/AvailabilityCalendar';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import PDFIcon from '../assets/PDF.svg';
 // import SkateboardingGif from '../assets/Skateboarding.gif'; // File not found, commented out
@@ -22,6 +23,8 @@ export default function ItineraryPage() {
   const [processingPayment, setProcessingPayment] = useState(false);
   const [tourData, setTourData] = useState(null); // Store full tour data for guide info
   const [user, setUser] = useState(null); // User state for auth buttons
+  const [tourType, setTourType] = useState('self-guided'); // 'self-guided' or 'with-guide'
+  const [selectedDate, setSelectedDate] = useState(null); // Selected date for with-guide tour
 
   // City images mapping
   const cityImagesMap = {
@@ -504,9 +507,21 @@ export default function ItineraryPage() {
         tags: tags
       };
       
-      console.log('✅ Converted tour to itinerary format:', itineraryData);
-      setItinerary(itineraryData);
-      setLoading(false);
+          console.log('✅ Converted tour to itinerary format:', itineraryData);
+          setItinerary(itineraryData);
+          
+          // Reset tour type selection based on tour data
+          const supportsGuide = tour.withGuide || 
+                                tour.default_format === 'with_guide' || 
+                                tour.format === 'guided' ||
+                                (tour.price?.guidedPrice && tour.price.guidedPrice > 0);
+          
+          if (!supportsGuide) {
+            setTourType('self-guided');
+            setSelectedDate(null);
+          }
+          
+          setLoading(false);
     } catch (err) {
       console.error('❌ Error loading tour from database:', err);
       setError(err.message || 'Failed to load tour');
@@ -858,6 +873,13 @@ export default function ItineraryPage() {
       
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
       
+      // Validate with-guide selection
+      if (tourType === 'with-guide' && !selectedDate) {
+        alert('Please select an available date for the guided tour');
+        setProcessingPayment(false);
+        return;
+      }
+
       // Prepare checkout session data
       const checkoutData = {
         email: email,
@@ -867,7 +889,9 @@ export default function ItineraryPage() {
         audience: itinerary.tags?.audience || formData.audience || null, // Can be null for DB tours
         interests: (itinerary.tags?.interests || formData.interests || []).join(','),
         date: itinerary.date || formData.date || new Date().toISOString().slice(0, 10),
-        budget: itinerary.tags?.budget || itinerary.budget || formData.budget || null
+        budget: itinerary.tags?.budget || itinerary.budget || formData.budget || null,
+        tourType: tourType, // 'self-guided' or 'with-guide'
+        selectedDate: tourType === 'with-guide' ? selectedDate : null // Only if with-guide
       };
       
       console.log('💳 Checkout data prepared:', checkoutData);
@@ -1509,91 +1533,300 @@ export default function ItineraryPage() {
         </div>
 
         {/* Email and Payment Block - Show only if preview and not paid */}
-        {previewOnly && !isPaid && (
-          <div className="enhanced-card" style={{ 
-            backgroundColor: '#f9fafb', 
-            border: '2px solid #e5e7eb',
-            marginTop: '24px',
-            marginBottom: '24px'
-          }}>
-            <h3 style={{ 
-              fontSize: '20px', 
-              fontWeight: 'bold', 
-              color: '#1f2937', 
-              marginBottom: '16px',
-              textAlign: 'center'
+        {previewOnly && !isPaid && (() => {
+          // Determine if tour supports guide option
+          const supportsGuide = tourData?.withGuide || 
+                                tourData?.default_format === 'with_guide' || 
+                                tourData?.format === 'guided' ||
+                                (tourData?.price?.guidedPrice && tourData.price.guidedPrice > 0);
+          
+          // Get prices
+          const pdfPrice = tourData?.price?.pdfPrice || tourData?.price_pdf || 16;
+          const guidedPrice = tourData?.price?.guidedPrice || tourData?.price_guided || null;
+          
+          // Calculate current price based on selected tour type
+          const currentPrice = tourType === 'with-guide' && guidedPrice ? guidedPrice : pdfPrice;
+          const currency = tourData?.price?.currency || tourData?.currency || 'USD';
+          
+          return (
+            <div className="enhanced-card" style={{ 
+              backgroundColor: '#f9fafb', 
+              border: '2px solid #e5e7eb',
+              marginTop: '24px',
+              marginBottom: '24px'
             }}>
-              🔒 Unlock Full Itinerary
-            </h3>
-            <p style={{ 
-              color: '#6b7280', 
-              marginBottom: '20px',
-              textAlign: 'center',
-              fontSize: '14px'
-            }}>
-              Get access to all locations and complete details
-            </p>
-            
-            <div style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              gap: '12px',
-              maxWidth: '400px',
-              margin: '0 auto'
-            }}>
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={{
-                  padding: '12px 16px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '16px',
-                  width: '100%'
-                }}
-              />
-              <button
-                onClick={handlePayment}
-                disabled={processingPayment || !email}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: processingPayment ? '#9ca3af' : '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
+              <h3 style={{ 
+                fontSize: '20px', 
+                fontWeight: 'bold', 
+                color: '#1f2937', 
+                marginBottom: '16px',
+                textAlign: 'center'
+              }}>
+                🔒 Unlock Full Itinerary
+              </h3>
+              <p style={{ 
+                color: '#6b7280', 
+                marginBottom: '20px',
+                textAlign: 'center',
+                fontSize: '14px'
+              }}>
+                Get access to all locations and complete details
+              </p>
+              
+              {/* Choose type of your trip */}
+              <div style={{
+                marginBottom: '24px',
+                padding: '20px',
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb'
+              }}>
+                <h4 style={{
                   fontSize: '16px',
                   fontWeight: '600',
-                  cursor: processingPayment || !email ? 'not-allowed' : 'pointer',
-                  width: '100%',
-                  transition: 'background-color 0.2s'
+                  color: '#111827',
+                  marginBottom: '16px'
+                }}>
+                  Choose type of your trip
+                </h4>
+                
+                {/* Self-guided Tour */}
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s',
+                  backgroundColor: tourType === 'self-guided' ? '#eff6ff' : 'transparent'
                 }}
                 onMouseEnter={(e) => {
-                  if (!processingPayment && email) {
-                    e.target.style.backgroundColor = '#2563eb';
+                  if (tourType !== 'self-guided') {
+                    e.currentTarget.style.backgroundColor = '#f9fafb';
                   }
                 }}
                 onMouseLeave={(e) => {
-                  if (!processingPayment && email) {
-                    e.target.style.backgroundColor = '#3b82f6';
+                  if (tourType !== 'self-guided') {
+                    e.currentTarget.style.backgroundColor = 'transparent';
                   }
                 }}
-              >
-                {processingPayment ? 'Processing...' : '💳 Pay & Unlock Full Plan'}
-              </button>
+                >
+                  <input
+                    type="radio"
+                    name="tourType"
+                    value="self-guided"
+                    checked={tourType === 'self-guided'}
+                    onChange={(e) => {
+                      setTourType('self-guided');
+                      setSelectedDate(null);
+                    }}
+                    style={{
+                      marginTop: '2px',
+                      cursor: 'pointer'
+                    }}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <div style={{
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      color: '#111827',
+                      marginBottom: '4px'
+                    }}>
+                      Self-guided Tour
+                    </div>
+                    <div style={{
+                      fontSize: '12px',
+                      color: '#6b7280'
+                    }}>
+                      Fixed price: ${pdfPrice}. Travelers can download the PDF route and explore independently
+                    </div>
+                  </div>
+                </label>
+                
+                {/* With Guide */}
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  cursor: supportsGuide ? 'pointer' : 'not-allowed',
+                  transition: 'background-color 0.2s',
+                  backgroundColor: tourType === 'with-guide' && supportsGuide ? '#eff6ff' : 'transparent',
+                  opacity: supportsGuide ? 1 : 0.5
+                }}
+                onMouseEnter={(e) => {
+                  if (supportsGuide && tourType !== 'with-guide') {
+                    e.currentTarget.style.backgroundColor = '#f9fafb';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (supportsGuide && tourType !== 'with-guide') {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }
+                }}
+                >
+                  <input
+                    type="radio"
+                    name="tourType"
+                    value="with-guide"
+                    checked={tourType === 'with-guide'}
+                    onChange={(e) => {
+                      if (supportsGuide) {
+                        setTourType('with-guide');
+                      }
+                    }}
+                    disabled={!supportsGuide}
+                    style={{
+                      marginTop: '2px',
+                      cursor: supportsGuide ? 'pointer' : 'not-allowed'
+                    }}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <div style={{
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      color: supportsGuide ? '#111827' : '#9ca3af',
+                      marginBottom: '4px'
+                    }}>
+                      With Guide
+                    </div>
+                    <div style={{
+                      fontSize: '12px',
+                      color: supportsGuide ? '#6b7280' : '#9ca3af'
+                    }}>
+                      {supportsGuide && guidedPrice 
+                        ? `Price: ${currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency}${guidedPrice}. You will have an unforgettable journey with the person who created this guide.`
+                        : 'This option is not available for this tour'}
+                    </div>
+                  </div>
+                </label>
+              </div>
+              
+              {/* Availability Calendar - Show only if With Guide is selected */}
+              {tourType === 'with-guide' && supportsGuide && tourId && (
+                <div style={{
+                  marginBottom: '24px',
+                  padding: '20px',
+                  backgroundColor: 'white',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb'
+                }}>
+                  <h4 style={{
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#111827',
+                    marginBottom: '16px'
+                  }}>
+                    Select available date
+                  </h4>
+                  <AvailabilityCalendar
+                    tourId={tourId}
+                    selectedDate={selectedDate}
+                    onDateSelect={setSelectedDate}
+                    disabled={false}
+                  />
+                </div>
+              )}
+              
+              {/* Price and Payment */}
+              <div style={{
+                padding: '20px',
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb',
+                marginBottom: '20px'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '12px'
+                }}>
+                  <span style={{
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#111827'
+                  }}>
+                    Total
+                  </span>
+                  <span style={{
+                    fontSize: '24px',
+                    fontWeight: 'bold',
+                    color: '#111827'
+                  }}>
+                    {currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency}{currentPrice}
+                  </span>
+                </div>
+                <div style={{
+                  fontSize: '12px',
+                  color: '#6b7280',
+                  marginBottom: '20px'
+                }}>
+                  One-time payment
+                </div>
+                
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '12px'
+                }}>
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    style={{
+                      padding: '12px 16px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      width: '100%'
+                    }}
+                  />
+                  <button
+                    onClick={handlePayment}
+                    disabled={processingPayment || !email || (tourType === 'with-guide' && !selectedDate)}
+                    style={{
+                      padding: '12px 24px',
+                      backgroundColor: processingPayment || !email || (tourType === 'with-guide' && !selectedDate) ? '#9ca3af' : '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      cursor: processingPayment || !email || (tourType === 'with-guide' && !selectedDate) ? 'not-allowed' : 'pointer',
+                      width: '100%',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!processingPayment && email && !(tourType === 'with-guide' && !selectedDate)) {
+                        e.target.style.backgroundColor = '#2563eb';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!processingPayment && email && !(tourType === 'with-guide' && !selectedDate)) {
+                        e.target.style.backgroundColor = '#3b82f6';
+                      }
+                    }}
+                  >
+                    {processingPayment ? 'Processing...' : 'Proceed to payment'}
+                  </button>
+                </div>
+              </div>
+              
+              <p style={{ 
+                color: '#9ca3af', 
+                marginTop: '16px',
+                textAlign: 'center',
+                fontSize: '12px'
+              }}>
+                Secure payment via Stripe
+              </p>
             </div>
-            
-            <p style={{ 
-              color: '#9ca3af', 
-              marginTop: '16px',
-              textAlign: 'center',
-              fontSize: '12px'
-            }}>
-              Secure payment via Stripe
-            </p>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Itinerary Plan */}
         <div className="enhanced-card">
