@@ -1549,169 +1549,260 @@ export default function ItineraryPage() {
           const currency = tourData?.price?.currency || tourData?.currency || 'USD';
           
           return (
-            <div className="enhanced-card" style={{ 
-              backgroundColor: '#f9fafb', 
-              border: '2px solid #e5e7eb',
+            <div style={{
               marginTop: '24px',
               marginBottom: '24px'
             }}>
-              <h3 style={{ 
-                fontSize: '20px', 
-                fontWeight: 'bold', 
-                color: '#1f2937', 
-                marginBottom: '16px',
-                textAlign: 'center'
+              {/* Two cards side by side */}
+              <div className="payment-cards-container" style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '20px',
+                marginBottom: tourType === 'with-guide' && supportsGuide && tourId ? '24px' : '0'
               }}>
-                🔒 Unlock Full Itinerary
-              </h3>
-              <p style={{ 
-                color: '#6b7280', 
-                marginBottom: '20px',
-                textAlign: 'center',
-                fontSize: '14px'
-              }}>
-                Get access to all locations and complete details
-              </p>
-              
-              {/* Choose type of your trip */}
-              <div style={{
-                marginBottom: '24px',
-                padding: '20px',
-                backgroundColor: 'white',
-                borderRadius: '8px',
-                border: '1px solid #e5e7eb'
-              }}>
-                <h4 style={{
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  color: '#111827',
-                  marginBottom: '16px'
+                {/* Left Card: Choose type of your trip */}
+                <div style={{
+                  backgroundColor: 'white',
+                  borderRadius: '12px',
+                  padding: '24px',
+                  border: '1px solid #e5e7eb',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                 }}>
-                  Choose type of your trip
-                </h4>
+                  <h4 style={{
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#111827',
+                    marginBottom: '20px'
+                  }}>
+                    Choose type of your trip
+                  </h4>
+                  
+                  {/* Self-guided Tour */}
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '12px',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s',
+                    backgroundColor: tourType === 'self-guided' ? '#eff6ff' : 'transparent',
+                    marginBottom: '12px'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (tourType !== 'self-guided') {
+                      e.currentTarget.style.backgroundColor = '#f9fafb';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (tourType !== 'self-guided') {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }
+                  }}
+                  >
+                    <input
+                      type="radio"
+                      name="tourType"
+                      value="self-guided"
+                      checked={tourType === 'self-guided'}
+                      onChange={(e) => {
+                        setTourType('self-guided');
+                        setSelectedDate(null);
+                      }}
+                      style={{
+                        marginTop: '2px',
+                        cursor: 'pointer',
+                        width: '18px',
+                        height: '18px'
+                      }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#111827',
+                        marginBottom: '4px'
+                      }}>
+                        Self-guided Tour
+                      </div>
+                      <div style={{
+                        fontSize: '12px',
+                        color: '#6b7280',
+                        lineHeight: '1.5'
+                      }}>
+                        Fixed price: {currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency}{pdfPrice}. Travelers can download the PDF route and explore independently
+                      </div>
+                    </div>
+                  </label>
+                  
+                  {/* With Guide */}
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '12px',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    cursor: supportsGuide ? 'pointer' : 'not-allowed',
+                    transition: 'background-color 0.2s',
+                    backgroundColor: tourType === 'with-guide' && supportsGuide ? '#eff6ff' : 'transparent',
+                    opacity: supportsGuide ? 1 : 0.5
+                  }}
+                  onMouseEnter={(e) => {
+                    if (supportsGuide && tourType !== 'with-guide') {
+                      e.currentTarget.style.backgroundColor = '#f9fafb';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (supportsGuide && tourType !== 'with-guide') {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }
+                  }}
+                  >
+                    <input
+                      type="radio"
+                      name="tourType"
+                      value="with-guide"
+                      checked={tourType === 'with-guide'}
+                      onChange={(e) => {
+                        if (supportsGuide) {
+                          setTourType('with-guide');
+                        }
+                      }}
+                      disabled={!supportsGuide}
+                      style={{
+                        marginTop: '2px',
+                        cursor: supportsGuide ? 'pointer' : 'not-allowed',
+                        width: '18px',
+                        height: '18px'
+                      }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: supportsGuide ? '#111827' : '#9ca3af',
+                        marginBottom: '4px'
+                      }}>
+                        With Guide
+                      </div>
+                      <div style={{
+                        fontSize: '12px',
+                        color: supportsGuide ? '#6b7280' : '#9ca3af',
+                        lineHeight: '1.5'
+                      }}>
+                        {supportsGuide && guidedPrice 
+                          ? `Вы проведете незабываемое путешествие с человеком, который создал этот путеводитель.`
+                          : 'This option is not available for this tour'}
+                      </div>
+                    </div>
+                  </label>
+                </div>
                 
-                {/* Self-guided Tour */}
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '12px',
-                  padding: '12px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.2s',
-                  backgroundColor: tourType === 'self-guided' ? '#eff6ff' : 'transparent'
-                }}
-                onMouseEnter={(e) => {
-                  if (tourType !== 'self-guided') {
-                    e.currentTarget.style.backgroundColor = '#f9fafb';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (tourType !== 'self-guided') {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }
-                }}
-                >
-                  <input
-                    type="radio"
-                    name="tourType"
-                    value="self-guided"
-                    checked={tourType === 'self-guided'}
-                    onChange={(e) => {
-                      setTourType('self-guided');
-                      setSelectedDate(null);
-                    }}
-                    style={{
-                      marginTop: '2px',
-                      cursor: 'pointer'
-                    }}
-                  />
-                  <div style={{ flex: 1 }}>
-                    <div style={{
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      color: '#111827',
-                      marginBottom: '4px'
-                    }}>
-                      Self-guided Tour
-                    </div>
-                    <div style={{
-                      fontSize: '12px',
-                      color: '#6b7280'
-                    }}>
-                      Fixed price: ${pdfPrice}. Travelers can download the PDF route and explore independently
-                    </div>
+                {/* Right Card: Unlock Full Itinerary */}
+                <div style={{
+                  backgroundColor: 'white',
+                  borderRadius: '12px',
+                  padding: '24px',
+                  border: '1px solid #e5e7eb',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                }}>
+                  <h4 style={{
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#111827',
+                    marginBottom: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}>
+                    <span>🔒</span>
+                    <span>Unlock Full Itinerary</span>
+                  </h4>
+                  <p style={{
+                    fontSize: '12px',
+                    color: '#6b7280',
+                    marginBottom: '20px'
+                  }}>
+                    Get access to all locations and detailed daily plan.
+                  </p>
+                  
+                  <div style={{
+                    fontSize: '32px',
+                    fontWeight: 'bold',
+                    color: '#111827',
+                    marginBottom: '4px'
+                  }}>
+                    {currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency}{currentPrice}
                   </div>
-                </label>
-                
-                {/* With Guide */}
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '12px',
-                  padding: '12px',
-                  borderRadius: '8px',
-                  cursor: supportsGuide ? 'pointer' : 'not-allowed',
-                  transition: 'background-color 0.2s',
-                  backgroundColor: tourType === 'with-guide' && supportsGuide ? '#eff6ff' : 'transparent',
-                  opacity: supportsGuide ? 1 : 0.5
-                }}
-                onMouseEnter={(e) => {
-                  if (supportsGuide && tourType !== 'with-guide') {
-                    e.currentTarget.style.backgroundColor = '#f9fafb';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (supportsGuide && tourType !== 'with-guide') {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }
-                }}
-                >
-                  <input
-                    type="radio"
-                    name="tourType"
-                    value="with-guide"
-                    checked={tourType === 'with-guide'}
-                    onChange={(e) => {
-                      if (supportsGuide) {
-                        setTourType('with-guide');
-                      }
-                    }}
-                    disabled={!supportsGuide}
-                    style={{
-                      marginTop: '2px',
-                      cursor: supportsGuide ? 'pointer' : 'not-allowed'
-                    }}
-                  />
-                  <div style={{ flex: 1 }}>
-                    <div style={{
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      color: supportsGuide ? '#111827' : '#9ca3af',
-                      marginBottom: '4px'
-                    }}>
-                      With Guide
-                    </div>
-                    <div style={{
-                      fontSize: '12px',
-                      color: supportsGuide ? '#6b7280' : '#9ca3af'
-                    }}>
-                      {supportsGuide && guidedPrice 
-                        ? `Price: ${currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency}${guidedPrice}. You will have an unforgettable journey with the person who created this guide.`
-                        : 'This option is not available for this tour'}
-                    </div>
+                  
+                  <div style={{
+                    fontSize: '12px',
+                    color: '#6b7280',
+                    marginBottom: '24px'
+                  }}>
+                    One-time payment
                   </div>
-                </label>
+                  
+                  <div style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: '12px'
+                  }}>
+                    <input
+                      type="email"
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      style={{
+                        padding: '12px 16px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        width: '100%',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                    <button
+                      onClick={handlePayment}
+                      disabled={processingPayment || !email || (tourType === 'with-guide' && !selectedDate)}
+                      style={{
+                        padding: '12px 24px',
+                        backgroundColor: processingPayment || !email || (tourType === 'with-guide' && !selectedDate) ? '#9ca3af' : '#3b82f6',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        cursor: processingPayment || !email || (tourType === 'with-guide' && !selectedDate) ? 'not-allowed' : 'pointer',
+                        width: '100%',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!processingPayment && email && !(tourType === 'with-guide' && !selectedDate)) {
+                          e.target.style.backgroundColor = '#2563eb';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!processingPayment && email && !(tourType === 'with-guide' && !selectedDate)) {
+                          e.target.style.backgroundColor = '#3b82f6';
+                        }
+                      }}
+                    >
+                      {processingPayment ? 'Processing...' : 'Proceed to payment'}
+                    </button>
+                  </div>
+                </div>
               </div>
               
-              {/* Availability Calendar - Show only if With Guide is selected */}
+              {/* Availability Calendar - Show below cards if With Guide is selected */}
               {tourType === 'with-guide' && supportsGuide && tourId && (
                 <div style={{
-                  marginBottom: '24px',
-                  padding: '20px',
                   backgroundColor: 'white',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb'
+                  borderRadius: '12px',
+                  padding: '24px',
+                  border: '1px solid #e5e7eb',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                  marginTop: '20px'
                 }}>
                   <h4 style={{
                     fontSize: '16px',
@@ -1729,101 +1820,6 @@ export default function ItineraryPage() {
                   />
                 </div>
               )}
-              
-              {/* Price and Payment */}
-              <div style={{
-                padding: '20px',
-                backgroundColor: 'white',
-                borderRadius: '8px',
-                border: '1px solid #e5e7eb',
-                marginBottom: '20px'
-              }}>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '12px'
-                }}>
-                  <span style={{
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    color: '#111827'
-                  }}>
-                    Total
-                  </span>
-                  <span style={{
-                    fontSize: '24px',
-                    fontWeight: 'bold',
-                    color: '#111827'
-                  }}>
-                    {currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency}{currentPrice}
-                  </span>
-                </div>
-                <div style={{
-                  fontSize: '12px',
-                  color: '#6b7280',
-                  marginBottom: '20px'
-                }}>
-                  One-time payment
-                </div>
-                
-                <div style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  gap: '12px'
-                }}>
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    style={{
-                      padding: '12px 16px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '8px',
-                      fontSize: '16px',
-                      width: '100%'
-                    }}
-                  />
-                  <button
-                    onClick={handlePayment}
-                    disabled={processingPayment || !email || (tourType === 'with-guide' && !selectedDate)}
-                    style={{
-                      padding: '12px 24px',
-                      backgroundColor: processingPayment || !email || (tourType === 'with-guide' && !selectedDate) ? '#9ca3af' : '#3b82f6',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontSize: '16px',
-                      fontWeight: '600',
-                      cursor: processingPayment || !email || (tourType === 'with-guide' && !selectedDate) ? 'not-allowed' : 'pointer',
-                      width: '100%',
-                      transition: 'background-color 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!processingPayment && email && !(tourType === 'with-guide' && !selectedDate)) {
-                        e.target.style.backgroundColor = '#2563eb';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!processingPayment && email && !(tourType === 'with-guide' && !selectedDate)) {
-                        e.target.style.backgroundColor = '#3b82f6';
-                      }
-                    }}
-                  >
-                    {processingPayment ? 'Processing...' : 'Proceed to payment'}
-                  </button>
-                </div>
-              </div>
-              
-              <p style={{ 
-                color: '#9ca3af', 
-                marginTop: '16px',
-                textAlign: 'center',
-                fontSize: '12px'
-              }}>
-                Secure payment via Stripe
-              </p>
             </div>
           );
         })()}

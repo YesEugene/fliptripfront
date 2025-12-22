@@ -48,6 +48,11 @@
   .itinerary-container div[style*="background-image"] h1 {
     font-size: 26px !important; /* Reduced by 10px from 36px (5px + 5px) */
   }
+  
+  /* Payment cards - stack vertically on mobile */
+  .payment-cards-container {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 @media (max-width: 480px) {
