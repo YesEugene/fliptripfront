@@ -668,20 +668,28 @@ export default function ItineraryPage() {
           // Limit to first 2 items if preview and not paid
           // CRITICAL: Check previewOnly from URL params, not just state
           const previewOnlyFromUrl = searchParams.get('previewOnly') === 'true';
+          // Use previewOnly from URL or from function parameter
           const actualPreviewOnly = previewOnly !== undefined ? previewOnly : previewOnlyFromUrl;
           const shouldLimitItems = actualPreviewOnly && !isFullPlan && !isPaid;
+          
+          console.log('🔍 Preview limiting check:', {
+            previewOnly,
+            previewOnlyFromUrl,
+            actualPreviewOnly,
+            isFullPlan,
+            isPaid,
+            shouldLimitItems,
+            activitiesCount: data.activities?.length || 0
+          });
           let itemCount = 0;
           
           const activitiesToShow = shouldLimitItems 
-            ? data.activities.filter(() => {
-                if (itemCount >= 2) return false;
-                itemCount++;
-                return true;
-              })
+            ? data.activities.slice(0, 2) // Simply take first 2 activities
             : data.activities;
           
           console.log(`📋 Generated tour: ${shouldLimitItems ? 'Preview mode' : 'Full mode'}, showing ${activitiesToShow.length} out of ${data.activities.length} activities`);
           console.log(`📋 Preview check: previewOnly=${previewOnly}, previewOnlyFromUrl=${previewOnlyFromUrl}, actualPreviewOnly=${actualPreviewOnly}, shouldLimitItems=${shouldLimitItems}`);
+          console.log(`📋 Activities to show:`, activitiesToShow.map(a => a.name || a.title));
           
           // Конвертируем данные в нужный формат для отображения
           const convertedData = {
@@ -743,13 +751,18 @@ export default function ItineraryPage() {
             // Update URL with tourId for bookmarking - use window.history for immediate update
             const newSearchParams = new URLSearchParams(window.location.search);
             newSearchParams.set('tourId', data.tourId);
-            if (previewOnly) {
+            // Always preserve previewOnly if it was in URL
+            const currentPreviewOnly = searchParams.get('previewOnly') === 'true';
+            if (currentPreviewOnly || previewOnly) {
               newSearchParams.set('previewOnly', 'true');
             }
             // Preserve all existing params
             const newUrl = `${window.location.pathname}?${newSearchParams.toString()}`;
             window.history.replaceState({}, '', newUrl);
             console.log('✅ URL updated with tourId:', newUrl);
+            console.log('📋 URL params after update:', Object.fromEntries(newSearchParams));
+          } else {
+            console.warn('⚠️ No tourId returned from API. Check backend logs.');
           }
           
           setItinerary(convertedData);
