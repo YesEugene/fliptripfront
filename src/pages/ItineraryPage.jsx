@@ -29,6 +29,7 @@ export default function ItineraryPage() {
   const [availableSpots, setAvailableSpots] = useState(null); // Available spots for selected date
   const [maxGroupSize, setMaxGroupSize] = useState(null); // Max group size for selected date
   const [isSubtitleExpanded, setIsSubtitleExpanded] = useState(false); // Subtitle expand/collapse state
+  const [tourIdState, setTourId] = useState(null); // Tour ID state for generated tours
 
   // City images mapping
   const cityImagesMap = {
@@ -147,9 +148,18 @@ export default function ItineraryPage() {
   const exampleItinerary = location.state?.itinerary;
   
   // Extract URL parameters
-  const tourId = searchParams.get('tourId');
+  const tourIdFromUrl = searchParams.get('tourId');
+  // Use tourId from URL or from state (state takes priority if set)
+  const tourId = tourIdState || tourIdFromUrl;
   const previewOnly = searchParams.get('previewOnly') === 'true';
   const isFullPlan = searchParams.get('full') === 'true';
+  
+  // Update tourId state when URL changes
+  useEffect(() => {
+    if (tourIdFromUrl && tourIdFromUrl !== tourIdState) {
+      setTourId(tourIdFromUrl);
+    }
+  }, [tourIdFromUrl]);
   
   // Extract form data from URL params
   // Note: budget, interests, and audience should be null if not in URL (not default values)
@@ -2092,10 +2102,27 @@ export default function ItineraryPage() {
             const shouldShowUnlockBlock = previewOnly && !isPaid;
             let shouldInsertUnlockAfterSecond = false;
             
-            return itinerary?.daily_plan?.[0]?.blocks?.map((block, blockIndex) => (
+            // CRITICAL: Limit to 2 items total if preview mode and not paid
+            const shouldLimitPreviewItems = previewOnly && !isPaid;
+            let previewItemCount = 0;
+            
+            return itinerary?.daily_plan?.[0]?.blocks?.map((block, blockIndex) => {
+              // Filter items if in preview mode
+              const itemsToShow = shouldLimitPreviewItems 
+                ? block.items?.filter(() => {
+                    if (previewItemCount >= 2) return false;
+                    previewItemCount++;
+                    return true;
+                  }) || []
+                : block.items || [];
+              
+              // Skip block if no items to show
+              if (itemsToShow.length === 0) return null;
+              
+              return (
               <div key={blockIndex} style={blockStyle}>
                 <div className="time-block-enhanced">{block.time}</div>
-                {block.items?.map((item, itemIndex) => {
+                {itemsToShow.map((item, itemIndex) => {
                   itemCount++;
                   const isSecondItem = itemCount === 2;
                   if (isSecondItem && shouldShowUnlockBlock) {
@@ -2152,7 +2179,8 @@ export default function ItineraryPage() {
                   );
                 })}
               </div>
-            ));
+              );
+            }).filter(Boolean); // Remove null blocks
           })()}
           
           {/* Unlock Full Itinerary block - Outside timeline, full width */}
