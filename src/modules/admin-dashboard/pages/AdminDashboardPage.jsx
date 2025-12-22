@@ -102,10 +102,11 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '20px 20px', backgroundColor: '#f9fafb', minHeight: 'calc(100vh - 100px)' }}>
-        <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '32px', paddingLeft: '20px' }}>
-          Admin Dashboard
-        </h1>
+      <div style={{ width: '100%', backgroundColor: '#f9fafb', minHeight: 'calc(100vh - 100px)' }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '20px' }}>
+          <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '32px' }}>
+            Admin Dashboard
+          </h1>
 
         {/* Navigation Cards - Row 1: Flip Trips and Locations */}
         <div style={{
