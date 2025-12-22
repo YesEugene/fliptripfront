@@ -50,11 +50,11 @@ export default function AdminDashboardPage() {
         @media (max-width: 768px) {
           .admin-dashboard-grid {
             grid-template-columns: 1fr !important;
-            gap: 16px !important;
+            gap: 10px !important;
           }
           .admin-dashboard-grid-row-3 {
             grid-template-columns: repeat(2, 1fr) !important;
-            gap: 16px !important;
+            gap: 10px !important;
           }
         }
         @media (max-width: 480px) {
@@ -63,13 +63,14 @@ export default function AdminDashboardPage() {
           }
         }
       `}</style>
-      <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', width: '100%' }}>
         {/* Header */}
       <div style={{
         backgroundColor: 'white',
         padding: '20px',
         borderBottom: '1px solid #e5e7eb',
-        marginBottom: '24px'
+        marginBottom: '10px',
+        width: '100%'
       }}>
         <div style={{
           maxWidth: '1400px',
@@ -110,8 +111,8 @@ export default function AdminDashboardPage() {
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(2, 1fr)',
-          gap: '32px',
-          marginBottom: '32px'
+          gap: '10px',
+          marginBottom: '10px'
         }}
         className="admin-dashboard-grid"
         >
@@ -127,7 +128,7 @@ export default function AdminDashboardPage() {
               color: 'inherit',
               display: 'flex',
               alignItems: 'flex-start',
-              gap: '20px',
+              gap: '12px',
               border: '2px solid transparent',
               transition: 'all 0.2s',
               cursor: 'pointer'
@@ -143,7 +144,7 @@ export default function AdminDashboardPage() {
               e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
             }}
           >
-            <div style={{ fontSize: '40px', lineHeight: '1' }}>🌍</div>
+            <div style={{ fontSize: '20px', lineHeight: '1' }}>🌍</div>
             <div style={{ flex: 1 }}>
               <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '10px', color: '#1f2937', lineHeight: '1.3' }}>
                 Flip Trips
@@ -185,7 +186,7 @@ export default function AdminDashboardPage() {
               color: 'inherit',
               display: 'flex',
               alignItems: 'flex-start',
-              gap: '20px',
+              gap: '12px',
               border: '2px solid transparent',
               transition: 'all 0.2s',
               cursor: 'pointer'
@@ -201,7 +202,7 @@ export default function AdminDashboardPage() {
               e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
             }}
           >
-            <div style={{ fontSize: '40px', lineHeight: '1' }}>📍</div>
+            <div style={{ fontSize: '20px', lineHeight: '1' }}>📍</div>
             <div style={{ flex: 1 }}>
               <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '10px', color: '#1f2937', lineHeight: '1.3' }}>
                 Locations
@@ -276,7 +277,7 @@ export default function AdminDashboardPage() {
                   color: 'inherit',
                   display: 'flex',
                   alignItems: 'flex-start',
-                  gap: '20px',
+                  gap: '12px',
                   border: '2px solid transparent',
                   transition: 'all 0.2s',
                   cursor: 'pointer'
@@ -292,7 +293,7 @@ export default function AdminDashboardPage() {
                   e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
                 }}
               >
-                <div style={{ fontSize: '40px', lineHeight: '1' }}>👥</div>
+                <div style={{ fontSize: '20px', lineHeight: '1' }}>👥</div>
                 <div style={{ flex: 1 }}>
                   <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '10px', color: '#1f2937', lineHeight: '1.3' }}>
                     Users
@@ -329,7 +330,7 @@ export default function AdminDashboardPage() {
             alignItems: 'flex-start',
             gap: '20px'
           }}>
-            <div style={{ fontSize: '40px', lineHeight: '1' }}>💰</div>
+            <div style={{ fontSize: '20px', lineHeight: '1' }}>💰</div>
             <div style={{ flex: 1 }}>
               <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '10px', color: '#1f2937', lineHeight: '1.3' }}>
                 Revenue
@@ -356,7 +357,7 @@ export default function AdminDashboardPage() {
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: '24px'
+              gap: '10px'
             }}
             className="admin-dashboard-grid admin-dashboard-grid-row-3"
             >
