@@ -2035,6 +2035,7 @@ export default function ItineraryPage() {
           {(() => {
             let itemCount = 0;
             const shouldShowUnlockBlock = previewOnly && !isPaid;
+            let shouldInsertUnlockAfterSecond = false;
             
             return itinerary?.daily_plan?.[0]?.blocks?.map((block, blockIndex) => (
               <div key={blockIndex} style={blockStyle}>
@@ -2042,6 +2043,9 @@ export default function ItineraryPage() {
                 {block.items?.map((item, itemIndex) => {
                   itemCount++;
                   const isSecondItem = itemCount === 2;
+                  if (isSecondItem && shouldShowUnlockBlock) {
+                    shouldInsertUnlockAfterSecond = true;
+                  }
                   
                   return (
                     <div key={itemIndex}>
@@ -2089,137 +2093,150 @@ export default function ItineraryPage() {
                     )}
                   </div>
                       </div>
-                      
-                      {/* Insert Unlock Full Itinerary block after second item */}
-                      {isSecondItem && shouldShowUnlockBlock && (() => {
-                        // Determine if tour supports guide option
-                        const supportsGuide = tourData?.withGuide || 
-                                              tourData?.default_format === 'with_guide' || 
-                                              tourData?.format === 'guided' ||
-                                              (tourData?.price?.guidedPrice && tourData.price.guidedPrice > 0);
-                        
-                        // Get prices
-                        const pdfPrice = tourData?.price?.pdfPrice || tourData?.price_pdf || 16;
-                        const guidedPrice = tourData?.price?.guidedPrice || tourData?.price_guided || null;
-                        const currency = tourData?.price?.currency || tourData?.currency || 'USD';
-                        
-                        // Calculate current price based on selected tour type and quantity
-                        const basePrice = tourType === 'with-guide' && guidedPrice ? guidedPrice : pdfPrice;
-                        const currentPrice = tourType === 'with-guide' ? basePrice * quantity : basePrice;
-                        
-                        return (
-                          <div id="unlock-full-itinerary" style={{
-                            backgroundColor: 'white',
-                            borderRadius: '12px',
-                            padding: '24px',
-                            border: 'none',
-                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-                            marginTop: '24px',
-                            marginBottom: '24px'
-                          }}>
-                            <h4 style={{
-                              fontSize: '21px',
-                              fontWeight: '600',
-                              color: '#111827',
-                              marginBottom: '8px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px'
-                            }}>
-                              <span>🔒</span>
-                              <span>Unlock Full Itinerary</span>
-                            </h4>
-                            <p style={{
-                              fontSize: '12px',
-                              color: '#6b7280',
-                              marginBottom: '20px'
-                            }}>
-                              Get access to all locations and detailed daily plan.
-                            </p>
-                            
-                            <div style={{
-                              fontSize: '32px',
-                              fontWeight: 'bold',
-                              color: '#111827',
-                              marginBottom: '4px'
-                            }}>
-                              {currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency}{currentPrice}
-                            </div>
-                            
-                            {tourType === 'with-guide' && quantity > 1 && (
-                              <div style={{
-                                fontSize: '12px',
-                                color: '#6b7280',
-                                marginBottom: '4px'
-                              }}>
-                                {currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency}{basePrice} × {quantity} spots
-                              </div>
-                            )}
-                            
-                            <div style={{
-                              fontSize: '12px',
-                              color: '#6b7280',
-                              marginBottom: '24px'
-                            }}>
-                              One-time payment
-                            </div>
-                            
-                            <div style={{ 
-                              display: 'flex', 
-                              flexDirection: 'column', 
-                              gap: '12px'
-                            }}>
-                              <input
-                                type="email"
-                                placeholder="Enter your email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                style={{
-                                  padding: '12px 16px',
-                                  border: '1px solid #d1d5db',
-                                  borderRadius: '8px',
-                                  fontSize: '16px',
-                                  width: '100%',
-                                  boxSizing: 'border-box'
-                                }}
-                              />
-                              <button
-                                onClick={handlePayment}
-                                disabled={processingPayment || !email || (tourType === 'with-guide' && !selectedDate)}
-                                style={{
-                                  padding: '12px 24px',
-                                  backgroundColor: processingPayment || !email || (tourType === 'with-guide' && (!selectedDate || !quantity || quantity < 1)) ? '#9ca3af' : '#3b82f6',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '8px',
-                                  fontSize: '16px',
-                                  fontWeight: '600',
-                                  cursor: processingPayment || !email || (tourType === 'with-guide' && (!selectedDate || !quantity || quantity < 1)) ? 'not-allowed' : 'pointer',
-                                  width: '100%',
-                                  transition: 'background-color 0.2s'
-                                }}
-                                onMouseEnter={(e) => {
-                                  if (!processingPayment && email && !(tourType === 'with-guide' && (!selectedDate || !quantity || quantity < 1))) {
-                                    e.target.style.backgroundColor = '#2563eb';
-                                  }
-                                }}
-                                onMouseLeave={(e) => {
-                                  if (!processingPayment && email && !(tourType === 'with-guide' && (!selectedDate || !quantity || quantity < 1))) {
-                                    e.target.style.backgroundColor = '#3b82f6';
-                                  }
-                                }}
-                              >
-                                {processingPayment ? 'Processing...' : 'Proceed to payment'}
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })()}
                     </div>
                   );
                 })}
               </div>
             ));
+          })()}
+          
+          {/* Unlock Full Itinerary block - Outside timeline, full width */}
+          {previewOnly && !isPaid && (() => {
+            // Count items to check if we should show unlock block
+            let totalItemCount = 0;
+            itinerary?.daily_plan?.[0]?.blocks?.forEach(block => {
+              if (block.items) {
+                totalItemCount += block.items.length;
+              }
+            });
+            
+            // Show unlock block only if we have at least 2 items (preview mode)
+            if (totalItemCount >= 2) {
+              // Determine if tour supports guide option
+              const supportsGuide = tourData?.withGuide || 
+                                    tourData?.default_format === 'with_guide' || 
+                                    tourData?.format === 'guided' ||
+                                    (tourData?.price?.guidedPrice && tourData.price.guidedPrice > 0);
+              
+              // Get prices
+              const pdfPrice = tourData?.price?.pdfPrice || tourData?.price_pdf || 16;
+              const guidedPrice = tourData?.price?.guidedPrice || tourData?.price_guided || null;
+              const currency = tourData?.price?.currency || tourData?.currency || 'USD';
+              
+              // Calculate current price based on selected tour type and quantity
+              const basePrice = tourType === 'with-guide' && guidedPrice ? guidedPrice : pdfPrice;
+              const currentPrice = tourType === 'with-guide' ? basePrice * quantity : basePrice;
+              
+              return (
+                <div id="unlock-full-itinerary" style={{
+                  backgroundColor: '#f9fafb',
+                  borderRadius: '12px',
+                  padding: '24px',
+                  border: '1px solid #e5e7eb',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                  marginTop: '32px',
+                  marginBottom: '0',
+                  width: '100%'
+                }}>
+                  <h4 style={{
+                    fontSize: '21px',
+                    fontWeight: '600',
+                    color: '#111827',
+                    marginBottom: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}>
+                    <span>🔒</span>
+                    <span>Unlock Full Itinerary</span>
+                  </h4>
+                  <p style={{
+                    fontSize: '12px',
+                    color: '#6b7280',
+                    marginBottom: '20px'
+                  }}>
+                    Get access to all locations and detailed daily plan.
+                  </p>
+                  
+                  <div style={{
+                    fontSize: '32px',
+                    fontWeight: 'bold',
+                    color: '#111827',
+                    marginBottom: '4px'
+                  }}>
+                    {currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency}{currentPrice}
+                  </div>
+                  
+                  {tourType === 'with-guide' && quantity > 1 && (
+                    <div style={{
+                      fontSize: '12px',
+                      color: '#6b7280',
+                      marginBottom: '4px'
+                    }}>
+                      {currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency}{basePrice} × {quantity} spots
+                    </div>
+                  )}
+                  
+                  <div style={{
+                    fontSize: '12px',
+                    color: '#6b7280',
+                    marginBottom: '24px'
+                  }}>
+                    One-time payment
+                  </div>
+                  
+                  <div style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: '12px'
+                  }}>
+                    <input
+                      type="email"
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      style={{
+                        padding: '12px 16px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        width: '100%',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                    <button
+                      onClick={handlePayment}
+                      disabled={processingPayment || !email || (tourType === 'with-guide' && !selectedDate)}
+                      style={{
+                        padding: '12px 24px',
+                        backgroundColor: processingPayment || !email || (tourType === 'with-guide' && (!selectedDate || !quantity || quantity < 1)) ? '#9ca3af' : '#3b82f6',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        cursor: processingPayment || !email || (tourType === 'with-guide' && (!selectedDate || !quantity || quantity < 1)) ? 'not-allowed' : 'pointer',
+                        width: '100%',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!processingPayment && email && !(tourType === 'with-guide' && (!selectedDate || !quantity || quantity < 1))) {
+                          e.target.style.backgroundColor = '#2563eb';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!processingPayment && email && !(tourType === 'with-guide' && (!selectedDate || !quantity || quantity < 1))) {
+                          e.target.style.backgroundColor = '#3b82f6';
+                        }
+                      }}
+                    >
+                      {processingPayment ? 'Processing...' : 'Proceed to payment'}
+                    </button>
+                  </div>
+                </div>
+              );
+            }
+            return null;
           })()}
         </div>
 
