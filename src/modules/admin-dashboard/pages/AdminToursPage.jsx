@@ -691,10 +691,6 @@ export default function AdminToursPage() {
                           />
                         </td>
                       )}
-                            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                          />
-                        </td>
-                      )}
                       <td style={{ padding: '12px' }}>{tour.title || 'N/A'}</td>
                       <td style={{ padding: '12px' }}>
                         {tour.guide?.name || tour.guide || 'N/A'}
