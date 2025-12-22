@@ -37,6 +37,12 @@ export default function GuideDashboardPage() {
     }
   });
 
+  // Statistics state
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [stats, setStats] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [recentBookings, setRecentBookings] = useState([]);
+
   useEffect(() => {
     const currentUser = getCurrentUser();
     setUser(currentUser);
@@ -51,6 +57,13 @@ export default function GuideDashboardPage() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Load statistics when Statistics tab is active
+  useEffect(() => {
+    if (activeTab === 'statistics') {
+      loadStatistics();
+    }
+  }, [activeTab]);
+
   const loadGuideTours = async () => {
     try {
       setLoading(true);
@@ -62,6 +75,40 @@ export default function GuideDashboardPage() {
       console.error('Error loading guide tours:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Load statistics
+  const loadStatistics = async () => {
+    try {
+      setStatsLoading(true);
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('Not authenticated');
+      }
+
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripbackend.vercel.app';
+      const response = await fetch(`${API_BASE_URL}/api/guide-stats`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to fetch statistics');
+      }
+
+      setStats(data.stats);
+      setNotifications(data.recentNotifications || []);
+      setRecentBookings(data.recentBookings || []);
+    } catch (error) {
+      console.error('Error loading statistics:', error);
+    } finally {
+      setStatsLoading(false);
     }
   };
 
@@ -1074,15 +1121,217 @@ export default function GuideDashboardPage() {
 
         {activeTab === 'statistics' && (
           <div style={{
-            backgroundColor: 'white',
-            borderRadius: '12px',
-            padding: '40px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            textAlign: 'center'
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px'
           }}>
-            <p style={{ color: '#6b7280', fontSize: '16px' }}>
-              Statistics will be displayed here
-            </p>
+            {statsLoading ? (
+              <div style={{
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                padding: '40px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                textAlign: 'center'
+              }}>
+                <p style={{ color: '#6b7280', fontSize: '16px' }}>Loading statistics...</p>
+              </div>
+            ) : stats ? (
+              <>
+                {/* Statistics Cards */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '20px'
+                }}>
+                  <div style={{
+                    backgroundColor: 'white',
+                    borderRadius: '12px',
+                    padding: '24px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                  }}>
+                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
+                      Total Bookings
+                    </div>
+                    <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#1f2937' }}>
+                      {stats.bookings.total}
+                    </div>
+                  </div>
+
+                  <div style={{
+                    backgroundColor: 'white',
+                    borderRadius: '12px',
+                    padding: '24px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                  }}>
+                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
+                      Confirmed
+                    </div>
+                    <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#10b981' }}>
+                      {stats.bookings.confirmed}
+                    </div>
+                  </div>
+
+                  <div style={{
+                    backgroundColor: 'white',
+                    borderRadius: '12px',
+                    padding: '24px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                  }}>
+                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
+                      Total Revenue
+                    </div>
+                    <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#3b82f6' }}>
+                      {Object.entries(stats.revenue.byCurrency).map(([currency, amount]) => (
+                        <div key={currency}>
+                          {currency} {amount.toFixed(2)}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{
+                    backgroundColor: 'white',
+                    borderRadius: '12px',
+                    padding: '24px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                  }}>
+                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
+                      Unread Notifications
+                    </div>
+                    <div style={{ fontSize: '32px', fontWeight: 'bold', color: stats.notifications.unread > 0 ? '#ef4444' : '#1f2937' }}>
+                      {stats.notifications.unread}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notifications Section */}
+                <div style={{
+                  backgroundColor: 'white',
+                  borderRadius: '12px',
+                  padding: '24px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                }}>
+                  <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '16px', color: '#111827' }}>
+                    Recent Notifications
+                  </h3>
+                  {notifications.length === 0 ? (
+                    <p style={{ color: '#6b7280', fontSize: '14px' }}>No notifications yet</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {notifications.slice(0, 10).map((notification) => (
+                        <div
+                          key={notification.id}
+                          style={{
+                            padding: '16px',
+                            borderRadius: '8px',
+                            backgroundColor: notification.is_read ? '#f9fafb' : '#eff6ff',
+                            borderLeft: notification.is_read ? '3px solid transparent' : '3px solid #3b82f6'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
+                            <div style={{ fontWeight: '600', color: '#111827' }}>
+                              {notification.title}
+                            </div>
+                            {!notification.is_read && (
+                              <span style={{
+                                backgroundColor: '#ef4444',
+                                color: 'white',
+                                fontSize: '10px',
+                                padding: '2px 8px',
+                                borderRadius: '12px'
+                              }}>
+                                NEW
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ color: '#6b7280', fontSize: '14px', marginBottom: '4px' }}>
+                            {notification.message}
+                          </div>
+                          <div style={{ color: '#9ca3af', fontSize: '12px' }}>
+                            {new Date(notification.created_at).toLocaleString()}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Recent Bookings Section */}
+                <div style={{
+                  backgroundColor: 'white',
+                  borderRadius: '12px',
+                  padding: '24px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                }}>
+                  <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '16px', color: '#111827' }}>
+                    Recent Bookings
+                  </h3>
+                  {recentBookings.length === 0 ? (
+                    <p style={{ color: '#6b7280', fontSize: '14px' }}>No bookings yet</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {recentBookings.map((booking) => (
+                        <div
+                          key={booking.id}
+                          style={{
+                            padding: '16px',
+                            borderRadius: '8px',
+                            backgroundColor: '#f9fafb',
+                            border: '1px solid #e5e7eb'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
+                            <div>
+                              <div style={{ fontWeight: '600', color: '#111827', marginBottom: '4px' }}>
+                                {booking.tour_title}
+                              </div>
+                              <div style={{ color: '#6b7280', fontSize: '14px' }}>
+                                {booking.customer_name} • {new Date(booking.tour_date).toLocaleDateString()}
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontWeight: '600', color: '#111827' }}>
+                                {booking.currency} {booking.total_price}
+                              </div>
+                              <div style={{
+                                fontSize: '12px',
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                backgroundColor: booking.status === 'confirmed' ? '#d1fae5' : 
+                                                booking.status === 'pending' ? '#fef3c7' : 
+                                                booking.status === 'cancelled' ? '#fee2e2' : '#e0e7ff',
+                                color: booking.status === 'confirmed' ? '#065f46' : 
+                                       booking.status === 'pending' ? '#92400e' : 
+                                       booking.status === 'cancelled' ? '#991b1b' : '#3730a3',
+                                display: 'inline-block',
+                                marginTop: '4px'
+                              }}>
+                                {booking.status}
+                              </div>
+                            </div>
+                          </div>
+                          <div style={{ color: '#9ca3af', fontSize: '12px' }}>
+                            Group size: {booking.group_size} • Created: {new Date(booking.created_at).toLocaleString()}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div style={{
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                padding: '40px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                textAlign: 'center'
+              }}>
+                <p style={{ color: '#6b7280', fontSize: '16px' }}>
+                  Failed to load statistics
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
