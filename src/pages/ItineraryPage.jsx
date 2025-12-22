@@ -28,6 +28,7 @@ export default function ItineraryPage() {
   const [quantity, setQuantity] = useState(1); // Number of spots to book
   const [availableSpots, setAvailableSpots] = useState(null); // Available spots for selected date
   const [maxGroupSize, setMaxGroupSize] = useState(null); // Max group size for selected date
+  const [isSubtitleExpanded, setIsSubtitleExpanded] = useState(false); // Subtitle expand/collapse state
 
   // City images mapping
   const cityImagesMap = {
@@ -1548,9 +1549,47 @@ export default function ItineraryPage() {
       <div className="content-section">
         {/* Subtitle Card - Description only */}
         <div className="enhanced-card">
-          <p className="subtitle">
-{itinerary?.subtitle || generateFallbackSubtitle(formData)}
+          <p 
+            className={`subtitle ${!isSubtitleExpanded ? 'subtitle-collapsed' : ''}`}
+          >
+            {itinerary?.subtitle || generateFallbackSubtitle(formData)}
           </p>
+          
+          {/* Read more button - show only if text is long enough */}
+          {(() => {
+            const subtitleText = itinerary?.subtitle || generateFallbackSubtitle(formData);
+            // Check if text is likely to be more than 4 lines (rough estimate: ~80 chars per line)
+            const isLongText = subtitleText && subtitleText.length > 320;
+            
+            if (isLongText) {
+              return (
+                <button
+                  onClick={() => setIsSubtitleExpanded(!isSubtitleExpanded)}
+                  style={{
+                    backgroundColor: '#f3f4f6',
+                    color: '#374151',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    marginTop: '12px',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = '#e5e7eb';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = '#f3f4f6';
+                  }}
+                >
+                  {isSubtitleExpanded ? 'Read less' : 'Read more'}
+                </button>
+              );
+            }
+            return null;
+          })()}
 
           {itinerary?.weather && (
             <div className="weather-enhanced">

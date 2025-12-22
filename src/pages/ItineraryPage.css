@@ -130,9 +130,19 @@
 }
 
 .subtitle {
-  font-size: 20px;
+  font-size: 16px;
   color: #6b7280;
-  margin-bottom: 24px;
+  margin-top: -10px;
+  margin-bottom: 4px;
+  line-height: 1.5;
+}
+
+.subtitle-collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .badges {
