@@ -223,70 +223,6 @@ export default function AdminDashboardPage() {
           </Link>
         </div>
 
-        {/* Navigation Cards - Row 2: Users and Revenue */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
-          gap: '32px',
-          marginBottom: '32px'
-        }}
-        className="admin-dashboard-grid"
-        >
-          {/* Users Card */}
-          <Link
-            to="/admin/users"
-            style={{
-              backgroundColor: 'white',
-              padding: '28px',
-              borderRadius: '12px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              textDecoration: 'none',
-              color: 'inherit',
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '20px',
-              border: '2px solid transparent',
-              transition: 'all 0.2s',
-              cursor: 'pointer'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#3b82f6';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'transparent';
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-            }}
-          >
-            <div style={{ fontSize: '40px', lineHeight: '1' }}>👥</div>
-            <div style={{ flex: 1 }}>
-              <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '10px', color: '#1f2937', lineHeight: '1.3' }}>
-                Users
-              </h3>
-              <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '16px', lineHeight: '1.5' }}>
-                Manage users and access
-              </p>
-              {stats && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ fontSize: '15px', color: '#374151', lineHeight: '1.5' }}>
-                    Total users: <strong style={{ color: '#1f2937', fontWeight: '600' }}>{stats.users?.total || stats.counts?.users || 0}</strong>
-                  </div>
-                  <div style={{ fontSize: '15px', color: '#374151', lineHeight: '1.5' }}>
-                    Guides: <strong style={{ color: '#3b82f6', fontWeight: '600' }}>{stats.users?.guides || stats.counts?.guides || 0}</strong>
-                  </div>
-                  <div style={{ fontSize: '15px', color: '#374151', lineHeight: '1.5' }}>
-                    Customers: <strong style={{ color: '#8b5cf6', fontWeight: '600' }}>{stats.users?.customers || 0}</strong>
-                  </div>
-                  <div style={{ fontSize: '15px', color: '#374151', lineHeight: '1.5' }}>
-                    Admins: <strong style={{ color: '#ef4444', fontWeight: '600' }}>{stats.users?.admins || 0}</strong>
-                  </div>
-                </div>
-              )}
-            </div>
-          </Link>
-
         {/* Statistics */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px' }}>
@@ -319,8 +255,72 @@ export default function AdminDashboardPage() {
           </div>
         ) : stats && stats.counts ? (
           <>
-          {/* Revenue Card */}
-          <div style={{
+            {/* Statistics Row 2: Users and Revenue */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: '32px',
+              marginBottom: '32px'
+            }}
+            className="admin-dashboard-grid"
+            >
+              {/* Users Card */}
+              <Link
+                to="/admin/users"
+                style={{
+                  backgroundColor: 'white',
+                  padding: '28px',
+                  borderRadius: '12px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '20px',
+                  border: '2px solid transparent',
+                  transition: 'all 0.2s',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#3b82f6';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'transparent';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                }}
+              >
+                <div style={{ fontSize: '40px', lineHeight: '1' }}>👥</div>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '10px', color: '#1f2937', lineHeight: '1.3' }}>
+                    Users
+                  </h3>
+                  <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '16px', lineHeight: '1.5' }}>
+                    Manage users and access
+                  </p>
+                  {stats && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ fontSize: '15px', color: '#374151', lineHeight: '1.5' }}>
+                        Total users: <strong style={{ color: '#1f2937', fontWeight: '600' }}>{stats.users?.total || stats.counts?.users || 0}</strong>
+                      </div>
+                      <div style={{ fontSize: '15px', color: '#374151', lineHeight: '1.5' }}>
+                        Guides: <strong style={{ color: '#3b82f6', fontWeight: '600' }}>{stats.users?.guides || stats.counts?.guides || 0}</strong>
+                      </div>
+                      <div style={{ fontSize: '15px', color: '#374151', lineHeight: '1.5' }}>
+                        Customers: <strong style={{ color: '#8b5cf6', fontWeight: '600' }}>{stats.users?.customers || 0}</strong>
+                      </div>
+                      <div style={{ fontSize: '15px', color: '#374151', lineHeight: '1.5' }}>
+                        Admins: <strong style={{ color: '#ef4444', fontWeight: '600' }}>{stats.users?.admins || 0}</strong>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Link>
+
+              {/* Revenue Card */}
+              <div style={{
             backgroundColor: 'white',
             padding: '28px',
             borderRadius: '12px',
@@ -352,7 +352,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-            {/* Statistics Row 3: Additional Stats */}
+        {/* Statistics Row 3: Additional Stats */}
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(4, 1fr)',
@@ -463,6 +463,7 @@ export default function AdminDashboardPage() {
             </div>
           </>
         ) : null}
+      </div>
       </div>
     </>
   );
