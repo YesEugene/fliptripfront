@@ -592,21 +592,25 @@ export default function ItineraryPage() {
       console.log('✅ Payment confirmed, unlocking full itinerary');
       
       // Clean up URL to remove session_id and paid params, but keep tourId
+      // CRITICAL: Remove previewOnly after payment - user paid for full tour
       const newSearchParams = new URLSearchParams(searchParams);
       newSearchParams.delete('session_id');
       newSearchParams.delete('paid');
+      newSearchParams.delete('previewOnly'); // Remove previewOnly after payment
       
       // Keep essential params for tour loading
       if (tourId) {
         newSearchParams.set('tourId', tourId);
       }
-      if (previewOnly) {
-        newSearchParams.set('previewOnly', 'true');
+      // Add email if present
+      const emailFromUrl = searchParams.get('email');
+      if (emailFromUrl) {
+        newSearchParams.set('email', emailFromUrl);
       }
       
       navigate(`${location.pathname}?${newSearchParams.toString()}`, { replace: true });
     }
-  }, [searchParams, navigate, location.pathname, tourId, previewOnly]);
+  }, [searchParams, navigate, location.pathname, tourId]);
 
   useEffect(() => {
     if (isExample && exampleItinerary) {
