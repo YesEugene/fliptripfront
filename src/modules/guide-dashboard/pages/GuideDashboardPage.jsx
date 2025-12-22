@@ -1155,43 +1155,102 @@ export default function GuideDashboardPage() {
               </div>
             ) : stats ? (
               <>
-                {/* Statistics Cards */}
+                {/* Guided Tours Statistics */}
+                <div style={{
+                  backgroundColor: 'white',
+                  borderRadius: '12px',
+                  padding: '24px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                  marginBottom: '24px'
+                }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', color: '#111827' }}>
+                    Guided Tours (with Guide)
+                  </h3>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: '20px'
+                  }}>
+                    <div>
+                      <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
+                        Total Bookings
+                      </div>
+                      <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#1f2937' }}>
+                        {stats.bookings.guided || 0}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
+                        Confirmed
+                      </div>
+                      <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#10b981' }}>
+                        {stats.bookings.confirmedGuided || 0}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
+                        Revenue
+                      </div>
+                      <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#3b82f6' }}>
+                        {Object.entries(stats.revenue.byCurrency).map(([currency, _]) => (
+                          <div key={currency}>
+                            {currency} {(stats.revenue.guided || 0).toFixed(2)}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* PDF Purchases Statistics */}
+                <div style={{
+                  backgroundColor: 'white',
+                  borderRadius: '12px',
+                  padding: '24px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                  marginBottom: '24px'
+                }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', color: '#111827' }}>
+                    PDF Purchases (Self-guided)
+                  </h3>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: '20px'
+                  }}>
+                    <div>
+                      <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
+                        Total Purchases
+                      </div>
+                      <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#1f2937' }}>
+                        {stats.bookings.selfGuided || 0}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
+                        Revenue
+                      </div>
+                      <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#8b5cf6' }}>
+                        {Object.entries(stats.revenue.byCurrency).map(([currency, _]) => (
+                          <div key={currency}>
+                            {currency} {(stats.revenue.selfGuided || 0).toFixed(2)}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Summary Card */}
                 <div style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                  gap: '20px'
+                  gap: '20px',
+                  marginBottom: '24px'
                 }}>
-                  <div style={{
-                    backgroundColor: 'white',
-                    borderRadius: '12px',
-                    padding: '24px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                  }}>
-                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
-                      Total Bookings
-                    </div>
-                    <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#1f2937' }}>
-                      {stats.bookings.total}
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
-                      {stats.bookings.guided || 0} guided • {stats.bookings.selfGuided || 0} self-guided
-                    </div>
-                  </div>
-
-                  <div style={{
-                    backgroundColor: 'white',
-                    borderRadius: '12px',
-                    padding: '24px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                  }}>
-                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
-                      Confirmed
-                    </div>
-                    <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#10b981' }}>
-                      {stats.bookings.confirmed}
-                    </div>
-                  </div>
-
                   <div style={{
                     backgroundColor: 'white',
                     borderRadius: '12px',
@@ -1208,12 +1267,6 @@ export default function GuideDashboardPage() {
                         </div>
                       ))}
                     </div>
-                    {(stats.revenue.guided || stats.revenue.selfGuided) && (
-                      <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
-                        Guided: {Object.keys(stats.revenue.byCurrency)[0] || 'USD'} {(stats.revenue.guided || 0).toFixed(2)} • 
-                        Self: {Object.keys(stats.revenue.byCurrency)[0] || 'USD'} {(stats.revenue.selfGuided || 0).toFixed(2)}
-                      </div>
-                    )}
                   </div>
 
                   <div style={{
@@ -1321,7 +1374,7 @@ export default function GuideDashboardPage() {
                                   color: booking.tour_type === 'guided' ? '#1e40af' : '#6b7280',
                                   fontWeight: '500'
                                 }}>
-                                  {booking.tour_type === 'guided' ? 'Guided' : 'Self-guided'}
+                                  {booking.tour_type === 'guided' ? 'Guided' : 'PDF'}
                                 </span>
                               </div>
                               <div style={{ color: '#6b7280', fontSize: '14px' }}>
