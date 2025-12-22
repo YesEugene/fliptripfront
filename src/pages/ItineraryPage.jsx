@@ -453,34 +453,54 @@ export default function ItineraryPage() {
       // Extract city name
       const cityName = typeof tour.city === 'string' ? tour.city : tour.city?.name || 'Unknown City';
       
-      // Get first day from daily_plan
-      const firstDay = tour.daily_plan && tour.daily_plan.length > 0 ? tour.daily_plan[0] : null;
+      // CRITICAL: Check if we should show all days or just first day
+      // Preview mode: show only first day with 2 locations
+      // Full mode (paid): show all days with all locations
+      const shouldShowAllDays = (isFull || isPaid) && !actualPreviewOnly;
+      const shouldLimitItems = actualPreviewOnly && !isFull && !isPaid;
       
-      if (!firstDay || !firstDay.blocks || firstDay.blocks.length === 0) {
-        throw new Error('Tour has no daily plan or blocks');
+      if (!tour.daily_plan || tour.daily_plan.length === 0) {
+        throw new Error('Tour has no daily plan');
       }
       
-      // If preview only (and not full plan) and not paid, limit to first 2 items total
-      // If full=true or paid=true, show all blocks and items
-      let blocksToShow = firstDay.blocks;
-      // Use actualPreviewOnly already declared at the start of function
-      let shouldLimitItems = actualPreviewOnly && !isFull && !isPaid;
+      // Process all days or just first day based on mode
+      let daysToShow = [];
       
-      if (shouldLimitItems) {
-        // Limit to first 2 items total across all blocks
-        let itemCount = 0;
-        blocksToShow = blocksToShow.map(block => {
-          if (itemCount >= 2) {
-            return { ...block, items: [] }; // Empty items if we've reached limit
-          }
-          const limitedItems = block.items.slice(0, 2 - itemCount);
-          itemCount += limitedItems.length;
-          return { ...block, items: limitedItems };
-        }).filter(block => block.items && block.items.length > 0); // Remove blocks with no items
+      if (shouldShowAllDays) {
+        // Full mode: show all days with all locations
+        console.log('📋 Full plan mode: showing all', tour.daily_plan.length, 'days with all locations');
+        daysToShow = tour.daily_plan.map(day => ({
+          ...day,
+          blocks: day.blocks || []
+        }));
+      } else {
+        // Preview mode: show only first day with 2 locations max
+        const firstDay = tour.daily_plan[0];
+        if (!firstDay || !firstDay.blocks || firstDay.blocks.length === 0) {
+          throw new Error('Tour has no daily plan or blocks');
+        }
         
-        console.log('📋 Preview mode: showing first 2 items out of all blocks');
-      } else if (isFull || isPaid) {
-        console.log('📋 Full plan mode: showing all', blocksToShow.length, 'blocks with all items');
+        let blocksToShow = firstDay.blocks;
+        
+        if (shouldLimitItems) {
+          // Limit to first 2 items total across all blocks
+          let itemCount = 0;
+          blocksToShow = blocksToShow.map(block => {
+            if (itemCount >= 2) {
+              return { ...block, items: [] }; // Empty items if we've reached limit
+            }
+            const limitedItems = block.items.slice(0, 2 - itemCount);
+            itemCount += limitedItems.length;
+            return { ...block, items: limitedItems };
+          }).filter(block => block.items && block.items.length > 0); // Remove blocks with no items
+          
+          console.log('📋 Preview mode: showing first day with first 2 items');
+        }
+        
+        daysToShow = [{
+          ...firstDay,
+          blocks: blocksToShow
+        }];
       }
       
       // Check if user has filters in URL (excluding budget, as budget logic is separate)
@@ -518,17 +538,21 @@ export default function ItineraryPage() {
       };
       
       // Convert tour data to itinerary format
+      // CRITICAL: Include all days if full mode, or just first day if preview
       const itineraryData = {
         title: tour.title || 'Tour',
         subtitle: tour.description || `Explore ${cityName} with this curated tour`,
         city: cityName,
         date: formData.date || new Date().toISOString().slice(0, 10),
         budget: finalBudget,
-        daily_plan: [{
-          blocks: blocksToShow.map(block => ({
+        daily_plan: daysToShow.map(day => ({
+          day: day.day || day.day_number || 1,
+          date: day.date || null,
+          title: day.title || null,
+          blocks: (day.blocks || []).map(block => ({
             time: block.time || '09:00 - 12:00',
             title: block.title || null,
-            items: block.items.map(item => ({
+            items: (block.items || []).map(item => ({
               title: item.title || '',
               address: item.address || '',
               why: item.why || item.description || '',
@@ -539,7 +563,7 @@ export default function ItineraryPage() {
               approx_cost: item.approx_cost || item.cost || 'Free'
             }))
           }))
-        }],
+        })),
         // Add tour metadata
         tourId: tourIdParam,
         preview_media_url: tour.preview_media_url || tour.preview || null,
@@ -2110,81 +2134,125 @@ export default function ItineraryPage() {
             const shouldLimitPreviewItems = previewOnly && !isPaid;
             let previewItemCount = 0;
             
-            return itinerary?.daily_plan?.[0]?.blocks?.map((block, blockIndex) => {
-              // Filter items if in preview mode
-              const itemsToShow = shouldLimitPreviewItems 
-                ? block.items?.filter(() => {
-                    if (previewItemCount >= 2) return false;
-                    previewItemCount++;
-                    return true;
-                  }) || []
-                : block.items || [];
-              
-              // Skip block if no items to show
-              if (itemsToShow.length === 0) return null;
+            // CRITICAL: Render ALL days from daily_plan, not just first day
+            if (!itinerary?.daily_plan || itinerary.daily_plan.length === 0) {
+              return null;
+            }
+            
+            return itinerary.daily_plan.map((day, dayIndex) => {
+              const dayNumber = day.day || day.day_number || dayIndex + 1;
+              const dayTitle = day.title || `Day ${dayNumber}`;
+              const dayDate = day.date || null;
               
               return (
-              <div key={blockIndex} style={blockStyle}>
-                <div className="time-block-enhanced">{block.time}</div>
-                {itemsToShow.map((item, itemIndex) => {
-                  itemCount++;
-                  const isSecondItem = itemCount === 2;
-                  if (isSecondItem && shouldShowUnlockBlock) {
-                    shouldInsertUnlockAfterSecond = true;
-                  }
+                <div key={dayIndex} style={{ marginBottom: dayIndex > 0 ? '40px' : '0' }}>
+                  {/* Day Header - only show if multiple days */}
+                  {itinerary.daily_plan.length > 1 && (
+                    <div style={{ 
+                      marginBottom: '20px', 
+                      paddingBottom: '10px', 
+                      borderBottom: '2px solid #e5e7eb' 
+                    }}>
+                      <h3 style={{ 
+                        fontSize: '20px', 
+                        fontWeight: 'bold', 
+                        color: '#1f2937',
+                        marginBottom: '5px'
+                      }}>
+                        {dayTitle}
+                      </h3>
+                      {dayDate && (
+                        <p style={{ fontSize: '14px', color: '#6b7280' }}>
+                          {new Date(dayDate).toLocaleDateString('en-US', { 
+                            weekday: 'long', 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                          })}
+                        </p>
+                      )}
+                    </div>
+                  )}
                   
-                  return (
-                    <div key={itemIndex}>
-                      <div className="item-enhanced">
-                  <h3 className="item-title">
-                    <a 
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title + ' ' + item.address)}`} 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      className="enhanced-link"
-                    >
-                      {item.title}
-                    </a>
-                  </h3>
-                  {item.why && (
-                    <p className="item-description">{item.why}</p>
-                  )}
-                  {item.photos && item.photos.length > 0 && (
-                    <div className="photo-gallery-enhanced">
-                      <PhotoGallery photos={item.photos} placeName={item.title} />
-                    </div>
-                  )}
-                  <div className="item-details">
-                    {item.address && (
-                      <div style={{ marginBottom: '10px' }}>
-                        📍 <a 
-                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.address)}`} 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          className="enhanced-link"
-                        >
-                          {item.address}
-                        </a>
+                  {/* Day Blocks */}
+                  {day.blocks?.map((block, blockIndex) => {
+                    // Filter items if in preview mode (only for first day)
+                    const itemsToShow = (shouldLimitPreviewItems && dayIndex === 0)
+                      ? block.items?.filter(() => {
+                          if (previewItemCount >= 2) return false;
+                          previewItemCount++;
+                          return true;
+                        }) || []
+                      : block.items || [];
+                    
+                    // Skip block if no items to show
+                    if (itemsToShow.length === 0) return null;
+                    
+                    return (
+                      <div key={blockIndex} style={blockStyle}>
+                        <div className="time-block-enhanced">{block.time}</div>
+                        {itemsToShow.map((item, itemIndex) => {
+                          itemCount++;
+                          const isSecondItem = itemCount === 2;
+                          if (isSecondItem && shouldShowUnlockBlock) {
+                            shouldInsertUnlockAfterSecond = true;
+                          }
+                          
+                          return (
+                            <div key={itemIndex}>
+                              <div className="item-enhanced">
+                                <h3 className="item-title">
+                                  <a 
+                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title + ' ' + item.address)}`} 
+                                    target="_blank" 
+                                    rel="noreferrer" 
+                                    className="enhanced-link"
+                                  >
+                                    {item.title}
+                                  </a>
+                                </h3>
+                                {item.why && (
+                                  <p className="item-description">{item.why}</p>
+                                )}
+                                {item.photos && item.photos.length > 0 && (
+                                  <div className="photo-gallery-enhanced">
+                                    <PhotoGallery photos={item.photos} placeName={item.title} />
+                                  </div>
+                                )}
+                                <div className="item-details">
+                                  {item.address && (
+                                    <div style={{ marginBottom: '10px' }}>
+                                      📍 <a 
+                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.address)}`} 
+                                        target="_blank" 
+                                        rel="noreferrer" 
+                                        className="enhanced-link"
+                                      >
+                                        {item.address}
+                                      </a>
+                                    </div>
+                                  )}
+                                  {item.approx_cost && <div style={{ marginBottom: '10px' }}>💰 {item.approx_cost}</div>}
+                                  {item.duration && <div style={{ marginBottom: '10px' }}>⏱️ {item.duration}</div>}
+                                  {item.tips && <div>💡 {item.tips}</div>}
+                                  {item.url && (
+                                    <div style={{ marginTop: '20px' }}>
+                                      🔗 <a href={item.url} target="_blank" rel="noreferrer" className="enhanced-link">
+                                        Learn More
+                                      </a>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    )}
-                    {item.approx_cost && <div style={{ marginBottom: '10px' }}>💰 {item.approx_cost}</div>}
-                    {item.duration && <div style={{ marginBottom: '10px' }}>⏱️ {item.duration}</div>}
-                    {item.tips && <div>💡 {item.tips}</div>}
-                    {item.url && (
-                      <div style={{ marginTop: '20px' }}>
-                        🔗 <a href={item.url} target="_blank" rel="noreferrer" className="enhanced-link">
-                          Learn More
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  }).filter(Boolean)} {/* Remove null blocks */}
+                </div>
               );
-            }).filter(Boolean); // Remove null blocks
+            });
           })()}
           
           {/* Unlock Full Itinerary block - Outside timeline, full width */}
