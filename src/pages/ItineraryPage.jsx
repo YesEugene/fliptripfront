@@ -27,6 +27,7 @@ export default function ItineraryPage() {
   const [selectedDate, setSelectedDate] = useState(null); // Selected date for with-guide tour
   const [quantity, setQuantity] = useState(1); // Number of spots to book
   const [availableSpots, setAvailableSpots] = useState(null); // Available spots for selected date
+  const [maxGroupSize, setMaxGroupSize] = useState(null); // Max group size for selected date
 
   // City images mapping
   const cityImagesMap = {
