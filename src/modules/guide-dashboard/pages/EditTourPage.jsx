@@ -608,7 +608,8 @@ export default function EditTourPage() {
     setSaveStatus('saving');
 
     try {
-      const result = await updateTour(id, { ...formData, status: 'draft' });
+      // Use saveAsDraft: true to save to draft_data without changing status
+      const result = await updateTour(id, { ...formData, saveAsDraft: true });
       if (result.success) {
         setSaveStatus('saved');
         setTimeout(() => setSaveStatus(''), 3000);
