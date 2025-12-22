@@ -1173,6 +1173,9 @@ export default function GuideDashboardPage() {
                     <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#1f2937' }}>
                       {stats.bookings.total}
                     </div>
+                    <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
+                      {stats.bookings.guided || 0} guided • {stats.bookings.selfGuided || 0} self-guided
+                    </div>
                   </div>
 
                   <div style={{
@@ -1205,6 +1208,12 @@ export default function GuideDashboardPage() {
                         </div>
                       ))}
                     </div>
+                    {(stats.revenue.guided || stats.revenue.selfGuided) && (
+                      <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
+                        Guided: {Object.keys(stats.revenue.byCurrency)[0] || 'USD'} {(stats.revenue.guided || 0).toFixed(2)} • 
+                        Self: {Object.keys(stats.revenue.byCurrency)[0] || 'USD'} {(stats.revenue.selfGuided || 0).toFixed(2)}
+                      </div>
+                    )}
                   </div>
 
                   <div style={{
@@ -1300,8 +1309,20 @@ export default function GuideDashboardPage() {
                         >
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
                             <div>
-                              <div style={{ fontWeight: '600', color: '#111827', marginBottom: '4px' }}>
-                                {booking.tour_title}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                <div style={{ fontWeight: '600', color: '#111827' }}>
+                                  {booking.tour_title}
+                                </div>
+                                <span style={{
+                                  fontSize: '10px',
+                                  padding: '2px 6px',
+                                  borderRadius: '4px',
+                                  backgroundColor: booking.tour_type === 'guided' ? '#dbeafe' : '#f3f4f6',
+                                  color: booking.tour_type === 'guided' ? '#1e40af' : '#6b7280',
+                                  fontWeight: '500'
+                                }}>
+                                  {booking.tour_type === 'guided' ? 'Guided' : 'Self-guided'}
+                                </span>
                               </div>
                               <div style={{ color: '#6b7280', fontSize: '14px' }}>
                                 {booking.customer_name} • {new Date(booking.tour_date).toLocaleDateString()}
@@ -1329,7 +1350,8 @@ export default function GuideDashboardPage() {
                             </div>
                           </div>
                           <div style={{ color: '#9ca3af', fontSize: '12px' }}>
-                            Group size: {booking.group_size} • Created: {new Date(booking.created_at).toLocaleString()}
+                            {booking.tour_type === 'guided' ? `Group size: ${booking.group_size} • ` : ''}
+                            Created: {new Date(booking.created_at).toLocaleString()}
                           </div>
                         </div>
                       ))}
