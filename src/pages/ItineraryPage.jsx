@@ -1618,7 +1618,7 @@ export default function ItineraryPage() {
               {/* Choose type of your trip - with calendar on side for desktop when With Guide is selected */}
               <div className="payment-cards-container" style={{
                 display: 'grid',
-                gridTemplateColumns: tourType === 'with-guide' && supportsGuide && tourId ? '1fr 1fr' : '1fr',
+                gridTemplateColumns: '1fr 1fr',
                 gap: '20px',
                 marginBottom: '0'
               }}>
@@ -1697,37 +1697,6 @@ export default function ItineraryPage() {
                     </div>
                   </label>
                   
-                  {/* Button for Self-guided - Unlock full itinerary */}
-                  {tourType === 'self-guided' && (
-                    <a
-                      href="#unlock-full-itinerary"
-                      style={{
-                        display: 'block',
-                        width: '100%',
-                        padding: '12px 24px',
-                        backgroundColor: '#3b82f6',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        textAlign: 'center',
-                        textDecoration: 'none',
-                        transition: 'background-color 0.2s',
-                        marginTop: '12px'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = '#2563eb';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = '#3b82f6';
-                      }}
-                    >
-                      Unlock full itinerary
-                    </a>
-                  )}
-                  
                   {/* With Guide */}
                   <label style={{
                     display: 'flex',
@@ -1739,7 +1708,7 @@ export default function ItineraryPage() {
                     transition: 'background-color 0.2s',
                     backgroundColor: tourType === 'with-guide' && supportsGuide ? '#eff6ff' : 'transparent',
                     opacity: supportsGuide ? 1 : 0.5,
-                    marginTop: tourType === 'self-guided' ? '12px' : '0'
+                    marginTop: '12px'
                   }}
                   onMouseEnter={(e) => {
                     if (supportsGuide && tourType !== 'with-guide') {
@@ -1791,40 +1760,38 @@ export default function ItineraryPage() {
                     </div>
                   </label>
                   
-                  {/* Button for With Guide - Unlock full itinerary */}
-                  {tourType === 'with-guide' && (
-                    <a
-                      href="#unlock-full-itinerary"
-                      style={{
-                        display: 'block',
-                        width: '100%',
-                        padding: '12px 24px',
-                        backgroundColor: '#3b82f6',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        textAlign: 'center',
-                        textDecoration: 'none',
-                        transition: 'background-color 0.2s',
-                        marginTop: '12px'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = '#2563eb';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = '#3b82f6';
-                      }}
-                    >
-                      Unlock full itinerary
-                    </a>
-                  )}
+                  {/* Button - Always show at bottom, under With Guide option */}
+                  <a
+                    href="#unlock-full-itinerary"
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      padding: '12px 24px',
+                      backgroundColor: '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      textAlign: 'center',
+                      textDecoration: 'none',
+                      transition: 'background-color 0.2s',
+                      marginTop: '12px'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = '#2563eb';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = '#3b82f6';
+                    }}
+                  >
+                    Unlock full itinerary
+                  </a>
                 </div>
                 
                 {/* Right Card: Availability Calendar - Show only when With Guide is selected (desktop) */}
-                {tourType === 'with-guide' && supportsGuide && tourId && (
+                {tourType === 'with-guide' && supportsGuide && tourId ? (
                   <div style={{
                     backgroundColor: 'white',
                     borderRadius: '12px',
@@ -1914,6 +1881,9 @@ export default function ItineraryPage() {
                       </div>
                     )}
                   </div>
+                ) : (
+                  // Empty placeholder to maintain grid layout
+                  <div></div>
                 )}
               </div>
               
