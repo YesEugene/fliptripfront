@@ -1846,6 +1846,7 @@ export default function ItineraryPage() {
                       setQuantity(1); // Reset quantity when date changes
                     }}
                     onAvailabilityChange={(info) => {
+                      console.log('📅 Availability info received:', info);
                       setAvailableSpots(info.availableSpots);
                       setMaxGroupSize(info.maxGroupSize);
                     }}

@@ -116,8 +116,24 @@ const AvailabilityCalendar = ({
     if (isPastDate(date)) return;
     if (!isDateAvailable(date)) return;
     
+    // Find slot info for selected date
+    const slot = availability.find(s => s.date === dateStr);
+    const availableSpots = slot ? slot.available_spots : 0;
+    const maxGroupSize = slot ? slot.max_group_size : 0;
+    const bookedSpots = slot ? (slot.booked_spots || 0) : 0;
+    
     if (onDateSelect) {
       onDateSelect(dateStr);
+    }
+    
+    // Pass availability info to parent
+    if (onAvailabilityChange && slot) {
+      onAvailabilityChange({
+        date: dateStr,
+        availableSpots: availableSpots,
+        maxGroupSize: maxGroupSize,
+        bookedSpots: bookedSpots
+      });
     }
   };
 
