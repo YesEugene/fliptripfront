@@ -248,6 +248,8 @@ export default function AdminUsersPage() {
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Name</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Role</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Status</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>PDF Purchases</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Guided Purchases</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Created</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Actions</th>
                 </tr>
@@ -255,7 +257,7 @@ export default function AdminUsersPage() {
               <tbody>
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan="6" style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+                    <td colSpan="8" style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
                       No users found
                     </td>
                   </tr>
@@ -294,8 +296,32 @@ export default function AdminUsersPage() {
                           {u.is_active ? 'Active' : 'Inactive'}
                         </button>
                       </td>
+                      <td style={{ padding: '12px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontWeight: '600', color: '#8b5cf6' }}>
+                            {u.sales?.pdf || 0}
+                          </span>
+                          {u.sales?.pdfRevenue > 0 && (
+                            <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                              ${(u.sales.pdfRevenue || 0).toFixed(2)}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td style={{ padding: '12px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontWeight: '600', color: '#3b82f6' }}>
+                            {u.sales?.guided || 0}
+                          </span>
+                          {u.sales?.guidedRevenue > 0 && (
+                            <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                              ${(u.sales.guidedRevenue || 0).toFixed(2)}
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td style={{ padding: '12px', color: '#6b7280', fontSize: '14px' }}>
-                        {u.created_at ? new Date(u.created_at).toLocaleDateString() : 'N/A'}
+                        {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : u.created_at ? new Date(u.created_at).toLocaleDateString() : 'N/A'}
                       </td>
                       <td style={{ padding: '12px' }}>
                         <button

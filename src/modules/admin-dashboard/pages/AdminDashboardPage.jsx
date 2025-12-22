@@ -322,6 +322,40 @@ export default function AdminDashboardPage() {
                   ${(stats.revenue?.total || 0).toFixed(2)}
                 </div>
               </div>
+
+              <div style={{
+                backgroundColor: 'white',
+                padding: '24px',
+                borderRadius: '12px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              }}>
+                <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
+                  Total PDF Sales
+                </div>
+                <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#8b5cf6' }}>
+                  {stats.sales?.pdf || 0}
+                </div>
+                <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '4px' }}>
+                  ${(stats.revenue?.pdf || 0).toFixed(2)}
+                </div>
+              </div>
+
+              <div style={{
+                backgroundColor: 'white',
+                padding: '24px',
+                borderRadius: '12px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              }}>
+                <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
+                  Total Guided Sales
+                </div>
+                <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#3b82f6' }}>
+                  {stats.sales?.guided || 0}
+                </div>
+                <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '4px' }}>
+                  ${(stats.revenue?.guided || 0).toFixed(2)}
+                </div>
+              </div>
             </div>
 
             {/* Additional Stats */}
