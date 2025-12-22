@@ -53,6 +53,16 @@
   .payment-cards-container {
     grid-template-columns: 1fr !important;
   }
+  
+  /* Show mobile calendar, hide desktop calendar on mobile */
+  .mobile-calendar {
+    display: block !important;
+  }
+  
+  /* Hide desktop calendar (second column) on mobile */
+  .payment-cards-container > div:nth-child(2) {
+    display: none !important;
+  }
 }
 
 @media (max-width: 480px) {
