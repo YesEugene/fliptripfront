@@ -84,10 +84,14 @@ export default function GuideDashboardPage() {
       setStatsLoading(true);
       const token = localStorage.getItem('authToken');
       if (!token) {
+        console.error('❌ No auth token found');
         throw new Error('Not authenticated');
       }
 
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripbackend.vercel.app';
+      // Use correct backend URL
+      const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
+      console.log('📊 Loading statistics from:', `${API_BASE_URL}/api/guide-stats`);
+      
       const response = await fetch(`${API_BASE_URL}/api/guide-stats`, {
         method: 'GET',
         headers: {
@@ -96,17 +100,31 @@ export default function GuideDashboardPage() {
         }
       });
 
+      console.log('📊 Statistics response status:', response.status);
+
       const data = await response.json();
+      console.log('📊 Statistics data:', data);
 
       if (!response.ok || !data.success) {
+        console.error('❌ Statistics API error:', data.error || data);
         throw new Error(data.error || 'Failed to fetch statistics');
       }
+
+      console.log('✅ Statistics loaded:', {
+        stats: data.stats,
+        notificationsCount: data.recentNotifications?.length || 0,
+        bookingsCount: data.recentBookings?.length || 0
+      });
 
       setStats(data.stats);
       setNotifications(data.recentNotifications || []);
       setRecentBookings(data.recentBookings || []);
     } catch (error) {
-      console.error('Error loading statistics:', error);
+      console.error('❌ Error loading statistics:', error);
+      // Set empty state on error
+      setStats(null);
+      setNotifications([]);
+      setRecentBookings([]);
     } finally {
       setStatsLoading(false);
     }
