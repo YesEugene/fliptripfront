@@ -453,7 +453,7 @@ export default function ItineraryPage() {
       // If preview only (and not full plan) and not paid, limit to first 2 items total
       // If full=true or paid=true, show all blocks and items
       let blocksToShow = firstDay.blocks;
-      const actualPreviewOnly = isPreviewOnly !== undefined ? isPreviewOnly : (searchParams.get('previewOnly') === 'true');
+      // Use actualPreviewOnly already declared at the start of function
       let shouldLimitItems = actualPreviewOnly && !isFull && !isPaid;
       
       if (shouldLimitItems) {
