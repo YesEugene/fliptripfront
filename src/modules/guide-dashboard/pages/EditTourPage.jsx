@@ -40,6 +40,7 @@ export default function EditTourPage() {
   const autoSaveTimeoutRef = useRef(null);
   const [hasBeenModified, setHasBeenModified] = useState(false);
   const [activeTab, setActiveTab] = useState('basic'); // 'basic' or 'daily'
+  const [initialFormData, setInitialFormData] = useState(null); // Store initial data for comparison
   
   useEffect(() => {
     const handleResize = () => {
@@ -104,44 +105,49 @@ export default function EditTourPage() {
         setLoading(true);
         const tour = await getTourById(id);
         if (tour) {
+          // Check if there's draft_data - if yes, use it; otherwise use main tour data
+          const dataToUse = tour.draft_data || tour;
+          const isUsingDraft = !!tour.draft_data;
+          console.log('📋 Loading tour:', isUsingDraft ? 'using draft_data' : 'using main tour data');
+          
           // Handle legacy data structure (backward compatibility)
-          const legacyPrice = tour.price?.amount !== undefined;
-          const legacyOptions = Array.isArray(tour.additionalOptions);
+          const legacyPrice = dataToUse.price?.amount !== undefined;
+          const legacyOptions = Array.isArray(dataToUse.additionalOptions);
           
           // Handle city - can be string or object with name/id
           let cityValue = '';
-          if (typeof tour.city === 'string') {
-            cityValue = tour.city;
-          } else if (tour.city && typeof tour.city === 'object') {
-            cityValue = tour.city.name || tour.city.id || '';
-          } else if (tour.city_id) {
+          if (typeof dataToUse.city === 'string') {
+            cityValue = dataToUse.city;
+          } else if (dataToUse.city && typeof dataToUse.city === 'object') {
+            cityValue = dataToUse.city.name || dataToUse.city.id || '';
+          } else if (dataToUse.city_id) {
             // If we have city_id but no city name, we'll need to fetch it
             // For now, use city_id as fallback
-            cityValue = tour.city_id;
+            cityValue = dataToUse.city_id;
           }
 
           setFormData({
             // country removed - not used
             city: cityValue,
-            title: tour.title || '',
-            description: tour.description || '',
-            preview: tour.preview_media_url || tour.preview || '',
-            previewType: tour.preview_media_type || tour.previewType || 'image',
-            tags: Array.isArray(tour.tags) ? tour.tags : [],
-            duration: tour.duration || { type: 'hours', value: 6 },
-            languages: Array.isArray(tour.languages) ? tour.languages : (tour.languages || ['en']),
-            format: tour.format || 'self-guided',
+            title: dataToUse.title || '',
+            description: dataToUse.description || '',
+            preview: dataToUse.preview_media_url || dataToUse.preview || '',
+            previewType: dataToUse.preview_media_type || dataToUse.previewType || 'image',
+            tags: Array.isArray(dataToUse.tags) ? dataToUse.tags : [],
+            duration: dataToUse.duration || { type: 'hours', value: 6 },
+            languages: Array.isArray(dataToUse.languages) ? dataToUse.languages : (dataToUse.languages || ['en']),
+            format: dataToUse.format || 'self-guided',
             // Check withGuide from multiple sources: direct property, format field, or default_format
-            withGuide: tour.withGuide !== undefined ? tour.withGuide : 
-                      (tour.format === 'guided' || tour.default_format === 'with_guide') || false,
+            withGuide: dataToUse.withGuide !== undefined ? dataToUse.withGuide : 
+                      (dataToUse.format === 'guided' || dataToUse.default_format === 'with_guide') || false,
             price: legacyPrice ? {
-              pdfPrice: tour.price?.format === 'pdf' ? (tour.price?.amount || 16) : 16,
-              guidedPrice: tour.price?.format === 'guided' ? (tour.price?.amount || 0) : 0,
-              currency: tour.price?.currency || 'USD',
-              availableDates: tour.price?.availableDates || [],
-              meetingPoint: tour.price?.meetingPoint || '',
-              meetingTime: tour.price?.meetingTime || ''
-            } : (tour.price || {
+              pdfPrice: dataToUse.price?.format === 'pdf' ? (dataToUse.price?.amount || 16) : 16,
+              guidedPrice: dataToUse.price?.format === 'guided' ? (dataToUse.price?.amount || 0) : 0,
+              currency: dataToUse.price?.currency || 'USD',
+              availableDates: dataToUse.price?.availableDates || [],
+              meetingPoint: dataToUse.price?.meetingPoint || '',
+              meetingTime: dataToUse.price?.meetingTime || ''
+            } : (dataToUse.price || {
               pdfPrice: 16,
               guidedPrice: 0,
               currency: 'USD',
@@ -151,15 +157,15 @@ export default function EditTourPage() {
             }),
             additionalOptions: legacyOptions ? {
               platformOptions: ['insurance', 'accommodation'], // Always available
-              creatorOptions: tour.additionalOptions
+              creatorOptions: dataToUse.additionalOptions
                 .filter(id => ['photography', 'food', 'transport'].includes(id))
                 .reduce((acc, id) => ({ ...acc, [id]: 0 }), {}) // Convert array to object with default price 0
-            } : (tour.additionalOptions || {
+            } : (dataToUse.additionalOptions || {
               platformOptions: ['insurance', 'accommodation'],
               creatorOptions: {}
             }),
-            daily_plan: Array.isArray(tour.daily_plan) && tour.daily_plan.length > 0 
-              ? tour.daily_plan.map(day => ({
+            daily_plan: Array.isArray(dataToUse.daily_plan) && dataToUse.daily_plan.length > 0 
+              ? dataToUse.daily_plan.map(day => ({
                   day: day.day_number || day.day || 1,
                   day_number: day.day_number || day.day || 1,
                   date: day.date_hint || day.date || new Date().toISOString().slice(0, 10),
@@ -228,14 +234,23 @@ export default function EditTourPage() {
                   date: new Date().toISOString().slice(0, 10),
                   blocks: [{ time: '09:00 - 12:00', items: [] }]
                 }],
-            meta: tour.meta || {
+            meta: dataToUse.meta || {
               interests: [],
               audience: 'him',
               total_estimated_cost: '€0'
             }
           });
           
-          console.log('✅ Tour loaded, daily_plan:', tour.daily_plan);
+          // Store initial form data for comparison (to detect real changes)
+          setInitialFormData({
+            city: cityValue,
+            title: dataToUse.title || '',
+            description: dataToUse.description || '',
+            preview: dataToUse.preview_media_url || dataToUse.preview || '',
+            daily_plan: dataToUse.daily_plan || []
+          });
+          
+          console.log('✅ Tour loaded, daily_plan:', dataToUse.daily_plan, isUsingDraft ? '(from draft)' : '(from main)');
         }
       } catch (err) {
         console.error('❌ Error loading tour:', err);
@@ -479,7 +494,7 @@ export default function EditTourPage() {
     }));
   };
 
-  // Auto-save function (saves as draft)
+  // Auto-save function (saves to draft_data, doesn't change status)
   const autoSave = async (dataToSave, showStatus = true) => {
     if (showStatus) {
       setAutoSaving(true);
@@ -487,7 +502,8 @@ export default function EditTourPage() {
     }
     
     try {
-      const result = await updateTour(id, { ...dataToSave, status: 'draft' });
+      // Save as draft - this will save to draft_data without changing main fields or status
+      const result = await updateTour(id, { ...dataToSave, saveAsDraft: true });
       if (result.success) {
         if (showStatus) {
           setSaveStatus('saved');
@@ -506,23 +522,52 @@ export default function EditTourPage() {
       }
     }
   };
+  
+  // Check if form data has actually changed from initial state
+  const hasRealChanges = () => {
+    if (!initialFormData) return false;
+    
+    // Compare key fields
+    const current = formData;
+    const initial = initialFormData;
+    
+    // Simple comparison - can be enhanced
+    return (
+      current.city !== initial.city ||
+      current.title !== initial.title ||
+      current.description !== initial.description ||
+      current.preview !== initial.preview ||
+      JSON.stringify(current.daily_plan) !== JSON.stringify(initial.daily_plan)
+    );
+  };
 
-  // Auto-save with debounce (2.5 seconds)
+  // Auto-save with debounce (60 seconds = 1 minute) - only if there are real changes
   useEffect(() => {
-    // Don't auto-save on initial load or if form hasn't been modified
-    if (loading || !hasBeenModified) {
+    // Don't auto-save on initial load
+    if (loading || !initialFormData) {
       return;
     }
+
+    // Check if there are real changes
+    if (!hasRealChanges()) {
+      setHasBeenModified(false);
+      return;
+    }
+
+    // Mark as modified
+    setHasBeenModified(true);
 
     // Clear existing timeout
     if (autoSaveTimeoutRef.current) {
       clearTimeout(autoSaveTimeoutRef.current);
     }
 
-    // Set new timeout for auto-save
+    // Set new timeout for auto-save (60 seconds = 1 minute)
     autoSaveTimeoutRef.current = setTimeout(() => {
-      autoSave(formData, true);
-    }, 2500);
+      if (hasRealChanges()) {
+        autoSave(formData, true);
+      }
+    }, 60000); // 60 seconds = 1 minute
 
     // Cleanup on unmount
     return () => {
@@ -530,14 +575,7 @@ export default function EditTourPage() {
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [formData, loading, hasBeenModified]);
-
-  // Mark form as modified when user makes changes
-  useEffect(() => {
-    if (!loading) {
-      setHasBeenModified(true);
-    }
-  }, [formData.city, formData.title, formData.description, formData.preview, formData.daily_plan, loading]);
+  }, [formData, loading, initialFormData]);
 
   // Validate form before submitting for moderation
   const validateForm = () => {
@@ -599,6 +637,8 @@ export default function EditTourPage() {
     setSaveStatus('saving');
 
     try {
+      // Submit for moderation - this will copy draft_data to main fields and set status to pending
+      // If there's no draft_data, it will use current formData
       const result = await updateTour(id, { ...formData, status: 'pending' });
       if (result.success) {
         setSaveStatus('saved');
