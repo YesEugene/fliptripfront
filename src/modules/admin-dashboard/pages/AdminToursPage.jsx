@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getTours, exportToCSV, getTourById, updateTour, getTags, moderateTour } from '../services/adminService';
+import { getTours, exportToCSV, getTourById, updateTour, getTags, moderateTour, deleteTours } from '../services/adminService';
 import { getCurrentUser } from '../../auth/services/authService';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
 
@@ -15,7 +15,9 @@ export default function AdminToursPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('all'); // 'all', 'pending', 'approved', 'rejected'
+  const [activeTab, setActiveTab] = useState('all'); // 'all', 'pending', 'approved', 'rejected', 'ai-tours'
+  const [selectedTours, setSelectedTours] = useState([]); // For multi-select in AI Tours
+  const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc' for date sorting in AI Tours
   const [showEditModal, setShowEditModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectingTourId, setRejectingTourId] = useState(null);
@@ -91,19 +93,40 @@ export default function AdminToursPage() {
       setLoading(true);
       setError(null);
       
-      // Load tours with filters (works for all tabs including 'pending')
+      // Load tours with filters (works for all tabs including 'pending' and 'ai-tours')
       const filters = {};
       if (searchTerm) {
         filters.search = searchTerm;
       }
-      if (activeTab !== 'all') {
+      
+      // CRITICAL: Handle AI Tours tab separately
+      if (activeTab === 'ai-tours') {
+        filters.source = 'user_generated';
+      } else if (activeTab !== 'all') {
         filters.status = activeTab; // 'pending', 'approved', 'rejected', 'draft'
       }
+      // Note: For 'all' tab and status tabs, backend automatically excludes user_generated tours
+      
       const data = await getTours(filters);
-      const loadedTours = data.tours || [];
+      let loadedTours = data.tours || [];
+      
+      // Sort AI Tours by date if on AI Tours tab
+      if (activeTab === 'ai-tours') {
+        loadedTours = [...loadedTours].sort((a, b) => {
+          const dateA = new Date(a.createdAt || a.created_at || 0);
+          const dateB = new Date(b.createdAt || b.created_at || 0);
+          return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+        });
+      }
+      
       // Log tour IDs for debugging
-      console.log('Loaded tours:', loadedTours.map(t => ({ id: t.id, title: t.title, status: t.status })));
+      console.log('Loaded tours:', loadedTours.map(t => ({ id: t.id, title: t.title, status: t.status, source: t.source })));
       setTours(loadedTours);
+      
+      // Clear selection when switching tabs
+      if (activeTab !== 'ai-tours') {
+        setSelectedTours([]);
+      }
     } catch (err) {
       console.error('Error loading tours:', err);
       setError(err.message);
@@ -231,7 +254,7 @@ export default function AdminToursPage() {
 
   useEffect(() => {
     loadTours();
-  }, [activeTab]);
+  }, [activeTab, sortOrder]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -241,6 +264,57 @@ export default function AdminToursPage() {
     }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm]);
+
+  // Handle tour selection for multi-select
+  const handleTourSelect = (tourId) => {
+    if (activeTab !== 'ai-tours') return; // Only allow selection in AI Tours tab
+    
+    setSelectedTours(prev => 
+      prev.includes(tourId) 
+        ? prev.filter(id => id !== tourId)
+        : [...prev, tourId]
+    );
+  };
+
+  // Handle select all / deselect all
+  const handleSelectAll = () => {
+    if (activeTab !== 'ai-tours') return;
+    
+    if (selectedTours.length === tours.length) {
+      setSelectedTours([]);
+    } else {
+      setSelectedTours(tours.map(t => t.id));
+    }
+  };
+
+  // Handle bulk delete
+  const handleBulkDelete = async () => {
+    if (selectedTours.length === 0) {
+      alert('Please select at least one tour to delete');
+      return;
+    }
+    
+    if (!window.confirm(`Are you sure you want to delete ${selectedTours.length} tour(s)? This action cannot be undone.`)) {
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      const result = await deleteTours(selectedTours);
+      if (result.success || result.deleted > 0) {
+        alert(`Successfully deleted ${result.deleted} tour(s)`);
+        setSelectedTours([]);
+        loadTours(); // Reload tours list
+      } else {
+        alert('Some tours failed to delete. Please try again.');
+      }
+    } catch (err) {
+      console.error('Error deleting tours:', err);
+      alert('Error deleting tours: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Handle approve tour
   const handleApproveTour = async (tourId) => {
@@ -444,10 +518,39 @@ export default function AdminToursPage() {
           >
             Rejected
           </button>
+          <button
+            onClick={() => setActiveTab('ai-tours')}
+            style={{
+              padding: '12px 24px',
+              border: 'none',
+              borderBottom: activeTab === 'ai-tours' ? '3px solid #8b5cf6' : '3px solid transparent',
+              backgroundColor: 'transparent',
+              color: activeTab === 'ai-tours' ? '#8b5cf6' : '#6b7280',
+              cursor: 'pointer',
+              fontWeight: activeTab === 'ai-tours' ? '600' : '400',
+              fontSize: '16px',
+              position: 'relative'
+            }}
+          >
+            AI Tours
+            {tours.filter(t => t.source === 'user_generated').length > 0 && (
+              <span style={{
+                marginLeft: '8px',
+                padding: '2px 8px',
+                backgroundColor: '#8b5cf6',
+                color: 'white',
+                borderRadius: '12px',
+                fontSize: '12px',
+                fontWeight: '600'
+              }}>
+                {tours.filter(t => t.source === 'user_generated').length}
+              </span>
+            )}
+          </button>
         </div>
 
-        {/* Search */}
-        <div style={{ marginBottom: '24px' }}>
+        {/* Search and AI Tours Controls */}
+        <div style={{ marginBottom: '24px', display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
           <input
             type="text"
             placeholder="Search tours..."
@@ -462,6 +565,53 @@ export default function AdminToursPage() {
               fontSize: '16px'
             }}
           />
+          
+          {/* AI Tours specific controls */}
+          {activeTab === 'ai-tours' && (
+            <>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <span style={{ fontSize: '14px', color: '#6b7280' }}>Sort by date:</span>
+                <button
+                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#f3f4f6',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}
+                >
+                  {sortOrder === 'asc' ? '↑ Oldest First' : '↓ Newest First'}
+                </button>
+              </div>
+              
+              {selectedTours.length > 0 && (
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={loading}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    opacity: loading ? 0.6 : 1
+                  }}
+                >
+                  🗑️ Delete Selected ({selectedTours.length})
+                </button>
+              )}
+              
+              <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                Total: {tours.length} tour{tours.length !== 1 ? 's' : ''}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Tours List */}
@@ -503,6 +653,16 @@ export default function AdminToursPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
+                  {activeTab === 'ai-tours' && (
+                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', width: '40px' }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedTours.length === tours.length && tours.length > 0}
+                        onChange={handleSelectAll}
+                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                      />
+                    </th>
+                  )}
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Title</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Guide</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>City</th>
@@ -514,13 +674,27 @@ export default function AdminToursPage() {
               <tbody>
                 {tours.length === 0 ? (
                   <tr>
-                    <td colSpan="6" style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+                    <td colSpan={activeTab === 'ai-tours' ? '7' : '6'} style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
                       No tours found
                     </td>
                   </tr>
                 ) : (
                   tours.map((tour) => (
                     <tr key={tour.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                      {activeTab === 'ai-tours' && (
+                        <td style={{ padding: '12px' }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedTours.includes(tour.id)}
+                            onChange={() => handleTourSelect(tour.id)}
+                            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                          />
+                        </td>
+                      )}
+                            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                          />
+                        </td>
+                      )}
                       <td style={{ padding: '12px' }}>{tour.title || 'N/A'}</td>
                       <td style={{ padding: '12px' }}>
                         {tour.guide?.name || tour.guide || 'N/A'}

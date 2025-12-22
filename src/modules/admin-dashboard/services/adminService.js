@@ -482,6 +482,59 @@ export async function updateTour(tourId, tourData) {
 }
 
 /**
+ * Delete tour(s)
+ */
+export async function deleteTour(tourId) {
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/api/admin-tours?id=${tourId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Error deleting tour');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Delete tour error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Delete multiple tours
+ */
+export async function deleteTours(tourIds) {
+  try {
+    const token = getAuthToken();
+    // Delete tours one by one (backend doesn't support bulk delete yet)
+    const results = await Promise.allSettled(
+      tourIds.map(id => deleteTour(id))
+    );
+    
+    const failed = results.filter(r => r.status === 'rejected');
+    if (failed.length > 0) {
+      console.warn('Some tours failed to delete:', failed);
+    }
+    
+    return {
+      success: failed.length === 0,
+      deleted: results.filter(r => r.status === 'fulfilled').length,
+      failed: failed.length
+    };
+  } catch (error) {
+    console.error('Delete tours error:', error);
+    throw error;
+  }
+}
+
+/**
  * Export data to CSV
  */
 export function exportToCSV(data, filename) {
