@@ -25,6 +25,8 @@ export default function ItineraryPage() {
   const [user, setUser] = useState(null); // User state for auth buttons
   const [tourType, setTourType] = useState('self-guided'); // 'self-guided' or 'with-guide'
   const [selectedDate, setSelectedDate] = useState(null); // Selected date for with-guide tour
+  const [quantity, setQuantity] = useState(1); // Number of spots to book
+  const [availableSpots, setAvailableSpots] = useState(null); // Available spots for selected date
 
   // City images mapping
   const cityImagesMap = {
@@ -874,10 +876,22 @@ export default function ItineraryPage() {
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
       
       // Validate with-guide selection
-      if (tourType === 'with-guide' && !selectedDate) {
-        alert('Please select an available date for the guided tour');
-        setProcessingPayment(false);
-        return;
+      if (tourType === 'with-guide') {
+        if (!selectedDate) {
+          alert('Please select an available date for the guided tour');
+          setProcessingPayment(false);
+          return;
+        }
+        if (!quantity || quantity < 1) {
+          alert('Please select the number of spots to book');
+          setProcessingPayment(false);
+          return;
+        }
+        if (availableSpots !== null && quantity > availableSpots) {
+          alert(`Only ${availableSpots} spots available. Please select a smaller number.`);
+          setProcessingPayment(false);
+          return;
+        }
       }
 
       // Prepare checkout session data
@@ -891,7 +905,8 @@ export default function ItineraryPage() {
         date: itinerary.date || formData.date || new Date().toISOString().slice(0, 10),
         budget: itinerary.tags?.budget || itinerary.budget || formData.budget || null,
         tourType: tourType, // 'self-guided' or 'with-guide'
-        selectedDate: tourType === 'with-guide' ? selectedDate : null // Only if with-guide
+        selectedDate: tourType === 'with-guide' ? selectedDate : null, // Only if with-guide
+        quantity: tourType === 'with-guide' ? quantity : 1 // Number of spots for guided tours
       };
       
       console.log('💳 Checkout data prepared:', checkoutData);
@@ -1544,8 +1559,9 @@ export default function ItineraryPage() {
           const pdfPrice = tourData?.price?.pdfPrice || tourData?.price_pdf || 16;
           const guidedPrice = tourData?.price?.guidedPrice || tourData?.price_guided || null;
           
-          // Calculate current price based on selected tour type
-          const currentPrice = tourType === 'with-guide' && guidedPrice ? guidedPrice : pdfPrice;
+          // Calculate current price based on selected tour type and quantity
+          const basePrice = tourType === 'with-guide' && guidedPrice ? guidedPrice : pdfPrice;
+          const currentPrice = tourType === 'with-guide' ? basePrice * quantity : basePrice;
           const currency = tourData?.price?.currency || tourData?.currency || 'USD';
           
           return (
@@ -1691,7 +1707,7 @@ export default function ItineraryPage() {
                         lineHeight: '1.5'
                       }}>
                         {supportsGuide && guidedPrice 
-                          ? `Вы проведете незабываемое путешествие с человеком, который создал этот путеводитель.`
+                          ? `Experience this tour with the guide who created it`
                           : 'This option is not available for this tour'}
                       </div>
                     </div>
@@ -1735,6 +1751,16 @@ export default function ItineraryPage() {
                     {currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency}{currentPrice}
                   </div>
                   
+                  {tourType === 'with-guide' && quantity > 1 && (
+                    <div style={{
+                      fontSize: '12px',
+                      color: '#6b7280',
+                      marginBottom: '4px'
+                    }}>
+                      {currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency}{basePrice} × {quantity} spots
+                    </div>
+                  )}
+                  
                   <div style={{
                     fontSize: '12px',
                     color: '#6b7280',
@@ -1767,23 +1793,23 @@ export default function ItineraryPage() {
                       disabled={processingPayment || !email || (tourType === 'with-guide' && !selectedDate)}
                       style={{
                         padding: '12px 24px',
-                        backgroundColor: processingPayment || !email || (tourType === 'with-guide' && !selectedDate) ? '#9ca3af' : '#3b82f6',
+                        backgroundColor: processingPayment || !email || (tourType === 'with-guide' && (!selectedDate || !quantity || quantity < 1)) ? '#9ca3af' : '#3b82f6',
                         color: 'white',
                         border: 'none',
                         borderRadius: '8px',
                         fontSize: '16px',
                         fontWeight: '600',
-                        cursor: processingPayment || !email || (tourType === 'with-guide' && !selectedDate) ? 'not-allowed' : 'pointer',
+                        cursor: processingPayment || !email || (tourType === 'with-guide' && (!selectedDate || !quantity || quantity < 1)) ? 'not-allowed' : 'pointer',
                         width: '100%',
                         transition: 'background-color 0.2s'
                       }}
                       onMouseEnter={(e) => {
-                        if (!processingPayment && email && !(tourType === 'with-guide' && !selectedDate)) {
+                        if (!processingPayment && email && !(tourType === 'with-guide' && (!selectedDate || !quantity || quantity < 1))) {
                           e.target.style.backgroundColor = '#2563eb';
                         }
                       }}
                       onMouseLeave={(e) => {
-                        if (!processingPayment && email && !(tourType === 'with-guide' && !selectedDate)) {
+                        if (!processingPayment && email && !(tourType === 'with-guide' && (!selectedDate || !quantity || quantity < 1))) {
                           e.target.style.backgroundColor = '#3b82f6';
                         }
                       }}
@@ -1815,9 +1841,75 @@ export default function ItineraryPage() {
                   <AvailabilityCalendar
                     tourId={tourId}
                     selectedDate={selectedDate}
-                    onDateSelect={setSelectedDate}
+                    onDateSelect={(date) => {
+                      setSelectedDate(date);
+                      setQuantity(1); // Reset quantity when date changes
+                    }}
+                    onAvailabilityChange={(info) => {
+                      setAvailableSpots(info.availableSpots);
+                      setMaxGroupSize(info.maxGroupSize);
+                    }}
                     disabled={false}
                   />
+                  
+                  {/* Quantity selector - Show only if date is selected */}
+                  {selectedDate && availableSpots !== null && availableSpots > 0 && (
+                    <div style={{
+                      marginTop: '20px',
+                      padding: '16px',
+                      backgroundColor: '#f9fafb',
+                      borderRadius: '8px',
+                      border: '1px solid #e5e7eb'
+                    }}>
+                      <div style={{
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#111827',
+                        marginBottom: '8px'
+                      }}>
+                        Available spots: {availableSpots} out of {maxGroupSize || 10}
+                      </div>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px'
+                      }}>
+                        <label style={{
+                          fontSize: '14px',
+                          color: '#6b7280',
+                          fontWeight: '500'
+                        }}>
+                          Number of spots:
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max={availableSpots}
+                          value={quantity}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 1;
+                            if (value >= 1 && value <= availableSpots) {
+                              setQuantity(value);
+                            }
+                          }}
+                          style={{
+                            padding: '8px 12px',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '6px',
+                            fontSize: '16px',
+                            width: '80px',
+                            textAlign: 'center'
+                          }}
+                        />
+                        <span style={{
+                          fontSize: '12px',
+                          color: '#6b7280'
+                        }}>
+                          (Max: {availableSpots})
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

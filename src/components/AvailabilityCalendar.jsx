@@ -12,6 +12,7 @@ const AvailabilityCalendar = ({
   tourId, 
   selectedDate, 
   onDateSelect,
+  onAvailabilityChange, // Callback to pass availability info
   disabled = false 
 }) => {
   const today = new Date();
