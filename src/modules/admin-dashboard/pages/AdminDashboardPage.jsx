@@ -63,7 +63,7 @@ export default function AdminDashboardPage() {
           }
         }
       `}</style>
-      <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', width: '100%' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', width: '100%', margin: 0, padding: 0 }}>
         {/* Header */}
       <div style={{
         backgroundColor: 'white',
@@ -102,8 +102,8 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 20px' }}>
-        <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '32px' }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '20px 20px', backgroundColor: '#f9fafb', minHeight: 'calc(100vh - 100px)' }}>
+        <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '32px', paddingLeft: '20px' }}>
           Admin Dashboard
         </h1>
 
@@ -260,8 +260,8 @@ export default function AdminDashboardPage() {
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '32px',
-              marginBottom: '32px'
+              gap: '10px',
+              marginBottom: '10px'
             }}
             className="admin-dashboard-grid"
             >
