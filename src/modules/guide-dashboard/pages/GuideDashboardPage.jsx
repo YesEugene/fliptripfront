@@ -350,21 +350,25 @@ export default function GuideDashboardPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'white' }}>
-      {/* Header */}
+    <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+      {/* Header - Full width */}
       <div style={{
         backgroundColor: 'white',
         borderBottom: '1px solid #e5e7eb',
         boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        width: '100%'
+        width: '100%',
+        margin: 0,
+        padding: 0
       }}>
         <div style={{
+          maxWidth: '100%',
           width: '100%',
           margin: '0 auto',
           padding: '16px 20px',
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center'
+          alignItems: 'center',
+          boxSizing: 'border-box'
         }}>
           <Link to="/" style={{ textDecoration: 'none' }}>
             <img src={FlipTripLogo} alt="FlipTrip" style={{ height: '40px' }} />
