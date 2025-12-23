@@ -63,22 +63,27 @@ export default function TripVisualizerPage() {
     }
   };
 
-  const loadTour = async () => {
+  const loadTour = async (id = null) => {
+    const tourIdToLoad = id || tourId;
+    if (!tourIdToLoad) return;
+    
     try {
       // Load tour basic info
-      const tourData = await getTourById(tourId);
-      if (tourData && tourData.tour) {
-        setTour(tourData.tour);
+      const tourData = await getTourById(tourIdToLoad);
+      // getTourById returns tour object directly, not wrapped
+      const tourObj = tourData?.tour || tourData;
+      if (tourObj) {
+        setTour(tourObj);
         setTourInfo({
-          city: tourData.tour.city?.name || '',
-          title: tourData.tour.title || '',
-          description: tourData.tour.description || '',
-          preview: tourData.tour.preview_media_url || null
+          city: tourObj.city?.name || '',
+          title: tourObj.title || '',
+          description: tourObj.description || '',
+          preview: tourObj.preview_media_url || null
         });
       }
 
       // Load content blocks
-      const blocksResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks?tourId=${tourId}`);
+      const blocksResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks?tourId=${tourIdToLoad}`);
       const blocksData = await blocksResponse.json();
       if (blocksData.success) {
         setBlocks(blocksData.blocks || []);
