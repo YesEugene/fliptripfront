@@ -82,11 +82,23 @@ export default function TripVisualizerPage() {
         });
       }
 
-      // Load content blocks
-      const blocksResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks?tourId=${tourIdToLoad}`);
-      const blocksData = await blocksResponse.json();
-      if (blocksData.success) {
-        setBlocks(blocksData.blocks || []);
+      // Load content blocks (ignore errors if table doesn't exist yet)
+      try {
+        const blocksResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks?tourId=${tourIdToLoad}`);
+        if (blocksResponse.ok) {
+          const blocksData = await blocksResponse.json();
+          if (blocksData.success) {
+            setBlocks(blocksData.blocks || []);
+          }
+        } else {
+          // Table might not exist yet - silently ignore
+          console.log('⚠️ Content blocks table not available yet. Run migration: add-tour-content-blocks.sql');
+          setBlocks([]);
+        }
+      } catch (blocksError) {
+        // Table might not exist yet - silently ignore
+        console.log('⚠️ Content blocks table not available yet. Run migration: add-tour-content-blocks.sql');
+        setBlocks([]);
       }
     } catch (error) {
       console.error('Error loading tour:', error);
@@ -1119,7 +1131,7 @@ function BlockSelectorModal({ onClose, onSelect }) {
   );
 }
 
-function TourEditorModal({ tourInfo, onClose, onSave, onChange }) {
+function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload }) {
   return (
     <div style={{
       position: 'fixed',
