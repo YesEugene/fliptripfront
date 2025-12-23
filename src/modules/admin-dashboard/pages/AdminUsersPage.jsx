@@ -180,16 +180,16 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', width: '100%', margin: 0, padding: 0 }}>
       {/* Header */}
       <div style={{
         backgroundColor: 'white',
         padding: '20px',
         borderBottom: '1px solid #e5e7eb',
-        marginBottom: '24px'
+        marginBottom: '24px',
+        width: '100%'
       }}>
         <div style={{
-          maxWidth: '100%',
           width: '100%',
           margin: '0 auto',
           display: 'flex',
@@ -219,10 +219,10 @@ export default function AdminUsersPage() {
 
       {/* Content */}
       <div style={{ 
-        maxWidth: '100%', 
+        width: '100%', 
         margin: '0 auto', 
         padding: '0 20px',
-        width: '100%'
+        boxSizing: 'border-box'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h1 style={{ fontSize: '32px', fontWeight: 'bold' }}>
@@ -314,24 +314,29 @@ export default function AdminUsersPage() {
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             overflowX: 'auto', // Enable horizontal scroll for mobile/tablet
             overflowY: 'hidden',
-            width: '100%' // Full width on desktop
+            width: '100%', // Full width on desktop
+            '@media (min-width: 1024px)': {
+              overflowX: 'visible' // No scroll on desktop
+            }
           }}>
             <table style={{ 
               width: '100%', 
               borderCollapse: 'collapse',
-              tableLayout: 'fixed' // Fixed layout for consistent column widths
+              tableLayout: 'auto', // Auto layout for better column distribution
+              minWidth: '1400px' // Minimum width for mobile scroll
             }}>
               <thead>
                 <tr style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
                   <th 
                     onClick={() => handleSort('email')}
                     style={{ 
-                      padding: '12px', 
+                      padding: '12px 16px', 
                       textAlign: 'left', 
                       fontWeight: '600', 
                       whiteSpace: 'nowrap',
                       cursor: 'pointer',
-                      userSelect: 'none'
+                      userSelect: 'none',
+                      minWidth: '180px'
                     }}
                   >
                     Email{getSortIndicator('email')}
@@ -339,12 +344,13 @@ export default function AdminUsersPage() {
                   <th 
                     onClick={() => handleSort('name')}
                     style={{ 
-                      padding: '12px', 
+                      padding: '12px 16px', 
                       textAlign: 'left', 
                       fontWeight: '600', 
                       whiteSpace: 'nowrap',
                       cursor: 'pointer',
-                      userSelect: 'none'
+                      userSelect: 'none',
+                      minWidth: '120px'
                     }}
                   >
                     Name{getSortIndicator('name')}
@@ -352,36 +358,38 @@ export default function AdminUsersPage() {
                   <th 
                     onClick={() => handleSort('role')}
                     style={{ 
-                      padding: '12px', 
+                      padding: '12px 16px', 
                       textAlign: 'left', 
                       fontWeight: '600', 
                       whiteSpace: 'nowrap',
                       cursor: 'pointer',
-                      userSelect: 'none'
+                      userSelect: 'none',
+                      minWidth: '100px'
                     }}
                   >
                     Role{getSortIndicator('role')}
                   </th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Status</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>PDF Purchases</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Guided Purchases</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Tours Created</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Generated Tours</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Purchased Tours</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap', minWidth: '90px' }}>Status</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap', minWidth: '130px' }}>PDF Purchases</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap', minWidth: '140px' }}>Guided Purchases</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap', minWidth: '120px' }}>Tours Created</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap', minWidth: '130px' }}>Generated Tours</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap', minWidth: '130px' }}>Purchased Tours</th>
                   <th 
                     onClick={() => handleSort('created')}
                     style={{ 
-                      padding: '12px', 
+                      padding: '12px 16px', 
                       textAlign: 'left', 
                       fontWeight: '600', 
                       whiteSpace: 'nowrap',
                       cursor: 'pointer',
-                      userSelect: 'none'
+                      userSelect: 'none',
+                      minWidth: '110px'
                     }}
                   >
                     Created{getSortIndicator('created')}
                   </th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Actions</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap', minWidth: '100px' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -394,9 +402,9 @@ export default function AdminUsersPage() {
                 ) : (
                   users.map((u) => (
                     <tr key={u.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                      <td style={{ padding: '12px' }}>{u.email || 'N/A'}</td>
-                      <td style={{ padding: '12px' }}>{u.name || 'N/A'}</td>
-                      <td style={{ padding: '12px' }}>
+                      <td style={{ padding: '12px 16px', wordBreak: 'break-word' }}>{u.email || 'N/A'}</td>
+                      <td style={{ padding: '12px 16px', wordBreak: 'break-word' }}>{u.name || 'N/A'}</td>
+                      <td style={{ padding: '12px 16px' }}>
                         <span style={{
                           padding: '4px 8px',
                           borderRadius: '4px',
@@ -404,12 +412,14 @@ export default function AdminUsersPage() {
                           color: u.role === 'admin' ? '#92400e' : u.role === 'guide' ? '#1e40af' : '#374151',
                           fontSize: '12px',
                           fontWeight: '600',
-                          textTransform: 'capitalize'
+                          textTransform: 'capitalize',
+                          display: 'inline-block',
+                          whiteSpace: 'nowrap'
                         }}>
                           {u.role || 'user'}
                         </span>
                       </td>
-                      <td style={{ padding: '12px' }}>
+                      <td style={{ padding: '12px 16px' }}>
                         <button
                           onClick={() => handleToggleActive(u.id, u.is_active)}
                           style={{
@@ -420,59 +430,60 @@ export default function AdminUsersPage() {
                             border: 'none',
                             cursor: 'pointer',
                             fontSize: '12px',
-                            fontWeight: '600'
+                            fontWeight: '600',
+                            whiteSpace: 'nowrap'
                           }}
                         >
                           {u.is_active ? 'Active' : 'Inactive'}
                         </button>
                       </td>
-                      <td style={{ padding: '12px' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span style={{ fontWeight: '600', color: '#8b5cf6' }}>
+                      <td style={{ padding: '12px 16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <span style={{ fontWeight: '600', color: '#8b5cf6', fontSize: '14px' }}>
                             {u.sales?.pdf || 0}
                           </span>
                           {u.sales?.pdfRevenue > 0 && (
-                            <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                            <span style={{ fontSize: '11px', color: '#6b7280' }}>
                               ${(u.sales.pdfRevenue || 0).toFixed(2)}
                             </span>
                           )}
                         </div>
                       </td>
-                      <td style={{ padding: '12px' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span style={{ fontWeight: '600', color: '#3b82f6' }}>
+                      <td style={{ padding: '12px 16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <span style={{ fontWeight: '600', color: '#3b82f6', fontSize: '14px' }}>
                             {u.sales?.guided || 0}
                           </span>
                           {u.sales?.guidedRevenue > 0 && (
-                            <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                            <span style={{ fontSize: '11px', color: '#6b7280' }}>
                               ${(u.sales.guidedRevenue || 0).toFixed(2)}
                             </span>
                           )}
                         </div>
                       </td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                         {(u.role === 'guide' || u.role === 'creator') ? (
-                          <span style={{ fontWeight: '600', color: '#10b981' }}>
+                          <span style={{ fontWeight: '600', color: '#10b981', fontSize: '14px' }}>
                             {u.toursCreated || 0}
                           </span>
                         ) : (
                           <span style={{ color: '#9ca3af' }}>—</span>
                         )}
                       </td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
-                        <span style={{ fontWeight: '600', color: '#8b5cf6' }}>
+                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                        <span style={{ fontWeight: '600', color: '#8b5cf6', fontSize: '14px' }}>
                           {u.toursGenerated || 0}
                         </span>
                       </td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
-                        <span style={{ fontWeight: '600', color: '#f59e0b' }}>
+                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                        <span style={{ fontWeight: '600', color: '#f59e0b', fontSize: '14px' }}>
                           {u.toursPurchased || 0}
                         </span>
                       </td>
-                      <td style={{ padding: '12px', color: '#6b7280', fontSize: '14px' }}>
+                      <td style={{ padding: '12px 16px', color: '#6b7280', fontSize: '13px', whiteSpace: 'nowrap' }}>
                         {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : u.created_at ? new Date(u.created_at).toLocaleDateString() : 'N/A'}
                       </td>
-                      <td style={{ padding: '12px' }}>
+                      <td style={{ padding: '12px 16px' }}>
                         <button
                           onClick={() => handleDelete(u.id, u.email)}
                           style={{
@@ -482,7 +493,8 @@ export default function AdminUsersPage() {
                             border: 'none',
                             borderRadius: '6px',
                             cursor: 'pointer',
-                            fontSize: '14px'
+                            fontSize: '13px',
+                            whiteSpace: 'nowrap'
                           }}
                         >
                           Delete
