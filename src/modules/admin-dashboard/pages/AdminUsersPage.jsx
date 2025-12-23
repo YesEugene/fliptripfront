@@ -21,6 +21,7 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all'); // 'all', 'guide', 'user', 'admin'
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserRole, setNewUserRole] = useState('user');
@@ -39,6 +40,9 @@ export default function AdminUsersPage() {
       const filters = {};
       if (searchTerm) {
         filters.search = searchTerm;
+      }
+      if (roleFilter !== 'all') {
+        filters.role = roleFilter;
       }
       const data = await getUsers(filters);
       setUsers(data.users || []);
@@ -99,6 +103,10 @@ export default function AdminUsersPage() {
   const handleExport = () => {
     exportToCSV(users, 'users');
   };
+
+  useEffect(() => {
+    loadUsers();
+  }, [roleFilter]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -239,25 +247,29 @@ export default function AdminUsersPage() {
             backgroundColor: 'white',
             borderRadius: '12px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            overflow: 'hidden'
+            overflowX: 'auto', // Enable horizontal scroll
+            overflowY: 'hidden'
           }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '1200px' }}>
               <thead>
                 <tr style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Email</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Name</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Role</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Status</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>PDF Purchases</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Guided Purchases</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Created</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Actions</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Email</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Name</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Role</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Status</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>PDF Purchases</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Guided Purchases</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Tours Created</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Generated Tours</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Purchased Tours</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Created</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan="8" style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+                    <td colSpan="11" style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
                       No users found
                     </td>
                   </tr>
@@ -319,6 +331,25 @@ export default function AdminUsersPage() {
                             </span>
                           )}
                         </div>
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        {(u.role === 'guide' || u.role === 'creator') ? (
+                          <span style={{ fontWeight: '600', color: '#10b981' }}>
+                            {u.toursCreated || 0}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#9ca3af' }}>—</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <span style={{ fontWeight: '600', color: '#8b5cf6' }}>
+                          {u.toursGenerated || 0}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <span style={{ fontWeight: '600', color: '#f59e0b' }}>
+                          {u.toursPurchased || 0}
+                        </span>
                       </td>
                       <td style={{ padding: '12px', color: '#6b7280', fontSize: '14px' }}>
                         {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : u.created_at ? new Date(u.created_at).toLocaleDateString() : 'N/A'}
