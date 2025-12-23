@@ -520,46 +520,79 @@ export default function TripVisualizerPage() {
         {/* From author block */}
         <div style={{
           backgroundColor: 'white',
-          borderRadius: '12px',
-          padding: '24px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          marginBottom: '24px'
+          borderRadius: '16px',
+          padding: '32px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+          marginBottom: '40px'
         }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px', color: '#111827' }}>From author</h3>
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-            <div style={{
-              width: '80px',
-              height: '80px',
-              borderRadius: '50%',
-              backgroundColor: '#e5e7eb',
-              flexShrink: 0,
-              overflow: 'hidden'
-            }}>
-              {user?.avatar ? (
-                <img src={user.avatar} alt="Author" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
-                  👤
-                </div>
-              )}
+          <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, minWidth: '120px' }}>
+              <div style={{
+                width: '100px',
+                height: '100px',
+                borderRadius: '50%',
+                backgroundColor: '#e5e7eb',
+                overflow: 'hidden',
+                marginBottom: '12px',
+                border: '3px solid #f3f4f6'
+              }}>
+                {user?.avatar ? (
+                  <img src={user.avatar} alt="Author" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '40px' }}>
+                    👤
+                  </div>
+                )}
+              </div>
+              <p style={{ 
+                margin: 0, 
+                fontSize: '14px', 
+                color: '#6b7280',
+                textAlign: 'center',
+                lineHeight: '1.5'
+              }}>
+                Tour created by <strong style={{ color: '#111827', fontWeight: '600' }}>{user?.name || 'Author'}</strong>
+              </p>
             </div>
             <div style={{ flex: 1 }}>
-              <p style={{ marginBottom: '8px', fontSize: '14px', color: '#6b7280' }}>
-                Tour created by <strong style={{ color: '#111827' }}>{user?.name || 'Author'}</strong>
-              </p>
-              <p style={{ color: '#6b7280', fontSize: '14px', lineHeight: '1.6', marginBottom: '12px' }}>
+              <h3 style={{ 
+                fontSize: '20px', 
+                fontWeight: '700', 
+                marginBottom: '16px', 
+                color: '#111827',
+                marginTop: 0
+              }}>
+                From author
+              </h3>
+              <p style={{ 
+                color: '#4b5563', 
+                fontSize: '15px', 
+                lineHeight: '1.7', 
+                marginBottom: '16px',
+                marginTop: 0
+              }}>
                 {tourInfo.description || 'September sun, hidden valleys, ancient ruins and flavors of the sea — all woven into one seamless journey. From the first sip of coffee to the last glass of wine by the marina, every hour is crafted to keep you moving, tasting, discovering. Fethiye is not a stop on the map, it\'s a story that unfolds with you.'}
               </p>
               <button style={{
-                padding: '6px 12px',
-                backgroundColor: 'transparent',
+                padding: '8px 16px',
+                backgroundColor: '#f9fafb',
                 color: '#6b7280',
-                border: '1px solid #d1d5db',
-                borderRadius: '6px',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
                 cursor: 'pointer',
-                fontSize: '12px',
-                fontWeight: '500'
-              }}>
+                fontSize: '13px',
+                fontWeight: '500',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = '#f3f4f6';
+                e.target.style.borderColor = '#d1d5db';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = '#f9fafb';
+                e.target.style.borderColor = '#e5e7eb';
+              }}
+              >
                 Read more
               </button>
             </div>
