@@ -159,10 +159,10 @@ export default function TripVisualizerPage() {
     }
   };
 
-  const handleSaveTour = async () => {
+  const handleSaveAsDraft = async () => {
     try {
       if (!tourId) {
-        // Create new tour
+        // Create new tour as draft
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tours-create`, {
           method: 'POST',
           headers: { 
@@ -184,12 +184,12 @@ export default function TripVisualizerPage() {
           // Update URL with new tour ID
           navigate(`/guide/tours/visualizer/${data.tour.id}`, { replace: true });
           setTour(data.tour);
-          alert('Tour created successfully!');
+          alert('Tour saved as draft!');
         } else {
-          alert(data.error || 'Failed to create tour');
+          alert(data.error || 'Failed to save tour');
         }
       } else {
-        // Update existing tour
+        // Update existing tour as draft
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tours-update`, {
           method: 'PUT',
           headers: { 
@@ -203,14 +203,13 @@ export default function TripVisualizerPage() {
             description: tourInfo.description,
             preview: tourInfo.preview,
             previewType: 'image',
-            saveAsDraft: true // Save as draft
+            saveAsDraft: true
           })
         });
 
         const data = await response.json();
         if (data.success) {
-          setShowTourEditor(false);
-          alert('Tour saved successfully!');
+          alert('Tour saved as draft!');
         } else {
           alert(data.error || 'Failed to save tour');
         }
@@ -218,6 +217,67 @@ export default function TripVisualizerPage() {
     } catch (error) {
       console.error('Error saving tour:', error);
       alert('Failed to save tour');
+    }
+  };
+
+  const handleSubmitForModeration = async () => {
+    try {
+      if (!tourId) {
+        // Create new tour and submit for moderation
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tours-create`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            city: tourInfo.city,
+            title: tourInfo.title,
+            description: tourInfo.description,
+            preview: tourInfo.preview,
+            previewType: 'image',
+            status: 'pending'
+          })
+        });
+
+        const data = await response.json();
+        if (data.success && data.tour) {
+          // Update URL with new tour ID
+          navigate(`/guide/tours/visualizer/${data.tour.id}`, { replace: true });
+          setTour(data.tour);
+          alert('Tour submitted for moderation!');
+        } else {
+          alert(data.error || 'Failed to submit tour');
+        }
+      } else {
+        // Update existing tour and submit for moderation
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tours-update`, {
+          method: 'PUT',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            tourId,
+            city: tourInfo.city,
+            title: tourInfo.title,
+            description: tourInfo.description,
+            preview: tourInfo.preview,
+            previewType: 'image',
+            status: 'pending'
+          })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          alert('Tour submitted for moderation!');
+        } else {
+          alert(data.error || 'Failed to submit tour');
+        }
+      }
+    } catch (error) {
+      console.error('Error submitting tour:', error);
+      alert('Failed to submit tour');
     }
   };
 
@@ -779,13 +839,20 @@ export default function TripVisualizerPage() {
         </div>
 
         {/* Action buttons */}
-        <div style={{ marginBottom: '40px', marginTop: '-10px' }}>
+        <div style={{ 
+          display: 'flex', 
+          gap: '12px', 
+          marginBottom: '40px', 
+          marginTop: '-10px',
+          flexWrap: 'wrap'
+        }}>
           <button
             onClick={() => setShowBlockSelector(true)}
             style={{
-              width: '100%',
+              flex: '1',
+              minWidth: '150px',
               padding: '14px 28px',
-              backgroundColor: '#B0FBCA',
+              backgroundColor: '#fbbf24',
               color: '#111827',
               border: 'none',
               borderRadius: '10px',
@@ -799,14 +866,62 @@ export default function TripVisualizerPage() {
               transition: 'all 0.2s'
             }}
             onMouseEnter={(e) => {
-              e.target.style.backgroundColor = '#9ef5c0';
+              e.target.style.backgroundColor = '#f59e0b';
             }}
             onMouseLeave={(e) => {
-              e.target.style.backgroundColor = '#B0FBCA';
+              e.target.style.backgroundColor = '#fbbf24';
             }}
           >
             <span style={{ fontSize: '22px', fontWeight: 'bold', lineHeight: 1 }}>+</span>
             Add block
+          </button>
+          <button
+            onClick={handleSaveAsDraft}
+            style={{
+              flex: '1',
+              minWidth: '150px',
+              padding: '14px 28px',
+              backgroundColor: '#6b7280',
+              color: 'white',
+              border: 'none',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: '600',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#4b5563';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = '#6b7280';
+            }}
+          >
+            Save as Draft
+          </button>
+          <button
+            onClick={handleSubmitForModeration}
+            style={{
+              flex: '1',
+              minWidth: '150px',
+              padding: '14px 28px',
+              backgroundColor: '#4ade80',
+              color: '#111827',
+              border: 'none',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: '600',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#22c55e';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = '#4ade80';
+            }}
+          >
+            Submit for Moderation
           </button>
         </div>
       </div>
