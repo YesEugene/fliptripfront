@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getCurrentUser } from '../../auth/services/authService';
+import { getGuideProfile } from '../../../modules/guide-profile';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
 import { getTourById } from '../../../services/api';
 import BlockRenderer from '../components/BlockRenderer';
@@ -15,6 +16,7 @@ export default function TripVisualizerPage() {
   const navigate = useNavigate();
   const { tourId } = useParams();
   const [user, setUser] = useState(null);
+  const [guideProfile, setGuideProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tour, setTour] = useState(null);
   const [blocks, setBlocks] = useState([]);
@@ -32,6 +34,7 @@ export default function TripVisualizerPage() {
 
   useEffect(() => {
     loadUser();
+    loadGuideProfile();
     if (tourId) {
       loadTour();
     }
@@ -45,6 +48,17 @@ export default function TripVisualizerPage() {
     }
     setUser(currentUser);
     setLoading(false);
+  };
+
+  const loadGuideProfile = async () => {
+    try {
+      const profile = await getGuideProfile();
+      if (profile) {
+        setGuideProfile(profile);
+      }
+    } catch (error) {
+      console.error('Error loading guide profile:', error);
+    }
   };
 
   const loadTour = async () => {
@@ -288,7 +302,7 @@ export default function TripVisualizerPage() {
         <div style={{
           position: 'relative',
           width: '100%',
-          height: '450px',
+          height: '300px',
           borderRadius: '16px',
           overflow: 'hidden',
           marginBottom: '32px',
@@ -298,20 +312,20 @@ export default function TripVisualizerPage() {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '60px 40px'
+          alignItems: 'flex-start',
+          justifyContent: 'flex-start',
+          padding: '20px 30px'
         }}>
-          {/* Title overlay - always visible */}
+          {/* Title overlay - top left aligned */}
           <div style={{ 
             color: 'white', 
-            fontSize: '56px', 
+            fontSize: '35px', 
             fontWeight: '700',
-            textAlign: 'center',
-            lineHeight: '1.1',
-            letterSpacing: '-0.5px',
+            textAlign: 'left',
+            lineHeight: '1.2',
+            letterSpacing: '-0.3px',
             zIndex: 1,
-            maxWidth: '90%',
+            maxWidth: '80%',
             fontFamily: 'system-ui, -apple-system, sans-serif'
           }}>
             {tourInfo.title || 'Lorem ipsum dolor conta me more upsi colora'}
@@ -381,50 +395,46 @@ export default function TripVisualizerPage() {
         <div style={{ 
           display: 'flex', 
           gap: '10px', 
-          marginBottom: '40px',
+          marginBottom: '30px',
           flexWrap: 'wrap'
         }}>
           <div style={{
             padding: '10px 20px',
-            backgroundColor: '#fb923c',
-            color: 'white',
+            backgroundColor: '#FFE7CE',
+            color: '#111827',
             borderRadius: '24px',
             fontSize: '15px',
-            fontWeight: '600',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            fontWeight: '500'
           }}>
             City
           </div>
           <div style={{
             padding: '10px 20px',
-            backgroundColor: '#60a5fa',
-            color: 'white',
+            backgroundColor: '#CFF2FF',
+            color: '#111827',
             borderRadius: '24px',
             fontSize: '15px',
-            fontWeight: '600',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            fontWeight: '500'
           }}>
             Dates
           </div>
           <div style={{
             padding: '10px 20px',
-            backgroundColor: '#4ade80',
-            color: 'white',
+            backgroundColor: '#CFFFE1',
+            color: '#111827',
             borderRadius: '24px',
             fontSize: '15px',
-            fontWeight: '600',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            fontWeight: '500'
           }}>
             Budget
           </div>
           <div style={{
             padding: '10px 20px',
-            backgroundColor: '#f472b6',
-            color: 'white',
+            backgroundColor: '#FFCFCF',
+            color: '#111827',
             borderRadius: '24px',
             fontSize: '15px',
-            fontWeight: '600',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            fontWeight: '500'
           }}>
             Interests
           </div>
@@ -522,8 +532,9 @@ export default function TripVisualizerPage() {
           backgroundColor: 'white',
           borderRadius: '16px',
           padding: '32px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-          marginBottom: '40px'
+          border: '1px solid #D0D0D0',
+          marginBottom: '40px',
+          marginTop: '-10px'
         }}>
           <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, minWidth: '120px' }}>
@@ -536,8 +547,8 @@ export default function TripVisualizerPage() {
                 marginBottom: '12px',
                 border: '3px solid #f3f4f6'
               }}>
-                {user?.avatar ? (
-                  <img src={user.avatar} alt="Author" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                {(guideProfile?.avatar || user?.avatar) ? (
+                  <img src={guideProfile?.avatar || user?.avatar} alt="Author" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '40px' }}>
                     👤
@@ -549,9 +560,10 @@ export default function TripVisualizerPage() {
                 fontSize: '14px', 
                 color: '#6b7280',
                 textAlign: 'center',
-                lineHeight: '1.5'
+                lineHeight: '1.5',
+                whiteSpace: 'pre-line'
               }}>
-                Tour created by <strong style={{ color: '#111827', fontWeight: '600' }}>{user?.name || 'Author'}</strong>
+                Tour created{'\n'}by <strong style={{ color: '#111827', fontWeight: '600' }}>{guideProfile?.name || user?.name || 'Author'}</strong>
               </p>
             </div>
             <div style={{ flex: 1 }}>
@@ -600,40 +612,13 @@ export default function TripVisualizerPage() {
         </div>
 
         {/* Action buttons */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '40px' }}>
-          <button
-            onClick={() => setShowTourEditor(true)}
-            style={{
-              padding: '14px 28px',
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '10px',
-              cursor: 'pointer',
-              fontSize: '16px',
-              fontWeight: '600',
-              marginRight: '16px',
-              boxShadow: '0 2px 6px rgba(59, 130, 246, 0.3)',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = '#2563eb';
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.4)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = '#3b82f6';
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = '0 2px 6px rgba(59, 130, 246, 0.3)';
-            }}
-          >
-            Edit tour
-          </button>
+        <div style={{ marginBottom: '40px' }}>
           <button
             onClick={() => setShowBlockSelector(true)}
             style={{
+              width: '100%',
               padding: '14px 28px',
-              backgroundColor: '#86efac',
+              backgroundColor: '#B0FBCA',
               color: '#111827',
               border: 'none',
               borderRadius: '10px',
@@ -642,19 +627,15 @@ export default function TripVisualizerPage() {
               fontWeight: '600',
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: '10px',
-              boxShadow: '0 2px 6px rgba(134, 239, 172, 0.3)',
               transition: 'all 0.2s'
             }}
             onMouseEnter={(e) => {
-              e.target.style.backgroundColor = '#6ee7b7';
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 4px 12px rgba(134, 239, 172, 0.4)';
+              e.target.style.backgroundColor = '#9ef5c0';
             }}
             onMouseLeave={(e) => {
-              e.target.style.backgroundColor = '#86efac';
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = '0 2px 6px rgba(134, 239, 172, 0.3)';
+              e.target.style.backgroundColor = '#B0FBCA';
             }}
           >
             <span style={{ fontSize: '22px', fontWeight: 'bold', lineHeight: 1 }}>+</span>
