@@ -182,8 +182,12 @@ export default function TripVisualizerPage() {
         const data = await response.json();
         if (data.success && data.tour) {
           // Update URL with new tour ID
-          navigate(`/guide/tours/visualizer/${data.tour.id}`, { replace: true });
+          const newTourId = data.tour.id;
+          setTourIdState(newTourId);
+          navigate(`/guide/tours/visualizer/${newTourId}`, { replace: true });
           setTour(data.tour);
+          // Update tourId in state by reloading tour
+          await loadTour(newTourId);
           alert('Tour saved as draft!');
         } else {
           alert(data.error || 'Failed to save tour');
@@ -243,8 +247,12 @@ export default function TripVisualizerPage() {
         const data = await response.json();
         if (data.success && data.tour) {
           // Update URL with new tour ID
-          navigate(`/guide/tours/visualizer/${data.tour.id}`, { replace: true });
+          const newTourId = data.tour.id;
+          setTourIdState(newTourId);
+          navigate(`/guide/tours/visualizer/${newTourId}`, { replace: true });
           setTour(data.tour);
+          // Update tourId in state by reloading tour
+          await loadTour(newTourId);
           alert('Tour submitted for moderation!');
         } else {
           alert(data.error || 'Failed to submit tour');
