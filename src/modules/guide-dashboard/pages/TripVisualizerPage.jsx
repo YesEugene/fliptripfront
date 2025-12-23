@@ -194,14 +194,19 @@ export default function TripVisualizerPage() {
         }
       } else {
         // Update existing tour as draft
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tours-update`, {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('Please log in to save the tour');
+          return;
+        }
+        
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tours-update?id=${tourId}`, {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({
-            tourId,
             city: tourInfo.city,
             title: tourInfo.title,
             description: tourInfo.description,
@@ -226,13 +231,19 @@ export default function TripVisualizerPage() {
 
   const handleSubmitForModeration = async () => {
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please log in to submit the tour');
+        return;
+      }
+      
       if (!tourId) {
         // Create new tour and submit for moderation
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tours-create`, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({
             city: tourInfo.city,
@@ -259,14 +270,19 @@ export default function TripVisualizerPage() {
         }
       } else {
         // Update existing tour and submit for moderation
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tours-update`, {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('Please log in to submit the tour');
+          return;
+        }
+        
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tours-update?id=${tourId}`, {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({
-            tourId,
             city: tourInfo.city,
             title: tourInfo.title,
             description: tourInfo.description,
