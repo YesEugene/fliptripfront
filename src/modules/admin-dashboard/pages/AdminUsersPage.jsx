@@ -22,6 +22,8 @@ export default function AdminUsersPage() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all'); // 'all', 'guide', 'user', 'admin'
+  const [sortBy, setSortBy] = useState('role'); // 'role', 'name', 'email', 'created'
+  const [sortOrder, setSortOrder] = useState('asc'); // 'asc', 'desc'
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserRole, setNewUserRole] = useState('user');
@@ -45,7 +47,47 @@ export default function AdminUsersPage() {
         filters.role = roleFilter;
       }
       const data = await getUsers(filters);
-      setUsers(data.users || []);
+      let loadedUsers = data.users || [];
+      
+      // Sort users
+      loadedUsers = [...loadedUsers].sort((a, b) => {
+        let aValue, bValue;
+        
+        switch (sortBy) {
+          case 'role':
+            // Sort by role: admin > guide > user
+            const roleOrder = { 'admin': 3, 'guide': 2, 'creator': 2, 'user': 1 };
+            aValue = roleOrder[a.role] || 0;
+            bValue = roleOrder[b.role] || 0;
+            break;
+          case 'name':
+            aValue = (a.name || '').toLowerCase();
+            bValue = (b.name || '').toLowerCase();
+            break;
+          case 'email':
+            aValue = (a.email || '').toLowerCase();
+            bValue = (b.email || '').toLowerCase();
+            break;
+          case 'created':
+            aValue = new Date(a.createdAt || a.created_at || 0);
+            bValue = new Date(b.createdAt || b.created_at || 0);
+            break;
+          default:
+            return 0;
+        }
+        
+        if (sortBy === 'created') {
+          return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+        } else if (sortBy === 'role') {
+          return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+        } else {
+          if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+          if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+          return 0;
+        }
+      });
+      
+      setUsers(loadedUsers);
     } catch (err) {
       console.error('Error loading users:', err);
       setError(err.message);
@@ -106,7 +148,7 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     loadUsers();
-  }, [roleFilter]);
+  }, [roleFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -116,6 +158,22 @@ export default function AdminUsersPage() {
     }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm]);
+
+  // Handle column sorting
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortOrder('asc');
+    }
+  };
+
+  // Get sort indicator
+  const getSortIndicator = (column) => {
+    if (sortBy !== column) return null;
+    return sortOrder === 'asc' ? ' ↑' : ' ↓';
+  };
 
   if (!user) {
     return <div style={{ padding: '20px' }}>Loading...</div>;
@@ -131,11 +189,13 @@ export default function AdminUsersPage() {
         marginBottom: '24px'
       }}>
         <div style={{
-          maxWidth: '1400px',
+          maxWidth: '100%',
+          width: '100%',
           margin: '0 auto',
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center'
+          alignItems: 'center',
+          padding: '0 20px'
         }}>
           <Link to="/admin/dashboard">
             <img src={FlipTripLogo} alt="FlipTrip" style={{ height: '40px' }} />
@@ -158,7 +218,12 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 20px' }}>
+      <div style={{ 
+        maxWidth: '100%', 
+        margin: '0 auto', 
+        padding: '0 20px',
+        width: '100%'
+      }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h1 style={{ fontSize: '32px', fontWeight: 'bold' }}>
             Users Management
