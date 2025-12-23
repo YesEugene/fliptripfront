@@ -371,7 +371,7 @@ export default function TripVisualizerPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`
         },
         body: JSON.stringify({
           tourId: tourId,
@@ -409,7 +409,7 @@ export default function TripVisualizerPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`
         },
         body: JSON.stringify({
           blockId: updatedBlock.id,
@@ -442,7 +442,7 @@ export default function TripVisualizerPage() {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`
         },
         body: JSON.stringify({ blockId })
       });
