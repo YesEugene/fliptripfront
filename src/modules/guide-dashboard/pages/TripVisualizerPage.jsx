@@ -225,7 +225,7 @@ export default function TripVisualizerPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#ffffff' }}>
       {/* Header */}
       <div style={{
         backgroundColor: 'white',
@@ -283,35 +283,36 @@ export default function TripVisualizerPage() {
       </div>
 
       {/* Main Content */}
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 20px' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
         {/* Hero Block - Preview Image with Title */}
         <div style={{
           position: 'relative',
           width: '100%',
-          height: '400px',
-          borderRadius: '12px',
+          height: '450px',
+          borderRadius: '16px',
           overflow: 'hidden',
-          marginBottom: '24px',
+          marginBottom: '32px',
           background: tourInfo.preview 
-            ? `linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.2)), url(${tourInfo.preview})`
-            : 'linear-gradient(to bottom, #4b5563, #9ca3af)',
+            ? `linear-gradient(to bottom, rgba(75, 85, 99, 0.7), rgba(156, 163, 175, 0.5)), url(${tourInfo.preview})`
+            : 'linear-gradient(to bottom, #4b5563, #d1d5db)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '40px'
+          padding: '60px 40px'
         }}>
           {/* Title overlay - always visible */}
           <div style={{ 
             color: 'white', 
-            fontSize: '48px', 
-            fontWeight: 'bold',
+            fontSize: '56px', 
+            fontWeight: '700',
             textAlign: 'center',
-            lineHeight: '1.2',
-            textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+            lineHeight: '1.1',
+            letterSpacing: '-0.5px',
             zIndex: 1,
-            maxWidth: '90%'
+            maxWidth: '90%',
+            fontFamily: 'system-ui, -apple-system, sans-serif'
           }}>
             {tourInfo.title || 'Lorem ipsum dolor conta me more upsi colora'}
           </div>
@@ -321,19 +322,22 @@ export default function TripVisualizerPage() {
             onClick={() => setShowTourEditor(true)}
             style={{
               position: 'absolute',
-              top: '16px',
-              right: '16px',
-              padding: '6px 12px',
+              top: '20px',
+              right: '20px',
+              padding: '8px 14px',
               backgroundColor: '#fbbf24',
               color: '#111827',
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: '8px',
               cursor: 'pointer',
-              fontSize: '12px',
-              fontWeight: '500',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-              zIndex: 2
+              fontSize: '13px',
+              fontWeight: '600',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+              zIndex: 2,
+              transition: 'all 0.2s'
             }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#f59e0b'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#fbbf24'}
           >
             Edit block
           </button>
@@ -342,24 +346,33 @@ export default function TripVisualizerPage() {
           <button
             style={{
               position: 'absolute',
-              bottom: '16px',
-              left: '16px',
-              padding: '10px 20px',
+              bottom: '20px',
+              left: '20px',
+              padding: '12px 24px',
               backgroundColor: 'white',
               color: '#111827',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: '10px',
               cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500',
+              fontSize: '15px',
+              fontWeight: '600',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-              zIndex: 2
+              gap: '10px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              zIndex: 2,
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
             }}
           >
-            <span style={{ fontSize: '18px' }}>📄</span>
+            <span style={{ fontSize: '20px', lineHeight: 1 }}>📄</span>
             Download PDF
           </button>
         </div>
@@ -367,47 +380,51 @@ export default function TripVisualizerPage() {
         {/* Tags placeholder */}
         <div style={{ 
           display: 'flex', 
-          gap: '12px', 
-          marginBottom: '24px',
+          gap: '10px', 
+          marginBottom: '40px',
           flexWrap: 'wrap'
         }}>
           <div style={{
-            padding: '8px 16px',
-            backgroundColor: '#f97316',
+            padding: '10px 20px',
+            backgroundColor: '#fb923c',
             color: 'white',
-            borderRadius: '20px',
-            fontSize: '14px',
-            fontWeight: '500'
+            borderRadius: '24px',
+            fontSize: '15px',
+            fontWeight: '600',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
           }}>
             City
           </div>
           <div style={{
-            padding: '8px 16px',
+            padding: '10px 20px',
             backgroundColor: '#60a5fa',
             color: 'white',
-            borderRadius: '20px',
-            fontSize: '14px',
-            fontWeight: '500'
+            borderRadius: '24px',
+            fontSize: '15px',
+            fontWeight: '600',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
           }}>
             Dates
           </div>
           <div style={{
-            padding: '8px 16px',
-            backgroundColor: '#34d399',
+            padding: '10px 20px',
+            backgroundColor: '#4ade80',
             color: 'white',
-            borderRadius: '20px',
-            fontSize: '14px',
-            fontWeight: '500'
+            borderRadius: '24px',
+            fontSize: '15px',
+            fontWeight: '600',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
           }}>
             Budget
           </div>
           <div style={{
-            padding: '8px 16px',
+            padding: '10px 20px',
             backgroundColor: '#f472b6',
             color: 'white',
-            borderRadius: '20px',
-            fontSize: '14px',
-            fontWeight: '500'
+            borderRadius: '24px',
+            fontSize: '15px',
+            fontWeight: '600',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
           }}>
             Interests
           </div>
@@ -550,18 +567,31 @@ export default function TripVisualizerPage() {
         </div>
 
         {/* Action buttons */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '40px' }}>
           <button
             onClick={() => setShowTourEditor(true)}
             style={{
-              padding: '12px 24px',
+              padding: '14px 28px',
               backgroundColor: '#3b82f6',
               color: 'white',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: '10px',
               cursor: 'pointer',
               fontSize: '16px',
-              fontWeight: '500'
+              fontWeight: '600',
+              marginRight: '16px',
+              boxShadow: '0 2px 6px rgba(59, 130, 246, 0.3)',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#2563eb';
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = '#3b82f6';
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 2px 6px rgba(59, 130, 246, 0.3)';
             }}
           >
             Edit tour
@@ -569,20 +599,32 @@ export default function TripVisualizerPage() {
           <button
             onClick={() => setShowBlockSelector(true)}
             style={{
-              padding: '12px 24px',
+              padding: '14px 28px',
               backgroundColor: '#86efac',
               color: '#111827',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: '10px',
               cursor: 'pointer',
               fontSize: '16px',
-              fontWeight: '500',
+              fontWeight: '600',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px'
+              gap: '10px',
+              boxShadow: '0 2px 6px rgba(134, 239, 172, 0.3)',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#6ee7b7';
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 4px 12px rgba(134, 239, 172, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = '#86efac';
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 2px 6px rgba(134, 239, 172, 0.3)';
             }}
           >
-            <span style={{ fontSize: '20px', fontWeight: 'bold' }}>+</span>
+            <span style={{ fontSize: '22px', fontWeight: 'bold', lineHeight: 1 }}>+</span>
             Add block
           </button>
         </div>
