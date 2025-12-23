@@ -86,18 +86,18 @@ export default function TripVisualizerPage() {
 
       // Load content blocks (ignore errors if table doesn't exist yet)
       try {
-        const blocksResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks?tourId=${tourIdToLoad}`);
-        if (blocksResponse.ok) {
+        const blocksResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks?tourId=${tourIdToLoad}`).catch(() => null);
+        if (blocksResponse && blocksResponse.ok) {
           const blocksData = await blocksResponse.json();
           if (blocksData.success) {
             setBlocks(blocksData.blocks || []);
           }
         } else {
-          // Table might not exist yet - silently ignore (don't log as error)
+          // Table might not exist yet - silently ignore
           setBlocks([]);
         }
       } catch (blocksError) {
-        // Table might not exist yet - silently ignore (don't log as error)
+        // Table might not exist yet - silently ignore
         setBlocks([]);
       }
     } catch (error) {
@@ -273,17 +273,16 @@ export default function TripVisualizerPage() {
         
         const data = await response.json();
         if (data.success) {
-          // Update tourInfo with saved data, but keep current preview if it was just uploaded
-          // Don't reload tour to avoid resetting the preview image
+          // Always preserve current preview in state (it was just saved)
+          // Update other fields from response
           if (data.tour) {
             setTour(data.tour);
-            // Only update preview if it wasn't just changed (preserve user's current preview)
-            if (!tourInfo.preview || tourInfo.preview === data.tour.preview_media_url) {
-              setTourInfo({
-                ...tourInfo,
-                preview: data.tour.preview_media_url || tourInfo.preview
-              });
-            }
+            setTourInfo({
+              city: data.tour.city?.name || tourInfo.city,
+              title: data.tour.title || tourInfo.title,
+              description: data.tour.description || tourInfo.description,
+              preview: tourInfo.preview // Keep current preview (was just saved)
+            });
           }
           alert('Tour saved as draft!');
         } else {
@@ -1097,6 +1096,11 @@ export default function TripVisualizerPage() {
           onSave={handleSaveTour}
           onChange={setTourInfo}
           onImageUpload={handleImageUpload}
+          cities={cities}
+          citySuggestions={citySuggestions}
+          showCitySuggestions={showCitySuggestions}
+          setCitySuggestions={setCitySuggestions}
+          setShowCitySuggestions={setShowCitySuggestions}
         />
       )}
 
@@ -1130,16 +1134,17 @@ export default function TripVisualizerPage() {
   );
 }
 
-// Image Crop Modal Component
+// Image Crop Modal Component - Photo stretches to width, can move up/down
 function ImageCropModal({ imageSrc, onClose, onCrop }) {
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
   const containerRef = useRef(null);
-  const [cropArea, setCropArea] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [imagePosition, setImagePosition] = useState(0); // Vertical offset for image
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [dragStart, setDragStart] = useState(0);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+  const [imageDisplayHeight, setImageDisplayHeight] = useState(0);
+  const containerHeight = 400;
 
   useEffect(() => {
     if (imageRef.current && imageRef.current.complete) {
@@ -1152,59 +1157,33 @@ function ImageCropModal({ imageSrc, onClose, onCrop }) {
     if (img) {
       const container = containerRef.current;
       const containerWidth = container ? container.offsetWidth - 40 : 600;
-      const containerHeight = 400;
       
-      let displayWidth = img.naturalWidth;
-      let displayHeight = img.naturalHeight;
+      // Calculate image dimensions to fill width
+      const aspectRatio = img.naturalHeight / img.naturalWidth;
+      const displayHeight = containerWidth * aspectRatio;
       
-      // Scale to fit container
-      const scale = Math.min(containerWidth / displayWidth, containerHeight / displayHeight);
-      displayWidth = displayWidth * scale;
-      displayHeight = displayHeight * scale;
-      
-      setImageSize({ width: displayWidth, height: displayHeight });
-      
-      // Initialize crop area (center, 80% of image)
-      const cropWidth = displayWidth * 0.8;
-      const cropHeight = displayHeight * 0.8;
-      setCropArea({
-        x: (displayWidth - cropWidth) / 2,
-        y: (displayHeight - cropHeight) / 2,
-        width: cropWidth,
-        height: cropHeight
-      });
+      setImageDisplayHeight(displayHeight);
+      // Center image vertically initially
+      setImagePosition(Math.max(0, (displayHeight - containerHeight) / 2));
       setImageLoaded(true);
     }
   };
 
   const handleMouseDown = (e) => {
     if (!imageLoaded) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - 20;
-    const y = e.clientY - rect.top - 20;
-    
-    // Check if click is inside crop area
-    if (x >= cropArea.x && x <= cropArea.x + cropArea.width &&
-        y >= cropArea.y && y <= cropArea.y + cropArea.height) {
-      setIsDragging(true);
-      setDragStart({ x: x - cropArea.x, y: y - cropArea.y });
-    }
+    setIsDragging(true);
+    setDragStart(e.clientY);
   };
 
   const handleMouseMove = (e) => {
     if (!isDragging || !imageLoaded) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - 20;
-    const y = e.clientY - rect.top - 20;
-    
-    let newX = x - dragStart.x;
-    let newY = y - dragStart.y;
+    const deltaY = e.clientY - dragStart;
+    const newPosition = imagePosition - deltaY;
     
     // Constrain to image bounds
-    newX = Math.max(0, Math.min(newX, imageSize.width - cropArea.width));
-    newY = Math.max(0, Math.min(newY, imageSize.height - cropArea.height));
-    
-    setCropArea({ ...cropArea, x: newX, y: newY });
+    const maxPosition = Math.max(0, imageDisplayHeight - containerHeight);
+    setImagePosition(Math.max(0, Math.min(newPosition, maxPosition)));
+    setDragStart(e.clientY);
   };
 
   const handleMouseUp = () => {
@@ -1216,14 +1195,17 @@ function ImageCropModal({ imageSrc, onClose, onCrop }) {
     const canvas = canvasRef.current;
     if (!img || !canvas) return;
     
-    // Calculate crop coordinates in original image
-    const scaleX = img.naturalWidth / imageSize.width;
-    const scaleY = img.naturalHeight / imageSize.height;
+    const container = containerRef.current;
+    const containerWidth = container ? container.offsetWidth - 40 : 600;
     
-    const cropX = cropArea.x * scaleX;
-    const cropY = cropArea.y * scaleY;
-    const cropWidth = cropArea.width * scaleX;
-    const cropHeight = cropArea.height * scaleY;
+    // Calculate crop coordinates in original image
+    const scaleX = img.naturalWidth / containerWidth;
+    const scaleY = img.naturalHeight / imageDisplayHeight;
+    
+    const cropX = 0;
+    const cropY = imagePosition * scaleY;
+    const cropWidth = img.naturalWidth;
+    const cropHeight = containerHeight * scaleY;
     
     canvas.width = cropWidth;
     canvas.height = cropHeight;
@@ -1258,7 +1240,7 @@ function ImageCropModal({ imageSrc, onClose, onCrop }) {
         overflow: 'auto'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: 'bold' }}>Crop Image</h2>
+          <h2 style={{ fontSize: '24px', fontWeight: 'bold' }}>Adjust Image Position</h2>
           <button onClick={onClose} style={{ fontSize: '24px', background: 'none', border: 'none', cursor: 'pointer' }}>×</button>
         </div>
         
@@ -1267,90 +1249,70 @@ function ImageCropModal({ imageSrc, onClose, onCrop }) {
           style={{
             position: 'relative',
             width: '100%',
-            height: '400px',
+            height: `${containerHeight}px`,
             backgroundColor: '#f3f4f6',
             borderRadius: '8px',
             overflow: 'hidden',
             marginBottom: '20px',
             padding: '20px',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            cursor: isDragging ? 'grabbing' : 'grab'
           }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
         >
-          <img
-            ref={imageRef}
-            src={imageSrc}
-            alt="Crop"
-            onLoad={handleImageLoad}
-            style={{
-              maxWidth: '100%',
-              maxHeight: '100%',
-              display: imageLoaded ? 'block' : 'none'
-            }}
-          />
           {imageLoaded && (
-            <div
+            <img
+              ref={imageRef}
+              src={imageSrc}
+              alt="Crop"
+              onLoad={handleImageLoad}
               style={{
-                position: 'absolute',
-                left: `${cropArea.x + 20}px`,
-                top: `${cropArea.y + 20}px`,
-                width: `${cropArea.width}px`,
-                height: `${cropArea.height}px`,
-                border: '2px solid #3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                cursor: isDragging ? 'grabbing' : 'grab',
-                boxSizing: 'border-box'
+                width: '100%',
+                height: 'auto',
+                display: 'block',
+                transform: `translateY(-${imagePosition}px)`,
+                transition: isDragging ? 'none' : 'transform 0.1s ease-out'
               }}
-            >
-              <div style={{
-                position: 'absolute',
-                top: '-8px',
-                left: '-8px',
-                width: '16px',
-                height: '16px',
-                border: '2px solid #3b82f6',
-                backgroundColor: 'white',
-                borderRadius: '50%',
-                cursor: 'nwse-resize'
-              }} />
-              <div style={{
-                position: 'absolute',
-                top: '-8px',
-                right: '-8px',
-                width: '16px',
-                height: '16px',
-                border: '2px solid #3b82f6',
-                backgroundColor: 'white',
-                borderRadius: '50%',
-                cursor: 'nesw-resize'
-              }} />
-              <div style={{
-                position: 'absolute',
-                bottom: '-8px',
-                left: '-8px',
-                width: '16px',
-                height: '16px',
-                border: '2px solid #3b82f6',
-                backgroundColor: 'white',
-                borderRadius: '50%',
-                cursor: 'nesw-resize'
-              }} />
-              <div style={{
-                position: 'absolute',
-                bottom: '-8px',
-                right: '-8px',
-                width: '16px',
-                height: '16px',
-                border: '2px solid #3b82f6',
-                backgroundColor: 'white',
-                borderRadius: '50%',
-                cursor: 'nwse-resize'
-              }} />
+            />
+          )}
+          {!imageLoaded && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              color: '#6b7280'
+            }}>
+              Loading image...
             </div>
           )}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: '20px',
+            right: '20px',
+            bottom: 0,
+            border: '2px solid #3b82f6',
+            pointerEvents: 'none',
+            boxSizing: 'border-box'
+          }} />
+          <div style={{
+            position: 'absolute',
+            top: '10px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            color: 'white',
+            padding: '4px 12px',
+            borderRadius: '4px',
+            fontSize: '12px',
+            pointerEvents: 'none'
+          }}>
+            Drag up/down to adjust visible area
+          </div>
         </div>
         
         <canvas ref={canvasRef} style={{ display: 'none' }} />
@@ -1468,7 +1430,7 @@ function BlockSelectorModal({ onClose, onSelect }) {
   );
 }
 
-function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload }) {
+function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, cities = [], citySuggestions = [], showCitySuggestions = false, setCitySuggestions, setShowCitySuggestions }) {
   return (
     <div style={{
       position: 'fixed',
@@ -1496,14 +1458,34 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload })
           <button onClick={onClose} style={{ fontSize: '24px', background: 'none', border: 'none', cursor: 'pointer' }}>×</button>
         </div>
         
-        <div style={{ marginBottom: '20px' }}>
+        <div style={{ marginBottom: '20px', position: 'relative' }} className="city-autocomplete-container">
           <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
             City *
           </label>
           <input
             type="text"
             value={tourInfo.city}
-            onChange={(e) => onChange({ ...tourInfo, city: e.target.value })}
+            onChange={(e) => {
+              const value = e.target.value;
+              onChange({ ...tourInfo, city: value });
+              
+              // Show suggestions
+              if (value.length > 1) {
+                const filtered = cities.filter(c => 
+                  c.name.toLowerCase().includes(value.toLowerCase())
+                );
+                setCitySuggestions(filtered);
+                setShowCitySuggestions(filtered.length > 0);
+              } else {
+                setCitySuggestions([]);
+                setShowCitySuggestions(false);
+              }
+            }}
+            onFocus={(e) => {
+              if (e.target.value.length > 1 && citySuggestions.length > 0) {
+                setShowCitySuggestions(true);
+              }
+            }}
             style={{
               width: '100%',
               padding: '12px',
@@ -1513,6 +1495,42 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload })
               boxSizing: 'border-box'
             }}
           />
+          {showCitySuggestions && citySuggestions.length > 0 && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              backgroundColor: 'white',
+              border: '1px solid #d1d5db',
+              borderRadius: '8px',
+              marginTop: '4px',
+              maxHeight: '200px',
+              overflowY: 'auto',
+              zIndex: 1000,
+              boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+            }}>
+              {citySuggestions.map((city, index) => (
+                <div
+                  key={city.id || index}
+                  onClick={() => {
+                    onChange({ ...tourInfo, city: city.name });
+                    setCitySuggestions([]);
+                    setShowCitySuggestions(false);
+                  }}
+                  style={{
+                    padding: '10px 12px',
+                    cursor: 'pointer',
+                    borderBottom: index < citySuggestions.length - 1 ? '1px solid #e5e7eb' : 'none'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                >
+                  {city.name}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div style={{ marginBottom: '20px' }}>
