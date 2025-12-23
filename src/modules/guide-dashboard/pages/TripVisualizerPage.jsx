@@ -402,11 +402,18 @@ export default function TripVisualizerPage() {
         : -1;
 
       // Create block via API
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      if (!token) {
+        alert('Please log in to add blocks');
+        setShowBlockSelector(false);
+        return;
+      }
+      
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           tourId: tourId,
@@ -416,6 +423,13 @@ export default function TripVisualizerPage() {
         })
       });
 
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('❌ Add block error:', errorData, 'Status:', response.status);
+        alert(errorData.error || `Failed to add block (${response.status}). Check console for details.`);
+        return;
+      }
+      
       const data = await response.json();
       
       if (data.success && data.block) {
@@ -1280,7 +1294,7 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange }) {
   );
 }
 
-function BlockEditorModal({ block, onClose, onSave, onDelete }) {
+function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload }) {
   const [content, setContent] = useState(block.content || {});
 
   const handleSave = () => {
