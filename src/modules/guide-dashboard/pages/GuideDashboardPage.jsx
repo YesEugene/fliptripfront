@@ -350,7 +350,7 @@ export default function GuideDashboardPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: 'white' }}>
       {/* Header */}
       <div style={{
         backgroundColor: 'white',
@@ -359,7 +359,7 @@ export default function GuideDashboardPage() {
         width: '100%'
       }}>
         <div style={{
-          maxWidth: '1200px',
+          width: '100%',
           margin: '0 auto',
           padding: '16px 20px',
           display: 'flex',
