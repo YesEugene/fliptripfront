@@ -3,7 +3,7 @@
  * Allows guides to create tours with flexible content blocks
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getCurrentUser } from '../../auth/services/authService';
 import { getGuideProfile } from '../../../modules/guide-profile';
@@ -25,6 +25,8 @@ export default function TripVisualizerPage() {
   const [editingBlock, setEditingBlock] = useState(null);
   const [showTourEditor, setShowTourEditor] = useState(false);
   const [isAuthorTextExpanded, setIsAuthorTextExpanded] = useState(false);
+  const [showImageCrop, setShowImageCrop] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState(null);
 
   // Tour basic info state
   const [tourInfo, setTourInfo] = useState({
@@ -207,7 +209,31 @@ export default function TripVisualizerPage() {
             status: 'draft',
             daily_plan: [], // Empty daily_plan for visualizer tours
             tags: [],
-            meta: {}
+            meta: {
+              interests: [],
+              audience: 'him',
+              total_estimated_cost: '€0'
+            },
+            // Add default values to match CreateTourPage format
+            format: 'self-guided',
+            withGuide: false,
+            price: {
+              pdfPrice: 16,
+              guidedPrice: 0,
+              currency: 'USD',
+              availableDates: [],
+              meetingPoint: '',
+              meetingTime: ''
+            },
+            duration: {
+              type: 'hours',
+              value: 6
+            },
+            languages: ['en'],
+            additionalOptions: {
+              platformOptions: ['insurance', 'accommodation'],
+              creatorOptions: {}
+            }
           })
         });
 
@@ -302,7 +328,31 @@ export default function TripVisualizerPage() {
             status: 'pending',
             daily_plan: [], // Empty daily_plan for visualizer tours
             tags: [],
-            meta: {}
+            meta: {
+              interests: [],
+              audience: 'him',
+              total_estimated_cost: '€0'
+            },
+            // Add default values to match CreateTourPage format
+            format: 'self-guided',
+            withGuide: false,
+            price: {
+              pdfPrice: 16,
+              guidedPrice: 0,
+              currency: 'USD',
+              availableDates: [],
+              meetingPoint: '',
+              meetingTime: ''
+            },
+            duration: {
+              type: 'hours',
+              value: 6
+            },
+            languages: ['en'],
+            additionalOptions: {
+              platformOptions: ['insurance', 'accommodation'],
+              creatorOptions: {}
+            }
           })
         });
 
@@ -1213,7 +1263,30 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload })
             backgroundColor: '#f9fafb'
           }}>
             {tourInfo.preview ? (
-              <img src={tourInfo.preview} alt="Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+              <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                <img src={tourInfo.preview} alt="Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                <button
+                  onClick={() => {
+                    setImageToCrop(tourInfo.preview);
+                    setShowImageCrop(true);
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: '8px',
+                    right: '8px',
+                    padding: '6px 12px',
+                    backgroundColor: '#3b82f6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: '500'
+                  }}
+                >
+                  Crop
+                </button>
+              </div>
             ) : (
               <span style={{ color: '#6b7280' }}>No photo selected</span>
             )}
