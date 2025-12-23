@@ -93,13 +93,11 @@ export default function TripVisualizerPage() {
             setBlocks(blocksData.blocks || []);
           }
         } else {
-          // Table might not exist yet - silently ignore
-          console.log('⚠️ Content blocks table not available yet. Run migration: add-tour-content-blocks.sql');
+          // Table might not exist yet - silently ignore (don't log as error)
           setBlocks([]);
         }
       } catch (blocksError) {
-        // Table might not exist yet - silently ignore
-        console.log('⚠️ Content blocks table not available yet. Run migration: add-tour-content-blocks.sql');
+        // Table might not exist yet - silently ignore (don't log as error)
         setBlocks([]);
       }
     } catch (error) {
@@ -107,9 +105,8 @@ export default function TripVisualizerPage() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
+  const handleBackToDashboard = () => {
+    navigate('/guide/dashboard');
   };
 
   const compressImage = (file) => {
@@ -276,8 +273,18 @@ export default function TripVisualizerPage() {
         
         const data = await response.json();
         if (data.success) {
-          // Reload tour to get updated preview image
-          await loadTour();
+          // Update tourInfo with saved data, but keep current preview if it was just uploaded
+          // Don't reload tour to avoid resetting the preview image
+          if (data.tour) {
+            setTour(data.tour);
+            // Only update preview if it wasn't just changed (preserve user's current preview)
+            if (!tourInfo.preview || tourInfo.preview === data.tour.preview_media_url) {
+              setTourInfo({
+                ...tourInfo,
+                preview: data.tour.preview_media_url || tourInfo.preview
+              });
+            }
+          }
           alert('Tour saved as draft!');
         } else {
           alert(data.error || 'Failed to save tour');
@@ -623,10 +630,10 @@ export default function TripVisualizerPage() {
               {user?.name || 'User'}
             </span>
             <button
-              onClick={handleLogout}
+              onClick={handleBackToDashboard}
               style={{
                 padding: '8px 16px',
-                backgroundColor: '#ef4444',
+                backgroundColor: '#6b7280',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
@@ -635,10 +642,10 @@ export default function TripVisualizerPage() {
                 fontWeight: '500',
                 transition: 'background-color 0.2s'
               }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#dc2626'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#ef4444'}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#4b5563'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#6b7280'}
             >
-              Logout
+              Back to Dashboard
             </button>
           </div>
         </div>
