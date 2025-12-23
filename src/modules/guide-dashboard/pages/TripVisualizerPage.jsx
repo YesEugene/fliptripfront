@@ -666,6 +666,7 @@ export default function TripVisualizerPage() {
             : 'linear-gradient(to bottom, #4b5563, #d1d5db)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'flex-start',
