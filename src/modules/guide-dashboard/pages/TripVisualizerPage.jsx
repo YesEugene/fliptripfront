@@ -415,20 +415,34 @@ export default function TripVisualizerPage() {
 
         {/* Content Blocks */}
         {blocks.map((block, index) => (
-          <div key={block.id} style={{ marginBottom: '24px', position: 'relative' }}>
-            {/* Block Controls */}
-            <div style={{
-              position: 'absolute',
-              top: '8px',
-              right: '8px',
-              zIndex: 10,
-              display: 'flex',
-              gap: '4px',
-              backgroundColor: 'rgba(255, 255, 255, 0.9)',
-              padding: '4px',
-              borderRadius: '6px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-            }}>
+          <div 
+            key={block.id} 
+            style={{ marginBottom: '24px', position: 'relative' }}
+            onMouseEnter={(e) => {
+              const controls = e.currentTarget.querySelector('.block-controls');
+              if (controls) controls.style.display = 'flex';
+            }}
+            onMouseLeave={(e) => {
+              const controls = e.currentTarget.querySelector('.block-controls');
+              if (controls) controls.style.display = 'none';
+            }}
+          >
+            {/* Block Controls - Only visible on hover */}
+            <div 
+              className="block-controls"
+              style={{
+                position: 'absolute',
+                top: '8px',
+                right: '8px',
+                zIndex: 10,
+                display: 'none',
+                gap: '4px',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                padding: '4px',
+                borderRadius: '6px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+              }}
+            >
               <button
                 onClick={() => handleMoveBlock(block.id, 'up')}
                 disabled={index === 0}
