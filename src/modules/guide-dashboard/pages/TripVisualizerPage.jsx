@@ -167,7 +167,7 @@ export default function TripVisualizerPage() {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`
           },
           body: JSON.stringify({
             city: tourInfo.city,
@@ -194,7 +194,7 @@ export default function TripVisualizerPage() {
         }
       } else {
         // Update existing tour as draft
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('authToken') || localStorage.getItem('token');
         if (!token) {
           alert('Please log in to save the tour');
           return;
@@ -239,7 +239,7 @@ export default function TripVisualizerPage() {
 
   const handleSubmitForModeration = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       if (!token) {
         alert('Please log in to submit the tour');
         return;
@@ -278,7 +278,7 @@ export default function TripVisualizerPage() {
         }
       } else {
         // Update existing tour and submit for moderation
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('authToken') || localStorage.getItem('token');
         if (!token) {
           alert('Please log in to submit the tour');
           return;
