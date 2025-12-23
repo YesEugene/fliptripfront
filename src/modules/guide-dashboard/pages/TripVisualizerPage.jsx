@@ -8,6 +8,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getCurrentUser } from '../../auth/services/authService';
 import { getGuideProfile } from '../../../modules/guide-profile';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
+import PDFIcon from '../../../assets/PDF.svg';
 import { getTourById } from '../../../services/api';
 import BlockRenderer from '../components/BlockRenderer';
 import TextEditor from '../components/TextEditor';
@@ -362,31 +363,37 @@ export default function TripVisualizerPage() {
               position: 'absolute',
               bottom: '20px',
               left: '20px',
-              padding: '12px 24px',
+              padding: '9.6px 19.2px',
               backgroundColor: 'white',
               color: '#111827',
               border: 'none',
-              borderRadius: '10px',
+              borderRadius: '8px',
               cursor: 'pointer',
-              fontSize: '15px',
+              fontSize: '12px',
               fontWeight: '600',
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
+              gap: '8px',
               boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
               zIndex: 2,
-              transition: 'all 0.2s'
+              transition: 'all 0.2s',
+              transform: 'scale(0.8)',
+              transformOrigin: 'left bottom'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.transform = 'scale(0.8) translateY(-2px)';
               e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.transform = 'scale(0.8) translateY(0)';
               e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
             }}
           >
-            <span style={{ fontSize: '20px', lineHeight: 1 }}>📄</span>
+            <img 
+              src={PDFIcon} 
+              alt="PDF" 
+              style={{ width: '16px', height: '16px' }}
+            />
             Download PDF
           </button>
         </div>
@@ -396,6 +403,7 @@ export default function TripVisualizerPage() {
           display: 'flex', 
           gap: '10px', 
           marginBottom: '30px',
+          marginTop: '-10px',
           flexWrap: 'wrap'
         }}>
           <div style={{
@@ -612,7 +620,7 @@ export default function TripVisualizerPage() {
         </div>
 
         {/* Action buttons */}
-        <div style={{ marginBottom: '40px' }}>
+        <div style={{ marginBottom: '40px', marginTop: '-10px' }}>
           <button
             onClick={() => setShowBlockSelector(true)}
             style={{
