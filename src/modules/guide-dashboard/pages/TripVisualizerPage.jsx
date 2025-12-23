@@ -161,21 +161,36 @@ export default function TripVisualizerPage() {
 
   const handleSaveAsDraft = async () => {
     try {
+      // Validate required fields
+      if (!tourInfo.city || !tourInfo.title) {
+        alert('Please fill in City and Trip name before saving');
+        return;
+      }
+      
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      if (!token) {
+        alert('Please log in to save the tour');
+        return;
+      }
+      
       if (!tourId) {
         // Create new tour as draft
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tours-create`, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({
             city: tourInfo.city,
             title: tourInfo.title,
-            description: tourInfo.description,
-            preview: tourInfo.preview,
+            description: tourInfo.description || '',
+            preview: tourInfo.preview || null,
             previewType: 'image',
-            status: 'draft'
+            status: 'draft',
+            daily_plan: [], // Empty daily_plan for visualizer tours
+            tags: [],
+            meta: {}
           })
         });
 
@@ -183,7 +198,6 @@ export default function TripVisualizerPage() {
         if (data.success && data.tour) {
           // Update URL with new tour ID
           const newTourId = data.tour.id;
-          setTourIdState(newTourId);
           navigate(`/guide/tours/visualizer/${newTourId}`, { replace: true });
           setTour(data.tour);
           // Update tourId in state by reloading tour
@@ -194,12 +208,6 @@ export default function TripVisualizerPage() {
         }
       } else {
         // Update existing tour as draft
-        const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-        if (!token) {
-          alert('Please log in to save the tour');
-          return;
-        }
-        
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tours-update?id=${tourId}`, {
           method: 'PUT',
           headers: { 
@@ -209,13 +217,20 @@ export default function TripVisualizerPage() {
           body: JSON.stringify({
             city: tourInfo.city,
             title: tourInfo.title,
-            description: tourInfo.description,
-            preview: tourInfo.preview,
+            description: tourInfo.description || '',
+            preview: tourInfo.preview || null,
             previewType: 'image',
             saveAsDraft: true
           })
         });
 
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+          console.error('❌ Update tour error:', errorData);
+          alert(errorData.error || `Failed to save tour (${response.status})`);
+          return;
+        }
+        
         const data = await response.json();
         if (data.success) {
           alert('Tour saved as draft!');
@@ -239,6 +254,12 @@ export default function TripVisualizerPage() {
 
   const handleSubmitForModeration = async () => {
     try {
+      // Validate required fields
+      if (!tourInfo.city || !tourInfo.title) {
+        alert('Please fill in City and Trip name before submitting');
+        return;
+      }
+      
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       if (!token) {
         alert('Please log in to submit the tour');
@@ -256,34 +277,36 @@ export default function TripVisualizerPage() {
           body: JSON.stringify({
             city: tourInfo.city,
             title: tourInfo.title,
-            description: tourInfo.description,
-            preview: tourInfo.preview,
+            description: tourInfo.description || '',
+            preview: tourInfo.preview || null,
             previewType: 'image',
-            status: 'pending'
+            status: 'pending',
+            daily_plan: [], // Empty daily_plan for visualizer tours
+            tags: [],
+            meta: {}
           })
         });
 
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+          console.error('❌ Submit tour error:', errorData);
+          alert(errorData.error || `Failed to submit tour (${response.status})`);
+          return;
+        }
+        
         const data = await response.json();
         if (data.success && data.tour) {
           // Update URL with new tour ID
           const newTourId = data.tour.id;
-          setTourIdState(newTourId);
           navigate(`/guide/tours/visualizer/${newTourId}`, { replace: true });
           setTour(data.tour);
-          // Update tourId in state by reloading tour
-          await loadTour(newTourId);
-          alert('Tour submitted for moderation!');
+          // Reload page to update tourId from URL params
+          window.location.reload();
         } else {
           alert(data.error || 'Failed to submit tour');
         }
       } else {
         // Update existing tour and submit for moderation
-        const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-        if (!token) {
-          alert('Please log in to submit the tour');
-          return;
-        }
-        
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tours-update?id=${tourId}`, {
           method: 'PUT',
           headers: { 
@@ -293,13 +316,20 @@ export default function TripVisualizerPage() {
           body: JSON.stringify({
             city: tourInfo.city,
             title: tourInfo.title,
-            description: tourInfo.description,
-            preview: tourInfo.preview,
+            description: tourInfo.description || '',
+            preview: tourInfo.preview || null,
             previewType: 'image',
             status: 'pending'
           })
         });
 
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+          console.error('❌ Update tour error:', errorData);
+          alert(errorData.error || `Failed to submit tour (${response.status})`);
+          return;
+        }
+        
         const data = await response.json();
         if (data.success) {
           alert('Tour submitted for moderation!');
