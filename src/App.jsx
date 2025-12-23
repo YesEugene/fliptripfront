@@ -14,7 +14,7 @@ import { LoginPage, RegisterPage, ProtectedRoute } from './modules/auth';
 import { UserDashboardPage } from './modules/user-dashboard';
 
 // Guide Dashboard Module
-import { GuideDashboardPage, CreateTourPage, EditTourPage, ProfileSettingsPage } from './modules/guide-dashboard';
+import { GuideDashboardPage, CreateTourPage, EditTourPage, ProfileSettingsPage, TripVisualizerPage } from './modules/guide-dashboard';
 
 // Admin Dashboard Module
 import { AdminDashboardPage, AdminLocationsPage, AdminToursPage, AdminUsersPage, AdminLoginPage } from './modules/admin-dashboard';
@@ -79,6 +79,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="guide">
                 <ProfileSettingsPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/guide/tours/visualizer/:tourId?" 
+            element={
+              <ProtectedRoute requiredRole="guide">
+                <TripVisualizerPage />
               </ProtectedRoute>
             } 
           />
