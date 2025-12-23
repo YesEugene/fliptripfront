@@ -238,6 +238,8 @@ export default function TripVisualizerPage() {
         
         const data = await response.json();
         if (data.success) {
+          // Reload tour to get updated preview image
+          await loadTour();
           alert('Tour saved as draft!');
         } else {
           alert(data.error || 'Failed to save tour');
@@ -337,6 +339,8 @@ export default function TripVisualizerPage() {
         
         const data = await response.json();
         if (data.success) {
+          // Reload tour to get updated preview image
+          await loadTour();
           alert('Tour submitted for moderation!');
         } else {
           alert(data.error || 'Failed to submit tour');
