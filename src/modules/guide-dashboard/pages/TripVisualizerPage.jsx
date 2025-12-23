@@ -253,7 +253,7 @@ export default function TripVisualizerPage() {
               onClick={() => navigate('/')}
             />
             <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: '#111827' }}>
-              Trip visualizer
+              Visualizer
             </h1>
           </div>
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
@@ -292,22 +292,29 @@ export default function TripVisualizerPage() {
           borderRadius: '12px',
           overflow: 'hidden',
           marginBottom: '24px',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: tourInfo.preview 
+            ? `linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.2)), url(${tourInfo.preview})`
+            : 'linear-gradient(to bottom, #4b5563, #9ca3af)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          padding: '40px'
         }}>
-          {tourInfo.preview ? (
-            <img 
-              src={tourInfo.preview} 
-              alt="Tour preview" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          ) : (
-            <div style={{ color: 'white', fontSize: '24px', textAlign: 'center', padding: '20px' }}>
-              {tourInfo.title || 'Lorem ipsum dolor conta me more upsi colora'}
-            </div>
-          )}
+          {/* Title overlay - always visible */}
+          <div style={{ 
+            color: 'white', 
+            fontSize: '48px', 
+            fontWeight: 'bold',
+            textAlign: 'center',
+            lineHeight: '1.2',
+            textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+            zIndex: 1,
+            maxWidth: '90%'
+          }}>
+            {tourInfo.title || 'Lorem ipsum dolor conta me more upsi colora'}
+          </div>
           
           {/* Edit block button */}
           <button
@@ -316,15 +323,16 @@ export default function TripVisualizerPage() {
               position: 'absolute',
               top: '16px',
               right: '16px',
-              padding: '8px 16px',
+              padding: '6px 12px',
               backgroundColor: '#fbbf24',
               color: '#111827',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: '6px',
               cursor: 'pointer',
-              fontSize: '14px',
+              fontSize: '12px',
               fontWeight: '500',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+              zIndex: 2
             }}
           >
             Edit block
@@ -347,10 +355,11 @@ export default function TripVisualizerPage() {
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+              zIndex: 2
             }}
           >
-            <span>📄</span>
+            <span style={{ fontSize: '18px' }}>📄</span>
             Download PDF
           </button>
         </div>
@@ -374,7 +383,7 @@ export default function TripVisualizerPage() {
           </div>
           <div style={{
             padding: '8px 16px',
-            backgroundColor: '#3b82f6',
+            backgroundColor: '#60a5fa',
             color: 'white',
             borderRadius: '20px',
             fontSize: '14px',
@@ -384,7 +393,7 @@ export default function TripVisualizerPage() {
           </div>
           <div style={{
             padding: '8px 16px',
-            backgroundColor: '#10b981',
+            backgroundColor: '#34d399',
             color: 'white',
             borderRadius: '20px',
             fontSize: '14px',
@@ -394,7 +403,7 @@ export default function TripVisualizerPage() {
           </div>
           <div style={{
             padding: '8px 16px',
-            backgroundColor: '#ec4899',
+            backgroundColor: '#f472b6',
             color: 'white',
             borderRadius: '20px',
             fontSize: '14px',
@@ -485,31 +494,40 @@ export default function TripVisualizerPage() {
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
           marginBottom: '24px'
         }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px' }}>From author</h3>
-          <div style={{ display: 'flex', gap: '16px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px', color: '#111827' }}>From author</h3>
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
             <div style={{
               width: '80px',
               height: '80px',
               borderRadius: '50%',
               backgroundColor: '#e5e7eb',
-              flexShrink: 0
-            }} />
+              flexShrink: 0,
+              overflow: 'hidden'
+            }}>
+              {user?.avatar ? (
+                <img src={user.avatar} alt="Author" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
+                  👤
+                </div>
+              )}
+            </div>
             <div style={{ flex: 1 }}>
               <p style={{ marginBottom: '8px', fontSize: '14px', color: '#6b7280' }}>
-                Tour created by <strong>{user?.name || 'Author'}</strong>
+                Tour created by <strong style={{ color: '#111827' }}>{user?.name || 'Author'}</strong>
               </p>
-              <p style={{ color: '#6b7280', fontSize: '14px', lineHeight: '1.6' }}>
-                September sun, hidden valleys, ancient ruins and flavors of the sea — all woven into one seamless journey. From the first sip of coffee to the last glass of wine by the marina, every hour is crafted to keep you moving, tasting, discovering. Fethiye is not a stop on the map, it's a story that unfolds with you.
+              <p style={{ color: '#6b7280', fontSize: '14px', lineHeight: '1.6', marginBottom: '12px' }}>
+                {tourInfo.description || 'September sun, hidden valleys, ancient ruins and flavors of the sea — all woven into one seamless journey. From the first sip of coffee to the last glass of wine by the marina, every hour is crafted to keep you moving, tasting, discovering. Fethiye is not a stop on the map, it\'s a story that unfolds with you.'}
               </p>
               <button style={{
-                marginTop: '12px',
                 padding: '6px 12px',
                 backgroundColor: 'transparent',
                 color: '#6b7280',
                 border: '1px solid #d1d5db',
                 borderRadius: '6px',
                 cursor: 'pointer',
-                fontSize: '12px'
+                fontSize: '12px',
+                fontWeight: '500'
               }}>
                 Read more
               </button>
