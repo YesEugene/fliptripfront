@@ -312,10 +312,15 @@ export default function AdminUsersPage() {
             backgroundColor: 'white',
             borderRadius: '12px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            overflowX: 'auto', // Enable horizontal scroll
-            overflowY: 'hidden'
+            overflowX: 'auto', // Enable horizontal scroll for mobile/tablet
+            overflowY: 'hidden',
+            width: '100%' // Full width on desktop
           }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '1200px' }}>
+            <table style={{ 
+              width: '100%', 
+              borderCollapse: 'collapse',
+              tableLayout: 'fixed' // Fixed layout for consistent column widths
+            }}>
               <thead>
                 <tr style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Email</th>
