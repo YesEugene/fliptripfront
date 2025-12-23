@@ -1569,7 +1569,16 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
           }}>
             {tourInfo.preview ? (
               <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                <img src={tourInfo.preview} alt="Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                <img 
+                  src={tourInfo.preview} 
+                  alt="Preview" 
+                  style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    objectFit: 'cover',
+                    borderRadius: '8px'
+                  }} 
+                />
                 <button
                   onClick={() => {
                     setImageToCrop(tourInfo.preview);
@@ -1589,7 +1598,7 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
                     fontWeight: '500'
                   }}
                 >
-                  Crop
+                  Adjust
                 </button>
               </div>
             ) : (
