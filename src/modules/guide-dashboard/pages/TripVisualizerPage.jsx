@@ -221,14 +221,153 @@ export default function TripVisualizerPage() {
     }
   };
 
-  const handleAddBlock = (blockType) => {
-    // TODO: Implement block addition
+  const handleAddBlock = async (blockType) => {
     console.log('Adding block:', blockType);
-    setShowBlockSelector(false);
+    
+    // If no tourId, we need to create a tour first
+    if (!tourId) {
+      alert('Please save the tour first before adding blocks');
+      setShowBlockSelector(false);
+      return;
+    }
+
+    try {
+      // Determine default content based on block type
+      let defaultContent = {};
+      switch (blockType) {
+        case 'title':
+          defaultContent = { text: 'New Title', size: 'large' };
+          break;
+        case 'text':
+          defaultContent = { text: 'New text block', formatted: false };
+          break;
+        case 'photo_text':
+          defaultContent = { photo: null, text: 'New photo and text block', alignment: 'left' };
+          break;
+        case 'slide':
+          defaultContent = { title: 'Slide Title', photo: null, text: 'Slide description' };
+          break;
+        case '3columns':
+          defaultContent = { 
+            columns: [
+              { photo: null, text: 'Column 1 text' },
+              { photo: null, text: 'Column 2 text' },
+              { photo: null, text: 'Column 3 text' }
+            ]
+          };
+          break;
+        case 'photo':
+          defaultContent = { photo: null, caption: '' };
+          break;
+        case 'divider':
+          defaultContent = { style: 'solid' };
+          break;
+        case 'location':
+          defaultContent = { tour_block_id: null };
+          break;
+        default:
+          defaultContent = {};
+      }
+
+      // Get the next order_index (highest + 1)
+      const maxOrder = blocks.length > 0 
+        ? Math.max(...blocks.map(b => b.order_index || 0))
+        : -1;
+
+      // Create block via API
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          tourId: tourId,
+          blockType: blockType,
+          orderIndex: maxOrder + 1,
+          content: defaultContent
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success && data.block) {
+        // Add block to local state
+        setBlocks(prev => [...prev, data.block].sort((a, b) => (a.order_index || 0) - (b.order_index || 0)));
+        setShowBlockSelector(false);
+        
+        // Automatically open editor for new block
+        setEditingBlock(data.block);
+      } else {
+        alert(data.error || 'Failed to add block');
+      }
+    } catch (error) {
+      console.error('Error adding block:', error);
+      alert('Error adding block. Please try again.');
+    }
   };
 
   const handleEditBlock = (block) => {
     setEditingBlock(block);
+  };
+
+  const handleSaveBlock = async (updatedBlock) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          blockId: updatedBlock.id,
+          content: updatedBlock.content,
+          orderIndex: updatedBlock.order_index
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success && data.block) {
+        // Update block in local state
+        setBlocks(prev => 
+          prev.map(b => b.id === updatedBlock.id ? data.block : b)
+            .sort((a, b) => (a.order_index || 0) - (b.order_index || 0))
+        );
+        setEditingBlock(null);
+      } else {
+        alert(data.error || 'Failed to save block');
+      }
+    } catch (error) {
+      console.error('Error saving block:', error);
+      alert('Error saving block. Please try again.');
+    }
+  };
+
+  const handleDeleteBlock = async (blockId) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ blockId })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        // Remove block from local state
+        setBlocks(prev => prev.filter(b => b.id !== blockId));
+        setEditingBlock(null);
+      } else {
+        alert(data.error || 'Failed to delete block');
+      }
+    } catch (error) {
+      console.error('Error deleting block:', error);
+      alert('Error deleting block. Please try again.');
+    }
   };
 
   const handleMoveBlock = async (blockId, direction) => {
