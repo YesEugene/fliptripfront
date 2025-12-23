@@ -323,16 +323,64 @@ export default function AdminUsersPage() {
             }}>
               <thead>
                 <tr style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Email</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Name</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Role</th>
+                  <th 
+                    onClick={() => handleSort('email')}
+                    style={{ 
+                      padding: '12px', 
+                      textAlign: 'left', 
+                      fontWeight: '600', 
+                      whiteSpace: 'nowrap',
+                      cursor: 'pointer',
+                      userSelect: 'none'
+                    }}
+                  >
+                    Email{getSortIndicator('email')}
+                  </th>
+                  <th 
+                    onClick={() => handleSort('name')}
+                    style={{ 
+                      padding: '12px', 
+                      textAlign: 'left', 
+                      fontWeight: '600', 
+                      whiteSpace: 'nowrap',
+                      cursor: 'pointer',
+                      userSelect: 'none'
+                    }}
+                  >
+                    Name{getSortIndicator('name')}
+                  </th>
+                  <th 
+                    onClick={() => handleSort('role')}
+                    style={{ 
+                      padding: '12px', 
+                      textAlign: 'left', 
+                      fontWeight: '600', 
+                      whiteSpace: 'nowrap',
+                      cursor: 'pointer',
+                      userSelect: 'none'
+                    }}
+                  >
+                    Role{getSortIndicator('role')}
+                  </th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Status</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>PDF Purchases</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Guided Purchases</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Tours Created</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Generated Tours</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Purchased Tours</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Created</th>
+                  <th 
+                    onClick={() => handleSort('created')}
+                    style={{ 
+                      padding: '12px', 
+                      textAlign: 'left', 
+                      fontWeight: '600', 
+                      whiteSpace: 'nowrap',
+                      cursor: 'pointer',
+                      userSelect: 'none'
+                    }}
+                  >
+                    Created{getSortIndicator('created')}
+                  </th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Actions</th>
                 </tr>
               </thead>
