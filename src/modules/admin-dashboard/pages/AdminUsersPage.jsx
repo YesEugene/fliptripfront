@@ -314,10 +314,7 @@ export default function AdminUsersPage() {
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             overflowX: 'auto', // Enable horizontal scroll for mobile/tablet
             overflowY: 'hidden',
-            width: '100%', // Full width on desktop
-            '@media (min-width: 1024px)': {
-              overflowX: 'visible' // No scroll on desktop
-            }
+            width: '100%' // Full width on desktop
           }}>
             <table style={{ 
               width: '100%', 
