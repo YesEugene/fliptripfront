@@ -1145,7 +1145,7 @@ export default function GuideDashboardPage() {
           <div style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: '24px'
+            gap: '12px'
           }}>
             {statsLoading ? (
               <div style={{
@@ -1164,8 +1164,7 @@ export default function GuideDashboardPage() {
                   backgroundColor: 'white',
                   borderRadius: '12px',
                   padding: '24px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                  marginBottom: '24px'
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
                 }}>
                   <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', color: '#111827' }}>
                     Guided Tours (with Guide)
@@ -1213,8 +1212,7 @@ export default function GuideDashboardPage() {
                   backgroundColor: 'white',
                   borderRadius: '12px',
                   padding: '24px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                  marginBottom: '24px'
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
                 }}>
                   <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', color: '#111827' }}>
                     PDF Purchases (Self-guided)
@@ -1252,8 +1250,7 @@ export default function GuideDashboardPage() {
                 <div style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                  gap: '20px',
-                  marginBottom: '24px'
+                  gap: '20px'
                 }}>
                   <div style={{
                     backgroundColor: 'white',
@@ -1301,8 +1298,15 @@ export default function GuideDashboardPage() {
                   {notifications.length === 0 ? (
                     <p style={{ color: '#6b7280', fontSize: '14px' }}>No notifications yet</p>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {notifications.slice(0, 10).map((notification) => (
+                    <div style={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      gap: '12px',
+                      maxHeight: '320px',
+                      overflowY: 'auto',
+                      paddingRight: '8px'
+                    }}>
+                      {notifications.map((notification) => (
                         <div
                           key={notification.id}
                           style={{
@@ -1353,7 +1357,14 @@ export default function GuideDashboardPage() {
                   {recentBookings.length === 0 ? (
                     <p style={{ color: '#6b7280', fontSize: '14px' }}>No bookings yet</p>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      gap: '12px',
+                      maxHeight: '320px',
+                      overflowY: 'auto',
+                      paddingRight: '8px'
+                    }}>
                       {recentBookings.map((booking) => (
                         <div
                           key={booking.id}
