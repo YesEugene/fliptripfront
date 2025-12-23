@@ -550,7 +550,7 @@ export default function TripVisualizerPage() {
         </div>
 
         {/* Action buttons */}
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginBottom: '24px' }}>
           <button
             onClick={() => setShowTourEditor(true)}
             style={{
@@ -570,8 +570,8 @@ export default function TripVisualizerPage() {
             onClick={() => setShowBlockSelector(true)}
             style={{
               padding: '12px 24px',
-              backgroundColor: '#10b981',
-              color: 'white',
+              backgroundColor: '#86efac',
+              color: '#111827',
               border: 'none',
               borderRadius: '8px',
               cursor: 'pointer',
@@ -582,7 +582,7 @@ export default function TripVisualizerPage() {
               gap: '8px'
             }}
           >
-            <span>+</span>
+            <span style={{ fontSize: '20px', fontWeight: 'bold' }}>+</span>
             Add block
           </button>
         </div>
