@@ -1102,6 +1102,285 @@ export default function TripVisualizerPage() {
           onImageUpload={handleImageUpload}
         />
       )}
+
+      {/* Image Crop Modal */}
+      {showImageCrop && imageToCrop && (
+        <ImageCropModal
+          imageSrc={imageToCrop}
+          onClose={() => {
+            setShowImageCrop(false);
+            setImageToCrop(null);
+          }}
+          onCrop={(croppedImage) => {
+            setTourInfo({ ...tourInfo, preview: croppedImage });
+            setShowImageCrop(false);
+            setImageToCrop(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// Image Crop Modal Component
+function ImageCropModal({ imageSrc, onClose, onCrop }) {
+  const canvasRef = useRef(null);
+  const imageRef = useRef(null);
+  const containerRef = useRef(null);
+  const [cropArea, setCropArea] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    if (imageRef.current && imageRef.current.complete) {
+      handleImageLoad();
+    }
+  }, []);
+
+  const handleImageLoad = () => {
+    const img = imageRef.current;
+    if (img) {
+      const container = containerRef.current;
+      const containerWidth = container ? container.offsetWidth - 40 : 600;
+      const containerHeight = 400;
+      
+      let displayWidth = img.naturalWidth;
+      let displayHeight = img.naturalHeight;
+      
+      // Scale to fit container
+      const scale = Math.min(containerWidth / displayWidth, containerHeight / displayHeight);
+      displayWidth = displayWidth * scale;
+      displayHeight = displayHeight * scale;
+      
+      setImageSize({ width: displayWidth, height: displayHeight });
+      
+      // Initialize crop area (center, 80% of image)
+      const cropWidth = displayWidth * 0.8;
+      const cropHeight = displayHeight * 0.8;
+      setCropArea({
+        x: (displayWidth - cropWidth) / 2,
+        y: (displayHeight - cropHeight) / 2,
+        width: cropWidth,
+        height: cropHeight
+      });
+      setImageLoaded(true);
+    }
+  };
+
+  const handleMouseDown = (e) => {
+    if (!imageLoaded) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left - 20;
+    const y = e.clientY - rect.top - 20;
+    
+    // Check if click is inside crop area
+    if (x >= cropArea.x && x <= cropArea.x + cropArea.width &&
+        y >= cropArea.y && y <= cropArea.y + cropArea.height) {
+      setIsDragging(true);
+      setDragStart({ x: x - cropArea.x, y: y - cropArea.y });
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging || !imageLoaded) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left - 20;
+    const y = e.clientY - rect.top - 20;
+    
+    let newX = x - dragStart.x;
+    let newY = y - dragStart.y;
+    
+    // Constrain to image bounds
+    newX = Math.max(0, Math.min(newX, imageSize.width - cropArea.width));
+    newY = Math.max(0, Math.min(newY, imageSize.height - cropArea.height));
+    
+    setCropArea({ ...cropArea, x: newX, y: newY });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleCrop = () => {
+    const img = imageRef.current;
+    const canvas = canvasRef.current;
+    if (!img || !canvas) return;
+    
+    // Calculate crop coordinates in original image
+    const scaleX = img.naturalWidth / imageSize.width;
+    const scaleY = img.naturalHeight / imageSize.height;
+    
+    const cropX = cropArea.x * scaleX;
+    const cropY = cropArea.y * scaleY;
+    const cropWidth = cropArea.width * scaleX;
+    const cropHeight = cropArea.height * scaleY;
+    
+    canvas.width = cropWidth;
+    canvas.height = cropHeight;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+    
+    const croppedBase64 = canvas.toDataURL('image/jpeg', 0.9);
+    onCrop(croppedBase64);
+  };
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.7)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 2000
+    }}>
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '12px',
+        padding: '24px',
+        maxWidth: '800px',
+        width: '90%',
+        maxHeight: '90vh',
+        overflow: 'auto'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: 'bold' }}>Crop Image</h2>
+          <button onClick={onClose} style={{ fontSize: '24px', background: 'none', border: 'none', cursor: 'pointer' }}>×</button>
+        </div>
+        
+        <div
+          ref={containerRef}
+          style={{
+            position: 'relative',
+            width: '100%',
+            height: '400px',
+            backgroundColor: '#f3f4f6',
+            borderRadius: '8px',
+            overflow: 'hidden',
+            marginBottom: '20px',
+            padding: '20px',
+            boxSizing: 'border-box'
+          }}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+        >
+          <img
+            ref={imageRef}
+            src={imageSrc}
+            alt="Crop"
+            onLoad={handleImageLoad}
+            style={{
+              maxWidth: '100%',
+              maxHeight: '100%',
+              display: imageLoaded ? 'block' : 'none'
+            }}
+          />
+          {imageLoaded && (
+            <div
+              style={{
+                position: 'absolute',
+                left: `${cropArea.x + 20}px`,
+                top: `${cropArea.y + 20}px`,
+                width: `${cropArea.width}px`,
+                height: `${cropArea.height}px`,
+                border: '2px solid #3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                cursor: isDragging ? 'grabbing' : 'grab',
+                boxSizing: 'border-box'
+              }}
+            >
+              <div style={{
+                position: 'absolute',
+                top: '-8px',
+                left: '-8px',
+                width: '16px',
+                height: '16px',
+                border: '2px solid #3b82f6',
+                backgroundColor: 'white',
+                borderRadius: '50%',
+                cursor: 'nwse-resize'
+              }} />
+              <div style={{
+                position: 'absolute',
+                top: '-8px',
+                right: '-8px',
+                width: '16px',
+                height: '16px',
+                border: '2px solid #3b82f6',
+                backgroundColor: 'white',
+                borderRadius: '50%',
+                cursor: 'nesw-resize'
+              }} />
+              <div style={{
+                position: 'absolute',
+                bottom: '-8px',
+                left: '-8px',
+                width: '16px',
+                height: '16px',
+                border: '2px solid #3b82f6',
+                backgroundColor: 'white',
+                borderRadius: '50%',
+                cursor: 'nesw-resize'
+              }} />
+              <div style={{
+                position: 'absolute',
+                bottom: '-8px',
+                right: '-8px',
+                width: '16px',
+                height: '16px',
+                border: '2px solid #3b82f6',
+                backgroundColor: 'white',
+                borderRadius: '50%',
+                cursor: 'nwse-resize'
+              }} />
+            </div>
+          )}
+        </div>
+        
+        <canvas ref={canvasRef} style={{ display: 'none' }} />
+        
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+          <button
+            onClick={onClose}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#6b7280',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500'
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleCrop}
+            disabled={!imageLoaded}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: imageLoaded ? '#3b82f6' : '#9ca3af',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: imageLoaded ? 'pointer' : 'not-allowed',
+              fontSize: '14px',
+              fontWeight: '500'
+            }}
+          >
+            Apply Crop
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
