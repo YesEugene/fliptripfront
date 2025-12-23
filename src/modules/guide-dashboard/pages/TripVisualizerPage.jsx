@@ -229,6 +229,14 @@ export default function TripVisualizerPage() {
     }
   };
 
+  const handleSaveTour = async () => {
+    // This function is called from TourEditorModal
+    // Save tour as draft when editing from modal
+    setShowTourEditor(false);
+    // Call handleSaveAsDraft to actually save the tour
+    await handleSaveAsDraft();
+  };
+
   const handleSubmitForModeration = async () => {
     try {
       const token = localStorage.getItem('token');
