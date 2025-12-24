@@ -3004,9 +3004,9 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload }) {
                   </label>
                   <input
                     type="text"
-                    value={currentLocation.time || '09:00 - 12:00'}
+                    value={currentLocation.time || ''}
                     onChange={(e) => updateCurrentLocation({ time: e.target.value })}
-                    placeholder="09:00 - 12:00"
+                    placeholder="09:00 - 12:00 or leave empty"
                     style={{
                       width: '100%',
                       padding: '12px',
