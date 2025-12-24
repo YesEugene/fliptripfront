@@ -679,11 +679,22 @@ function DividerBlock({ block, onEdit }) {
   };
 
   return (
-    <div>
+    <div style={{ position: 'relative' }}>
       <hr style={{
         border: 'none',
-        borderTop: `2px ${borderStyleMap[style]} #e5e7eb`,
+        borderTop: `1px ${borderStyleMap[style]} #e5e7eb`,
         margin: 0
+      }} />
+      {/* Invisible white area below the line for easier hover interaction */}
+      <div style={{
+        position: 'absolute',
+        top: '1px',
+        left: 0,
+        right: 0,
+        height: '30px',
+        backgroundColor: 'white',
+        pointerEvents: 'auto',
+        zIndex: 0
       }} />
     </div>
   );
