@@ -455,12 +455,89 @@ export default function TripVisualizerPage() {
     }
   };
 
+  // Check if required fields are filled
+  const isHeaderValid = () => {
+    return !!(tourInfo.city && tourInfo.title && tourInfo.description && tourInfo.preview);
+  };
+
+  // Create tour automatically if it doesn't exist (for adding blocks)
+  const ensureTourExists = async () => {
+    if (tourId) return tourId;
+    
+    const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+    if (!token) {
+      alert('Please log in to add blocks');
+      return null;
+    }
+
+    try {
+      // Create a minimal tour with empty required fields
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tours-create`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          city: tourInfo.city || 'Temporary',
+          title: tourInfo.title || 'Untitled Tour',
+          description: tourInfo.description || '',
+          preview: tourInfo.preview || null,
+          previewType: 'image',
+          status: 'draft',
+          daily_plan: [],
+          tags: [],
+          meta: {
+            interests: [],
+            audience: 'him',
+            total_estimated_cost: '€0'
+          },
+          format: 'self-guided',
+          withGuide: false,
+          price: {
+            pdfPrice: 16,
+            guidedPrice: 0,
+            currency: 'USD',
+            availableDates: [],
+            meetingPoint: '',
+            meetingTime: ''
+          },
+          duration: {
+            type: 'hours',
+            value: 6
+          },
+          languages: ['en'],
+          additionalOptions: {
+            platformOptions: ['insurance', 'accommodation'],
+            creatorOptions: {}
+          }
+        })
+      });
+
+      const data = await response.json();
+      if (data.success && data.tour) {
+        const newTourId = data.tour.id;
+        // Update URL with new tour ID
+        navigate(`/guide/tours/visualizer/${newTourId}`, { replace: true });
+        setTour(data.tour);
+        return newTourId;
+      } else {
+        alert(data.error || 'Failed to create tour');
+        return null;
+      }
+    } catch (error) {
+      console.error('Error creating tour:', error);
+      alert('Failed to create tour');
+      return null;
+    }
+  };
+
   const handleAddBlock = async (blockType) => {
     console.log('Adding block:', blockType);
     
-    // If no tourId, we need to create a tour first
-    if (!tourId) {
-      alert('Please save the tour first before adding blocks');
+    // Automatically create tour if it doesn't exist
+    const currentTourId = tourId || await ensureTourExists();
+    if (!currentTourId) {
       setShowBlockSelector(false);
       return;
     }
