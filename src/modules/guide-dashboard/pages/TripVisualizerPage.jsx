@@ -1875,47 +1875,65 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
   
   const HintButton = ({ hintKey }) => {
     const [showTooltip, setShowTooltip] = useState(false);
+    const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
+    const buttonRef = useRef(null);
+    
+    const handleMouseEnter = () => {
+      if (buttonRef.current) {
+        const rect = buttonRef.current.getBoundingClientRect();
+        setTooltipPosition({
+          top: rect.bottom + 8,
+          left: rect.left + rect.width / 2
+        });
+      }
+      setShowTooltip(true);
+    };
     
     return (
-      <div style={{ position: 'relative', display: 'inline-block', marginLeft: '8px' }}>
-        <button
-          type="button"
-          onMouseEnter={() => setShowTooltip(true)}
-          onMouseLeave={() => setShowTooltip(false)}
-          style={{
-            padding: '4px 8px',
-            backgroundColor: '#f3f4f6',
-            color: '#6b7280',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '12px',
-            fontWeight: '500'
-          }}
-        >
-          Hint
-        </button>
+      <>
+        <div style={{ position: 'relative', display: 'inline-block', marginLeft: '8px' }}>
+          <button
+            ref={buttonRef}
+            type="button"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={() => setShowTooltip(false)}
+            style={{
+              padding: '4px 8px',
+              backgroundColor: '#f3f4f6',
+              color: '#6b7280',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: '500'
+            }}
+          >
+            Hint
+          </button>
+        </div>
         {showTooltip && (
           <div
             style={{
-              position: 'absolute',
-              top: '100%',
-              left: '50%',
+              position: 'fixed',
+              top: `${tooltipPosition.top}px`,
+              left: `${tooltipPosition.left}px`,
               transform: 'translateX(-50%)',
-              marginTop: '8px',
               padding: '12px',
               backgroundColor: 'white',
               border: '1px solid #d1d5db',
               borderRadius: '8px',
               boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              zIndex: 1001,
+              zIndex: 10000,
               minWidth: '280px',
               maxWidth: '320px',
               whiteSpace: 'pre-line',
               fontSize: '13px',
               lineHeight: '1.6',
-              color: '#374151'
+              color: '#374151',
+              pointerEvents: 'none'
             }}
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
           >
             {hints[hintKey]}
             <div
@@ -1933,7 +1951,7 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
             />
           </div>
         )}
-      </div>
+      </>
     );
   };
   

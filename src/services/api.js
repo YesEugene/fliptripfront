@@ -289,7 +289,7 @@ export const getTours = async (filters = {}) => {
 };
 
 // Get single tour by ID
-// Check if user has paid for a tour
+image.png// Check if user has paid for a tour
 export const checkPayment = async (tourId, email) => {
   try {
     const response = await api.get('/api/check-payment', {
