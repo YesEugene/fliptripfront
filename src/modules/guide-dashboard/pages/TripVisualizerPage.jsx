@@ -1470,19 +1470,19 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
               onChange({ ...tourInfo, city: value });
               
               // Show suggestions
-              if (value.length > 1) {
+              if (value.length > 1 && cities && Array.isArray(cities)) {
                 const filtered = cities.filter(c => 
                   c.name.toLowerCase().includes(value.toLowerCase())
                 );
-                setCitySuggestions(filtered);
-                setShowCitySuggestions(filtered.length > 0);
+                if (setCitySuggestions) setCitySuggestions(filtered);
+                if (setShowCitySuggestions) setShowCitySuggestions(filtered.length > 0);
               } else {
-                setCitySuggestions([]);
-                setShowCitySuggestions(false);
+                if (setCitySuggestions) setCitySuggestions([]);
+                if (setShowCitySuggestions) setShowCitySuggestions(false);
               }
             }}
             onFocus={(e) => {
-              if (e.target.value.length > 1 && citySuggestions.length > 0) {
+              if (e.target.value.length > 1 && citySuggestions && citySuggestions.length > 0 && setShowCitySuggestions) {
                 setShowCitySuggestions(true);
               }
             }}
@@ -1515,8 +1515,8 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
                   key={city.id || index}
                   onClick={() => {
                     onChange({ ...tourInfo, city: city.name });
-                    setCitySuggestions([]);
-                    setShowCitySuggestions(false);
+                    if (setCitySuggestions) setCitySuggestions([]);
+                    if (setShowCitySuggestions) setShowCitySuggestions(false);
                   }}
                   style={{
                     padding: '10px 12px',
