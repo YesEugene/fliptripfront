@@ -644,20 +644,56 @@ export default function TripVisualizerPage() {
         defaultContent = {};
     }
 
-    // Create temporary block object (not saved to DB yet)
-    const tempBlock = {
-      id: `temp-${Date.now()}`, // Temporary ID
-      tour_id: currentTourId,
-      tourId: currentTourId, // Also set tourId for handleSaveBlock
-      block_type: blockType,
-      order_index: maxOrder + 1,
-      content: defaultContent,
-      isNew: true // Flag to indicate this is a new block
-    };
+    // Create block in database immediately with default content
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      if (!token) {
+        alert('Please log in to create blocks');
+        setShowBlockSelector(false);
+        return;
+      }
 
-    // Close selector and open editor
-    setShowBlockSelector(false);
-    setEditingBlock(tempBlock);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          tourId: currentTourId,
+          blockType: blockType,
+          orderIndex: maxOrder + 1,
+          content: defaultContent
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('❌ Create block error:', errorData, 'Status:', response.status);
+        alert(errorData.error || `Failed to create block (${response.status})`);
+        setShowBlockSelector(false);
+        return;
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.block) {
+        // Add new block to local state immediately
+        setBlocks(prev => [...prev, data.block].sort((a, b) => (a.order_index || 0) - (b.order_index || 0)));
+        
+        // Close selector - block appears on frontend with default content
+        setShowBlockSelector(false);
+        
+        // Don't open editor - user can click "Edit" if they want to edit
+      } else {
+        alert(data.error || 'Failed to create block');
+        setShowBlockSelector(false);
+      }
+    } catch (error) {
+      console.error('Error creating block:', error);
+      alert('Error creating block. Please try again.');
+      setShowBlockSelector(false);
+    }
   };
 
   const handleEditBlock = (block) => {
