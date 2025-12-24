@@ -1166,49 +1166,63 @@ export default function TripVisualizerPage() {
           </button>
           <button
             onClick={handleSaveAsDraft}
+            disabled={!isHeaderValid()}
             style={{
               flex: '1',
               minWidth: '150px',
               padding: '14px 28px',
-              backgroundColor: '#6b7280',
+              backgroundColor: isHeaderValid() ? '#6b7280' : '#d1d5db',
               color: 'white',
               border: 'none',
               borderRadius: '10px',
-              cursor: 'pointer',
+              cursor: isHeaderValid() ? 'pointer' : 'not-allowed',
               fontSize: '16px',
               fontWeight: '600',
-              transition: 'all 0.2s'
+              transition: 'all 0.2s',
+              opacity: isHeaderValid() ? 1 : 0.6
             }}
             onMouseEnter={(e) => {
-              e.target.style.backgroundColor = '#4b5563';
+              if (isHeaderValid() && !e.target.disabled) {
+                e.target.style.backgroundColor = '#4b5563';
+              }
             }}
             onMouseLeave={(e) => {
-              e.target.style.backgroundColor = '#6b7280';
+              if (isHeaderValid() && !e.target.disabled) {
+                e.target.style.backgroundColor = '#6b7280';
+              }
             }}
+            title={!isHeaderValid() ? 'Please fill in City, Title, Description, and Preview Photo' : ''}
           >
             Save as Draft
           </button>
           <button
             onClick={handleSubmitForModeration}
+            disabled={!isHeaderValid()}
             style={{
               flex: '1',
               minWidth: '150px',
               padding: '14px 28px',
-              backgroundColor: '#4ade80',
-              color: '#111827',
+              backgroundColor: isHeaderValid() ? '#4ade80' : '#d1d5db',
+              color: isHeaderValid() ? '#111827' : '#9ca3af',
               border: 'none',
               borderRadius: '10px',
-              cursor: 'pointer',
+              cursor: isHeaderValid() ? 'pointer' : 'not-allowed',
               fontSize: '16px',
               fontWeight: '600',
-              transition: 'all 0.2s'
+              transition: 'all 0.2s',
+              opacity: isHeaderValid() ? 1 : 0.6
             }}
             onMouseEnter={(e) => {
-              e.target.style.backgroundColor = '#22c55e';
+              if (isHeaderValid() && !e.target.disabled) {
+                e.target.style.backgroundColor = '#22c55e';
+              }
             }}
             onMouseLeave={(e) => {
-              e.target.style.backgroundColor = '#4ade80';
+              if (isHeaderValid() && !e.target.disabled) {
+                e.target.style.backgroundColor = '#4ade80';
+              }
             }}
+            title={!isHeaderValid() ? 'Please fill in City, Title, Description, and Preview Photo' : ''}
           >
             Submit for Moderation
           </button>
