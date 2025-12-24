@@ -212,7 +212,7 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
               </h4>
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(73px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(83px, 1fr))',
                 gap: '8px'
               }}>
                 {alternativeLocations.map((altLocation, index) => (
