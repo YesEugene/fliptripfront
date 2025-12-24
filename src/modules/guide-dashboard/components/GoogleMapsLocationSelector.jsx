@@ -91,7 +91,13 @@ const GoogleMapsLocationSelector = ({ isOpen, onClose, onSelectLocation, city })
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to search places');
+        
+        // Check if it's a billing error
+        if (errorData.requiresBilling || response.status === 402) {
+          throw new Error('Google Places API requires billing to be enabled. Please check your Google Cloud Console billing settings.');
+        }
+        
+        throw new Error(errorData.error || errorData.message || 'Failed to search places');
       }
 
       const data = await response.json();
@@ -122,7 +128,13 @@ const GoogleMapsLocationSelector = ({ isOpen, onClose, onSelectLocation, city })
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to get place details');
+        
+        // Check if it's a billing error
+        if (errorData.requiresBilling || response.status === 402) {
+          throw new Error('Google Places API requires billing to be enabled. Please check your Google Cloud Console billing settings.');
+        }
+        
+        throw new Error(errorData.error || errorData.message || 'Failed to get place details');
       }
 
       const data = await response.json();
