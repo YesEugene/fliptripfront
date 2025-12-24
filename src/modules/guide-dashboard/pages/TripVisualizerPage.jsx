@@ -3190,8 +3190,9 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload }) {
 
                 {/* Category of interests */}
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
                     Category of interests
+                    <HintButton hintKey="categoryOfInterests" />
                   </label>
                   <select
                     value={currentLocation.category || ''}
