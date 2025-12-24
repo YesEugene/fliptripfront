@@ -950,93 +950,6 @@ export default function TripVisualizerPage() {
           </div>
         </div>
 
-        {/* Content Blocks */}
-        {blocks.map((block, index) => (
-          <div 
-            key={block.id} 
-            style={{ marginBottom: '24px', position: 'relative' }}
-            onMouseEnter={(e) => {
-              const controls = e.currentTarget.querySelector('.block-controls');
-              if (controls) controls.style.display = 'flex';
-            }}
-            onMouseLeave={(e) => {
-              const controls = e.currentTarget.querySelector('.block-controls');
-              if (controls) controls.style.display = 'none';
-            }}
-          >
-            {/* Block Controls - Only visible on hover */}
-            <div 
-              className="block-controls"
-              style={{
-                position: 'absolute',
-                top: '8px',
-                right: '8px',
-                zIndex: 10,
-                display: 'none',
-                gap: '4px',
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                padding: '4px',
-                borderRadius: '6px',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-              }}
-            >
-              <button
-                onClick={() => handleMoveBlock(block.id, 'up')}
-                disabled={index === 0}
-                style={{
-                  padding: '4px 8px',
-                  backgroundColor: index === 0 ? '#e5e7eb' : '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: index === 0 ? 'not-allowed' : 'pointer',
-                  fontSize: '12px',
-                  opacity: index === 0 ? 0.5 : 1
-                }}
-                title="Move up"
-              >
-                ↑
-              </button>
-              <button
-                onClick={() => handleMoveBlock(block.id, 'down')}
-                disabled={index === blocks.length - 1}
-                style={{
-                  padding: '4px 8px',
-                  backgroundColor: index === blocks.length - 1 ? '#e5e7eb' : '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: index === blocks.length - 1 ? 'not-allowed' : 'pointer',
-                  fontSize: '12px',
-                  opacity: index === blocks.length - 1 ? 0.5 : 1
-                }}
-                title="Move down"
-              >
-                ↓
-              </button>
-              <button
-                onClick={() => handleEditBlock(block)}
-                style={{
-                  padding: '4px 8px',
-                  backgroundColor: '#fbbf24',
-                  color: '#111827',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                  fontWeight: '500'
-                }}
-                title="Edit block"
-              >
-                Edit block
-              </button>
-            </div>
-            
-            {/* Render Block */}
-            <BlockRenderer block={block} onEdit={() => handleEditBlock(block)} />
-          </div>
-        ))}
-
         {/* From author block */}
         <div style={{
           backgroundColor: 'white',
@@ -1139,6 +1052,93 @@ export default function TripVisualizerPage() {
             </div>
           </div>
         </div>
+
+        {/* Content Blocks - Appear after author block */}
+        {blocks.map((block, index) => (
+          <div 
+            key={block.id} 
+            style={{ marginBottom: '24px', position: 'relative' }}
+            onMouseEnter={(e) => {
+              const controls = e.currentTarget.querySelector('.block-controls');
+              if (controls) controls.style.display = 'flex';
+            }}
+            onMouseLeave={(e) => {
+              const controls = e.currentTarget.querySelector('.block-controls');
+              if (controls) controls.style.display = 'none';
+            }}
+          >
+            {/* Block Controls - Only visible on hover */}
+            <div 
+              className="block-controls"
+              style={{
+                position: 'absolute',
+                top: '8px',
+                right: '8px',
+                zIndex: 10,
+                display: 'none',
+                gap: '4px',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                padding: '4px',
+                borderRadius: '6px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+              }}
+            >
+              <button
+                onClick={() => handleMoveBlock(block.id, 'up')}
+                disabled={index === 0}
+                style={{
+                  padding: '4px 8px',
+                  backgroundColor: index === 0 ? '#e5e7eb' : '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: index === 0 ? 'not-allowed' : 'pointer',
+                  fontSize: '12px',
+                  opacity: index === 0 ? 0.5 : 1
+                }}
+                title="Move up"
+              >
+                ↑
+              </button>
+              <button
+                onClick={() => handleMoveBlock(block.id, 'down')}
+                disabled={index === blocks.length - 1}
+                style={{
+                  padding: '4px 8px',
+                  backgroundColor: index === blocks.length - 1 ? '#e5e7eb' : '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: index === blocks.length - 1 ? 'not-allowed' : 'pointer',
+                  fontSize: '12px',
+                  opacity: index === blocks.length - 1 ? 0.5 : 1
+                }}
+                title="Move down"
+              >
+                ↓
+              </button>
+              <button
+                onClick={() => handleEditBlock(block)}
+                style={{
+                  padding: '4px 8px',
+                  backgroundColor: '#fbbf24',
+                  color: '#111827',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: '500'
+                }}
+                title="Edit block"
+              >
+                Edit block
+              </button>
+            </div>
+            
+            {/* Render Block */}
+            <BlockRenderer block={block} onEdit={() => handleEditBlock(block)} />
+          </div>
+        ))}
 
         {/* Action buttons */}
         <div style={{ 
