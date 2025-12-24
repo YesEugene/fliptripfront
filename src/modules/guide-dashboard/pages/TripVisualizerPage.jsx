@@ -801,7 +801,7 @@ export default function TripVisualizerPage() {
               zIndex: 0
             }} />
           )}
-          {/* Gradient overlay */}
+          {/* Gradient overlay - black at top, transparent in middle */}
           <div style={{
             position: 'absolute',
             top: 0,
@@ -809,7 +809,7 @@ export default function TripVisualizerPage() {
             right: 0,
             bottom: 0,
             background: tourInfo.preview 
-              ? 'linear-gradient(to bottom, rgba(75, 85, 99, 0.7), rgba(156, 163, 175, 0.5))'
+              ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3), transparent)'
               : 'linear-gradient(to bottom, #4b5563, #d1d5db)',
             zIndex: 1
           }} />

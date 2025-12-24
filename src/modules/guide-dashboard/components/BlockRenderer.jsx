@@ -32,12 +32,7 @@ function LocationBlock({ block, onEdit }) {
   const content = block.content || {};
   
   return (
-    <div style={{
-      backgroundColor: 'white',
-      borderRadius: '12px',
-      padding: '24px',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-    }}>
+    <div>
       <div style={{ marginBottom: '16px' }}>
         <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '12px' }}>Location</h3>
         <p style={{ color: '#6b7280', fontSize: '14px' }}>
@@ -61,12 +56,7 @@ function TitleBlock({ block, onEdit }) {
   };
 
   return (
-    <div style={{
-      backgroundColor: 'white',
-      borderRadius: '12px',
-      padding: '24px',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-    }}>
+    <div>
       <h2 style={{
         fontSize: fontSizeMap[size],
         fontWeight: 'bold',
@@ -89,10 +79,6 @@ function PhotoTextBlock({ block, onEdit }) {
 
   return (
     <div style={{
-      backgroundColor: 'white',
-      borderRadius: '12px',
-      padding: '24px',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
       display: 'flex',
       gap: '24px',
       flexDirection: alignment === 'right' ? 'row-reverse' : 'row',
@@ -146,12 +132,7 @@ function TextBlock({ block, onEdit }) {
   const formatted = content.formatted || false;
 
   return (
-    <div style={{
-      backgroundColor: 'white',
-      borderRadius: '12px',
-      padding: '24px',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-    }}>
+    <div>
       {formatted ? (
         <div 
           dangerouslySetInnerHTML={{ __html: text }}
@@ -183,12 +164,7 @@ function SlideBlock({ block, onEdit }) {
   const text = content.text || 'Slide description text';
 
   return (
-    <div style={{
-      backgroundColor: 'white',
-      borderRadius: '12px',
-      padding: '24px',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-    }}>
+    <div>
       <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '12px' }}>
         {title}
       </h3>
@@ -236,12 +212,7 @@ function ThreeColumnsBlock({ block, onEdit }) {
   ];
 
   return (
-    <div style={{
-      backgroundColor: 'white',
-      borderRadius: '12px',
-      padding: '24px',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-    }}>
+    <div>
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(3, 1fr)',
@@ -294,12 +265,7 @@ function PhotoBlock({ block, onEdit }) {
   const caption = content.caption || '';
 
   return (
-    <div style={{
-      backgroundColor: 'white',
-      borderRadius: '12px',
-      padding: '24px',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-    }}>
+    <div>
       {photo ? (
         <>
           <img 
@@ -354,12 +320,7 @@ function DividerBlock({ block, onEdit }) {
   };
 
   return (
-    <div style={{
-      backgroundColor: 'white',
-      borderRadius: '12px',
-      padding: '24px',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-    }}>
+    <div>
       <hr style={{
         border: 'none',
         borderTop: `2px ${borderStyleMap[style]} #e5e7eb`,
