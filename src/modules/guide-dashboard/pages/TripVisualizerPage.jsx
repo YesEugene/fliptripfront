@@ -296,10 +296,17 @@ export default function TripVisualizerPage() {
   };
 
   const handleSaveTour = async () => {
-    // This function is called from TourEditorModal
-    // Save tour as draft when editing from modal
+    // This function is called from TourEditorModal when clicking "Save"
+    // Similar to CreateTourPage's handleSubmit - validate and save
+    if (!tourInfo.city || !tourInfo.title) {
+      alert('Please fill in City and Trip name before saving');
+      return;
+    }
+    
+    // Close modal first
     setShowTourEditor(false);
-    // Call handleSaveAsDraft to actually save the tour
+    
+    // Save tour as draft (same as CreateTourPage creates tour)
     await handleSaveAsDraft();
   };
 
