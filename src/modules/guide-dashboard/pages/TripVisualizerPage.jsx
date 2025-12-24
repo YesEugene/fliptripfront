@@ -36,12 +36,40 @@ export default function TripVisualizerPage() {
     preview: null
   });
 
+  // City autocomplete state
+  const [cities, setCities] = useState([]);
+  const [citySuggestions, setCitySuggestions] = useState([]);
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+
   useEffect(() => {
     loadUser();
     loadGuideProfile();
     if (tourId) {
       loadTour();
     }
+    // Load cities for autocomplete
+    const loadCities = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://fliptripback.vercel.app';
+        const response = await fetch(`${API_BASE_URL}/api/admin-cities`);
+        const data = await response.json();
+        if (data.success && data.cities) {
+          setCities(data.cities);
+        }
+      } catch (err) {
+        console.error('Error loading cities:', err);
+      }
+    };
+    loadCities();
+    
+    // Close city suggestions when clicking outside
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.city-autocomplete-container')) {
+        setShowCitySuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [tourId]);
 
   const loadUser = async () => {
