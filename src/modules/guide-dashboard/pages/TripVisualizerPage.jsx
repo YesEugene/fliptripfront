@@ -19,6 +19,8 @@ import PhotoIcon from '../../../assets/Photo.svg';
 import DividerIcon from '../../../assets/Devider.svg';
 import BarcelonaExampleImage from '../../../assets/Barcelona-example.png';
 import SantAntoniMarketImage from '../../../assets/Sant Antoni Market.jpg';
+import ElRavalImage from '../../../assets/El Raval Backstreets.webp';
+import MontjuicImage from '../../../assets/Montjuïc Hill (Miradors & Paths).jpg';
 import { getTourById } from '../../../services/api';
 import BlockRenderer from '../components/BlockRenderer';
 import TextEditor from '../components/TextEditor';
@@ -645,7 +647,32 @@ export default function TripVisualizerPage() {
             price_level: '',
             approx_cost: ''
           },
-          alternativeLocations: []
+          alternativeLocations: [
+            {
+              time: '12:00 – 14:30',
+              title: 'El Raval Backstreets',
+              address: 'Barcelona, El Raval',
+              description: 'El Raval is messy, layered, and impossible to summarize.\n\nIt\'s not a neighborhood you "visit" — it\'s one you move through slowly. Streets change character every few minutes, cafés sit next to bookstores and barber shops, and nothing feels designed for tourists.\n\nThis part of the city works best without a plan. Walk, get lost, and let the atmosphere guide your direction.',
+              photo: ElRavalImage,
+              recommendations: 'Avoid main streets. Turn into smaller ones even if they look less inviting. If you feel slightly unsure, you\'re probably in the right place. Stop when something catches your eye — not when a map tells you to.',
+              category: null,
+              interests: [],
+              price_level: '',
+              approx_cost: ''
+            },
+            {
+              time: '17:30 – Sunset',
+              title: 'Montjuïc Hill (Miradors & Paths)',
+              address: 'Barcelona',
+              description: 'Montjuïc offers space — something Barcelona rarely gives easily.\n\nUp here, the city feels quieter and more distant. Paths connect viewpoints, gardens, and unexpected corners where people sit alone or in silence.\n\nThis is a good place to slow down after a long day and let Barcelona settle rather than rush into the evening.',
+              photo: MontjuicImage,
+              recommendations: 'Skip the most obvious viewpoints and keep walking until there are fewer people. Bring water, sit on a wall, and watch the light change. This moment doesn\'t need a photo — it works better when you stay present.',
+              category: null,
+              interests: [],
+              price_level: '',
+              approx_cost: ''
+            }
+          ]
         };
         break;
       default:
@@ -2876,23 +2903,70 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload }) {
                 Main Location
               </button>
               {content.alternativeLocations.map((altLoc, idx) => (
-                <button
+                <div
                   key={idx}
-                  type="button"
-                  onClick={() => setEditingLocationIndex(idx)}
                   style={{
-                    padding: '8px 16px',
-                    border: 'none',
-                    backgroundColor: editingLocationIndex === idx ? '#3b82f6' : 'transparent',
-                    color: editingLocationIndex === idx ? 'white' : '#6b7280',
-                    borderRadius: '8px 8px 0 0',
-                    cursor: 'pointer',
-                    fontWeight: editingLocationIndex === idx ? '600' : '400',
-                    fontSize: '14px'
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    position: 'relative'
                   }}
                 >
-                  Alternative {idx + 1}
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingLocationIndex(idx)}
+                    style={{
+                      padding: '8px 16px',
+                      border: 'none',
+                      backgroundColor: editingLocationIndex === idx ? '#3b82f6' : 'transparent',
+                      color: editingLocationIndex === idx ? 'white' : '#6b7280',
+                      borderRadius: '8px 8px 0 0',
+                      cursor: 'pointer',
+                      fontWeight: editingLocationIndex === idx ? '600' : '400',
+                      fontSize: '14px'
+                    }}
+                  >
+                    Alternative {idx + 1}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const newAlternatives = content.alternativeLocations.filter((_, i) => i !== idx);
+                      setContent({ ...content, alternativeLocations: newAlternatives });
+                      // If we deleted the currently selected alternative, switch to main location
+                      if (editingLocationIndex === idx) {
+                        setEditingLocationIndex(null);
+                      } else if (editingLocationIndex > idx) {
+                        // Adjust index if we deleted an alternative before the current one
+                        setEditingLocationIndex(editingLocationIndex - 1);
+                      }
+                    }}
+                    style={{
+                      padding: '4px 8px',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      color: '#ef4444',
+                      cursor: 'pointer',
+                      fontSize: '18px',
+                      lineHeight: '1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '4px',
+                      marginLeft: '4px'
+                    }}
+                    title="Delete alternative location"
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = '#fee2e2';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
               ))}
               <button
                 type="button"
@@ -2989,29 +3063,6 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload }) {
                   />
                 </div>
 
-                {/* Location Description */}
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                    Location Description 👆
-                  </label>
-                  <textarea
-                    value={currentLocation.description || ''}
-                    onChange={(e) => updateCurrentLocation({ description: e.target.value })}
-                    placeholder="Describe this location..."
-                    rows={4}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '8px',
-                      fontSize: '16px',
-                      resize: 'vertical',
-                      boxSizing: 'border-box',
-                      fontFamily: 'inherit'
-                    }}
-                  />
-                </div>
-
                 {/* Add Photo of Location */}
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
@@ -3019,7 +3070,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload }) {
                   </label>
                   <div style={{
                     width: '100%',
-                    minHeight: '200px',
+                    aspectRatio: '1',
                     border: '2px dashed #d1d5db',
                     borderRadius: '8px',
                     display: 'flex',
@@ -3034,9 +3085,10 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload }) {
                         src={currentLocation.photo} 
                         alt="Location preview" 
                         style={{ 
-                          maxWidth: '100%', 
-                          maxHeight: '300px', 
-                          objectFit: 'contain' 
+                          width: '100%', 
+                          height: '100%', 
+                          objectFit: 'cover',
+                          objectPosition: 'center'
                         }} 
                       />
                     ) : (
@@ -3075,8 +3127,31 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload }) {
                     Choose photo
                   </label>
                   <p style={{ fontSize: '12px', color: '#6b7280', margin: '4px 0 0 0' }}>
-                    JPG, PNG or GIF. Max size 5MB
+                    JPG, PNG or GIF. Max size 5MB. Image will be cropped to square.
                   </p>
+                </div>
+
+                {/* Location Description */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                    Location Description 👆
+                  </label>
+                  <textarea
+                    value={currentLocation.description || ''}
+                    onChange={(e) => updateCurrentLocation({ description: e.target.value })}
+                    placeholder="Describe this location..."
+                    rows={4}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      resize: 'vertical',
+                      boxSizing: 'border-box',
+                      fontFamily: 'inherit'
+                    }}
+                  />
                 </div>
 
                 {/* Recommendations */}

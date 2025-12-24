@@ -117,15 +117,16 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
               alt={mainLocation.title || 'Location'} 
               style={{ 
                 width: '100%', 
-                height: 'auto',
+                aspectRatio: '1',
                 borderRadius: '12px',
-                objectFit: 'cover'
+                objectFit: 'cover',
+                objectPosition: 'center'
               }} 
             />
           ) : (
             <div style={{
               width: '100%',
-              aspectRatio: '4/3',
+              aspectRatio: '1',
               backgroundColor: '#e5e7eb',
               borderRadius: '12px',
               display: 'flex',
@@ -246,7 +247,8 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                         style={{ 
                           width: '100%', 
                           height: '59px',
-                          objectFit: 'cover'
+                          objectFit: 'cover',
+                          objectPosition: 'center'
                         }} 
                       />
                     ) : (
@@ -297,7 +299,8 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
             fontSize: '16px', 
             lineHeight: '1.6', 
             color: '#374151',
-            margin: 0
+            margin: 0,
+            whiteSpace: 'pre-line'
           }}>
             {mainLocation.description}
           </p>
@@ -319,7 +322,8 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
             fontSize: '15px', 
             lineHeight: '1.6', 
             color: '#4b5563',
-            margin: 0
+            margin: 0,
+            whiteSpace: 'pre-line'
           }}>
             {mainLocation.recommendations}
           </p>
