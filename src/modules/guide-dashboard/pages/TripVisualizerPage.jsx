@@ -600,7 +600,13 @@ export default function TripVisualizerPage() {
         defaultContent = { text: 'New Title', size: 'large' };
         break;
       case 'text':
-        defaultContent = { text: 'New text block', formatted: false };
+        defaultContent = { 
+          layout: 'two-columns',
+          column1: 'Barcelona works best when you stop trying to do it right.\n\nThis city doesn\'t need to be optimized. It doesn\'t want you to rush from one highlight to another or prove that you\'ve "seen enough." Some of its best moments happen when nothing special is planned.',
+          column2: 'Use this guide as a direction, not a schedule. Walk a little further than intended. Sit longer than planned. If a street, a café, or a view feels right — stay.\n\nBarcelona opens up in pauses: between meals, between neighborhoods, between decisions. And the more space you give it, the more generous it becomes.',
+          text: '', // For single column mode
+          formatted: false
+        };
         break;
       case 'photo_text':
         defaultContent = { photo: null, text: 'New photo and text block', alignment: 'left' };
@@ -1883,7 +1889,8 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
     city: 'Start typing the city name and select it from the list.\n\nIf your city doesn\'t appear, simply type it in manually.',
     tripName: 'Choose a short, meaningful title that reflects the idea of your tour, not a list of places.\n\nAim for 3–6 words. Avoid generic phrases like "Best of" or "Top places".\nA good title sets the mood and makes people want to open the tour.',
     previewPhoto: 'Use a high-quality image that captures the essence of your tour.\n\nThis photo should communicate the feeling of the experience at a glance — not just a landmark.\nAvoid blurry images, heavy filters, or screenshots.',
-    noteFromAuthor: 'Introduce yourself and explain why you created this tour.\n\nShare your personal connection to the city or route, and what kind of experience you\'re offering.\nThis is not a biography — it\'s a short, honest note that helps people trust you and want to live the journey you\'re proposing.'
+    noteFromAuthor: 'Introduce yourself and explain why you created this tour.\n\nShare your personal connection to the city or route, and what kind of experience you\'re offering.\nThis is not a biography — it\'s a short, honest note that helps people trust you and want to live the journey you\'re proposing.',
+    textBlock: 'Use this block to set the mood of the tour and explain how it should be experienced.\n\nWrite freely, in a personal tone. Share an observation, a feeling, or a way of moving through the city. This is not a place for locations or instructions, it\'s where you help the reader slow down, trust the route, and understand your rhythm.'
   };
   
   const HintButton = ({ hintKey }) => {
@@ -2369,17 +2376,93 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload }) {
         );
 
       case 'text':
+        const layout = content.layout || 'single';
         return (
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-              Text *
-            </label>
-            <TextEditor
-              value={content.text || ''}
-              onChange={(text) => setContent({ ...content, text, formatted: true })}
-              placeholder="Enter text..."
-            />
-          </div>
+          <>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
+                Text *
+                <HintButton hintKey="textBlock" />
+              </label>
+              
+              {/* Layout Toggle */}
+              <div style={{ 
+                display: 'flex', 
+                gap: '8px', 
+                marginBottom: '16px',
+                padding: '4px',
+                backgroundColor: '#f3f4f6',
+                borderRadius: '8px',
+                width: 'fit-content'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setContent({ ...content, layout: 'single' })}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: layout === 'single' ? '#3b82f6' : 'transparent',
+                    color: layout === 'single' ? 'white' : '#6b7280',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Single Column
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setContent({ ...content, layout: 'two-columns' })}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: layout === 'two-columns' ? '#3b82f6' : 'transparent',
+                    color: layout === 'two-columns' ? 'white' : '#6b7280',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Two Columns
+                </button>
+              </div>
+
+              {layout === 'single' ? (
+                <TextEditor
+                  value={content.text || ''}
+                  onChange={(text) => setContent({ ...content, text, formatted: true })}
+                  placeholder="Enter text..."
+                />
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: '#6b7280', fontWeight: '500' }}>
+                      First Column
+                    </label>
+                    <TextEditor
+                      value={content.column1 || ''}
+                      onChange={(text) => setContent({ ...content, column1: text, formatted: true })}
+                      placeholder="Enter text for first column..."
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: '#6b7280', fontWeight: '500' }}>
+                      Second Column
+                    </label>
+                    <TextEditor
+                      value={content.column2 || ''}
+                      onChange={(text) => setContent({ ...content, column2: text, formatted: true })}
+                      placeholder="Enter text for second column..."
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
         );
 
       case 'photo_text':

@@ -414,8 +414,81 @@ function PhotoTextBlock({ block, onEdit }) {
 // Text Block
 function TextBlock({ block, onEdit }) {
   const content = block.content || {};
-  const text = content.text || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.';
+  const layout = content.layout || 'single';
   const formatted = content.formatted || false;
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  if (layout === 'two-columns') {
+    const column1 = content.column1 || '';
+    const column2 = content.column2 || '';
+    
+    return (
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
+        gap: isMobile ? '24px' : '32px',
+        marginBottom: '24px'
+      }}>
+        <div>
+          {formatted ? (
+            <div 
+              dangerouslySetInnerHTML={{ __html: column1 }}
+              style={{ 
+                color: '#111827', 
+                fontSize: '16px', 
+                lineHeight: '1.6',
+                whiteSpace: 'pre-line'
+              }}
+            />
+          ) : (
+            <p style={{ 
+              color: '#111827', 
+              fontSize: '16px', 
+              lineHeight: '1.6',
+              margin: 0,
+              whiteSpace: 'pre-line'
+            }}>
+              {column1}
+            </p>
+          )}
+        </div>
+        <div>
+          {formatted ? (
+            <div 
+              dangerouslySetInnerHTML={{ __html: column2 }}
+              style={{ 
+                color: '#111827', 
+                fontSize: '16px', 
+                lineHeight: '1.6',
+                whiteSpace: 'pre-line'
+              }}
+            />
+          ) : (
+            <p style={{ 
+              color: '#111827', 
+              fontSize: '16px', 
+              lineHeight: '1.6',
+              margin: 0,
+              whiteSpace: 'pre-line'
+            }}>
+              {column2}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Single column layout
+  const text = content.text || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.';
 
   return (
     <div>
