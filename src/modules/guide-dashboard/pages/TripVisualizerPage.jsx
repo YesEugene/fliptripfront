@@ -1918,7 +1918,13 @@ const hints = {
   tripName: 'Choose a short, meaningful title that reflects the idea of your tour, not a list of places.\n\nAim for 3–6 words. Avoid generic phrases like "Best of" or "Top places".\nA good title sets the mood and makes people want to open the tour.',
   previewPhoto: 'Use a high-quality image that captures the essence of your tour.\n\nThis photo should communicate the feeling of the experience at a glance — not just a landmark.\nAvoid blurry images, heavy filters, or screenshots.',
   noteFromAuthor: 'Introduce yourself and explain why you created this tour.\n\nShare your personal connection to the city or route, and what kind of experience you\'re offering.\nThis is not a biography — it\'s a short, honest note that helps people trust you and want to live the journey you\'re proposing.',
-  textBlock: 'Use this block to set the mood of the tour and explain how it should be experienced.\n\nWrite freely, in a personal tone. Share an observation, a feeling, or a way of moving through the city. This is not a place for locations or instructions, it\'s where you help the reader slow down, trust the route, and understand your rhythm.'
+  textBlock: 'Use this block to set the mood of the tour and explain how it should be experienced.\n\nWrite freely, in a personal tone. Share an observation, a feeling, or a way of moving through the city. This is not a place for locations or instructions, it\'s where you help the reader slow down, trust the route, and understand your rhythm.',
+  timeForLocation: 'This field was designed for building a day schedule, but it\'s optional.\n\nYou can add a time range, write something personal (like "Morning" or "Before sunset"), or leave it empty — if left blank, it won\'t appear in the tour.',
+  locationName: 'Choose a place you personally know and would recommend to someone to feel the city.\n\nIt doesn\'t have to be famous — it just needs to fit the rhythm of your route.',
+  locationDescription: 'Describe the place as you experience it.\n\nExplain why it matters in your route and what kind of moment it creates.\nAvoid factual descriptions — focus on atmosphere, rhythm, and feeling.',
+  locationPhoto: 'Add a photo that naturally represents this place.\n\nIt doesn\'t need to be perfect, but it should help the reader imagine being there.',
+  locationRecommendation: 'Share a small secret, habit, or personal tip.\n\nSomething you\'d tell a friend — where to sit, what to skip, how to stay longer, or when to leave.',
+  categoryOfInterests: 'Select the categories that best describe this location.\n\nThis helps users discover your tour based on what they enjoy and how they travel.'
 };
 
 // Shared HintButton component for all modals
@@ -2992,8 +2998,9 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload }) {
               <>
                 {/* Time for location */}
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                    Time for location 👆
+                  <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
+                    Time for location
+                    <HintButton hintKey="timeForLocation" />
                   </label>
                   <input
                     type="text"
@@ -3013,8 +3020,9 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload }) {
 
                 {/* Location Name and Address */}
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
                     Location
+                    <HintButton hintKey="locationName" />
                   </label>
                   <a 
                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentLocation.address || currentLocation.title || '')}`}
@@ -3065,8 +3073,9 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload }) {
 
                 {/* Add Photo of Location */}
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                    Add Photo of Location
+                  <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
+                    Photo of Location
+                    <HintButton hintKey="locationPhoto" />
                   </label>
                   <div style={{
                     width: '100%',
@@ -3133,8 +3142,9 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload }) {
 
                 {/* Location Description */}
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                    Location Description 👆
+                  <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
+                    Location Description
+                    <HintButton hintKey="locationDescription" />
                   </label>
                   <textarea
                     value={currentLocation.description || ''}
@@ -3156,8 +3166,9 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload }) {
 
                 {/* Recommendations */}
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                    Recomendation 👆
+                  <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
+                    Recommendation
+                    <HintButton hintKey="locationRecommendation" />
                   </label>
                   <textarea
                     value={currentLocation.recommendations || ''}

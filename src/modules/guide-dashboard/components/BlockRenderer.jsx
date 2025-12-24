@@ -196,8 +196,8 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
             </div>
           </div>
 
-          {/* Alternative Locations - aligned to bottom */}
-          {alternativeLocations.length > 0 && (
+          {/* Alternative Locations - aligned to bottom on desktop, hidden on mobile (will show after description) */}
+          {!isMobile && alternativeLocations.length > 0 && (
             <div style={{ 
               marginTop: 'auto',
               paddingTop: '24px'
