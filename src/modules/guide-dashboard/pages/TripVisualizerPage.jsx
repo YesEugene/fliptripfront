@@ -17,6 +17,7 @@ import SlideTypeIcon from '../../../assets/Slide type.svg';
 import ThreeColumnsIcon from '../../../assets/3 columns.svg';
 import PhotoIcon from '../../../assets/Photo.svg';
 import DividerIcon from '../../../assets/Devider.svg';
+import BarcelonaExampleImage from '../../../assets/Barcelona-example.png';
 import { getTourById } from '../../../services/api';
 import BlockRenderer from '../components/BlockRenderer';
 import TextEditor from '../components/TextEditor';
@@ -68,12 +69,12 @@ export default function TripVisualizerPage() {
   const [showImageCrop, setShowImageCrop] = useState(false);
   const [imageToCrop, setImageToCrop] = useState(null);
 
-  // Tour basic info state
+  // Tour basic info state with default Barcelona content
   const [tourInfo, setTourInfo] = useState({
-    city: '',
-    title: '',
-    description: '',
-    preview: null
+    city: 'Barcelona',
+    title: 'Barcelona without the rush',
+    description: 'I return to Barcelona not for landmarks, but for its rhythm.\n\nThe way the city lives between meals, walks, and pauses.\n\nI made this guide for moments when you don\'t want to impress yourself with how much you\'ve seen. When you want the city to feel human, readable, and calm.\n\nThese are the places and routes I choose when I want Barcelona to feel like a place I\'m living in — not passing through.',
+    preview: BarcelonaExampleImage
   });
 
   // City autocomplete state
@@ -150,10 +151,10 @@ export default function TripVisualizerPage() {
         const sourceData = draftData || tourObj;
         
         setTourInfo({
-          city: sourceData.city || tourObj.city?.name || '',
-          title: sourceData.title || tourObj.title || '',
-          description: sourceData.description || tourObj.description || '',
-          preview: sourceData.preview || tourObj.preview_media_url || null
+          city: sourceData.city || tourObj.city?.name || 'Barcelona',
+          title: sourceData.title || tourObj.title || 'Barcelona without the rush',
+          description: sourceData.description || tourObj.description || 'I return to Barcelona not for landmarks, but for its rhythm.\n\nThe way the city lives between meals, walks, and pauses.\n\nI made this guide for moments when you don\'t want to impress yourself with how much you\'ve seen. When you want the city to feel human, readable, and calm.\n\nThese are the places and routes I choose when I want Barcelona to feel like a place I\'m living in — not passing through.',
+          preview: sourceData.preview || tourObj.preview_media_url || BarcelonaExampleImage
         });
       }
 
@@ -524,10 +525,10 @@ export default function TripVisualizerPage() {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          city: tourInfo.city || 'Temporary',
-          title: tourInfo.title || 'Untitled Tour',
-          description: tourInfo.description || '',
-          preview: tourInfo.preview || null,
+          city: tourInfo.city || 'Barcelona',
+          title: tourInfo.title || 'Barcelona without the rush',
+          description: tourInfo.description || 'I return to Barcelona not for landmarks, but for its rhythm.\n\nThe way the city lives between meals, walks, and pauses.\n\nI made this guide for moments when you don\'t want to impress yourself with how much you\'ve seen. When you want the city to feel human, readable, and calm.\n\nThese are the places and routes I choose when I want Barcelona to feel like a place I\'m living in — not passing through.',
+          preview: tourInfo.preview || BarcelonaExampleImage,
           previewType: 'image',
           status: 'draft',
           daily_plan: [],
