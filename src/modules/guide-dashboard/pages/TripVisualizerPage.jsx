@@ -24,6 +24,7 @@ import MontjuicImage from '../../../assets/Montjuïc Hill (Miradors & Paths).jpg
 import { getTourById } from '../../../services/api';
 import BlockRenderer from '../components/BlockRenderer';
 import TextEditor from '../components/TextEditor';
+import GoogleMapsLocationSelector from '../components/GoogleMapsLocationSelector';
 
 // Category name translations
 const CATEGORY_NAMES = {
@@ -57,6 +58,7 @@ export default function TripVisualizerPage() {
   const [showTourEditor, setShowTourEditor] = useState(false);
   const [isAuthorTextExpanded, setIsAuthorTextExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showLocationSelector, setShowLocationSelector] = useState(false);
 
   // Detect screen size for responsive layout
   useEffect(() => {
@@ -3024,20 +3026,23 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload }) {
                     Location
                     <HintButton hintKey="locationName" />
                   </label>
-                  <a 
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentLocation.address || currentLocation.title || '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    type="button"
+                    onClick={() => setShowLocationSelector(true)}
                     style={{ 
                       color: '#3b82f6', 
                       textDecoration: 'underline',
                       fontSize: '14px',
                       marginBottom: '8px',
-                      display: 'inline-block'
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: 0,
+                      fontFamily: 'inherit'
                     }}
                   >
                     Find on Google Maps
-                  </a>
+                  </button>
                   <input
                     type="text"
                     value={currentLocation.title || ''}
@@ -3542,6 +3547,55 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload }) {
           </div>
         </div>
       </div>
+    </div>
+
+      {/* Google Maps Location Selector Modal */}
+      <GoogleMapsLocationSelector
+        isOpen={showLocationSelector}
+        onClose={() => setShowLocationSelector(false)}
+        onSelectLocation={(locationData) => {
+          // Auto-fill location fields with selected place data
+          if (editingBlock && editingBlock.block_type === 'location') {
+            const editingLocationIndex = editingBlock.editingLocationIndex;
+            const content = editingBlock.content || {};
+            
+            if (editingLocationIndex === null) {
+              // Updating main location
+              const updatedContent = {
+                ...content,
+                mainLocation: {
+                  ...content.mainLocation,
+                  title: locationData.title,
+                  address: locationData.address,
+                  price_level: locationData.price_level || '',
+                  approx_cost: locationData.approximate_cost || '',
+                  photo: locationData.photo || content.mainLocation?.photo,
+                  rating: locationData.rating || null
+                }
+              };
+              setEditingBlock({ ...editingBlock, content: updatedContent });
+            } else {
+              // Updating alternative location
+              const alternativeLocations = [...(content.alternativeLocations || [])];
+              alternativeLocations[editingLocationIndex] = {
+                ...alternativeLocations[editingLocationIndex],
+                title: locationData.title,
+                address: locationData.address,
+                price_level: locationData.price_level || '',
+                approx_cost: locationData.approximate_cost || '',
+                photo: locationData.photo || alternativeLocations[editingLocationIndex]?.photo,
+                rating: locationData.rating || null
+              };
+              const updatedContent = {
+                ...content,
+                alternativeLocations
+              };
+              setEditingBlock({ ...editingBlock, content: updatedContent });
+            }
+          }
+        }}
+        city={tourInfo.city}
+      />
     </div>
   );
 }
