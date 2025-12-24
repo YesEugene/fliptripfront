@@ -8,12 +8,56 @@ import { useState, useRef, useEffect } from 'react';
 export default function TextEditor({ value, onChange, placeholder = 'Enter text...' }) {
   const [isFormatted, setIsFormatted] = useState(false);
   const editorRef = useRef(null);
+  const isUpdatingRef = useRef(false);
 
   useEffect(() => {
     // Check if value contains HTML tags
     if (value && typeof value === 'string') {
       const hasHtml = /<[^>]+>/.test(value);
       setIsFormatted(hasHtml);
+    }
+  }, [value]);
+
+  // Initialize and sync value prop with editor content
+  useEffect(() => {
+    if (editorRef.current) {
+      const currentContent = editorRef.current.innerHTML;
+      const newValue = value || '';
+      
+      // Only update if content is different to avoid infinite loops
+      if (currentContent !== newValue && !isUpdatingRef.current) {
+        isUpdatingRef.current = true;
+        // Save cursor position if possible
+        const selection = window.getSelection();
+        let cursorPosition = null;
+        if (selection.rangeCount > 0 && editorRef.current.contains(selection.anchorNode)) {
+          const range = selection.getRangeAt(0);
+          cursorPosition = range.startOffset;
+        }
+        
+        editorRef.current.innerHTML = newValue;
+        
+        // Restore cursor position if possible
+        if (cursorPosition !== null && editorRef.current.firstChild) {
+          try {
+            const newRange = document.createRange();
+            const textNode = editorRef.current.firstChild.nodeType === Node.TEXT_NODE 
+              ? editorRef.current.firstChild 
+              : editorRef.current.firstChild.firstChild;
+            if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+              const offset = Math.min(cursorPosition, textNode.textContent.length);
+              newRange.setStart(textNode, offset);
+              newRange.setEnd(textNode, offset);
+              selection.removeAllRanges();
+              selection.addRange(newRange);
+            }
+          } catch (e) {
+            // Ignore cursor restoration errors
+          }
+        }
+        
+        isUpdatingRef.current = false;
+      }
     }
   }, [value]);
 
@@ -33,7 +77,7 @@ export default function TextEditor({ value, onChange, placeholder = 'Enter text.
   };
 
   const updateContent = () => {
-    if (editorRef.current) {
+    if (editorRef.current && !isUpdatingRef.current) {
       const content = editorRef.current.innerHTML;
       onChange(content);
       setIsFormatted(true);
@@ -52,32 +96,55 @@ export default function TextEditor({ value, onChange, placeholder = 'Enter text.
   };
 
   const setFontSize = (size) => {
-    // Remove existing font-size styles
-    document.execCommand('removeFormat', false);
+    if (!editorRef.current) return;
     
-    // Apply new font size
-    const sizeMap = {
-      small: '14px',
-      medium: '16px',
-      large: '20px'
-    };
-    
-    document.execCommand('fontSize', false, '7'); // Use font tag for compatibility
     const selection = window.getSelection();
-    if (selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      const span = document.createElement('span');
-      span.style.fontSize = sizeMap[size];
-      try {
-        range.surroundContents(span);
-      } catch (e) {
-        // If surroundContents fails, insert the span
-        span.appendChild(range.extractContents());
-        range.insertNode(span);
-      }
+    if (selection.rangeCount === 0) {
+      // If no selection, select all text
+      const range = document.createRange();
+      range.selectNodeContents(editorRef.current);
       selection.removeAllRanges();
       selection.addRange(range);
     }
+    
+    if (selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      if (range.collapsed) {
+        // If collapsed, select the word at cursor
+        range.expand('word');
+      }
+      
+      // Remove existing font-size styles from selection
+      const selectedText = range.extractContents();
+      
+      // Apply new font size
+      const sizeMap = {
+        small: '14px',
+        medium: '16px',
+        large: '20px'
+      };
+      
+      const span = document.createElement('span');
+      span.style.fontSize = sizeMap[size];
+      span.style.lineHeight = '1.6'; // Keep consistent line height
+      span.appendChild(selectedText);
+      
+      try {
+        range.insertNode(span);
+      } catch (e) {
+        // If insert fails, try alternative method
+        range.deleteContents();
+        range.insertNode(span);
+      }
+      
+      // Move cursor to end of inserted span
+      selection.removeAllRanges();
+      const newRange = document.createRange();
+      newRange.setStartAfter(span);
+      newRange.setEndAfter(span);
+      selection.addRange(newRange);
+    }
+    
     editorRef.current?.focus();
     updateContent();
   };
@@ -198,7 +265,7 @@ export default function TextEditor({ value, onChange, placeholder = 'Enter text.
         contentEditable
         onInput={handleInput}
         onPaste={handlePaste}
-        dangerouslySetInnerHTML={{ __html: value || '' }}
+        suppressContentEditableWarning
         style={{
           minHeight: '150px',
           padding: '12px',
@@ -208,7 +275,7 @@ export default function TextEditor({ value, onChange, placeholder = 'Enter text.
           outline: 'none',
           direction: 'ltr',
           textAlign: 'left',
-          unicodeBidi: 'bidi-override'
+          unicodeBidi: 'embed'
         }}
         dir="ltr"
         data-placeholder={placeholder}
@@ -229,6 +296,13 @@ export default function TextEditor({ value, onChange, placeholder = 'Enter text.
         }
         [contenteditable] em {
           font-style: italic;
+        }
+        [contenteditable] {
+          direction: ltr !important;
+          text-align: left !important;
+        }
+        [contenteditable] span[style*="font-size"] {
+          line-height: 1.6 !important;
         }
       `}</style>
     </div>
