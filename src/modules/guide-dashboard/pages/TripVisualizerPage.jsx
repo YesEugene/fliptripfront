@@ -104,11 +104,16 @@ export default function TripVisualizerPage() {
       const tourObj = tourData?.tour || tourData;
       if (tourObj) {
         setTour(tourObj);
+        
+        // Check if draft_data exists and use it, otherwise use main tour data
+        const draftData = tourObj.draft_data;
+        const sourceData = draftData || tourObj;
+        
         setTourInfo({
-          city: tourObj.city?.name || '',
-          title: tourObj.title || '',
-          description: tourObj.description || '',
-          preview: tourObj.preview_media_url || null
+          city: sourceData.city || tourObj.city?.name || '',
+          title: sourceData.title || tourObj.title || '',
+          description: sourceData.description || tourObj.description || '',
+          preview: sourceData.preview || tourObj.preview_media_url || null
         });
       }
 
