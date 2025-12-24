@@ -32,13 +32,172 @@ function LocationBlock({ block, onEdit }) {
   const content = block.content || {};
   
   return (
-    <div>
-      <div style={{ marginBottom: '16px' }}>
-        <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '12px' }}>Location</h3>
-        <p style={{ color: '#6b7280', fontSize: '14px' }}>
-          {content.tour_block_id ? 'Location block with tour items' : 'No locations selected'}
-        </p>
+    <div style={{ marginBottom: '32px' }}>
+      {/* Time badge */}
+      {content.time && (
+        <div style={{ marginBottom: '16px' }}>
+          <span style={{
+            display: 'inline-block',
+            padding: '6px 12px',
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            borderRadius: '20px',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}>
+            {content.time}
+          </span>
+        </div>
+      )}
+
+      {/* Main content: Photo and Details */}
+      <div style={{
+        display: 'flex',
+        gap: '24px',
+        marginBottom: '24px',
+        flexWrap: 'wrap'
+      }}>
+        {/* Photo */}
+        <div style={{
+          flex: '0 0 300px',
+          minWidth: '250px',
+          maxWidth: '100%'
+        }}>
+          {content.photo ? (
+            <img 
+              src={content.photo} 
+              alt={content.title || 'Location'} 
+              style={{ 
+                width: '100%', 
+                height: 'auto',
+                borderRadius: '12px',
+                objectFit: 'cover'
+              }} 
+            />
+          ) : (
+            <div style={{
+              width: '100%',
+              aspectRatio: '4/3',
+              backgroundColor: '#e5e7eb',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#9ca3af'
+            }}>
+              No photo
+            </div>
+          )}
+        </div>
+
+        {/* Details */}
+        <div style={{ flex: 1, minWidth: '250px' }}>
+          {content.title && (
+            <h3 style={{ 
+              fontSize: '24px', 
+              fontWeight: 'bold', 
+              marginBottom: '12px',
+              color: '#111827',
+              lineHeight: '1.2'
+            }}>
+              {content.title}
+            </h3>
+          )}
+          
+          {content.address && (
+            <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ color: '#ef4444', fontSize: '16px' }}>📍</span>
+              <a 
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(content.address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ 
+                  color: '#3b82f6', 
+                  textDecoration: 'underline',
+                  fontSize: '14px'
+                }}
+              >
+                {content.address}
+              </a>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '16px', marginBottom: '12px', flexWrap: 'wrap' }}>
+            {content.approx_cost && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ color: '#10b981', fontSize: '16px' }}>💰</span>
+                <span style={{ fontSize: '14px', color: '#6b7280' }}>
+                  Avg. spend: {content.approx_cost}
+                </span>
+              </div>
+            )}
+            {content.price_level && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ color: '#f59e0b', fontSize: '16px' }}>⭐</span>
+                <span style={{ fontSize: '14px', color: '#6b7280' }}>
+                  Price level: {content.price_level}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Selected interests */}
+          {content.interests && content.interests.length > 0 && (
+            <div style={{ marginBottom: '12px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              {content.interests.map((interestId, idx) => (
+                <span
+                  key={idx}
+                  style={{
+                    padding: '4px 8px',
+                    backgroundColor: '#e0e7ff',
+                    color: '#3730a3',
+                    borderRadius: '4px',
+                    fontSize: '12px'
+                  }}
+                >
+                  Interest {idx + 1}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Description */}
+      {content.description && (
+        <div style={{ marginBottom: '16px' }}>
+          <p style={{ 
+            fontSize: '16px', 
+            lineHeight: '1.6', 
+            color: '#374151',
+            margin: 0
+          }}>
+            {content.description}
+          </p>
+        </div>
+      )}
+
+      {/* Recommendations */}
+      {content.recommendations && (
+        <div style={{ marginBottom: '16px' }}>
+          <h4 style={{ 
+            fontSize: '16px', 
+            fontWeight: '600', 
+            marginBottom: '8px',
+            color: '#111827'
+          }}>
+            Recommendations
+          </h4>
+          <p style={{ 
+            fontSize: '15px', 
+            lineHeight: '1.6', 
+            color: '#4b5563',
+            margin: 0
+          }}>
+            {content.recommendations}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
