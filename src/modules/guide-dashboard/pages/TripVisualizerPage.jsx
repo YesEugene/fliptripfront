@@ -695,17 +695,39 @@ export default function TripVisualizerPage() {
           borderRadius: '16px',
           overflow: 'hidden',
           marginBottom: '32px',
-          background: tourInfo.preview 
-            ? `linear-gradient(to bottom, rgba(75, 85, 99, 0.7), rgba(156, 163, 175, 0.5)), url(${tourInfo.preview})`
-            : 'linear-gradient(to bottom, #4b5563, #d1d5db)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
+          backgroundColor: '#4b5563',
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'flex-start',
           padding: '20px 30px'
         }}>
+          {/* Background image with overlay */}
+          {tourInfo.preview && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundImage: `url(${tourInfo.preview})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              zIndex: 0
+            }} />
+          )}
+          {/* Gradient overlay */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: tourInfo.preview 
+              ? 'linear-gradient(to bottom, rgba(75, 85, 99, 0.7), rgba(156, 163, 175, 0.5))'
+              : 'linear-gradient(to bottom, #4b5563, #d1d5db)',
+            zIndex: 1
+          }} />
           {/* Title overlay - top left aligned */}
           <div style={{ 
             color: 'white', 
