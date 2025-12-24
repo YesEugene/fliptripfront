@@ -1589,16 +1589,16 @@ function BlockSelectorModal({ onClose, onSelect }) {
           gap: '16px'
         }}>
           {blockTypes.map(block => (
-            <div
+            <img
               key={block.type}
+              src={block.icon}
+              alt={block.label}
               onClick={() => onSelect(block.type)}
               style={{
-                backgroundColor: 'white',
-                padding: '24px',
-                border: 'none',
-                borderRadius: '12px',
+                width: '100%',
+                height: 'auto',
                 cursor: 'pointer',
-                textAlign: 'center',
+                borderRadius: '12px',
                 transition: 'all 0.2s',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
               }}
@@ -1610,20 +1610,7 @@ function BlockSelectorModal({ onClose, onSelect }) {
                 e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
               }}
-            >
-              <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <img 
-                  src={block.icon} 
-                  alt={block.label}
-                  style={{ 
-                    width: '80px', 
-                    height: '80px',
-                    objectFit: 'contain'
-                  }} 
-                />
-              </div>
-              <div style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>{block.label}</div>
-            </div>
+            />
           ))}
         </div>
       </div>
