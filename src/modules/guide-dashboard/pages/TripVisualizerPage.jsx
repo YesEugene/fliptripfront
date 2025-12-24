@@ -1547,26 +1547,45 @@ function BlockSelectorModal({ onClose, onSelect }) {
       bottom: 0,
       backgroundColor: 'rgba(0,0,0,0.5)',
       display: 'flex',
-      alignItems: 'center',
+      alignItems: 'flex-end',
       justifyContent: 'center',
       zIndex: 1000
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        padding: '24px',
-        maxWidth: '800px',
-        width: '90%',
-        maxHeight: '80vh',
-        overflowY: 'auto'
-      }}>
+    }}
+    onClick={onClose}
+    >
+      <div 
+        style={{
+          backgroundColor: '#F0F1F3',
+          borderTopLeftRadius: '20px',
+          borderTopRightRadius: '20px',
+          padding: '24px',
+          width: '100%',
+          maxWidth: '100%',
+          maxHeight: '70vh',
+          overflowY: 'auto',
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.15)'
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: 'bold' }}>Add block</h2>
-          <button onClick={onClose} style={{ fontSize: '24px', background: 'none', border: 'none', cursor: 'pointer' }}>×</button>
+          <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#111827' }}>Add block</h2>
+          <button 
+            onClick={onClose} 
+            style={{ 
+              fontSize: '24px', 
+              background: 'none', 
+              border: 'none', 
+              cursor: 'pointer',
+              color: '#6b7280',
+              padding: '4px 8px'
+            }}
+          >
+            ×
+          </button>
         </div>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
           gap: '16px'
         }}>
           {blockTypes.map(block => (
@@ -1574,34 +1593,36 @@ function BlockSelectorModal({ onClose, onSelect }) {
               key={block.type}
               onClick={() => onSelect(block.type)}
               style={{
-                padding: '20px',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
+                backgroundColor: 'white',
+                padding: '24px',
+                border: 'none',
+                borderRadius: '12px',
                 cursor: 'pointer',
                 textAlign: 'center',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#3b82f6';
-                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#e5e7eb';
-                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
               }}
             >
-              <div style={{ marginBottom: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <img 
                   src={block.icon} 
                   alt={block.label}
                   style={{ 
-                    width: '48px', 
-                    height: '48px',
+                    width: '80px', 
+                    height: '80px',
                     objectFit: 'contain'
                   }} 
                 />
               </div>
-              <div style={{ fontSize: '14px', fontWeight: '500' }}>{block.label}</div>
+              <div style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>{block.label}</div>
             </div>
           ))}
         </div>
