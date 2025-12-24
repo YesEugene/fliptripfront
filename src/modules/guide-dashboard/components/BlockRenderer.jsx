@@ -4,12 +4,12 @@
 
 import { useState, useEffect } from 'react';
 
-export default function BlockRenderer({ block, onEdit }) {
+export default function BlockRenderer({ block, onEdit, onSwitchLocation }) {
   if (!block) return null;
 
   switch (block.block_type) {
     case 'location':
-      return <LocationBlock block={block} onEdit={onEdit} />;
+      return <LocationBlock block={block} onEdit={onEdit} onSwitchLocation={onSwitchLocation} />;
     case 'title':
       return <TitleBlock block={block} onEdit={onEdit} />;
     case 'photo_text':
