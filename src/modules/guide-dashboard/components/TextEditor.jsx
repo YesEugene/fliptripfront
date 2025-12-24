@@ -205,8 +205,12 @@ export default function TextEditor({ value, onChange, placeholder = 'Enter text.
           fontSize: '16px',
           lineHeight: '1.6',
           color: '#111827',
-          outline: 'none'
+          outline: 'none',
+          direction: 'ltr',
+          textAlign: 'left',
+          unicodeBidi: 'bidi-override'
         }}
+        dir="ltr"
         data-placeholder={placeholder}
       />
 
