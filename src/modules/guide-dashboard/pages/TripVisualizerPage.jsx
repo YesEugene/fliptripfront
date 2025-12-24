@@ -1204,7 +1204,7 @@ export default function TripVisualizerPage() {
             <div style={{ flex: 1 }}>
               <h3 style={{ 
                 fontSize: '20px', 
-                fontWeight: '700', 
+                fontWeight: '500', 
                 marginBottom: '16px', 
                 color: '#111827',
                 marginTop: 0
@@ -1216,9 +1216,11 @@ export default function TripVisualizerPage() {
                   const text = tourInfo.description || 'September sun, hidden valleys, ancient ruins and flavors of the sea — all woven into one seamless journey. From the first sip of coffee to the last glass of wine by the marina, every hour is crafted to keep you moving, tasting, discovering. Fethiye is not a stop on the map, it\'s a story that unfolds with you.';
                   
                   // Check if text is likely to be more than 5 lines
-                  // Approximate: ~80-100 chars per line for 15px font, so 5 lines = ~400-500 chars
-                  // Using 400 chars as threshold to be safe
-                  const shouldShowButton = text && text.length > 400;
+                  // Count lines by splitting on newlines and estimating chars per line
+                  // With line-height 1.7 and font-size 15px, approximate 80-100 chars per line
+                  // Account for newlines - each \n adds a line
+                  const lineCount = text ? (text.split('\n').length + Math.ceil(text.replace(/\n/g, '').length / 90)) : 0;
+                  const shouldShowButton = lineCount > 5;
                   
                   return (
                     <>
@@ -1864,6 +1866,78 @@ function BlockSelectorModal({ onClose, onSelect }) {
 }
 
 function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, cities = [], citySuggestions = [], showCitySuggestions = false, setCitySuggestions, setShowCitySuggestions }) {
+  const hints = {
+    city: 'Start typing the city name and select it from the list.\n\nIf your city doesn\'t appear, simply type it in manually.',
+    tripName: 'Choose a short, meaningful title that reflects the idea of your tour, not a list of places.\n\nAim for 3–6 words. Avoid generic phrases like "Best of" or "Top places".\nA good title sets the mood and makes people want to open the tour.',
+    previewPhoto: 'Use a high-quality image that captures the essence of your tour.\n\nThis photo should communicate the feeling of the experience at a glance — not just a landmark.\nAvoid blurry images, heavy filters, or screenshots.',
+    noteFromAuthor: 'Introduce yourself and explain why you created this tour.\n\nShare your personal connection to the city or route, and what kind of experience you\'re offering.\nThis is not a biography — it\'s a short, honest note that helps people trust you and want to live the journey you\'re proposing.'
+  };
+  
+  const HintButton = ({ hintKey }) => {
+    const [showTooltip, setShowTooltip] = useState(false);
+    
+    return (
+      <div style={{ position: 'relative', display: 'inline-block', marginLeft: '8px' }}>
+        <button
+          type="button"
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+          style={{
+            padding: '4px 8px',
+            backgroundColor: '#f3f4f6',
+            color: '#6b7280',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '12px',
+            fontWeight: '500'
+          }}
+        >
+          Hint
+        </button>
+        {showTooltip && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              marginBottom: '8px',
+              padding: '12px',
+              backgroundColor: 'white',
+              border: '1px solid #d1d5db',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              zIndex: 1001,
+              minWidth: '280px',
+              maxWidth: '320px',
+              whiteSpace: 'pre-line',
+              fontSize: '13px',
+              lineHeight: '1.6',
+              color: '#374151'
+            }}
+          >
+            {hints[hintKey]}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '-6px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '12px',
+                height: '12px',
+                backgroundColor: 'white',
+                borderRight: '1px solid #d1d5db',
+                borderBottom: '1px solid #d1d5db',
+                transform: 'translateX(-50%) rotate(45deg)'
+              }}
+            />
+          </div>
+        )}
+      </div>
+    );
+  };
+  
   return (
     <div style={{
       position: 'fixed',
@@ -1892,8 +1966,9 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
         </div>
         
         <div style={{ marginBottom: '20px', position: 'relative' }} className="city-autocomplete-container">
-          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+          <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
             City *
+            <HintButton hintKey="city" />
           </label>
           <input
             type="text"
@@ -1967,8 +2042,9 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
         </div>
 
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+          <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
             Trip name *
+            <HintButton hintKey="tripName" />
           </label>
           <input
             type="text"
@@ -1986,8 +2062,9 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
         </div>
 
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+          <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
             Preview Photo *
+            <HintButton hintKey="previewPhoto" />
           </label>
           <div style={{
             width: '100%',
@@ -2074,8 +2151,9 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
         </div>
 
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+          <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
             A note from the author *
+            <HintButton hintKey="noteFromAuthor" />
           </label>
           <textarea
             value={tourInfo.description}
