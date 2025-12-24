@@ -736,9 +736,10 @@ export default function TripVisualizerPage() {
             textAlign: 'left',
             lineHeight: '1.2',
             letterSpacing: '-0.3px',
-            zIndex: 1,
+            zIndex: 2,
             maxWidth: '80%',
-            fontFamily: 'system-ui, -apple-system, sans-serif'
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            position: 'relative'
           }}>
             {tourInfo.title || 'Lorem ipsum dolor conta me more upsi colora'}
           </div>
