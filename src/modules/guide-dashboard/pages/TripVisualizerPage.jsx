@@ -1175,52 +1175,57 @@ export default function TripVisualizerPage() {
                 From author
               </h3>
               <div>
-                <p style={{ 
-                  color: '#4b5563', 
-                  fontSize: '15px', 
-                  lineHeight: isMobile ? '1.5' : '1.7', 
-                  marginBottom: '16px',
-                  marginTop: 0,
-                  ...(isAuthorTextExpanded ? {} : {
-                    display: '-webkit-box',
-                    WebkitLineClamp: 5,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden'
-                  })
-                }}>
-                  {tourInfo.description || 'September sun, hidden valleys, ancient ruins and flavors of the sea — all woven into one seamless journey. From the first sip of coffee to the last glass of wine by the marina, every hour is crafted to keep you moving, tasting, discovering. Fethiye is not a stop on the map, it\'s a story that unfolds with you.'}
-                </p>
                 {(() => {
                   const text = tourInfo.description || 'September sun, hidden valleys, ancient ruins and flavors of the sea — all woven into one seamless journey. From the first sip of coffee to the last glass of wine by the marina, every hour is crafted to keep you moving, tasting, discovering. Fethiye is not a stop on the map, it\'s a story that unfolds with you.';
-                  // Approximate line count: ~80 chars per line, line-height 1.7
-                  const estimatedLines = Math.ceil(text.length / 80);
-                  const shouldShowButton = estimatedLines > 5;
                   
-                  if (!shouldShowButton) return null;
+                  // Check if text is likely to be more than 5 lines
+                  // Approximate: ~80-100 chars per line for 15px font, so 5 lines = ~400-500 chars
+                  // Using 400 chars as threshold to be safe
+                  const shouldShowButton = text && text.length > 400;
                   
                   return (
-                    <button 
-                      onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
-                      style={{
-                        padding: '8px 16px',
-                        backgroundColor: '#EFEFEF',
-                        color: '#6b7280',
-                        border: 'none',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontSize: '13px',
-                        fontWeight: '500',
-                        transition: 'all 0.2s'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = '#e5e5e5';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = '#EFEFEF';
-                      }}
-                    >
-                      {isAuthorTextExpanded ? 'Read less' : 'Read more'}
-                    </button>
+                    <>
+                      <p style={{ 
+                        color: '#4b5563', 
+                        fontSize: '15px', 
+                        lineHeight: isMobile ? '1.5' : '1.7', 
+                        marginBottom: shouldShowButton ? '12px' : '16px',
+                        marginTop: 0,
+                        ...(isAuthorTextExpanded ? {} : {
+                          display: '-webkit-box',
+                          WebkitLineClamp: 5,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        })
+                      }}>
+                        {text}
+                      </p>
+                      {shouldShowButton && (
+                        <button 
+                          onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
+                          style={{
+                            padding: '8px 16px',
+                            backgroundColor: '#EFEFEF',
+                            color: '#6b7280',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            transition: 'all 0.2s',
+                            marginTop: '4px'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = '#e5e5e5';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = '#EFEFEF';
+                          }}
+                        >
+                          {isAuthorTextExpanded ? 'Read less' : 'Read more'}
+                        </button>
+                      )}
+                    </>
                   );
                 })()}
               </div>
