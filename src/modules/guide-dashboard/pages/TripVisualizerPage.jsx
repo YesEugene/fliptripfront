@@ -651,13 +651,18 @@ export default function TripVisualizerPage() {
 
   const handleDeleteBlock = async (blockId) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      if (!token) {
+        alert('Please log in to delete blocks');
+        return;
+      }
+
+      // Send blockId as query parameter, not in body
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks?blockId=${blockId}`, {
         method: 'DELETE',
         headers: {
-          'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ blockId })
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       const data = await response.json();
