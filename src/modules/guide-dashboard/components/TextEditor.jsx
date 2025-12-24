@@ -100,52 +100,85 @@ export default function TextEditor({ value, onChange, placeholder = 'Enter text.
     
     const selection = window.getSelection();
     if (selection.rangeCount === 0) {
-      // If no selection, select all text
-      const range = document.createRange();
-      range.selectNodeContents(editorRef.current);
-      selection.removeAllRanges();
-      selection.addRange(range);
+      editorRef.current.focus();
+      return;
     }
     
-    if (selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      if (range.collapsed) {
-        // If collapsed, select the word at cursor
-        range.expand('word');
-      }
-      
-      // Remove existing font-size styles from selection
-      const selectedText = range.extractContents();
-      
-      // Apply new font size
-      const sizeMap = {
-        small: '14px',
-        medium: '16px',
-        large: '20px'
-      };
-      
-      const span = document.createElement('span');
-      span.style.fontSize = sizeMap[size];
-      span.style.lineHeight = '1.6'; // Keep consistent line height
-      span.appendChild(selectedText);
-      
-      try {
-        range.insertNode(span);
-      } catch (e) {
-        // If insert fails, try alternative method
-        range.deleteContents();
-        range.insertNode(span);
-      }
-      
-      // Move cursor to end of inserted span
-      selection.removeAllRanges();
-      const newRange = document.createRange();
-      newRange.setStartAfter(span);
-      newRange.setEndAfter(span);
-      selection.addRange(newRange);
+    const range = selection.getRangeAt(0);
+    if (!range.intersectsNode(editorRef.current)) {
+      editorRef.current.focus();
+      return;
     }
     
-    editorRef.current?.focus();
+    // If collapsed, select the word at cursor
+    if (range.collapsed) {
+      range.selectWord();
+    }
+    
+    // Apply new font size
+    const sizeMap = {
+      small: '14px',
+      medium: '16px',
+      large: '20px'
+    };
+    
+    // Remove existing font-size spans within selection
+    const walker = document.createTreeWalker(
+      range.commonAncestorContainer,
+      NodeFilter.SHOW_ELEMENT,
+      {
+        acceptNode: (node) => {
+          if (node.nodeName === 'SPAN' && node.style.fontSize) {
+            return NodeFilter.FILTER_ACCEPT;
+          }
+          return NodeFilter.FILTER_SKIP;
+        }
+      }
+    );
+    
+    const spansToRemove = [];
+    let node;
+    while (node = walker.nextNode()) {
+      if (range.intersectsNode(node)) {
+        spansToRemove.push(node);
+      }
+    }
+    
+    spansToRemove.forEach(span => {
+      const parent = span.parentNode;
+      while (span.firstChild) {
+        parent.insertBefore(span.firstChild, span);
+      }
+      parent.removeChild(span);
+    });
+    
+    // Extract selected content
+    const selectedContent = range.extractContents();
+    
+    // Create span with new font size
+    const span = document.createElement('span');
+    span.style.fontSize = sizeMap[size];
+    span.style.lineHeight = '1.6';
+    span.style.display = 'inline';
+    span.appendChild(selectedContent);
+    
+    // Insert the span
+    try {
+      range.insertNode(span);
+    } catch (e) {
+      // If insert fails, try alternative
+      range.deleteContents();
+      range.insertNode(span);
+    }
+    
+    // Move cursor to end of inserted span
+    selection.removeAllRanges();
+    const newRange = document.createRange();
+    newRange.setStartAfter(span);
+    newRange.setEndAfter(span);
+    selection.addRange(newRange);
+    
+    editorRef.current.focus();
     updateContent();
   };
 
@@ -279,7 +312,9 @@ export default function TextEditor({ value, onChange, placeholder = 'Enter text.
         }}
         dir="ltr"
         data-placeholder={placeholder}
-      />
+      >
+        {/* Content is managed by useEffect */}
+      </div>
 
       <style>{`
         [contenteditable][data-placeholder]:empty:before {
