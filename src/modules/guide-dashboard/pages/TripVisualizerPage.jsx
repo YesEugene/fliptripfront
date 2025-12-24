@@ -1222,22 +1222,33 @@ export default function TripVisualizerPage() {
                   
                   return (
                     <>
-                      <p style={{ 
-                        color: '#4b5563', 
-                        fontSize: '15px', 
-                        lineHeight: isMobile ? '1.5' : '1.7', 
-                        marginBottom: shouldShowButton ? '12px' : '16px',
-                        marginTop: 0,
-                        whiteSpace: 'pre-line',
-                        ...(isAuthorTextExpanded ? {} : {
+                      {isAuthorTextExpanded ? (
+                        <p style={{ 
+                          color: '#4b5563', 
+                          fontSize: '15px', 
+                          lineHeight: isMobile ? '1.5' : '1.7', 
+                          marginBottom: '16px',
+                          marginTop: 0,
+                          whiteSpace: 'pre-line'
+                        }}>
+                          {text}
+                        </p>
+                      ) : (
+                        <p style={{ 
+                          color: '#4b5563', 
+                          fontSize: '15px', 
+                          lineHeight: isMobile ? '1.5' : '1.7', 
+                          marginBottom: shouldShowButton ? '12px' : '16px',
+                          marginTop: 0,
                           display: '-webkit-box',
                           WebkitLineClamp: 5,
                           WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden'
-                        })
-                      }}>
-                        {text}
-                      </p>
+                          overflow: 'hidden',
+                          whiteSpace: 'pre-line'
+                        }}>
+                          {text}
+                        </p>
+                      )}
                       {shouldShowButton && (
                         <button 
                           onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
