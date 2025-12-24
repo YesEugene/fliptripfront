@@ -9,6 +9,14 @@ import { getCurrentUser } from '../../auth/services/authService';
 import { getGuideProfile } from '../../../modules/guide-profile';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
 import PDFIcon from '../../../assets/PDF.svg';
+import LocationIcon from '../../../assets/Location.svg';
+import TitleIcon from '../../../assets/Title.svg';
+import PhotoTextIcon from '../../../assets/Photo + text.svg';
+import TextBlockIcon from '../../../assets/Text Block.svg';
+import SlideTypeIcon from '../../../assets/Slide type.svg';
+import ThreeColumnsIcon from '../../../assets/3 columns.svg';
+import PhotoIcon from '../../../assets/Photo.svg';
+import DividerIcon from '../../../assets/Devider.svg';
 import { getTourById } from '../../../services/api';
 import BlockRenderer from '../components/BlockRenderer';
 import TextEditor from '../components/TextEditor';
@@ -1520,14 +1528,14 @@ function ImageCropModal({ imageSrc, onClose, onCrop }) {
 // Placeholder components - will be implemented next
 function BlockSelectorModal({ onClose, onSelect }) {
   const blockTypes = [
-    { type: 'location', label: 'Location', icon: '📍' },
-    { type: 'title', label: 'Title', icon: '📝' },
-    { type: 'photo_text', label: 'Photo + Text', icon: '🖼️' },
-    { type: 'text', label: 'Text Block', icon: '📄' },
-    { type: 'slide', label: 'Slide type', icon: '🎞️' },
-    { type: '3columns', label: '3 columns', icon: '📊' },
-    { type: 'photo', label: 'Photo', icon: '📷' },
-    { type: 'divider', label: 'Divider', icon: '➖' }
+    { type: 'location', label: 'Location', icon: LocationIcon },
+    { type: 'title', label: 'Title', icon: TitleIcon },
+    { type: 'photo_text', label: 'Photo + Text', icon: PhotoTextIcon },
+    { type: 'text', label: 'Text Block', icon: TextBlockIcon },
+    { type: 'slide', label: 'Slide type', icon: SlideTypeIcon },
+    { type: '3columns', label: '3 columns', icon: ThreeColumnsIcon },
+    { type: 'photo', label: 'Photo', icon: PhotoIcon },
+    { type: 'divider', label: 'Divider', icon: DividerIcon }
   ];
 
   return (
@@ -1582,7 +1590,17 @@ function BlockSelectorModal({ onClose, onSelect }) {
                 e.currentTarget.style.boxShadow = 'none';
               }}
             >
-              <div style={{ fontSize: '32px', marginBottom: '8px' }}>{block.icon}</div>
+              <div style={{ marginBottom: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <img 
+                  src={block.icon} 
+                  alt={block.label}
+                  style={{ 
+                    width: '48px', 
+                    height: '48px',
+                    objectFit: 'contain'
+                  }} 
+                />
+              </div>
               <div style={{ fontSize: '14px', fontWeight: '500' }}>{block.label}</div>
             </div>
           ))}
