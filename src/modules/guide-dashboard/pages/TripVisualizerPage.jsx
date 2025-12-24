@@ -1071,42 +1071,42 @@ export default function TripVisualizerPage() {
             Edit block
           </button>
 
-          {/* Download PDF button */}
+          {/* Download PDF button - increased by 15% */}
           <button
             style={{
               position: 'absolute',
               bottom: '20px',
               left: '20px',
-              padding: '9.6px 19.2px',
+              padding: '11.04px 22.08px',
               backgroundColor: 'white',
               color: '#111827',
               border: 'none',
               borderRadius: '8px',
               cursor: 'pointer',
-              fontSize: '12px',
+              fontSize: '13.8px',
               fontWeight: '600',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
+              gap: '9.2px',
               boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
               zIndex: 2,
               transition: 'all 0.2s',
-              transform: 'scale(0.8)',
+              transform: 'scale(0.92)',
               transformOrigin: 'left bottom'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(0.8) translateY(-2px)';
+              e.currentTarget.style.transform = 'scale(0.92) translateY(-2px)';
               e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(0.8) translateY(0)';
+              e.currentTarget.style.transform = 'scale(0.92) translateY(0)';
               e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
             }}
           >
             <img 
               src={PDFIcon} 
               alt="PDF" 
-              style={{ width: '16px', height: '16px' }}
+              style={{ width: '18.4px', height: '18.4px' }}
             />
             Download PDF
           </button>
@@ -1128,7 +1128,7 @@ export default function TripVisualizerPage() {
             fontSize: '15px',
             fontWeight: '500'
           }}>
-            City
+            {tourInfo.city || 'City'}
           </div>
           <div style={{
             padding: '10px 20px',
@@ -1209,7 +1209,7 @@ export default function TripVisualizerPage() {
                 color: '#111827',
                 marginTop: 0
               }}>
-                From author
+                A note from the author
               </h3>
               <div>
                 {(() => {
@@ -1228,6 +1228,7 @@ export default function TripVisualizerPage() {
                         lineHeight: isMobile ? '1.5' : '1.7', 
                         marginBottom: shouldShowButton ? '12px' : '16px',
                         marginTop: 0,
+                        whiteSpace: 'pre-line',
                         ...(isAuthorTextExpanded ? {} : {
                           display: '-webkit-box',
                           WebkitLineClamp: 5,
@@ -2063,7 +2064,7 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
 
         <div style={{ marginBottom: '20px' }}>
           <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-            Tour Description *
+            A note from the author *
           </label>
           <textarea
             value={tourInfo.description}
