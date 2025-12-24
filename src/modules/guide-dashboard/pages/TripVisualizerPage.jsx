@@ -1213,13 +1213,14 @@ export default function TripVisualizerPage() {
                 Tour created{'\n'}by <strong style={{ color: '#111827', fontWeight: '600' }}>{guideProfile?.name || user?.name || 'Author'}</strong>
               </p>
             </div>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
               <h3 style={{ 
                 fontSize: '20px', 
                 fontWeight: '500', 
                 marginBottom: '16px', 
                 color: '#111827',
-                marginTop: 0
+                marginTop: 0,
+                textAlign: isMobile ? 'center' : 'left'
               }}>
                 A note from the author
               </h3>
