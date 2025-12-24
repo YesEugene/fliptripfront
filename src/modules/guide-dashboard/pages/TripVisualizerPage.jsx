@@ -73,7 +73,7 @@ export default function TripVisualizerPage() {
   const [tourInfo, setTourInfo] = useState({
     city: 'Barcelona',
     title: 'Barcelona without the rush',
-    description: 'I return to Barcelona not for landmarks, but for its rhythm.\n\nThe way the city lives between meals, walks, and pauses.\n\nI made this guide for moments when you don\'t want to impress yourself with how much you\'ve seen. When you want the city to feel human, readable, and calm.\n\nThese are the places and routes I choose when I want Barcelona to feel like a place I\'m living in — not passing through.',
+    description: 'I return to Barcelona not for landmarks, but for its rhythm. The way the city lives between meals, walks, and pauses. I made this guide for moments when you don\'t want to impress yourself with how much you\'ve seen. When you want the city to feel human, readable, and calm.\n\nThese are the places and routes I choose when I want Barcelona to feel like a place I\'m living in — not passing through.',
     preview: BarcelonaExampleImage
   });
 
@@ -153,7 +153,7 @@ export default function TripVisualizerPage() {
         setTourInfo({
           city: sourceData.city || tourObj.city?.name || 'Barcelona',
           title: sourceData.title || tourObj.title || 'Barcelona without the rush',
-          description: sourceData.description || tourObj.description || 'I return to Barcelona not for landmarks, but for its rhythm.\n\nThe way the city lives between meals, walks, and pauses.\n\nI made this guide for moments when you don\'t want to impress yourself with how much you\'ve seen. When you want the city to feel human, readable, and calm.\n\nThese are the places and routes I choose when I want Barcelona to feel like a place I\'m living in — not passing through.',
+          description: sourceData.description || tourObj.description || 'I return to Barcelona not for landmarks, but for its rhythm. The way the city lives between meals, walks, and pauses. I made this guide for moments when you don\'t want to impress yourself with how much you\'ve seen. When you want the city to feel human, readable, and calm.\n\nThese are the places and routes I choose when I want Barcelona to feel like a place I\'m living in — not passing through.',
           preview: sourceData.preview || tourObj.preview_media_url || BarcelonaExampleImage
         });
       }
@@ -527,7 +527,7 @@ export default function TripVisualizerPage() {
         body: JSON.stringify({
           city: tourInfo.city || 'Barcelona',
           title: tourInfo.title || 'Barcelona without the rush',
-          description: tourInfo.description || 'I return to Barcelona not for landmarks, but for its rhythm.\n\nThe way the city lives between meals, walks, and pauses.\n\nI made this guide for moments when you don\'t want to impress yourself with how much you\'ve seen. When you want the city to feel human, readable, and calm.\n\nThese are the places and routes I choose when I want Barcelona to feel like a place I\'m living in — not passing through.',
+          description: tourInfo.description || 'I return to Barcelona not for landmarks, but for its rhythm. The way the city lives between meals, walks, and pauses. I made this guide for moments when you don\'t want to impress yourself with how much you\'ve seen. When you want the city to feel human, readable, and calm.\n\nThese are the places and routes I choose when I want Barcelona to feel like a place I\'m living in — not passing through.',
           preview: tourInfo.preview || BarcelonaExampleImage,
           previewType: 'image',
           status: 'draft',
@@ -1171,8 +1171,20 @@ export default function TripVisualizerPage() {
           marginBottom: '40px',
           marginTop: '-10px'
         }}>
-          <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, minWidth: '120px' }}>
+          <div style={{ 
+            display: 'flex', 
+            gap: '24px', 
+            alignItems: 'flex-start',
+            flexDirection: isMobile ? 'column' : 'row'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              flexShrink: 0, 
+              minWidth: isMobile ? '100%' : '120px',
+              width: isMobile ? '100%' : 'auto'
+            }}>
               <div style={{
                 width: '100px',
                 height: '100px',
@@ -1213,7 +1225,7 @@ export default function TripVisualizerPage() {
               </h3>
               <div>
                 {(() => {
-                  const text = tourInfo.description || 'September sun, hidden valleys, ancient ruins and flavors of the sea — all woven into one seamless journey. From the first sip of coffee to the last glass of wine by the marina, every hour is crafted to keep you moving, tasting, discovering. Fethiye is not a stop on the map, it\'s a story that unfolds with you.';
+                  const text = tourInfo.description || 'I return to Barcelona not for landmarks, but for its rhythm. The way the city lives between meals, walks, and pauses. I made this guide for moments when you don\'t want to impress yourself with how much you\'ve seen. When you want the city to feel human, readable, and calm.\n\nThese are the places and routes I choose when I want Barcelona to feel like a place I\'m living in — not passing through.';
                   
                   // Check if text is likely to be more than 5 lines
                   // Count lines by splitting on newlines and estimating chars per line
