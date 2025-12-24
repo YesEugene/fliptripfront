@@ -18,6 +18,7 @@ import ThreeColumnsIcon from '../../../assets/3 columns.svg';
 import PhotoIcon from '../../../assets/Photo.svg';
 import DividerIcon from '../../../assets/Devider.svg';
 import BarcelonaExampleImage from '../../../assets/Barcelona-example.png';
+import SantAntoniMarketImage from '../../../assets/Sant Antoni Market.jpg';
 import { getTourById } from '../../../services/api';
 import BlockRenderer from '../components/BlockRenderer';
 import TextEditor from '../components/TextEditor';
@@ -633,16 +634,16 @@ export default function TripVisualizerPage() {
         // Default location block with example data to inspire users
         defaultContent = { 
           mainLocation: {
-            time: '09:00 - 10:00',
-            title: 'Coffee No.48 — The City Wakes Up',
-            address: 'Adnan Menderes Blv., Fethiye',
-            description: 'A tiny local café where the smell of roasted beans fills the morning streets. This isn\'t a tourist hangout — it\'s where locals begin their day, and for one hour, you\'ll feel part of their routine.',
-            photo: null,
-            recommendations: 'Take your coffee "to go" and wander the waking streets. The sunlight reflects off pastel walls, cats stretch lazily on doorsteps, and for a moment you sense the city\'s heartbeat. If you stay inside, grab the corner seat by the window — it\'s perfect for watching people pass, scribbling notes, or simply savoring the quiet hum of morning. Order a slice of cake too: locals swear it\'s the best way to start the day here.',
+            time: '09:30 – 11:00',
+            title: 'Sant Antoni Market & Surroundings',
+            address: 'Barcelona, Eixample',
+            description: 'Sant Antoni is where Barcelona starts its day quietly.\n\nLocals come here for groceries, quick coffees, and short conversations before work. The market itself is lively but not overwhelming, and the streets around it feel lived-in rather than curated.\n\nThis is a good place to begin the day without rushing — to observe how the city moves before it fully wakes up.',
+            photo: SantAntoniMarketImage,
+            recommendations: 'Walk around the market first, then step outside and choose a café nearby rather than inside. Sit facing the street. Order something simple and stay longer than planned — this is the moment to ease into the city.',
             category: null,
             interests: [],
-            price_level: '2',
-            approx_cost: '€7'
+            price_level: '',
+            approx_cost: ''
           },
           alternativeLocations: []
         };
