@@ -1578,6 +1578,7 @@ export default function TripVisualizerPage() {
           onSave={handleSaveBlock}
           onDelete={handleDeleteBlock}
           onImageUpload={handleImageUpload}
+          onOpenLocationSelector={() => setShowLocationSelector(true)}
         />
       )}
 
@@ -3077,7 +3078,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload }) {
                   </label>
                   <button
                     type="button"
-                    onClick={() => setShowLocationSelector(true)}
+                    onClick={() => onOpenLocationSelector && onOpenLocationSelector()}
                     style={{ 
                       color: '#3b82f6', 
                       textDecoration: 'underline',
