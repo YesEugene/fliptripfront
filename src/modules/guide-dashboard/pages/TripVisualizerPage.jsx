@@ -1596,6 +1596,55 @@ export default function TripVisualizerPage() {
           }}
         />
       )}
+
+      {/* Google Maps Location Selector Modal */}
+      <GoogleMapsLocationSelector
+        isOpen={showLocationSelector}
+        onClose={() => setShowLocationSelector(false)}
+        onSelectLocation={(locationData) => {
+          // Auto-fill location fields with selected place data
+          if (editingBlock && editingBlock.block_type === 'location') {
+            // Get current content from editingBlock
+            const currentContent = editingBlock.content || {};
+            const editingLocationIndex = editingBlock.editingLocationIndex;
+            
+            if (editingLocationIndex === null) {
+              // Updating main location
+              const updatedContent = {
+                ...currentContent,
+                mainLocation: {
+                  ...currentContent.mainLocation,
+                  title: locationData.title,
+                  address: locationData.address,
+                  price_level: locationData.price_level || '',
+                  approx_cost: locationData.approximate_cost || '',
+                  photo: locationData.photo || currentContent.mainLocation?.photo,
+                  rating: locationData.rating || null
+                }
+              };
+              setEditingBlock({ ...editingBlock, content: updatedContent });
+            } else {
+              // Updating alternative location
+              const alternativeLocations = [...(currentContent.alternativeLocations || [])];
+              alternativeLocations[editingLocationIndex] = {
+                ...alternativeLocations[editingLocationIndex],
+                title: locationData.title,
+                address: locationData.address,
+                price_level: locationData.price_level || '',
+                approx_cost: locationData.approximate_cost || '',
+                photo: locationData.photo || alternativeLocations[editingLocationIndex]?.photo,
+                rating: locationData.rating || null
+              };
+              const updatedContent = {
+                ...currentContent,
+                alternativeLocations
+              };
+              setEditingBlock({ ...editingBlock, content: updatedContent });
+            }
+          }
+        }}
+        city={tourInfo.city}
+      />
     </div>
   );
 }
