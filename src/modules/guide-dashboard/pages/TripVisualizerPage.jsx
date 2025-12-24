@@ -1899,10 +1899,10 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
           <div
             style={{
               position: 'absolute',
-              bottom: '100%',
+              top: '100%',
               left: '50%',
               transform: 'translateX(-50%)',
-              marginBottom: '8px',
+              marginTop: '8px',
               padding: '12px',
               backgroundColor: 'white',
               border: '1px solid #d1d5db',
@@ -1921,15 +1921,14 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
             <div
               style={{
                 position: 'absolute',
-                bottom: '-6px',
+                top: '-6px',
                 left: '50%',
-                transform: 'translateX(-50%)',
+                transform: 'translateX(-50%) rotate(45deg)',
                 width: '12px',
                 height: '12px',
                 backgroundColor: 'white',
-                borderRight: '1px solid #d1d5db',
-                borderBottom: '1px solid #d1d5db',
-                transform: 'translateX(-50%) rotate(45deg)'
+                borderLeft: '1px solid #d1d5db',
+                borderTop: '1px solid #d1d5db'
               }}
             />
           </div>
