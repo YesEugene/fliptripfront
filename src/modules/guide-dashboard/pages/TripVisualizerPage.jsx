@@ -2333,7 +2333,7 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
   );
 }
 
-function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload }) {
+function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onOpenLocationSelector }) {
   // Support both old format (flat) and new format (mainLocation + alternativeLocations)
   const initialContent = block.content || {};
   const isOldFormat = !initialContent.mainLocation && (initialContent.title || initialContent.time);
