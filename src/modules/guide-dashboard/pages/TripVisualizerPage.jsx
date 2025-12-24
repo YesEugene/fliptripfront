@@ -765,6 +765,12 @@ export default function TripVisualizerPage() {
 
   const handleSwitchLocation = async (updatedBlock) => {
     // Update the block content when switching main and alternative locations
+    // First update local state immediately for instant UI feedback
+    setBlocks(prev => prev.map(b => 
+      b.id === updatedBlock.id ? updatedBlock : b
+    ));
+    
+    // Then save to database
     await handleSaveBlock(updatedBlock);
   };
 

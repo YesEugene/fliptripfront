@@ -161,6 +161,92 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
               </div>
             )}
           </div>
+
+          {/* Alternative Locations - inside the details block */}
+          {alternativeLocations.length > 0 && (
+            <div style={{ marginTop: '24px' }}>
+              <h4 style={{ 
+                fontSize: '16px', 
+                fontWeight: '600', 
+                marginBottom: '12px',
+                color: '#111827'
+              }}>
+                Author also recommends
+              </h4>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                gap: '12px'
+              }}>
+                {alternativeLocations.map((altLocation, index) => (
+                  <div
+                    key={index}
+                    onClick={() => handleSwitchLocation(index)}
+                    style={{
+                      cursor: 'pointer',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      transition: 'all 0.2s',
+                      backgroundColor: 'white'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    {altLocation.photo ? (
+                      <img 
+                        src={altLocation.photo} 
+                        alt={altLocation.title || 'Alternative location'} 
+                        style={{ 
+                          width: '100%', 
+                          height: '120px',
+                          objectFit: 'cover'
+                        }} 
+                      />
+                    ) : (
+                      <div style={{
+                        width: '100%',
+                        height: '120px',
+                        backgroundColor: '#e5e7eb',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#9ca3af',
+                        fontSize: '12px'
+                      }}>
+                        No photo
+                      </div>
+                    )}
+                    <div style={{ padding: '8px' }}>
+                      <h5 style={{ 
+                        fontSize: '12px', 
+                        fontWeight: '600', 
+                        marginBottom: '4px',
+                        color: '#111827',
+                        lineHeight: '1.3'
+                      }}>
+                        {altLocation.title || 'Alternative location'}
+                      </h5>
+                      {altLocation.price_level && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+                          <span style={{ color: '#f59e0b', fontSize: '10px' }}>⭐</span>
+                          <span style={{ fontSize: '11px', color: '#6b7280' }}>
+                            {altLocation.price_level}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -197,91 +283,6 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
           }}>
             {mainLocation.recommendations}
           </p>
-        </div>
-      )}
-
-      {/* Alternative Locations */}
-      {alternativeLocations.length > 0 && (
-        <div style={{ marginTop: '32px' }}>
-          <h4 style={{ 
-            fontSize: '18px', 
-            fontWeight: '600', 
-            marginBottom: '16px',
-            color: '#111827'
-          }}>
-            Author also recommends
-          </h4>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-            gap: '16px'
-          }}>
-            {alternativeLocations.map((altLocation, index) => (
-              <div
-                key={index}
-                onClick={() => handleSwitchLocation(index)}
-                style={{
-                  cursor: 'pointer',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  transition: 'all 0.2s',
-                  backgroundColor: 'white'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                {altLocation.photo ? (
-                  <img 
-                    src={altLocation.photo} 
-                    alt={altLocation.title || 'Alternative location'} 
-                    style={{ 
-                      width: '100%', 
-                      height: '150px',
-                      objectFit: 'cover'
-                    }} 
-                  />
-                ) : (
-                  <div style={{
-                    width: '100%',
-                    height: '150px',
-                    backgroundColor: '#e5e7eb',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#9ca3af',
-                    fontSize: '12px'
-                  }}>
-                    No photo
-                  </div>
-                )}
-                <div style={{ padding: '12px' }}>
-                  <h5 style={{ 
-                    fontSize: '14px', 
-                    fontWeight: '600', 
-                    marginBottom: '4px',
-                    color: '#111827'
-                  }}>
-                    {altLocation.title || 'Alternative location'}
-                  </h5>
-                  {altLocation.price_level && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
-                      <span style={{ color: '#f59e0b', fontSize: '12px' }}>⭐</span>
-                      <span style={{ fontSize: '12px', color: '#6b7280' }}>
-                        {altLocation.price_level}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       )}
     </div>
