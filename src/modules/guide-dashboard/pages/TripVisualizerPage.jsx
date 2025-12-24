@@ -1884,16 +1884,17 @@ function BlockSelectorModal({ onClose, onSelect }) {
   );
 }
 
-function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, cities = [], citySuggestions = [], showCitySuggestions = false, setCitySuggestions, setShowCitySuggestions }) {
-  const hints = {
-    city: 'Start typing the city name and select it from the list.\n\nIf your city doesn\'t appear, simply type it in manually.',
-    tripName: 'Choose a short, meaningful title that reflects the idea of your tour, not a list of places.\n\nAim for 3–6 words. Avoid generic phrases like "Best of" or "Top places".\nA good title sets the mood and makes people want to open the tour.',
-    previewPhoto: 'Use a high-quality image that captures the essence of your tour.\n\nThis photo should communicate the feeling of the experience at a glance — not just a landmark.\nAvoid blurry images, heavy filters, or screenshots.',
-    noteFromAuthor: 'Introduce yourself and explain why you created this tour.\n\nShare your personal connection to the city or route, and what kind of experience you\'re offering.\nThis is not a biography — it\'s a short, honest note that helps people trust you and want to live the journey you\'re proposing.',
-    textBlock: 'Use this block to set the mood of the tour and explain how it should be experienced.\n\nWrite freely, in a personal tone. Share an observation, a feeling, or a way of moving through the city. This is not a place for locations or instructions, it\'s where you help the reader slow down, trust the route, and understand your rhythm.'
-  };
-  
-  const HintButton = ({ hintKey }) => {
+// Shared hints for all modals
+const hints = {
+  city: 'Start typing the city name and select it from the list.\n\nIf your city doesn\'t appear, simply type it in manually.',
+  tripName: 'Choose a short, meaningful title that reflects the idea of your tour, not a list of places.\n\nAim for 3–6 words. Avoid generic phrases like "Best of" or "Top places".\nA good title sets the mood and makes people want to open the tour.',
+  previewPhoto: 'Use a high-quality image that captures the essence of your tour.\n\nThis photo should communicate the feeling of the experience at a glance — not just a landmark.\nAvoid blurry images, heavy filters, or screenshots.',
+  noteFromAuthor: 'Introduce yourself and explain why you created this tour.\n\nShare your personal connection to the city or route, and what kind of experience you\'re offering.\nThis is not a biography — it\'s a short, honest note that helps people trust you and want to live the journey you\'re proposing.',
+  textBlock: 'Use this block to set the mood of the tour and explain how it should be experienced.\n\nWrite freely, in a personal tone. Share an observation, a feeling, or a way of moving through the city. This is not a place for locations or instructions, it\'s where you help the reader slow down, trust the route, and understand your rhythm.'
+};
+
+// Shared HintButton component for all modals
+function HintButton({ hintKey }) {
     const [showTooltip, setShowTooltip] = useState(false);
     const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
     const buttonRef = useRef(null);
@@ -1973,8 +1974,9 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
         )}
       </>
     );
-  };
-  
+}
+
+function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, cities = [], citySuggestions = [], showCitySuggestions = false, setCitySuggestions, setShowCitySuggestions }) {
   return (
     <div style={{
       position: 'fixed',
