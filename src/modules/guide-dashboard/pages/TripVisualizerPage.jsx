@@ -610,7 +610,15 @@ export default function TripVisualizerPage() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
         console.error('❌ Add block error:', errorData, 'Status:', response.status);
-        alert(errorData.error || `Failed to add block (${response.status}). Check console for details.`);
+        
+        // Check if table doesn't exist
+        if (errorData.details && (errorData.details.includes('does not exist') || errorData.code === 'PGRST205')) {
+          alert(`Database table not found.\n\nPlease run the migration:\n\nadd-tour-content-blocks.sql\n\nin Supabase SQL Editor.\n\nSee: fliptrip-clean-backend/database/add-tour-content-blocks.sql`);
+        } else if (errorData.hint) {
+          alert(`${errorData.error}\n\n${errorData.hint}`);
+        } else {
+          alert(errorData.error || `Failed to add block (${response.status}). Check console for details.`);
+        }
         return;
       }
       
