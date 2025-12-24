@@ -52,6 +52,19 @@ export default function TripVisualizerPage() {
   const [editingBlock, setEditingBlock] = useState(null);
   const [showTourEditor, setShowTourEditor] = useState(false);
   const [isAuthorTextExpanded, setIsAuthorTextExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect screen size for responsive layout
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
   const [showImageCrop, setShowImageCrop] = useState(false);
   const [imageToCrop, setImageToCrop] = useState(null);
 
@@ -1165,7 +1178,7 @@ export default function TripVisualizerPage() {
                 <p style={{ 
                   color: '#4b5563', 
                   fontSize: '15px', 
-                  lineHeight: '1.7', 
+                  lineHeight: isMobile ? '1.5' : '1.7', 
                   marginBottom: '16px',
                   marginTop: 0,
                   ...(isAuthorTextExpanded ? {} : {
