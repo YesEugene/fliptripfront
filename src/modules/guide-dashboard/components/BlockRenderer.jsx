@@ -2,6 +2,8 @@
  * BlockRenderer - Component for rendering different types of content blocks
  */
 
+import { useState, useEffect } from 'react';
+
 export default function BlockRenderer({ block, onEdit }) {
   if (!block) return null;
 
@@ -34,6 +36,20 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
   // Support both old format (flat) and new format (mainLocation + alternativeLocations)
   const mainLocation = content.mainLocation || content;
   const alternativeLocations = content.alternativeLocations || [];
+  
+  // Detect screen size for responsive layout
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
   
   // Handle switching between main and alternative locations
   const handleSwitchLocation = (alternativeIndex) => {
@@ -85,19 +101,16 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
         </div>
       )}
 
-      {/* Main content: Photo and Details */}
+      {/* Main content: Photo and Details - 4-column grid (50/50 split) */}
       <div style={{
-        display: 'flex',
+        display: 'grid',
+        gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
         gap: '24px',
         marginBottom: '24px',
-        flexWrap: 'wrap'
+        alignItems: 'start'
       }}>
-        {/* Photo */}
-        <div style={{
-          flex: '0 0 300px',
-          minWidth: '250px',
-          maxWidth: '100%'
-        }}>
+        {/* Photo - Left half */}
+        <div>
           {mainLocation.photo ? (
             <img 
               src={mainLocation.photo} 
@@ -125,60 +138,69 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
           )}
         </div>
 
-        {/* Details */}
-        <div style={{ flex: 1, minWidth: '250px' }}>
-          {mainLocation.title && (
-            <h3 style={{ 
-              fontSize: '24px', 
-              fontWeight: 'bold', 
-              marginBottom: '12px',
-              color: '#111827',
-              lineHeight: '1.2'
-            }}>
-              {mainLocation.title}
-            </h3>
-          )}
-          
-          {mainLocation.address && (
-            <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ color: '#ef4444', fontSize: '16px' }}>📍</span>
-              <a 
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mainLocation.address)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ 
-                  color: '#3b82f6', 
-                  textDecoration: 'underline',
-                  fontSize: '14px'
-                }}
-              >
-                {mainLocation.address}
-              </a>
-            </div>
-          )}
+        {/* Details - Right half */}
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          height: '100%'
+        }}>
+          <div>
+            {mainLocation.title && (
+              <h3 style={{ 
+                fontSize: '24px', 
+                fontWeight: 'bold', 
+                marginBottom: '12px',
+                color: '#111827',
+                lineHeight: '1.2'
+              }}>
+                {mainLocation.title}
+              </h3>
+            )}
+            
+            {mainLocation.address && (
+              <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ color: '#ef4444', fontSize: '16px' }}>📍</span>
+                <a 
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mainLocation.address)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ 
+                    color: '#3b82f6', 
+                    textDecoration: 'underline',
+                    fontSize: '14px'
+                  }}
+                >
+                  {mainLocation.address}
+                </a>
+              </div>
+            )}
 
-          <div style={{ display: 'flex', gap: '16px', marginBottom: '12px', flexWrap: 'wrap' }}>
-            {mainLocation.approx_cost && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ color: '#10b981', fontSize: '16px' }}>💰</span>
-                <span style={{ fontSize: '14px', color: '#6b7280' }}>
-                  Avg. spend: {mainLocation.approx_cost}
-                </span>
-              </div>
-            )}
-            {mainLocation.price_level && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ color: '#f59e0b', fontSize: '16px' }}>⭐</span>
-                <span style={{ fontSize: '14px', color: '#6b7280' }}>
-                  Price level: {mainLocation.price_level}
-                </span>
-              </div>
-            )}
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '12px', flexWrap: 'wrap' }}>
+              {mainLocation.approx_cost && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ color: '#10b981', fontSize: '16px' }}>💰</span>
+                  <span style={{ fontSize: '14px', color: '#6b7280' }}>
+                    Avg. spend: {mainLocation.approx_cost}
+                  </span>
+                </div>
+              )}
+              {mainLocation.price_level && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ color: '#f59e0b', fontSize: '16px' }}>⭐</span>
+                  <span style={{ fontSize: '14px', color: '#6b7280' }}>
+                    Price level: {mainLocation.price_level}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Alternative Locations - inside the details block */}
+          {/* Alternative Locations - aligned to bottom */}
           {alternativeLocations.length > 0 && (
-            <div style={{ marginTop: '24px' }}>
+            <div style={{ 
+              marginTop: 'auto',
+              paddingTop: '24px'
+            }}>
               <h4 style={{ 
                 fontSize: '16px', 
                 fontWeight: '600', 
@@ -189,8 +211,8 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
               </h4>
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(105px, 1fr))',
-                gap: '10px'
+                gridTemplateColumns: 'repeat(auto-fill, minmax(73px, 1fr))',
+                gap: '8px'
               }}>
                 {alternativeLocations.map((altLocation, index) => (
                   <div
@@ -223,38 +245,38 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                         alt={altLocation.title || 'Alternative location'} 
                         style={{ 
                           width: '100%', 
-                          height: '84px',
+                          height: '59px',
                           objectFit: 'cover'
                         }} 
                       />
                     ) : (
                       <div style={{
                         width: '100%',
-                        height: '84px',
+                        height: '59px',
                         backgroundColor: '#e5e7eb',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         color: '#9ca3af',
-                        fontSize: '10px'
+                        fontSize: '9px'
                       }}>
                         No photo
                       </div>
                     )}
-                    <div style={{ padding: '6px' }}>
+                    <div style={{ padding: '5px' }}>
                       <h5 style={{ 
-                        fontSize: '11px', 
+                        fontSize: '10px', 
                         fontWeight: '600', 
-                        marginBottom: '3px',
+                        marginBottom: '2px',
                         color: '#111827',
                         lineHeight: '1.2'
                       }}>
                         {altLocation.title || 'Alternative location'}
                       </h5>
                       {altLocation.price_level && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginTop: '3px' }}>
-                          <span style={{ color: '#f59e0b', fontSize: '9px' }}>⭐</span>
-                          <span style={{ fontSize: '10px', color: '#6b7280' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '2px', marginTop: '2px' }}>
+                          <span style={{ color: '#f59e0b', fontSize: '8px' }}>⭐</span>
+                          <span style={{ fontSize: '9px', color: '#6b7280' }}>
                             {altLocation.price_level}
                           </span>
                         </div>
