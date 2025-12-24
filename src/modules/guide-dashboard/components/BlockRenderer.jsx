@@ -28,13 +28,34 @@ export default function BlockRenderer({ block, onEdit }) {
 }
 
 // Location Block
-function LocationBlock({ block, onEdit }) {
+function LocationBlock({ block, onEdit, onSwitchLocation }) {
   const content = block.content || {};
+  
+  // Support both old format (flat) and new format (mainLocation + alternativeLocations)
+  const mainLocation = content.mainLocation || content;
+  const alternativeLocations = content.alternativeLocations || [];
+  
+  // Handle switching between main and alternative locations
+  const handleSwitchLocation = (alternativeIndex) => {
+    if (!onSwitchLocation) return;
+    
+    const newMainLocation = alternativeLocations[alternativeIndex];
+    const newAlternativeLocations = [...alternativeLocations];
+    newAlternativeLocations[alternativeIndex] = mainLocation;
+    
+    // Update block content
+    const updatedContent = {
+      mainLocation: newMainLocation,
+      alternativeLocations: newAlternativeLocations
+    };
+    
+    onSwitchLocation({ ...block, content: updatedContent });
+  };
   
   return (
     <div style={{ marginBottom: '32px' }}>
       {/* Time badge */}
-      {content.time && (
+      {mainLocation.time && (
         <div style={{ marginBottom: '16px' }}>
           <span style={{
             display: 'inline-block',
@@ -45,7 +66,7 @@ function LocationBlock({ block, onEdit }) {
             fontSize: '14px',
             fontWeight: '500'
           }}>
-            {content.time}
+            {mainLocation.time}
           </span>
         </div>
       )}
@@ -63,10 +84,10 @@ function LocationBlock({ block, onEdit }) {
           minWidth: '250px',
           maxWidth: '100%'
         }}>
-          {content.photo ? (
+          {mainLocation.photo ? (
             <img 
-              src={content.photo} 
-              alt={content.title || 'Location'} 
+              src={mainLocation.photo} 
+              alt={mainLocation.title || 'Location'} 
               style={{ 
                 width: '100%', 
                 height: 'auto',
@@ -92,7 +113,7 @@ function LocationBlock({ block, onEdit }) {
 
         {/* Details */}
         <div style={{ flex: 1, minWidth: '250px' }}>
-          {content.title && (
+          {mainLocation.title && (
             <h3 style={{ 
               fontSize: '24px', 
               fontWeight: 'bold', 
@@ -100,15 +121,15 @@ function LocationBlock({ block, onEdit }) {
               color: '#111827',
               lineHeight: '1.2'
             }}>
-              {content.title}
+              {mainLocation.title}
             </h3>
           )}
           
-          {content.address && (
+          {mainLocation.address && (
             <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ color: '#ef4444', fontSize: '16px' }}>📍</span>
               <a 
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(content.address)}`}
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mainLocation.address)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ 
@@ -117,54 +138,34 @@ function LocationBlock({ block, onEdit }) {
                   fontSize: '14px'
                 }}
               >
-                {content.address}
+                {mainLocation.address}
               </a>
             </div>
           )}
 
           <div style={{ display: 'flex', gap: '16px', marginBottom: '12px', flexWrap: 'wrap' }}>
-            {content.approx_cost && (
+            {mainLocation.approx_cost && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ color: '#10b981', fontSize: '16px' }}>💰</span>
                 <span style={{ fontSize: '14px', color: '#6b7280' }}>
-                  Avg. spend: {content.approx_cost}
+                  Avg. spend: {mainLocation.approx_cost}
                 </span>
               </div>
             )}
-            {content.price_level && (
+            {mainLocation.price_level && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ color: '#f59e0b', fontSize: '16px' }}>⭐</span>
                 <span style={{ fontSize: '14px', color: '#6b7280' }}>
-                  Price level: {content.price_level}
+                  Price level: {mainLocation.price_level}
                 </span>
               </div>
             )}
           </div>
-
-          {/* Selected interests */}
-          {content.interests && content.interests.length > 0 && (
-            <div style={{ marginBottom: '12px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-              {content.interests.map((interestId, idx) => (
-                <span
-                  key={idx}
-                  style={{
-                    padding: '4px 8px',
-                    backgroundColor: '#e0e7ff',
-                    color: '#3730a3',
-                    borderRadius: '4px',
-                    fontSize: '12px'
-                  }}
-                >
-                  Interest {idx + 1}
-                </span>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
       {/* Description */}
-      {content.description && (
+      {mainLocation.description && (
         <div style={{ marginBottom: '16px' }}>
           <p style={{ 
             fontSize: '16px', 
@@ -172,13 +173,13 @@ function LocationBlock({ block, onEdit }) {
             color: '#374151',
             margin: 0
           }}>
-            {content.description}
+            {mainLocation.description}
           </p>
         </div>
       )}
 
       {/* Recommendations */}
-      {content.recommendations && (
+      {mainLocation.recommendations && (
         <div style={{ marginBottom: '16px' }}>
           <h4 style={{ 
             fontSize: '16px', 
@@ -194,8 +195,93 @@ function LocationBlock({ block, onEdit }) {
             color: '#4b5563',
             margin: 0
           }}>
-            {content.recommendations}
+            {mainLocation.recommendations}
           </p>
+        </div>
+      )}
+
+      {/* Alternative Locations */}
+      {alternativeLocations.length > 0 && (
+        <div style={{ marginTop: '32px' }}>
+          <h4 style={{ 
+            fontSize: '18px', 
+            fontWeight: '600', 
+            marginBottom: '16px',
+            color: '#111827'
+          }}>
+            Author also recommends
+          </h4>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+            gap: '16px'
+          }}>
+            {alternativeLocations.map((altLocation, index) => (
+              <div
+                key={index}
+                onClick={() => handleSwitchLocation(index)}
+                style={{
+                  cursor: 'pointer',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  transition: 'all 0.2s',
+                  backgroundColor: 'white'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                {altLocation.photo ? (
+                  <img 
+                    src={altLocation.photo} 
+                    alt={altLocation.title || 'Alternative location'} 
+                    style={{ 
+                      width: '100%', 
+                      height: '150px',
+                      objectFit: 'cover'
+                    }} 
+                  />
+                ) : (
+                  <div style={{
+                    width: '100%',
+                    height: '150px',
+                    backgroundColor: '#e5e7eb',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#9ca3af',
+                    fontSize: '12px'
+                  }}>
+                    No photo
+                  </div>
+                )}
+                <div style={{ padding: '12px' }}>
+                  <h5 style={{ 
+                    fontSize: '14px', 
+                    fontWeight: '600', 
+                    marginBottom: '4px',
+                    color: '#111827'
+                  }}>
+                    {altLocation.title || 'Alternative location'}
+                  </h5>
+                  {altLocation.price_level && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+                      <span style={{ color: '#f59e0b', fontSize: '12px' }}>⭐</span>
+                      <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                        {altLocation.price_level}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

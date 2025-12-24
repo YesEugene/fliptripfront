@@ -610,17 +610,21 @@ export default function TripVisualizerPage() {
         defaultContent = { style: 'solid' };
         break;
       case 'location':
+        // Default location block with example data to inspire users
         defaultContent = { 
-          time: '09:00 - 12:00',
-          title: '',
-          address: '',
-          description: '',
-          photo: null,
-          recommendations: '',
-          category: null,
-          interests: [],
-          price_level: '',
-          approx_cost: ''
+          mainLocation: {
+            time: '09:00 - 10:00',
+            title: 'Coffee No.48 — The City Wakes Up',
+            address: 'Adnan Menderes Blv., Fethiye',
+            description: 'A tiny local café where the smell of roasted beans fills the morning streets. This isn\'t a tourist hangout — it\'s where locals begin their day, and for one hour, you\'ll feel part of their routine.',
+            photo: null,
+            recommendations: 'Take your coffee "to go" and wander the waking streets. The sunlight reflects off pastel walls, cats stretch lazily on doorsteps, and for a moment you sense the city\'s heartbeat. If you stay inside, grab the corner seat by the window — it\'s perfect for watching people pass, scribbling notes, or simply savoring the quiet hum of morning. Order a slice of cake too: locals swear it\'s the best way to start the day here.',
+            category: null,
+            interests: [],
+            price_level: '2',
+            approx_cost: '€7'
+          },
+          alternativeLocations: []
         };
         break;
       default:
@@ -757,6 +761,11 @@ export default function TripVisualizerPage() {
       console.error('Error deleting block:', error);
       alert('Error deleting block. Please try again.');
     }
+  };
+
+  const handleSwitchLocation = async (updatedBlock) => {
+    // Update the block content when switching main and alternative locations
+    await handleSaveBlock(updatedBlock);
   };
 
   const handleMoveBlock = async (blockId, direction) => {
@@ -1279,7 +1288,11 @@ export default function TripVisualizerPage() {
             </div>
             
             {/* Render Block */}
-            <BlockRenderer block={block} onEdit={() => handleEditBlock(block)} />
+            <BlockRenderer 
+              block={block} 
+              onEdit={() => handleEditBlock(block)} 
+              onSwitchLocation={handleSwitchLocation}
+            />
           </div>
         ))}
 
@@ -2021,10 +2034,46 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
 }
 
 function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload }) {
-  const [content, setContent] = useState(block.content || {});
+  // Support both old format (flat) and new format (mainLocation + alternativeLocations)
+  const initialContent = block.content || {};
+  const isOldFormat = !initialContent.mainLocation && (initialContent.title || initialContent.time);
+  
+  const [content, setContent] = useState(() => {
+    if (isOldFormat) {
+      // Convert old format to new format
+      return {
+        mainLocation: initialContent,
+        alternativeLocations: []
+      };
+    }
+    return {
+      mainLocation: initialContent.mainLocation || {
+        time: '09:00 - 12:00',
+        title: '',
+        address: '',
+        description: '',
+        photo: null,
+        recommendations: '',
+        category: null,
+        interests: [],
+        price_level: '',
+        approx_cost: ''
+      },
+      alternativeLocations: initialContent.alternativeLocations || []
+    };
+  });
+  
+  const [editingLocationIndex, setEditingLocationIndex] = useState(null); // null = main, number = alternative index
   const [interestsStructure, setInterestsStructure] = useState(null);
   const [availableInterests, setAvailableInterests] = useState([]);
   const [loadingInterests, setLoadingInterests] = useState(false);
+
+  // Initialize editingLocationIndex to null (main location) for location blocks
+  useEffect(() => {
+    if (block.block_type === 'location' && editingLocationIndex === null && content.mainLocation) {
+      setEditingLocationIndex(null); // Start with main location
+    }
+  }, [block.block_type]);
 
   // Load interests structure for location block
   useEffect(() => {
@@ -2471,458 +2520,559 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload }) {
         );
 
       case 'location':
+        // Determine which location is being edited (main or alternative)
+        const currentLocation = editingLocationIndex === null 
+          ? content.mainLocation 
+          : content.alternativeLocations[editingLocationIndex];
+        
+        const updateCurrentLocation = (updates) => {
+          if (editingLocationIndex === null) {
+            // Update main location
+            setContent({ ...content, mainLocation: { ...content.mainLocation, ...updates } });
+          } else {
+            // Update alternative location
+            const newAlternatives = [...content.alternativeLocations];
+            newAlternatives[editingLocationIndex] = { ...newAlternatives[editingLocationIndex], ...updates };
+            setContent({ ...content, alternativeLocations: newAlternatives });
+          }
+        };
+
+        const handleAddAlternativeLocation = () => {
+          const newAltLocation = {
+            time: '09:00 - 12:00',
+            title: '',
+            address: '',
+            description: '',
+            photo: null,
+            recommendations: '',
+            category: null,
+            subcategory: null,
+            interests: [],
+            price_level: '',
+            approx_cost: ''
+          };
+          setContent({ 
+            ...content, 
+            alternativeLocations: [...content.alternativeLocations, newAltLocation]
+          });
+          setEditingLocationIndex(content.alternativeLocations.length); // Switch to the new location
+        };
+
         return (
           <div style={{ marginBottom: '20px' }}>
-            {/* Time for location */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                Time for location 👆
-              </label>
-              <input
-                type="text"
-                value={content.time || '09:00 - 12:00'}
-                onChange={(e) => setContent({ ...content, time: e.target.value })}
-                placeholder="09:00 - 12:00"
+            {/* Tabs for switching between main and alternative locations */}
+            <div style={{ 
+              display: 'flex', 
+              gap: '8px', 
+              marginBottom: '20px',
+              borderBottom: '2px solid #e5e7eb',
+              paddingBottom: '8px'
+            }}>
+              <button
+                type="button"
+                onClick={() => setEditingLocationIndex(null)}
                 style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '16px',
-                  boxSizing: 'border-box'
-                }}
-              />
-            </div>
-
-            {/* Location Name and Address */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                Location
-              </label>
-              <a 
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(content.address || content.title || '')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ 
-                  color: '#3b82f6', 
-                  textDecoration: 'underline',
-                  fontSize: '14px',
-                  marginBottom: '8px',
-                  display: 'inline-block'
+                  padding: '8px 16px',
+                  border: 'none',
+                  backgroundColor: editingLocationIndex === null ? '#3b82f6' : 'transparent',
+                  color: editingLocationIndex === null ? 'white' : '#6b7280',
+                  borderRadius: '8px 8px 0 0',
+                  cursor: 'pointer',
+                  fontWeight: editingLocationIndex === null ? '600' : '400',
+                  fontSize: '14px'
                 }}
               >
-                Find on Google Maps
-              </a>
-              <input
-                type="text"
-                value={content.title || ''}
-                onChange={(e) => setContent({ ...content, title: e.target.value })}
-                placeholder="Location Name *"
-                required
+                Main Location
+              </button>
+              {content.alternativeLocations.map((altLoc, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setEditingLocationIndex(idx)}
+                  style={{
+                    padding: '8px 16px',
+                    border: 'none',
+                    backgroundColor: editingLocationIndex === idx ? '#3b82f6' : 'transparent',
+                    color: editingLocationIndex === idx ? 'white' : '#6b7280',
+                    borderRadius: '8px 8px 0 0',
+                    cursor: 'pointer',
+                    fontWeight: editingLocationIndex === idx ? '600' : '400',
+                    fontSize: '14px'
+                  }}
+                >
+                  Alternative {idx + 1}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={handleAddAlternativeLocation}
                 style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '16px',
-                  marginBottom: '12px',
-                  boxSizing: 'border-box'
-                }}
-              />
-              <input
-                type="text"
-                value={content.address || ''}
-                onChange={(e) => setContent({ ...content, address: e.target.value })}
-                placeholder="Address *"
-                required
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '16px',
-                  boxSizing: 'border-box'
-                }}
-              />
-            </div>
-
-            {/* Location Description */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                Location Description 👆
-              </label>
-              <textarea
-                value={content.description || ''}
-                onChange={(e) => setContent({ ...content, description: e.target.value })}
-                placeholder="Describe this location..."
-                rows={4}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '16px',
-                  resize: 'vertical',
-                  boxSizing: 'border-box',
-                  fontFamily: 'inherit'
-                }}
-              />
-            </div>
-
-            {/* Add Photo of Location */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                Add Photo of Location
-              </label>
-              <div style={{
-                width: '100%',
-                minHeight: '200px',
-                border: '2px dashed #d1d5db',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '12px',
-                backgroundColor: '#f9fafb',
-                overflow: 'hidden'
-              }}>
-                {content.photo ? (
-                  <img 
-                    src={content.photo} 
-                    alt="Location preview" 
-                    style={{ 
-                      maxWidth: '100%', 
-                      maxHeight: '300px', 
-                      objectFit: 'contain' 
-                    }} 
-                  />
-                ) : (
-                  <span style={{ color: '#6b7280' }}>No photo selected</span>
-                )}
-              </div>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (file && onImageUpload) {
-                    onImageUpload(file, (base64) => {
-                      setContent({ ...content, photo: base64 });
-                    });
-                  }
-                }}
-                style={{ display: 'none' }}
-                id={`location-photo-upload-${block.id}`}
-              />
-              <label
-                htmlFor={`location-photo-upload-${block.id}`}
-                style={{
-                  display: 'inline-block',
-                  padding: '10px 20px',
-                  backgroundColor: '#3b82f6',
-                  color: 'white',
+                  padding: '8px 16px',
                   border: 'none',
+                  backgroundColor: '#10b981',
+                  color: 'white',
                   borderRadius: '8px',
                   cursor: 'pointer',
-                  fontSize: '14px',
                   fontWeight: '500',
-                  marginBottom: '8px'
+                  fontSize: '14px',
+                  marginLeft: 'auto'
                 }}
               >
-                Choose photo
-              </label>
-              <p style={{ fontSize: '12px', color: '#6b7280', margin: '4px 0 0 0' }}>
-                JPG, PNG or GIF. Max size 5MB
-              </p>
+                + Add Alternative Location
+              </button>
             </div>
 
-            {/* Recommendations */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                Recomendation 👆
-              </label>
-              <textarea
-                value={content.recommendations || ''}
-                onChange={(e) => setContent({ ...content, recommendations: e.target.value })}
-                placeholder="Recommendations (tips, best time to visit, what to try, etc.)"
-                rows={4}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '16px',
-                  resize: 'vertical',
-                  boxSizing: 'border-box',
-                  fontFamily: 'inherit'
-                }}
-              />
-            </div>
+            {/* Location Editor Form */}
+            {currentLocation && (
+              <>
+                {/* Time for location */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                    Time for location 👆
+                  </label>
+                  <input
+                    type="text"
+                    value={currentLocation.time || '09:00 - 12:00'}
+                    onChange={(e) => updateCurrentLocation({ time: e.target.value })}
+                    placeholder="09:00 - 12:00"
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
 
-            {/* Category of interests */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                Category of interests
-              </label>
-              <select
-                value={content.category || ''}
-                onChange={(e) => {
-                  const categoryId = e.target.value || null;
-                  setContent({ 
-                    ...content, 
-                    category: categoryId,
-                    subcategory: null, // Reset subcategory when category changes
-                    interests: [] // Reset interests when category changes
-                  });
-                }}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '16px',
-                  boxSizing: 'border-box',
-                  backgroundColor: 'white'
-                }}
-              >
-                <option value="">Choose category</option>
-                {interestsStructure?.map(category => (
-                  <option key={category.id} value={category.id}>
-                    {category.icon} {CATEGORY_NAMES[category.name] || category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+                {/* Location Name and Address */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                    Location
+                  </label>
+                  <a 
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentLocation.address || currentLocation.title || '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ 
+                      color: '#3b82f6', 
+                      textDecoration: 'underline',
+                      fontSize: '14px',
+                      marginBottom: '8px',
+                      display: 'inline-block'
+                    }}
+                  >
+                    Find on Google Maps
+                  </a>
+                  <input
+                    type="text"
+                    value={currentLocation.title || ''}
+                    onChange={(e) => updateCurrentLocation({ title: e.target.value })}
+                    placeholder="Location Name *"
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      marginBottom: '12px',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                  <input
+                    type="text"
+                    value={currentLocation.address || ''}
+                    onChange={(e) => updateCurrentLocation({ address: e.target.value })}
+                    placeholder="Address *"
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
 
-            {/* Subcategory (if category has subcategories) */}
-            {content.category && interestsStructure?.find(c => c.id === content.category)?.subcategories?.length > 0 && (
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                  Subcategory (optional)
-                </label>
-                <select
-                  value={content.subcategory || ''}
-                  onChange={(e) => {
-                    const subcategoryId = e.target.value || null;
-                    setContent({ 
-                      ...content, 
-                      subcategory: subcategoryId,
-                      interests: [] // Reset interests when subcategory changes
-                    });
-                  }}
-                  style={{
+                {/* Location Description */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                    Location Description 👆
+                  </label>
+                  <textarea
+                    value={currentLocation.description || ''}
+                    onChange={(e) => updateCurrentLocation({ description: e.target.value })}
+                    placeholder="Describe this location..."
+                    rows={4}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      resize: 'vertical',
+                      boxSizing: 'border-box',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                </div>
+
+                {/* Add Photo of Location */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                    Add Photo of Location
+                  </label>
+                  <div style={{
                     width: '100%',
-                    padding: '12px',
-                    border: '1px solid #d1d5db',
+                    minHeight: '200px',
+                    border: '2px dashed #d1d5db',
                     borderRadius: '8px',
-                    fontSize: '16px',
-                    boxSizing: 'border-box',
-                    backgroundColor: 'white'
-                  }}
-                >
-                  <option value="">All interests in category</option>
-                  {interestsStructure
-                    .find(c => c.id === content.category)
-                    ?.subcategories?.map(subcategory => (
-                      <option key={subcategory.id} value={subcategory.id}>
-                        {SUBCATEGORY_NAMES[subcategory.name] || subcategory.name}
-                      </option>
-                    ))}
-                </select>
-              </div>
-            )}
-
-            {/* Interests Selection */}
-            {content.category && (() => {
-              const category = interestsStructure?.find(c => c.id === content.category);
-              if (!category) return null;
-              
-              let availableInterestsList = [];
-              if (content.subcategory) {
-                const subcategory = category.subcategories?.find(s => s.id === content.subcategory);
-                availableInterestsList = subcategory?.interests || [];
-              } else {
-                if (category.direct_interests) {
-                  availableInterestsList.push(...category.direct_interests);
-                }
-                if (category.subcategories) {
-                  category.subcategories.forEach(subcategory => {
-                    if (subcategory.interests) {
-                      availableInterestsList.push(...subcategory.interests);
-                    }
-                  });
-                }
-              }
-              
-              const currentInterestIds = content.interests || [];
-              const availableToAdd = availableInterestsList.filter(interest => 
-                !currentInterestIds.includes(interest.id)
-              );
-              
-              return (
-                <>
-                  <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                      Interests
-                    </label>
-                    {availableToAdd.length > 0 && (
-                      <select
-                        onChange={(e) => {
-                          const interestId = e.target.value;
-                          if (interestId && !currentInterestIds.includes(interestId)) {
-                            setContent({ 
-                              ...content, 
-                              interests: [...currentInterestIds, interestId]
-                            });
-                          }
-                          e.target.value = ''; // Reset select
-                        }}
-                        style={{
-                          width: '100%',
-                          padding: '12px',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '8px',
-                          fontSize: '16px',
-                          boxSizing: 'border-box',
-                          backgroundColor: 'white',
-                          marginBottom: '12px'
-                        }}
-                      >
-                        <option value="">Select interests</option>
-                        {availableToAdd.map(interest => (
-                          <option key={interest.id} value={interest.id}>
-                            {interest.name}
-                          </option>
-                        ))}
-                      </select>
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '12px',
+                    backgroundColor: '#f9fafb',
+                    overflow: 'hidden'
+                  }}>
+                    {currentLocation.photo ? (
+                      <img 
+                        src={currentLocation.photo} 
+                        alt="Location preview" 
+                        style={{ 
+                          maxWidth: '100%', 
+                          maxHeight: '300px', 
+                          objectFit: 'contain' 
+                        }} 
+                      />
+                    ) : (
+                      <span style={{ color: '#6b7280' }}>No photo selected</span>
                     )}
                   </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file && onImageUpload) {
+                        onImageUpload(file, (base64) => {
+                          updateCurrentLocation({ photo: base64 });
+                        });
+                      }
+                    }}
+                    style={{ display: 'none' }}
+                    id={`location-photo-upload-${block.id}-${editingLocationIndex === null ? 'main' : editingLocationIndex}`}
+                  />
+                  <label
+                    htmlFor={`location-photo-upload-${block.id}-${editingLocationIndex === null ? 'main' : editingLocationIndex}`}
+                    style={{
+                      display: 'inline-block',
+                      padding: '10px 20px',
+                      backgroundColor: '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      marginBottom: '8px'
+                    }}
+                  >
+                    Choose photo
+                  </label>
+                  <p style={{ fontSize: '12px', color: '#6b7280', margin: '4px 0 0 0' }}>
+                    JPG, PNG or GIF. Max size 5MB
+                  </p>
+                </div>
 
-                  {/* Selected interests */}
-                  {currentInterestIds.length > 0 && (
-                    <div style={{ marginBottom: '20px' }}>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                        Selected interests
-                      </label>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                        {currentInterestIds.map(interestId => {
-                          const interest = availableInterests.find(i => i.id === interestId);
-                          if (!interest) return null;
-                          
-                          const categoryForInterest = interestsStructure?.find(c => 
-                            c.id === interest.category_id || 
-                            c.subcategories?.some(s => s.id === interest.subcategory_id)
-                          );
-                          
-                          return (
-                            <span
-                              key={interestId}
-                              style={{
-                                padding: '6px 12px',
-                                backgroundColor: '#e0e7ff',
-                                color: '#3730a3',
-                                borderRadius: '6px',
-                                fontSize: '12px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px'
-                              }}
-                            >
-                              {categoryForInterest?.icon} {interest.name}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setContent({ 
-                                    ...content, 
-                                    interests: currentInterestIds.filter(id => id !== interestId)
-                                  });
-                                }}
-                                style={{
-                                  background: 'none',
-                                  border: 'none',
-                                  color: '#3730a3',
-                                  cursor: 'pointer',
-                                  fontSize: '16px',
-                                  padding: '0',
-                                  lineHeight: '1',
-                                  fontWeight: 'bold'
-                                }}
-                              >
-                                ×
-                              </button>
-                            </span>
-                          );
-                        })}
+                {/* Recommendations */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                    Recomendation 👆
+                  </label>
+                  <textarea
+                    value={currentLocation.recommendations || ''}
+                    onChange={(e) => updateCurrentLocation({ recommendations: e.target.value })}
+                    placeholder="Recommendations (tips, best time to visit, what to try, etc.)"
+                    rows={4}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      resize: 'vertical',
+                      boxSizing: 'border-box',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                </div>
+
+                {/* Category of interests */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                    Category of interests
+                  </label>
+                  <select
+                    value={currentLocation.category || ''}
+                    onChange={(e) => {
+                      const categoryId = e.target.value || null;
+                      updateCurrentLocation({ 
+                        category: categoryId,
+                        subcategory: null, // Reset subcategory when category changes
+                        interests: [] // Reset interests when category changes
+                      });
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box',
+                      backgroundColor: 'white'
+                    }}
+                  >
+                    <option value="">Choose category</option>
+                    {interestsStructure?.map(category => (
+                      <option key={category.id} value={category.id}>
+                        {category.icon} {CATEGORY_NAMES[category.name] || category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Subcategory (if category has subcategories) */}
+                {currentLocation.category && interestsStructure?.find(c => c.id === currentLocation.category)?.subcategories?.length > 0 && (
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                      Subcategory (optional)
+                    </label>
+                    <select
+                      value={currentLocation.subcategory || ''}
+                      onChange={(e) => {
+                        const subcategoryId = e.target.value || null;
+                        updateCurrentLocation({ 
+                          subcategory: subcategoryId,
+                          interests: [] // Reset interests when subcategory changes
+                        });
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        boxSizing: 'border-box',
+                        backgroundColor: 'white'
+                      }}
+                    >
+                      <option value="">All interests in category</option>
+                      {interestsStructure
+                        .find(c => c.id === currentLocation.category)
+                        ?.subcategories?.map(subcategory => (
+                          <option key={subcategory.id} value={subcategory.id}>
+                            {SUBCATEGORY_NAMES[subcategory.name] || subcategory.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Interests Selection */}
+                {currentLocation.category && (() => {
+                  const category = interestsStructure?.find(c => c.id === currentLocation.category);
+                  if (!category) return null;
+                  
+                  let availableInterestsList = [];
+                  if (currentLocation.subcategory) {
+                    const subcategory = category.subcategories?.find(s => s.id === currentLocation.subcategory);
+                    availableInterestsList = subcategory?.interests || [];
+                  } else {
+                    if (category.direct_interests) {
+                      availableInterestsList.push(...category.direct_interests);
+                    }
+                    if (category.subcategories) {
+                      category.subcategories.forEach(subcategory => {
+                        if (subcategory.interests) {
+                          availableInterestsList.push(...subcategory.interests);
+                        }
+                      });
+                    }
+                  }
+                  
+                  const currentInterestIds = currentLocation.interests || [];
+                  const availableToAdd = availableInterestsList.filter(interest => 
+                    !currentInterestIds.includes(interest.id)
+                  );
+                  
+                  return (
+                    <>
+                      <div style={{ marginBottom: '20px' }}>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                          Interests
+                        </label>
+                        {availableToAdd.length > 0 && (
+                          <select
+                            onChange={(e) => {
+                              const interestId = e.target.value;
+                              if (interestId && !currentInterestIds.includes(interestId)) {
+                                updateCurrentLocation({ 
+                                  interests: [...currentInterestIds, interestId]
+                                });
+                              }
+                              e.target.value = ''; // Reset select
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '12px',
+                              border: '1px solid #d1d5db',
+                              borderRadius: '8px',
+                              fontSize: '16px',
+                              boxSizing: 'border-box',
+                              backgroundColor: 'white',
+                              marginBottom: '12px'
+                            }}
+                          >
+                            <option value="">Select interests</option>
+                            {availableToAdd.map(interest => (
+                              <option key={interest.id} value={interest.id}>
+                                {interest.name}
+                              </option>
+                            ))}
+                          </select>
+                        )}
                       </div>
-                    </div>
-                  )}
-                </>
-              );
-            })()}
 
-            {/* Price Level and Approximate Cost */}
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: '1fr 1fr', 
-              gap: '16px',
-              marginBottom: '20px'
-            }}>
-              <div>
-                <label style={{ 
-                  display: 'block', 
-                  marginBottom: '8px', 
-                  fontSize: '14px', 
-                  fontWeight: '500',
-                  color: '#6b7280'
+                      {/* Selected interests */}
+                      {currentInterestIds.length > 0 && (
+                        <div style={{ marginBottom: '20px' }}>
+                          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                            Selected interests
+                          </label>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                            {currentInterestIds.map(interestId => {
+                              const interest = availableInterests.find(i => i.id === interestId);
+                              if (!interest) return null;
+                              
+                              const categoryForInterest = interestsStructure?.find(c => 
+                                c.id === interest.category_id || 
+                                c.subcategories?.some(s => s.id === interest.subcategory_id)
+                              );
+                              
+                              return (
+                                <span
+                                  key={interestId}
+                                  style={{
+                                    padding: '6px 12px',
+                                    backgroundColor: '#e0e7ff',
+                                    color: '#3730a3',
+                                    borderRadius: '6px',
+                                    fontSize: '12px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px'
+                                  }}
+                                >
+                                  {categoryForInterest?.icon} {interest.name}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      updateCurrentLocation({ 
+                                        interests: currentInterestIds.filter(id => id !== interestId)
+                                      });
+                                    }}
+                                    style={{
+                                      background: 'none',
+                                      border: 'none',
+                                      color: '#3730a3',
+                                      cursor: 'pointer',
+                                      fontSize: '16px',
+                                      padding: '0',
+                                      lineHeight: '1',
+                                      fontWeight: 'bold'
+                                    }}
+                                  >
+                                    ×
+                                  </button>
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+
+                {/* Price Level and Approximate Cost */}
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: '1fr 1fr', 
+                  gap: '16px',
+                  marginBottom: '20px'
                 }}>
-                  Price Level (1-4)
-                </label>
-                <select
-                  value={content.price_level || ''}
-                  onChange={(e) => setContent({ ...content, price_level: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '8px',
-                    fontSize: '16px',
-                    backgroundColor: 'white',
-                    boxSizing: 'border-box'
-                  }}
-                >
-                  <option value="">Not specified</option>
-                  <option value="1">1 - Inexpensive</option>
-                  <option value="2">2 - Moderate</option>
-                  <option value="3">3 - Expensive</option>
-                  <option value="4">4 - Very Expensive</option>
-                </select>
-              </div>
-              <div>
-                <label style={{ 
-                  display: 'block', 
-                  marginBottom: '8px', 
-                  fontSize: '14px', 
-                  fontWeight: '500',
-                  color: '#6b7280'
-                }}>
-                  Approximate Cost
-                </label>
-                <input
-                  type="text"
-                  value={content.approx_cost || ''}
-                  onChange={(e) => setContent({ ...content, approx_cost: e.target.value })}
-                  placeholder="Approximate Cost"
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '8px',
-                    fontSize: '16px',
-                    boxSizing: 'border-box'
-                  }}
-                />
-              </div>
-            </div>
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '8px', 
+                      fontSize: '14px', 
+                      fontWeight: '500',
+                      color: '#6b7280'
+                    }}>
+                      Price Level (1-4)
+                    </label>
+                    <select
+                      value={currentLocation.price_level || ''}
+                      onChange={(e) => updateCurrentLocation({ price_level: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        backgroundColor: 'white',
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      <option value="">Not specified</option>
+                      <option value="1">1 - Inexpensive</option>
+                      <option value="2">2 - Moderate</option>
+                      <option value="3">3 - Expensive</option>
+                      <option value="4">4 - Very Expensive</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '8px', 
+                      fontSize: '14px', 
+                      fontWeight: '500',
+                      color: '#6b7280'
+                    }}>
+                      Approximate Cost
+                    </label>
+                    <input
+                      type="text"
+                      value={currentLocation.approx_cost || ''}
+                      onChange={(e) => updateCurrentLocation({ approx_cost: e.target.value })}
+                      placeholder="Approximate Cost"
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         );
 
