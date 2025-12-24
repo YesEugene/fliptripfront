@@ -717,8 +717,13 @@ export default function TripVisualizerPage() {
           setBlocks(prev => [...prev, data.block].sort((a, b) => (a.order_index || 0) - (b.order_index || 0)));
         } else {
           // Update existing block in local state
+          // Use updatedBlock content if server response doesn't have the latest content
+          const finalBlock = data.block.content?.mainLocation 
+            ? data.block 
+            : { ...data.block, content: updatedBlock.content };
+          
           setBlocks(prev => 
-            prev.map(b => b.id === updatedBlock.id ? data.block : b)
+            prev.map(b => b.id === updatedBlock.id ? finalBlock : b)
               .sort((a, b) => (a.order_index || 0) - (b.order_index || 0))
           );
         }
@@ -764,14 +769,33 @@ export default function TripVisualizerPage() {
   };
 
   const handleSwitchLocation = async (updatedBlock) => {
+    console.log('handleSwitchLocation called with:', updatedBlock);
+    
+    // Save the original block for potential rollback
+    const originalBlock = blocks.find(b => b.id === updatedBlock.id);
+    
     // Update the block content when switching main and alternative locations
     // First update local state immediately for instant UI feedback
-    setBlocks(prev => prev.map(b => 
-      b.id === updatedBlock.id ? updatedBlock : b
-    ));
+    setBlocks(prev => {
+      const updated = prev.map(b => 
+        b.id === updatedBlock.id ? updatedBlock : b
+      );
+      console.log('Updated blocks state:', updated.find(b => b.id === updatedBlock.id));
+      return updated;
+    });
     
     // Then save to database
-    await handleSaveBlock(updatedBlock);
+    try {
+      await handleSaveBlock(updatedBlock);
+    } catch (error) {
+      console.error('Error saving location switch:', error);
+      // Revert state on error
+      if (originalBlock) {
+        setBlocks(prev => prev.map(b => 
+          b.id === updatedBlock.id ? originalBlock : b
+        ));
+      }
+    }
   };
 
   const handleMoveBlock = async (blockId, direction) => {

@@ -37,7 +37,15 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
   
   // Handle switching between main and alternative locations
   const handleSwitchLocation = (alternativeIndex) => {
-    if (!onSwitchLocation) return;
+    if (!onSwitchLocation) {
+      console.warn('onSwitchLocation callback not provided');
+      return;
+    }
+    
+    if (alternativeIndex < 0 || alternativeIndex >= alternativeLocations.length) {
+      console.warn('Invalid alternative location index:', alternativeIndex);
+      return;
+    }
     
     const newMainLocation = alternativeLocations[alternativeIndex];
     const newAlternativeLocations = [...alternativeLocations];
@@ -48,6 +56,12 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
       mainLocation: newMainLocation,
       alternativeLocations: newAlternativeLocations
     };
+    
+    console.log('Switching locations:', {
+      oldMain: mainLocation.title,
+      newMain: newMainLocation.title,
+      updatedContent
+    });
     
     onSwitchLocation({ ...block, content: updatedContent });
   };
@@ -175,17 +189,21 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
               </h4>
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-                gap: '12px'
+                gridTemplateColumns: 'repeat(auto-fill, minmax(105px, 1fr))',
+                gap: '10px'
               }}>
                 {alternativeLocations.map((altLocation, index) => (
                   <div
                     key={index}
-                    onClick={() => handleSwitchLocation(index)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleSwitchLocation(index);
+                    }}
                     style={{
                       cursor: 'pointer',
                       border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
+                      borderRadius: '6px',
                       overflow: 'hidden',
                       transition: 'all 0.2s',
                       backgroundColor: 'white'
@@ -205,38 +223,38 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                         alt={altLocation.title || 'Alternative location'} 
                         style={{ 
                           width: '100%', 
-                          height: '120px',
+                          height: '84px',
                           objectFit: 'cover'
                         }} 
                       />
                     ) : (
                       <div style={{
                         width: '100%',
-                        height: '120px',
+                        height: '84px',
                         backgroundColor: '#e5e7eb',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         color: '#9ca3af',
-                        fontSize: '12px'
+                        fontSize: '10px'
                       }}>
                         No photo
                       </div>
                     )}
-                    <div style={{ padding: '8px' }}>
+                    <div style={{ padding: '6px' }}>
                       <h5 style={{ 
-                        fontSize: '12px', 
+                        fontSize: '11px', 
                         fontWeight: '600', 
-                        marginBottom: '4px',
+                        marginBottom: '3px',
                         color: '#111827',
-                        lineHeight: '1.3'
+                        lineHeight: '1.2'
                       }}>
                         {altLocation.title || 'Alternative location'}
                       </h5>
                       {altLocation.price_level && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
-                          <span style={{ color: '#f59e0b', fontSize: '10px' }}>⭐</span>
-                          <span style={{ fontSize: '11px', color: '#6b7280' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginTop: '3px' }}>
+                          <span style={{ color: '#f59e0b', fontSize: '9px' }}>⭐</span>
+                          <span style={{ fontSize: '10px', color: '#6b7280' }}>
                             {altLocation.price_level}
                           </span>
                         </div>
