@@ -26,6 +26,7 @@ import Photo1Image from '../../../assets/Photo-1.jpg';
 import Photo2Image from '../../../assets/Photo-2.jpg';
 import Photo3Image from '../../../assets/Photo-3.jpg';
 import PhotoImage from '../../../assets/Photo.jpg';
+import SlideImage from '../../../assets/Slide.jpg';
 import { getTourById } from '../../../services/api';
 import BlockRenderer from '../components/BlockRenderer';
 import TextEditor from '../components/TextEditor';
