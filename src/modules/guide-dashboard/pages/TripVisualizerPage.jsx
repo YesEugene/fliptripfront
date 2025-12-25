@@ -1882,15 +1882,15 @@ export default function TripVisualizerPage() {
         display: 'flex',
         flexDirection: 'column'
       }}>
-        {/* White button panel - dynamic height: 75px on mobile (to fit buttons + 10px), 65px on desktop */}
+        {/* White button panel - dynamic height: 95px on mobile (75px + 20px), 85px on desktop (65px + 20px) */}
         <div style={{
           width: '100%',
-          height: isMobile ? '75px' : '65px',
+          height: isMobile ? '95px' : '85px',
           backgroundColor: 'white',
           boxShadow: '0px -20px 18.4px 0px rgba(0, 0, 0, 0.04)',
           display: 'flex',
           alignItems: 'center',
-          padding: isMobile ? '10px 0' : '0'
+          padding: isMobile ? '20px 0' : '10px 0'
         }}>
           {/* Inner container matching content width */}
           <div style={{
@@ -1902,7 +1902,8 @@ export default function TripVisualizerPage() {
             flexDirection: isMobile ? 'column' : 'row',
             alignItems: isMobile ? 'stretch' : 'center',
             justifyContent: isMobile ? 'flex-start' : 'space-between',
-            gap: '12px'
+            gap: '12px',
+            marginTop: '10px' // Поднимаем все кнопки на 10px
           }}>
             {/* First row on mobile: Add New Block and Save as Draft side by side */}
             <div style={{
