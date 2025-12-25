@@ -1849,84 +1849,8 @@ export default function TripVisualizerPage() {
           </div>
         ))}
 
-        {/* Action buttons - Add Block and Save as Draft */}
-        <div style={{ 
-          display: 'flex', 
-          gap: '12px', 
-          marginBottom: '24px', 
-          marginTop: '-10px',
-          flexWrap: 'wrap'
-        }}>
-          <button
-            onClick={() => setShowBlockSelector(true)}
-            style={{
-              flex: '1',
-              minWidth: '150px',
-              padding: '14px 28px',
-              backgroundColor: '#fbbf24',
-              color: '#111827',
-              border: 'none',
-              borderRadius: '10px',
-              cursor: 'pointer',
-              fontSize: '16px',
-              fontWeight: '600',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = '#f59e0b';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = '#fbbf24';
-            }}
-          >
-            <span style={{ fontSize: '22px', fontWeight: 'bold', lineHeight: 1 }}>+</span>
-            Add block
-          </button>
-          <button
-            onClick={handleSaveAsDraft}
-            disabled={!isHeaderValid()}
-            style={{
-              flex: '1',
-              minWidth: '150px',
-              padding: '14px 28px',
-              backgroundColor: isHeaderValid() ? '#6b7280' : '#d1d5db',
-              color: 'white',
-              border: 'none',
-              borderRadius: '10px',
-              cursor: isHeaderValid() ? 'pointer' : 'not-allowed',
-              fontSize: '16px',
-              fontWeight: '600',
-              transition: 'all 0.2s',
-              opacity: isHeaderValid() ? 1 : 0.6
-            }}
-            onMouseEnter={(e) => {
-              if (isHeaderValid() && !e.target.disabled) {
-                e.target.style.backgroundColor = '#4b5563';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (isHeaderValid() && !e.target.disabled) {
-                e.target.style.backgroundColor = '#6b7280';
-              }
-            }}
-            title={!isHeaderValid() ? 'Please fill in City, Title, Description, and Preview Photo' : ''}
-          >
-            Save as Draft
-          </button>
-        </div>
-
-        {/* Tour Settings Block */}
-        <div style={{
-          backgroundColor: 'white',
-          padding: '24px',
-          borderRadius: '12px',
-          marginBottom: '24px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-        }}>
+        {/* Spacer to prevent content from being hidden behind fixed bottom panel */}
+        <div style={{ height: isTourSettingsCollapsed ? '120px' : '600px' }} />
           <div 
             style={{ 
               display: 'flex', 
