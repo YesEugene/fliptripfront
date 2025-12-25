@@ -627,7 +627,11 @@ export default function TripVisualizerPage() {
         };
         break;
       case 'slide':
-        defaultContent = { title: 'Slide Title', photo: null, text: 'Slide description' };
+        defaultContent = { 
+          title: 'Neighborhoods Matter More Than Attractions', 
+          photo: SlideImage, 
+          text: 'In Barcelona, the real experience rarely happens at the main sights.\nIt happens inside neighborhoods — between daily routines, local cafés, and streets you didn\'t plan to walk down.' 
+        };
         break;
       case '3columns':
         defaultContent = { 

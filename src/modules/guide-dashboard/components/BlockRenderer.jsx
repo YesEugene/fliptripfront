@@ -618,7 +618,13 @@ function SlideBlock({ block, onEdit }) {
           No photo
         </div>
       )}
-      <p style={{ color: '#6b7280', fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
+      <p style={{ 
+        color: '#6b7280', 
+        fontSize: '14px', 
+        lineHeight: '1.6', 
+        margin: 0,
+        whiteSpace: 'pre-line'
+      }}>
         {text}
       </p>
     </div>
