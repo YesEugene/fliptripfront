@@ -95,6 +95,7 @@ export default function TripVisualizerPage() {
 
   // Tour settings state
   const [tourSettings, setTourSettings] = useState({
+    selfGuided: false, // Self-guided is now optional
     withGuide: false,
     price: {
       pdfPrice: 16,
@@ -115,6 +116,9 @@ export default function TripVisualizerPage() {
   const [tagInput, setTagInput] = useState('');
   const [tagSuggestions, setTagSuggestions] = useState([]);
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
+
+  // Tour settings block collapsed state
+  const [isTourSettingsCollapsed, setIsTourSettingsCollapsed] = useState(true);
 
   useEffect(() => {
     loadUser();
@@ -464,7 +468,7 @@ export default function TripVisualizerPage() {
 
       // Validate tour settings
       if (!isTourSettingsValid()) {
-        alert('Please complete tour settings. If "With Guide" is selected, fill all required fields (Price, Meeting Point, Meeting Time, and at least one Available Date).');
+        alert('Please select at least one tour format (Self-guided or With Guide). If "With Guide" is selected, fill all required fields (Price, Meeting Point, Meeting Time, and at least one Available Date).');
         return;
       }
       
@@ -552,8 +556,9 @@ export default function TripVisualizerPage() {
             preview: tourInfo.preview || null,
             previewType: 'image',
             status: 'pending',
-            format: tourSettings.withGuide ? 'guided' : 'self-guided',
+            format: tourSettings.withGuide ? 'guided' : (tourSettings.selfGuided ? 'self-guided' : 'self-guided'),
             withGuide: tourSettings.withGuide,
+            selfGuided: tourSettings.selfGuided,
             price: {
               pdfPrice: tourSettings.price.pdfPrice || 16,
               guidedPrice: tourSettings.price.guidedPrice || 0,
@@ -598,7 +603,12 @@ export default function TripVisualizerPage() {
   };
 
   const isTourSettingsValid = () => {
-    // Self-guided is always available, so we just need to check if With Guide is properly configured if selected
+    // At least one format must be selected
+    if (!tourSettings.selfGuided && !tourSettings.withGuide) {
+      return false;
+    }
+    
+    // If With Guide is selected, all required fields must be filled
     if (tourSettings.withGuide) {
       return (
         tourSettings.price.guidedPrice > 0 &&
@@ -609,7 +619,8 @@ export default function TripVisualizerPage() {
         tourSettings.price.availableDates.every(date => date !== '')
       );
     }
-    // If only self-guided, settings are valid
+    
+    // If only self-guided is selected, settings are valid
     return true;
   };
 
@@ -1566,6 +1577,76 @@ export default function TripVisualizerPage() {
           </div>
         ))}
 
+        {/* Action buttons - Add Block and Save as Draft */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '12px', 
+          marginBottom: '24px', 
+          marginTop: '-10px',
+          flexWrap: 'wrap'
+        }}>
+          <button
+            onClick={() => setShowBlockSelector(true)}
+            style={{
+              flex: '1',
+              minWidth: '150px',
+              padding: '14px 28px',
+              backgroundColor: '#fbbf24',
+              color: '#111827',
+              border: 'none',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#f59e0b';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = '#fbbf24';
+            }}
+          >
+            <span style={{ fontSize: '22px', fontWeight: 'bold', lineHeight: 1 }}>+</span>
+            Add block
+          </button>
+          <button
+            onClick={handleSaveAsDraft}
+            disabled={!isHeaderValid()}
+            style={{
+              flex: '1',
+              minWidth: '150px',
+              padding: '14px 28px',
+              backgroundColor: isHeaderValid() ? '#6b7280' : '#d1d5db',
+              color: 'white',
+              border: 'none',
+              borderRadius: '10px',
+              cursor: isHeaderValid() ? 'pointer' : 'not-allowed',
+              fontSize: '16px',
+              fontWeight: '600',
+              transition: 'all 0.2s',
+              opacity: isHeaderValid() ? 1 : 0.6
+            }}
+            onMouseEnter={(e) => {
+              if (isHeaderValid() && !e.target.disabled) {
+                e.target.style.backgroundColor = '#4b5563';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (isHeaderValid() && !e.target.disabled) {
+                e.target.style.backgroundColor = '#6b7280';
+              }
+            }}
+            title={!isHeaderValid() ? 'Please fill in City, Title, Description, and Preview Photo' : ''}
+          >
+            Save as Draft
+          </button>
+        </div>
+
         {/* Tour Settings Block */}
         <div style={{
           backgroundColor: 'white',
@@ -1574,42 +1655,67 @@ export default function TripVisualizerPage() {
           marginBottom: '24px',
           boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
         }}>
-          <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '8px' }}>
-            Tour Settings
-          </h2>
-          <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '24px' }}>
-            Complete the settings to submit your tour for moderation. Review takes up to 24 hours.
-          </p>
-
-          {/* Tour Format & Pricing Section */}
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500', fontSize: '16px' }}>
-              Tour Format & Pricing
-            </label>
-            
-            {/* PDF Format (Default - Always Available) */}
-            <div style={{
-              padding: '16px',
-              border: '1px solid #d1d5db',
-              borderRadius: '8px',
-              marginBottom: '16px',
-              backgroundColor: '#f0fdf4',
-              borderLeft: '4px solid #10b981'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ 
-                  marginRight: '8px', 
-                  fontSize: '20px',
-                  color: '#10b981'
-                }}>✓</span>
-                <strong style={{ fontSize: '16px' }}>Self-guided Tour (PDF) - Always Available</strong>
-              </div>
-              <div style={{ marginLeft: '28px', color: '#6b7280', fontSize: '14px' }}>
-                Fixed price: <strong style={{ color: '#059669' }}>${tourSettings.price.pdfPrice || 16}</strong>
-                <br />
-                <span style={{ fontSize: '12px' }}>Travelers can download the PDF route and explore independently</span>
-              </div>
+          <div 
+            style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              cursor: 'pointer',
+              marginBottom: isTourSettingsCollapsed ? 0 : '8px'
+            }}
+            onClick={() => setIsTourSettingsCollapsed(!isTourSettingsCollapsed)}
+          >
+            <div>
+              <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '4px' }}>
+                Tour Settings
+              </h2>
+              <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
+                Complete the settings to submit your tour for moderation. Review takes up to 24 hours.
+              </p>
             </div>
+            <span style={{ fontSize: '24px', color: '#6b7280' }}>
+              {isTourSettingsCollapsed ? '▼' : '▲'}
+            </span>
+          </div>
+
+          {!isTourSettingsCollapsed && (
+            <>
+              {/* Tour Format & Pricing Section */}
+              <div style={{ marginBottom: '24px', marginTop: '24px' }}>
+                <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500', fontSize: '16px' }}>
+                  Tour Format & Pricing
+                </label>
+                
+                {/* Self-guided Tour (Optional Checkbox) */}
+                <div style={{
+                  padding: '16px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  marginBottom: '16px',
+                  backgroundColor: tourSettings.selfGuided ? '#f0fdf4' : '#f9fafb'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                    <input
+                      type="checkbox"
+                      checked={tourSettings.selfGuided || false}
+                      onChange={(e) => {
+                        setTourSettings(prev => ({
+                          ...prev,
+                          selfGuided: e.target.checked
+                        }));
+                      }}
+                      style={{ marginRight: '8px', width: '18px', height: '18px', cursor: 'pointer' }}
+                    />
+                    <strong style={{ fontSize: '16px' }}>Self-guided Tour (PDF)</strong>
+                  </div>
+                  {tourSettings.selfGuided && (
+                    <div style={{ marginLeft: '26px', color: '#6b7280', fontSize: '14px' }}>
+                      Fixed price: <strong style={{ color: '#059669' }}>${tourSettings.price.pdfPrice || 16}</strong>
+                      <br />
+                      <span style={{ fontSize: '12px' }}>Travelers can download the PDF route and explore independently</span>
+                    </div>
+                  )}
+                </div>
 
             {/* Guided Tour Format (Optional Checkbox) */}
             <div style={{
@@ -2123,107 +2229,42 @@ export default function TripVisualizerPage() {
               </div>
             )}
           </div>
-        </div>
 
-        {/* Action buttons */}
-        <div style={{ 
-          display: 'flex', 
-          gap: '12px', 
-          marginBottom: '40px', 
-          marginTop: '-10px',
-          flexWrap: 'wrap'
-        }}>
-          <button
-            onClick={() => setShowBlockSelector(true)}
-            style={{
-              flex: '1',
-              minWidth: '150px',
-              padding: '14px 28px',
-              backgroundColor: '#fbbf24',
-              color: '#111827',
-              border: 'none',
-              borderRadius: '10px',
-              cursor: 'pointer',
-              fontSize: '16px',
-              fontWeight: '600',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = '#f59e0b';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = '#fbbf24';
-            }}
-          >
-            <span style={{ fontSize: '22px', fontWeight: 'bold', lineHeight: 1 }}>+</span>
-            Add block
-          </button>
-          <button
-            onClick={handleSaveAsDraft}
-            disabled={!isHeaderValid()}
-            style={{
-              flex: '1',
-              minWidth: '150px',
-              padding: '14px 28px',
-              backgroundColor: isHeaderValid() ? '#6b7280' : '#d1d5db',
-              color: 'white',
-              border: 'none',
-              borderRadius: '10px',
-              cursor: isHeaderValid() ? 'pointer' : 'not-allowed',
-              fontSize: '16px',
-              fontWeight: '600',
-              transition: 'all 0.2s',
-              opacity: isHeaderValid() ? 1 : 0.6
-            }}
-            onMouseEnter={(e) => {
-              if (isHeaderValid() && !e.target.disabled) {
-                e.target.style.backgroundColor = '#4b5563';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (isHeaderValid() && !e.target.disabled) {
-                e.target.style.backgroundColor = '#6b7280';
-              }
-            }}
-            title={!isHeaderValid() ? 'Please fill in City, Title, Description, and Preview Photo' : ''}
-          >
-            Save as Draft
-          </button>
-          <button
-            onClick={handleSubmitForModeration}
-            disabled={!isHeaderValid() || !isTourSettingsValid()}
-            style={{
-              flex: '1',
-              minWidth: '150px',
-              padding: '14px 28px',
-              backgroundColor: (isHeaderValid() && isTourSettingsValid()) ? '#4ade80' : '#d1d5db',
-              color: (isHeaderValid() && isTourSettingsValid()) ? '#111827' : '#9ca3af',
-              border: 'none',
-              borderRadius: '10px',
-              cursor: (isHeaderValid() && isTourSettingsValid()) ? 'pointer' : 'not-allowed',
-              fontSize: '16px',
-              fontWeight: '600',
-              transition: 'all 0.2s',
-              opacity: (isHeaderValid() && isTourSettingsValid()) ? 1 : 0.6
-            }}
-            onMouseEnter={(e) => {
-              if (isHeaderValid() && isTourSettingsValid() && !e.target.disabled) {
-                e.target.style.backgroundColor = '#22c55e';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (isHeaderValid() && isTourSettingsValid() && !e.target.disabled) {
-                e.target.style.backgroundColor = '#4ade80';
-              }
-            }}
-            title={!isHeaderValid() ? 'Please fill in City, Title, Description, and Preview Photo' : (!isTourSettingsValid() ? 'Please complete tour settings (if With Guide is selected, fill all required fields)' : '')}
-          >
-            Submit for Moderation
-          </button>
+          {/* Submit for Moderation Button - Inside Tour Settings Block */}
+          <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #e5e7eb' }}>
+            <button
+              onClick={handleSubmitForModeration}
+              disabled={!isHeaderValid() || !isTourSettingsValid()}
+              style={{
+                width: '100%',
+                padding: '14px 28px',
+                backgroundColor: (isHeaderValid() && isTourSettingsValid()) ? '#4ade80' : '#d1d5db',
+                color: (isHeaderValid() && isTourSettingsValid()) ? '#111827' : '#9ca3af',
+                border: 'none',
+                borderRadius: '10px',
+                cursor: (isHeaderValid() && isTourSettingsValid()) ? 'pointer' : 'not-allowed',
+                fontSize: '16px',
+                fontWeight: '600',
+                transition: 'all 0.2s',
+                opacity: (isHeaderValid() && isTourSettingsValid()) ? 1 : 0.6
+              }}
+              onMouseEnter={(e) => {
+                if (isHeaderValid() && isTourSettingsValid() && !e.target.disabled) {
+                  e.target.style.backgroundColor = '#22c55e';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (isHeaderValid() && isTourSettingsValid() && !e.target.disabled) {
+                  e.target.style.backgroundColor = '#4ade80';
+                }
+              }}
+              title={!isHeaderValid() ? 'Please fill in City, Title, Description, and Preview Photo' : (!isTourSettingsValid() ? 'Please select at least one tour format (Self-guided or With Guide)' : '')}
+            >
+              Submit for Moderation
+            </button>
+          </div>
+            </>
+          )}
         </div>
       </div>
 
