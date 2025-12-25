@@ -1869,7 +1869,7 @@ export default function TripVisualizerPage() {
         ))}
 
         {/* Spacer to prevent content from being hidden behind fixed bottom panel */}
-        <div style={{ height: isTourSettingsCollapsed ? (isMobile ? '105px' : '95px') : '80vh' }} />
+        <div style={{ height: isTourSettingsCollapsed ? (isMobile ? '105px' : '65px') : '80vh' }} />
       </div>
 
       {/* Fixed Bottom Panel - Action buttons and Tour Settings */}
@@ -1882,15 +1882,15 @@ export default function TripVisualizerPage() {
         display: 'flex',
         flexDirection: 'column'
       }}>
-        {/* White button panel - dynamic height: 105px on mobile (95px + 10px), 95px on desktop (85px + 10px) */}
+        {/* White button panel - dynamic height: 105px on mobile, 65px on desktop */}
         <div style={{
           width: '100%',
-          height: isMobile ? '105px' : '95px',
+          height: isMobile ? '105px' : '65px',
           backgroundColor: 'white',
           boxShadow: '0px -20px 18.4px 0px rgba(0, 0, 0, 0.04)',
           display: 'flex',
           alignItems: 'center',
-          padding: isMobile ? '30px 0' : '20px 0'
+          padding: isMobile ? '30px 0' : '0'
         }}>
           {/* Inner container matching content width */}
           <div style={{
@@ -1903,7 +1903,7 @@ export default function TripVisualizerPage() {
             alignItems: isMobile ? 'stretch' : 'center',
             justifyContent: isMobile ? 'flex-start' : 'space-between',
             gap: '12px',
-            marginTop: '20px' // Поднимаем все кнопки на 20px (было 10px, добавили еще 10px)
+            marginTop: isMobile ? '30px' : '0' // Поднимаем все кнопки на 30px в мобильной версии (было 20px, добавили еще 10px)
           }}>
             {/* First row on mobile: Add New Block and Save as Draft side by side */}
             <div style={{
