@@ -722,28 +722,38 @@ export default function GuideDashboardPage() {
                           Delete
                         </button>
                         {/* Manage Availability button - only for tours with guide */}
-                        {(tour.withGuide || tour.default_format === 'with_guide' || tour.format === 'guided') && (
-                          <button
-                            onClick={() => setAvailabilityTour(tour)}
-                            style={{
-                              flex: 1,
-                              minWidth: '80px',
-                              padding: '10px 16px',
-                              backgroundColor: '#8b5cf6',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '8px',
-                              fontSize: '14px',
-                              fontWeight: '500',
-                              cursor: 'pointer',
-                              transition: 'background-color 0.2s'
-                            }}
-                            onMouseEnter={(e) => e.target.style.backgroundColor = '#7c3aed'}
-                            onMouseLeave={(e) => e.target.style.backgroundColor = '#8b5cf6'}
-                          >
-                            Availability
-                          </button>
-                        )}
+                        {(() => {
+                          // Check if tour supports guide format from various sources
+                          const supportsGuide = tour.withGuide || 
+                                                tour.default_format === 'with_guide' || 
+                                                tour.default_format === 'guided' ||
+                                                tour.format === 'guided' ||
+                                                tour.format === 'with_guide' ||
+                                                (tour.draft_data && tour.draft_data.tourSettings && tour.draft_data.tourSettings.withGuide);
+                          
+                          return supportsGuide ? (
+                            <button
+                              onClick={() => setAvailabilityTour(tour)}
+                              style={{
+                                flex: 1,
+                                minWidth: '80px',
+                                padding: '10px 16px',
+                                backgroundColor: '#8b5cf6',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontSize: '14px',
+                                fontWeight: '500',
+                                cursor: 'pointer',
+                                transition: 'background-color 0.2s'
+                              }}
+                              onMouseEnter={(e) => e.target.style.backgroundColor = '#7c3aed'}
+                              onMouseLeave={(e) => e.target.style.backgroundColor = '#8b5cf6'}
+                            >
+                              Availability
+                            </button>
+                          ) : null;
+                        })()}
                       </div>
                     </div>
                   );
