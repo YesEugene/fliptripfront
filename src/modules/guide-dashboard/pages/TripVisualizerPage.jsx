@@ -1955,7 +1955,7 @@ export default function TripVisualizerPage() {
                   backgroundColor: '#E9EBEF',
                   color: '#111827',
                   border: 'none',
-                  borderRadius: '5px',
+                  borderRadius: '10px',
                   cursor: isHeaderValid() ? 'pointer' : 'not-allowed',
                   fontSize: '14px',
                   fontWeight: '600',
