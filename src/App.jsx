@@ -14,7 +14,8 @@ import { LoginPage, RegisterPage, ProtectedRoute } from './modules/auth';
 import { UserDashboardPage } from './modules/user-dashboard';
 
 // Guide Dashboard Module
-import { GuideDashboardPage, CreateTourPage, EditTourPage, ProfileSettingsPage, TripVisualizerPage } from './modules/guide-dashboard';
+import { GuideDashboardPage, CreateTourPage, ProfileSettingsPage, TripVisualizerPage } from './modules/guide-dashboard';
+// EditTourPage removed - editing now done in Trip Visualizer
 
 // Admin Dashboard Module
 import { AdminDashboardPage, AdminLocationsPage, AdminToursPage, AdminUsersPage, AdminLoginPage } from './modules/admin-dashboard';
