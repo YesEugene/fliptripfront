@@ -25,6 +25,7 @@ import PhotoTextImage from '../../../assets/Photo_text.png';
 import Photo1Image from '../../../assets/Photo-1.jpg';
 import Photo2Image from '../../../assets/Photo-2.jpg';
 import Photo3Image from '../../../assets/Photo-3.jpg';
+import PhotoImage from '../../../assets/Photo.jpg';
 import { getTourById } from '../../../services/api';
 import BlockRenderer from '../components/BlockRenderer';
 import TextEditor from '../components/TextEditor';
@@ -646,7 +647,10 @@ export default function TripVisualizerPage() {
         };
         break;
       case 'photo':
-        defaultContent = { photo: null, caption: '' };
+        defaultContent = { 
+          photo: PhotoImage, 
+          caption: 'This is me here.\nAnd this is usually where the city starts to feel real.' 
+        };
         break;
       case 'divider':
         defaultContent = { style: 'solid' };
