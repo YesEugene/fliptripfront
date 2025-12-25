@@ -21,6 +21,7 @@ import BarcelonaExampleImage from '../../../assets/Barcelona-example.png';
 import SantAntoniMarketImage from '../../../assets/Sant Antoni Market.jpg';
 import ElRavalImage from '../../../assets/El Raval Backstreets.webp';
 import MontjuicImage from '../../../assets/Montjuïc Hill (Miradors & Paths).jpg';
+import PhotoTextImage from '../../../assets/Photo_text.png';
 import { getTourById } from '../../../services/api';
 import BlockRenderer from '../components/BlockRenderer';
 import TextEditor from '../components/TextEditor';
@@ -614,7 +615,11 @@ export default function TripVisualizerPage() {
         };
         break;
       case 'photo_text':
-        defaultContent = { photo: null, text: 'New photo and text block', alignment: 'left' };
+        defaultContent = { 
+          photo: PhotoTextImage, 
+          text: 'Barcelona reveals itself between places, not inside them.\n\nThe moments that stay with you usually happen while walking without a destination, sitting longer than planned, or choosing not to move on when you easily could.',
+          alignment: 'left' 
+        };
         break;
       case 'slide':
         defaultContent = { title: 'Slide Title', photo: null, text: 'Slide description' };
@@ -1976,7 +1981,8 @@ const hints = {
   locationDescription: 'Describe the place as you experience it.\n\nExplain why it matters in your route and what kind of moment it creates.\nAvoid factual descriptions — focus on atmosphere, rhythm, and feeling.',
   locationPhoto: 'Add a photo that naturally represents this place.\n\nIt doesn\'t need to be perfect, but it should help the reader imagine being there.',
   locationRecommendation: 'Share a small secret, habit, or personal tip.\n\nSomething you\'d tell a friend — where to sit, what to skip, how to stay longer, or when to leave.',
-  categoryOfInterests: 'Select the categories that best describe this location.\n\nThis helps users discover your tour based on what they enjoy and how they travel.'
+  categoryOfInterests: 'Select the categories that best describe this location.\n\nThis helps users discover your tour based on what they enjoy and how they travel.',
+  photoText: 'Use this block to combine an image and a short reflection.'
 };
 
 // Shared HintButton component for all modals
@@ -2557,8 +2563,9 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
         return (
           <>
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+              <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
                 Photo
+                <HintButton hintKey="photoText" />
               </label>
               <div style={{
                 width: '100%',

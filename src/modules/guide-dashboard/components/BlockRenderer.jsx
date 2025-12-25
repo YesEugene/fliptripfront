@@ -366,7 +366,66 @@ function PhotoTextBlock({ block, onEdit }) {
   const photo = content.photo;
   const text = content.text || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
   const alignment = content.alignment || 'left';
+  const [isMobile, setIsMobile] = useState(false);
 
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  // Mobile: image first, then text below
+  if (isMobile) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div>
+          {photo ? (
+            <img 
+              src={photo} 
+              alt="Content" 
+              style={{ 
+                width: '100%', 
+                height: '200px', 
+                objectFit: 'cover', 
+                borderRadius: '8px' 
+              }} 
+            />
+          ) : (
+            <div style={{
+              width: '100%',
+              height: '200px',
+              backgroundColor: '#e5e7eb',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#9ca3af'
+            }}>
+              No photo
+            </div>
+          )}
+        </div>
+        <div>
+          <p style={{ 
+            color: '#111827', 
+            fontSize: '16px', 
+            lineHeight: '1.6',
+            margin: 0,
+            whiteSpace: 'pre-line'
+          }}>
+            {text}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop: side by side
   return (
     <div style={{
       display: 'flex',
@@ -406,7 +465,8 @@ function PhotoTextBlock({ block, onEdit }) {
           color: '#111827', 
           fontSize: '16px', 
           lineHeight: '1.6',
-          margin: 0
+          margin: 0,
+          whiteSpace: 'pre-line'
         }}>
           {text}
         </p>
