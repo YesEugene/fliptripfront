@@ -2340,10 +2340,6 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
 }
 
 function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onOpenLocationSelector }) {
-  // Support both old format (flat) and new format (mainLocation + alternativeLocations)
-  const initialContent = block.content || {};
-  const isOldFormat = !initialContent.mainLocation && (initialContent.title || initialContent.time);
-  
   // Helper function to normalize content
   const normalizeContent = (contentToNormalize) => {
     if (!contentToNormalize || Object.keys(contentToNormalize).length === 0) {
@@ -2368,16 +2364,19 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
       return {};
     }
     
-    if (isOldFormat) {
-      // Convert old format to new format
-      return {
-        mainLocation: contentToNormalize,
-        alternativeLocations: []
-      };
-    }
+    // Check if old format (for location blocks)
+    const isOldFormat = !contentToNormalize.mainLocation && (contentToNormalize.title || contentToNormalize.time);
     
-    // For location blocks, ensure mainLocation structure
     if (block.block_type === 'location') {
+      if (isOldFormat) {
+        // Convert old format to new format
+        return {
+          mainLocation: contentToNormalize,
+          alternativeLocations: []
+        };
+      }
+      
+      // Ensure mainLocation structure exists
       return {
         mainLocation: contentToNormalize.mainLocation || {
           time: '09:00 - 12:00',
@@ -2399,13 +2398,14 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
     return contentToNormalize;
   };
   
+  const initialContent = block.content || {};
   const [content, setContent] = useState(() => normalizeContent(initialContent));
   
   // Update content when block changes (e.g., after save and reload)
   useEffect(() => {
     const updatedContent = normalizeContent(block.content || {});
     setContent(updatedContent);
-  }, [block.id, block.content]);
+  }, [block.id, JSON.stringify(block.content)]);
   
   const [editingLocationIndex, setEditingLocationIndex] = useState(null); // null = main, number = alternative index
   const [interestsStructure, setInterestsStructure] = useState(null);
