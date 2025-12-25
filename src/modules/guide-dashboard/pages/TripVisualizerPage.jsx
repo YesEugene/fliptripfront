@@ -239,10 +239,12 @@ export default function TripVisualizerPage() {
             const availabilityResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/guide-availability?tour_id=${tourIdToLoad}`).catch(() => null);
             if (availabilityResponse && availabilityResponse.ok) {
               const availabilityData = await availabilityResponse.json();
-              if (availabilityData.success && availabilityData.slots) {
+              if (availabilityData.success) {
+                // API returns availability array directly, or slots array
+                const slots = availabilityData.availability || availabilityData.slots || [];
                 // Extract unique dates from availability slots
-                availableDates = [...new Set(availabilityData.slots
-                  .filter(slot => slot.available_spots > 0)
+                availableDates = [...new Set(slots
+                  .filter(slot => slot.available_spots > 0 || (slot.is_available && !slot.is_blocked))
                   .map(slot => slot.date)
                   .filter(Boolean)
                 )].sort();
