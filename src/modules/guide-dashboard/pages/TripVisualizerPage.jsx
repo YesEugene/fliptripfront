@@ -52,6 +52,12 @@ const SUBCATEGORY_NAMES = {
   'events': 'Events'
 };
 
+// Month names for calendar
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+// Weekday names for calendar (Monday first)
+const WEEKDAYS = ['П', 'В', 'С', 'Ч', 'П', 'С', 'В'];
+
 export default function TripVisualizerPage() {
   const navigate = useNavigate();
   const { tourId } = useParams();
@@ -1744,44 +1750,43 @@ export default function TripVisualizerPage() {
               onSwitchLocation={handleSwitchLocation}
             />
             
-            {/* Block Controls - Only visible on hover, positioned at bottom */}
+            {/* Block Controls - Only visible on hover, positioned at top right */}
             <div 
               className="block-controls"
               style={{
                 position: 'absolute',
-                bottom: 0,
-                left: 0,
+                top: 0,
                 right: 0,
-                width: '100%',
                 zIndex: 10,
                 display: 'none',
                 flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'flex-start',
+                justifyContent: 'flex-end',
                 gap: '8px',
                 backgroundColor: 'white',
-                padding: '12px 16px',
-                boxShadow: '0 -2px 8px rgba(0,0,0,0.1)',
-                borderBottom: '1px solid #e5e7eb'
+                padding: '8px',
+                borderRadius: '10px',
+                boxShadow: '0px 1px 19px 0px rgba(0, 0, 0, 0.21)'
               }}
             >
               <button
                 onClick={() => handleMoveBlock(block.id, 'up')}
                 disabled={index === 0}
                 style={{
-                  padding: '8px 12px',
-                  backgroundColor: index === 0 ? '#e5e7eb' : '#3b82f6',
+                  width: '30px',
+                  height: '30px',
+                  backgroundColor: index === 0 ? '#e5e7eb' : '#3E85FC',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '4px',
+                  borderRadius: '5px',
                   cursor: index === 0 ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
+                  fontSize: '16px',
                   fontWeight: '500',
                   opacity: index === 0 ? 0.5 : 1,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  minWidth: '40px'
+                  padding: 0
                 }}
                 title="Move up"
               >
@@ -1791,19 +1796,20 @@ export default function TripVisualizerPage() {
                 onClick={() => handleMoveBlock(block.id, 'down')}
                 disabled={index === blocks.length - 1}
                 style={{
-                  padding: '8px 12px',
-                  backgroundColor: index === blocks.length - 1 ? '#e5e7eb' : '#3b82f6',
+                  width: '30px',
+                  height: '30px',
+                  backgroundColor: index === blocks.length - 1 ? '#e5e7eb' : '#3E85FC',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '4px',
+                  borderRadius: '5px',
                   cursor: index === blocks.length - 1 ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
+                  fontSize: '16px',
                   fontWeight: '500',
                   opacity: index === blocks.length - 1 ? 0.5 : 1,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  minWidth: '40px'
+                  padding: 0
                 }}
                 title="Move down"
               >
@@ -1812,14 +1818,19 @@ export default function TripVisualizerPage() {
               <button
                 onClick={() => handleEditBlock(block)}
                 style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#fbbf24',
+                  width: '80px',
+                  height: '30px',
+                  backgroundColor: '#FFDD00',
                   color: '#111827',
                   border: 'none',
-                  borderRadius: '4px',
+                  borderRadius: '5px',
                   cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500'
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 0
                 }}
                 title="Edit block"
               >
@@ -1832,14 +1843,19 @@ export default function TripVisualizerPage() {
                   }
                 }}
                 style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#ef4444',
+                  width: '80px',
+                  height: '30px',
+                  backgroundColor: '#F66969',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '4px',
+                  borderRadius: '5px',
                   cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500'
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 0
                 }}
                 title="Delete block"
               >
