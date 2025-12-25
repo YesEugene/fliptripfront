@@ -597,6 +597,22 @@ export default function TripVisualizerPage() {
     return !!(tourInfo.city && tourInfo.title && tourInfo.description && tourInfo.preview);
   };
 
+  const isTourSettingsValid = () => {
+    // Self-guided is always available, so we just need to check if With Guide is properly configured if selected
+    if (tourSettings.withGuide) {
+      return (
+        tourSettings.price.guidedPrice > 0 &&
+        tourSettings.price.meetingPoint &&
+        tourSettings.price.meetingTime &&
+        tourSettings.price.availableDates &&
+        tourSettings.price.availableDates.length > 0 &&
+        tourSettings.price.availableDates.every(date => date !== '')
+      );
+    }
+    // If only self-guided, settings are valid
+    return true;
+  };
+
   // Create tour automatically if it doesn't exist (for adding blocks)
   const ensureTourExists = async () => {
     if (tourId) return tourId;
