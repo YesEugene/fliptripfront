@@ -266,6 +266,36 @@ export default function GuideDashboardPage() {
     }
   };
 
+  // Helper function to get block count (excluding header and divider)
+  const getBlockCount = async (tour) => {
+    try {
+      // Try to get blocks from tour_content_blocks
+      const token = localStorage.getItem('authToken');
+      if (!token || !tour.id) return 0;
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://fliptripbackend.vercel.app'}/api/tour-content-blocks?tourId=${tour.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response && response.ok) {
+        const data = await response.json();
+        if (data.success && data.blocks) {
+          // Count blocks excluding 'title' (header) and 'divider'
+          const count = data.blocks.filter(block => 
+            block.block_type !== 'title' && block.block_type !== 'divider'
+          ).length;
+          // Add 1 for header block (hero block with image)
+          return count + 1;
+        }
+      }
+    } catch (error) {
+      console.warn('Could not load blocks count:', error);
+    }
+    return 0;
+  };
+
   // Helper function to get location count from tour structure
   const getLocationCount = (tour) => {
     // Count locations from daily_plan structure
@@ -644,21 +674,33 @@ export default function GuideDashboardPage() {
                           fontSize: '14px',
                           margin: 0
                         }}>
-                          {tour.city || 'No city'}
+                          <strong style={{ color: '#111827' }}>City:</strong> {tour.city?.name || tour.city || 'No city'}
                         </p>
                         <p style={{ 
                           color: '#6b7280', 
                           fontSize: '14px',
                           margin: 0
                         }}>
-                          {locationCount} {locationCount === 1 ? 'location' : 'locations'}
+                          <strong style={{ color: '#111827' }}>Blocks:</strong> {tourBlockCounts[tour.id] || 0}
                         </p>
                         <p style={{ 
                           color: '#6b7280', 
                           fontSize: '14px',
                           margin: 0
                         }}>
-                          {formatDuration(tour)}
+                          <strong style={{ color: '#111827' }}>Views:</strong> {tour.views || 0}
+                        </p>
+                        <p style={{ 
+                          color: '#6b7280', 
+                          fontSize: '14px',
+                          margin: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          <strong style={{ color: '#111827' }}>Rating:</strong> 
+                          <span style={{ color: '#fbbf24' }}>★</span>
+                          <span>4.5</span>
                         </p>
                       </div>
 
