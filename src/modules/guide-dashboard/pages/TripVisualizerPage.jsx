@@ -1737,34 +1737,51 @@ export default function TripVisualizerPage() {
               if (controls) controls.style.display = 'none';
             }}
           >
-            {/* Block Controls - Only visible on hover */}
+            {/* Render Block */}
+            <BlockRenderer 
+              block={block} 
+              onEdit={() => handleEditBlock(block)} 
+              onSwitchLocation={handleSwitchLocation}
+            />
+            
+            {/* Block Controls - Only visible on hover, positioned at bottom */}
             <div 
               className="block-controls"
               style={{
                 position: 'absolute',
-                top: '8px',
-                right: '8px',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                width: '100%',
                 zIndex: 10,
                 display: 'none',
-                gap: '4px',
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                padding: '4px',
-                borderRadius: '6px',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+                gap: '8px',
+                backgroundColor: 'white',
+                padding: '12px 16px',
+                boxShadow: '0 -2px 8px rgba(0,0,0,0.1)',
+                borderBottom: '1px solid #e5e7eb'
               }}
             >
               <button
                 onClick={() => handleMoveBlock(block.id, 'up')}
                 disabled={index === 0}
                 style={{
-                  padding: '4px 8px',
+                  padding: '8px 12px',
                   backgroundColor: index === 0 ? '#e5e7eb' : '#3b82f6',
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: index === 0 ? 'not-allowed' : 'pointer',
-                  fontSize: '12px',
-                  opacity: index === 0 ? 0.5 : 1
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  opacity: index === 0 ? 0.5 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minWidth: '40px'
                 }}
                 title="Move up"
               >
@@ -1774,14 +1791,19 @@ export default function TripVisualizerPage() {
                 onClick={() => handleMoveBlock(block.id, 'down')}
                 disabled={index === blocks.length - 1}
                 style={{
-                  padding: '4px 8px',
+                  padding: '8px 12px',
                   backgroundColor: index === blocks.length - 1 ? '#e5e7eb' : '#3b82f6',
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: index === blocks.length - 1 ? 'not-allowed' : 'pointer',
-                  fontSize: '12px',
-                  opacity: index === blocks.length - 1 ? 0.5 : 1
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  opacity: index === blocks.length - 1 ? 0.5 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minWidth: '40px'
                 }}
                 title="Move down"
               >
@@ -1790,13 +1812,13 @@ export default function TripVisualizerPage() {
               <button
                 onClick={() => handleEditBlock(block)}
                 style={{
-                  padding: '4px 8px',
+                  padding: '8px 16px',
                   backgroundColor: '#fbbf24',
                   color: '#111827',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: 'pointer',
-                  fontSize: '12px',
+                  fontSize: '14px',
                   fontWeight: '500'
                 }}
                 title="Edit block"
@@ -1810,13 +1832,13 @@ export default function TripVisualizerPage() {
                   }
                 }}
                 style={{
-                  padding: '4px 8px',
+                  padding: '8px 16px',
                   backgroundColor: '#ef4444',
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: 'pointer',
-                  fontSize: '12px',
+                  fontSize: '14px',
                   fontWeight: '500'
                 }}
                 title="Delete block"
@@ -1824,13 +1846,6 @@ export default function TripVisualizerPage() {
                 Delete
               </button>
             </div>
-            
-            {/* Render Block */}
-            <BlockRenderer 
-              block={block} 
-              onEdit={() => handleEditBlock(block)} 
-              onSwitchLocation={handleSwitchLocation}
-            />
           </div>
         ))}
 
