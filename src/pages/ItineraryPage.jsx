@@ -1322,9 +1322,18 @@ export default function ItineraryPage() {
     color: '#9ca3af'
   };
 
+  // Determine which format to use: new (contentBlocks) or old (daily_plan)
+  const useNewFormat = contentBlocks.length > 0;
+  console.log('🔍 Format check:', {
+    useNewFormat,
+    contentBlocksCount: contentBlocks.length,
+    hasDailyPlan: !!itinerary?.daily_plan,
+    dailyPlanLength: itinerary?.daily_plan?.length || 0
+  });
+
   // Get image for hero - use tour preview_media_url if available, otherwise city image
   const tourPreviewImage = itinerary?.preview_media_url || tourData?.preview_media_url || tourData?.preview || null;
-  const cityName = itinerary?.tags?.city || formData.city || 'Barcelona';
+  const cityName = itinerary?.tags?.city || formData.city || tourData?.city?.name || (typeof tourData?.city === 'string' ? tourData.city : null) || 'Barcelona';
   const cityImage = getCityImage(cityName);
   const heroImage = tourPreviewImage || cityImage; // Use tour preview if available, otherwise city image
   
@@ -1334,6 +1343,10 @@ export default function ItineraryPage() {
   const guideName = guideInfo?.name || null;
   const guideAvatar = guideInfo?.avatar_url || null;
   
+  // Get tour info for new format (from tourData or tourInfo state)
+  const tourTitle = useNewFormat ? (tourData?.title || '') : (itinerary?.title || generateFallbackTitle(formData));
+  const tourDescription = useNewFormat ? (tourData?.description || '') : (itinerary?.subtitle || generateFallbackSubtitle(formData));
+  
   // Debug logging for author display
   console.log('🔍 Author display check:', {
     tourId,
@@ -1342,7 +1355,10 @@ export default function ItineraryPage() {
     hasGuide: !!tourData?.guide,
     guideInfo,
     guideName,
-    guideAvatar
+    guideAvatar,
+    useNewFormat,
+    tourTitle,
+    tourDescription
   });
 
   return (
@@ -1473,7 +1489,9 @@ export default function ItineraryPage() {
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%)',
+            background: heroImage 
+              ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3), transparent)'
+              : 'linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%)',
             zIndex: 1
           }} />
 
@@ -1485,13 +1503,17 @@ export default function ItineraryPage() {
             marginTop: '0px' // 20px - 20px = 0px (raised by 20px)
           }}>
             <h1 style={{
-              fontSize: '36px',
-              fontWeight: 'bold',
+              fontSize: useNewFormat ? '35px' : '36px',
+              fontWeight: useNewFormat ? '700' : 'bold',
               marginBottom: '16px',
               textShadow: '0 2px 8px rgba(0, 0, 0, 0.7)',
-              lineHeight: '1.2'
+              lineHeight: '1.2',
+              textAlign: useNewFormat ? 'left' : 'left',
+              letterSpacing: useNewFormat ? '-0.3px' : 'normal',
+              fontFamily: useNewFormat ? 'system-ui, -apple-system, sans-serif' : 'inherit',
+              maxWidth: useNewFormat ? '80%' : '100%'
             }}>
-              {itinerary?.title || generateFallbackTitle(formData)}
+              {tourTitle}
             </h1>
 
             {/* Author Info Below Title - Only for DB tours */}
@@ -1643,14 +1665,156 @@ export default function ItineraryPage() {
         </div>
       </div>
 
+      {/* From author block - Show only if using new format (contentBlocks) */}
+      {useNewFormat && guideName && (
+        <div style={{
+          maxWidth: '750px',
+          margin: '0 auto',
+          padding: '0 20px',
+          marginBottom: '40px',
+          marginTop: '-10px'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            padding: '32px',
+            border: '1px solid #D0D0D0',
+            marginBottom: '40px'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              gap: '24px', 
+              alignItems: 'flex-start',
+              flexDirection: isMobile ? 'column' : 'row'
+            }}>
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                flexShrink: 0, 
+                minWidth: isMobile ? '100%' : '120px',
+                width: isMobile ? '100%' : 'auto'
+              }}>
+                <div style={{
+                  width: '100px',
+                  height: '100px',
+                  borderRadius: '50%',
+                  backgroundColor: '#e5e7eb',
+                  overflow: 'hidden',
+                  marginBottom: '12px',
+                  border: '3px solid #f3f4f6'
+                }}>
+                  {guideAvatar ? (
+                    <img src={guideAvatar} alt="Author" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '40px' }}>
+                      👤
+                    </div>
+                  )}
+                </div>
+                <p style={{ 
+                  margin: 0, 
+                  fontSize: '14px', 
+                  color: '#6b7280',
+                  textAlign: 'center',
+                  lineHeight: '1.5',
+                  whiteSpace: 'pre-line'
+                }}>
+                  Tour created{'\n'}by <strong style={{ color: '#111827', fontWeight: '600' }}>{guideName}</strong>
+                </p>
+              </div>
+              <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
+                <h3 style={{ 
+                  fontSize: '20px', 
+                  fontWeight: '500', 
+                  marginBottom: '16px', 
+                  color: '#111827',
+                  marginTop: 0,
+                  textAlign: isMobile ? 'center' : 'left'
+                }}>
+                  A note from the author
+                </h3>
+                <div>
+                  {(() => {
+                    const text = tourDescription || '';
+                    
+                    // Check if text is likely to be more than 5 lines
+                    const lineCount = text ? (text.split('\n').length + Math.ceil(text.replace(/\n/g, '').length / 90)) : 0;
+                    const shouldShowButton = lineCount > 5;
+                    
+                    return (
+                      <>
+                        {isAuthorTextExpanded ? (
+                          <p style={{ 
+                            color: '#4b5563', 
+                            fontSize: '15px', 
+                            lineHeight: isMobile ? '1.5' : '1.7', 
+                            marginBottom: '16px',
+                            marginTop: 0,
+                            whiteSpace: 'pre-line'
+                          }}>
+                            {text}
+                          </p>
+                        ) : (
+                          <p style={{ 
+                            color: '#4b5563', 
+                            fontSize: '15px', 
+                            lineHeight: isMobile ? '1.5' : '1.7', 
+                            marginBottom: shouldShowButton ? '12px' : '16px',
+                            marginTop: 0,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 5,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            whiteSpace: 'pre-line'
+                          }}>
+                            {text}
+                          </p>
+                        )}
+                        {shouldShowButton && (
+                          <button 
+                            onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
+                            style={{
+                              padding: '8px 16px',
+                              backgroundColor: '#EFEFEF',
+                              color: '#6b7280',
+                              border: 'none',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              fontSize: '13px',
+                              fontWeight: '500',
+                              transition: 'all 0.2s',
+                              marginTop: '4px'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = '#e5e5e5';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = '#EFEFEF';
+                            }}
+                          >
+                            {isAuthorTextExpanded ? 'Read less' : 'Read more'}
+                          </button>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="content-section">
-        {/* Subtitle Card - Description only */}
-        <div className="enhanced-card">
-          <p 
-            className={`subtitle ${!isSubtitleExpanded ? 'subtitle-collapsed' : ''}`}
-          >
-            {itinerary?.subtitle || generateFallbackSubtitle(formData)}
-          </p>
+        {/* Subtitle Card - Description only - Show only if using old format */}
+        {!useNewFormat && (
+          <div className="enhanced-card">
+            <p 
+              className={`subtitle ${!isSubtitleExpanded ? 'subtitle-collapsed' : ''}`}
+            >
+              {itinerary?.subtitle || generateFallbackSubtitle(formData)}
+            </p>
           
           {/* Read more button - show only if text is long enough */}
           {(() => {
@@ -2123,13 +2287,45 @@ export default function ItineraryPage() {
           );
         })()}
 
-        {/* Itinerary Plan */}
-        <div className="enhanced-card">
-          <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937', marginBottom: '24px' }}>
-            📅 Day Plan
-          </h2>
-          
-          {(() => {
+        {/* Content Blocks - New Format (using BlockRenderer) */}
+        {useNewFormat && (
+          <div style={{ maxWidth: '750px', margin: '0 auto', padding: '0 20px' }}>
+            {/* Determine which blocks to show based on preview mode */}
+            {(() => {
+              const shouldLimitBlocks = previewOnly && !isPaid;
+              const blocksToShow = shouldLimitBlocks 
+                ? contentBlocks.slice(0, 2) // Show only first 2 blocks in preview
+                : contentBlocks; // Show all blocks if paid or not preview
+              
+              return (
+                <>
+                  {blocksToShow.map((block, index) => (
+                    <div 
+                      key={block.id} 
+                      style={{ marginBottom: '54px' }}
+                    >
+                      <BlockRenderer 
+                        block={block} 
+                        onEdit={() => {}} // No edit on client page
+                        onSwitchLocation={() => {}} // No switch on client page
+                      />
+                    </div>
+                  ))}
+                  
+                </>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* Itinerary Plan - Old Format (backward compatibility) */}
+        {!useNewFormat && (
+          <div className="enhanced-card">
+            <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937', marginBottom: '24px' }}>
+              📅 Day Plan
+            </h2>
+            
+            {(() => {
             let itemCount = 0;
             const shouldShowUnlockBlock = previewOnly && !isPaid;
             let shouldInsertUnlockAfterSecond = false;
