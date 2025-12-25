@@ -1895,56 +1895,58 @@ export default function TripVisualizerPage() {
             width: '100%',
             margin: '0 auto',
             padding: '0 20px',
-            display: isMobile ? 'flex' : 'flex',
+            display: 'flex',
             flexDirection: isMobile ? 'column' : 'row',
             alignItems: isMobile ? 'stretch' : 'center',
             justifyContent: isMobile ? 'flex-start' : 'space-between',
-            gap: isMobile ? '12px' : '12px'
+            gap: '12px'
           }}>
-            {/* Add New Block button - left aligned on desktop, full width on mobile */}
-            <button
-              onClick={() => setShowBlockSelector(true)}
-              style={{
-                width: isMobile ? '100%' : '145px',
-                height: '40px',
-                backgroundColor: '#FFDD00',
-                color: '#111827',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '600',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = '#f59e0b';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = '#FFDD00';
-              }}
-            >
-              <span style={{ fontSize: '18px', fontWeight: 'bold', lineHeight: 1 }}>+</span>
-              Add New Block
-            </button>
-
-            {/* Right side buttons - stacked on mobile */}
+            {/* First row on mobile: Add New Block and Save as Draft side by side */}
             <div style={{
               display: 'flex',
-              flexDirection: isMobile ? 'column' : 'row',
-              alignItems: 'stretch',
+              flexDirection: isMobile ? 'row' : 'row',
+              alignItems: 'center',
               gap: '12px',
-              width: isMobile ? '100%' : 'auto'
+              width: isMobile ? '100%' : 'auto',
+              flex: isMobile ? '1' : '0 0 auto'
             }}>
+              {/* Add New Block button */}
+              <button
+                onClick={() => setShowBlockSelector(true)}
+                style={{
+                  width: isMobile ? '50%' : '145px',
+                  height: '40px',
+                  backgroundColor: '#FFDD00',
+                  color: '#111827',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  transition: 'all 0.2s',
+                  flex: isMobile ? '1' : '0 0 auto'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#f59e0b';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = '#FFDD00';
+                }}
+              >
+                <span style={{ fontSize: '18px', fontWeight: 'bold', lineHeight: 1 }}>+</span>
+                Add New Block
+              </button>
+
               {/* Save as Draft button */}
               <button
                 onClick={handleSaveAsDraft}
                 disabled={!isHeaderValid()}
                 style={{
-                  width: isMobile ? '100%' : '105px',
+                  width: isMobile ? '50%' : '105px',
                   height: '40px',
                   backgroundColor: '#E9EBEF',
                   color: '#111827',
@@ -1954,7 +1956,8 @@ export default function TripVisualizerPage() {
                   fontSize: '14px',
                   fontWeight: '600',
                   transition: 'all 0.2s',
-                  opacity: isHeaderValid() ? 1 : 0.6
+                  opacity: isHeaderValid() ? 1 : 0.6,
+                  flex: isMobile ? '1' : '0 0 auto'
                 }}
                 onMouseEnter={(e) => {
                   if (isHeaderValid() && !e.target.disabled) {
@@ -1970,12 +1973,14 @@ export default function TripVisualizerPage() {
               >
                 Save as Draft
               </button>
+            </div>
 
-              {/* Submit for Moderation button - opens settings */}
+            {/* Second row on mobile: Submit for Moderation button */}
+            {isMobile ? (
               <button
                 onClick={() => setIsTourSettingsCollapsed(!isTourSettingsCollapsed)}
                 style={{
-                  width: isMobile ? '100%' : '185px',
+                  width: '100%',
                   height: '40px',
                   backgroundColor: 'white',
                   color: '#111827',
@@ -2002,7 +2007,39 @@ export default function TripVisualizerPage() {
                   {isTourSettingsCollapsed ? '▼' : '▲'}
                 </span>
               </button>
-            </div>
+            ) : (
+              /* Desktop: Submit for Moderation button on the right */
+              <button
+                onClick={() => setIsTourSettingsCollapsed(!isTourSettingsCollapsed)}
+                style={{
+                  width: '185px',
+                  height: '40px',
+                  backgroundColor: 'white',
+                  color: '#111827',
+                  border: '1px solid #D5D7DC',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#f9fafb';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'white';
+                }}
+              >
+                Submit for Moderation
+                <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                  {isTourSettingsCollapsed ? '▼' : '▲'}
+                </span>
+              </button>
+            )}
           </div>
         </div>
 
