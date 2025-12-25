@@ -432,6 +432,28 @@ export default function ItineraryPage() {
         firstItemApproxCost: tour.daily_plan?.[0]?.blocks?.[0]?.items?.[0]?.approx_cost
       });
       
+      // Load content blocks from tour_content_blocks table FIRST (before checking format)
+      let loadedContentBlocks = [];
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
+        const blocksResponse = await fetch(`${API_BASE_URL}/api/tour-content-blocks?tourId=${tourIdParam}`).catch(() => null);
+        if (blocksResponse && blocksResponse.ok) {
+          const blocksData = await blocksResponse.json();
+          if (blocksData.success && blocksData.blocks) {
+            // Sort blocks by order_index
+            loadedContentBlocks = blocksData.blocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+            setContentBlocks(loadedContentBlocks);
+            console.log('✅ Content blocks loaded:', loadedContentBlocks.length, 'blocks');
+          } else {
+            console.log('ℹ️ No content blocks found for this tour');
+          }
+        } else {
+          console.log('ℹ️ Could not load content blocks (table might not exist for old tours)');
+        }
+      } catch (blocksError) {
+        console.warn('⚠️ Error loading content blocks (non-critical):', blocksError);
+      }
+      
       // Debug: Check tour_days structure for interests
       if (tour.tour_days && Array.isArray(tour.tour_days)) {
         console.log('🔍 Checking tour_days structure for location interests:');
@@ -459,7 +481,8 @@ export default function ItineraryPage() {
       
       // Check if tour uses new format (contentBlocks) or old format (daily_plan)
       // For new format tours, daily_plan might be empty, which is OK
-      const hasContentBlocks = contentBlocks.length > 0;
+      // Use loadedContentBlocks (from API) instead of contentBlocks state (which might not be updated yet)
+      const hasContentBlocks = loadedContentBlocks.length > 0;
       const hasDailyPlan = tour.daily_plan && tour.daily_plan.length > 0;
       
       // Only throw error if tour has neither contentBlocks nor daily_plan
