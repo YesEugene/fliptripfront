@@ -1875,116 +1875,159 @@ export default function TripVisualizerPage() {
         bottom: 0,
         left: 0,
         right: 0,
-        backgroundColor: 'white',
-        boxShadow: '0 -2px 8px rgba(0,0,0,0.1)',
         zIndex: 1000,
-        maxHeight: isTourSettingsCollapsed ? '120px' : '80vh',
-        transition: 'max-height 0.3s ease',
-        overflowY: 'auto',
         display: 'flex',
         flexDirection: 'column'
       }}>
-        {/* Action buttons - Add Block and Save as Draft */}
-        <div style={{ 
-          display: 'flex', 
-          gap: '12px', 
-          padding: '16px 20px',
-          borderBottom: '1px solid #e5e7eb'
+        {/* White button panel - 65px height */}
+        <div style={{
+          width: '100%',
+          height: '65px',
+          backgroundColor: 'white',
+          boxShadow: '0px -20px 18.4px 0px rgba(0, 0, 0, 0.04)',
+          display: 'flex',
+          alignItems: 'center'
         }}>
-          <button
-            onClick={() => setShowBlockSelector(true)}
-            style={{
-              flex: '1',
-              minWidth: '150px',
-              padding: '14px 28px',
-              backgroundColor: '#fbbf24',
-              color: '#111827',
-              border: 'none',
-              borderRadius: '10px',
-              cursor: 'pointer',
-              fontSize: '16px',
-              fontWeight: '600',
+          {/* Inner container matching content width */}
+          <div style={{
+            maxWidth: '1200px',
+            width: '100%',
+            margin: '0 auto',
+            padding: '0 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px'
+          }}>
+            {/* Add New Block button - left aligned */}
+            <button
+              onClick={() => setShowBlockSelector(true)}
+              style={{
+                width: '145px',
+                height: '40px',
+                backgroundColor: '#FFDD00',
+                color: '#111827',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = '#f59e0b';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = '#FFDD00';
+              }}
+            >
+              <span style={{ fontSize: '18px', fontWeight: 'bold', lineHeight: 1 }}>+</span>
+              Add New Block
+            </button>
+
+            {/* Right side buttons */}
+            <div style={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = '#f59e0b';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = '#fbbf24';
-            }}
-          >
-            <span style={{ fontSize: '22px', fontWeight: 'bold', lineHeight: 1 }}>+</span>
-            Add block
-          </button>
-          <button
-            onClick={handleSaveAsDraft}
-            disabled={!isHeaderValid()}
-            style={{
-              flex: '1',
-              minWidth: '150px',
-              padding: '14px 28px',
-              backgroundColor: isHeaderValid() ? '#6b7280' : '#d1d5db',
-              color: 'white',
-              border: 'none',
-              borderRadius: '10px',
-              cursor: isHeaderValid() ? 'pointer' : 'not-allowed',
-              fontSize: '16px',
-              fontWeight: '600',
-              transition: 'all 0.2s',
-              opacity: isHeaderValid() ? 1 : 0.6
-            }}
-            onMouseEnter={(e) => {
-              if (isHeaderValid() && !e.target.disabled) {
-                e.target.style.backgroundColor = '#4b5563';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (isHeaderValid() && !e.target.disabled) {
-                e.target.style.backgroundColor = '#6b7280';
-              }
-            }}
-            title={!isHeaderValid() ? 'Please fill in City, Title, Description, and Preview Photo' : ''}
-          >
-            Save as Draft
-          </button>
+              gap: '12px'
+            }}>
+              {/* Save as Draft button */}
+              <button
+                onClick={handleSaveAsDraft}
+                disabled={!isHeaderValid()}
+                style={{
+                  width: '105px',
+                  height: '40px',
+                  backgroundColor: '#E9EBEF',
+                  color: '#111827',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: isHeaderValid() ? 'pointer' : 'not-allowed',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  transition: 'all 0.2s',
+                  opacity: isHeaderValid() ? 1 : 0.6
+                }}
+                onMouseEnter={(e) => {
+                  if (isHeaderValid() && !e.target.disabled) {
+                    e.target.style.backgroundColor = '#d1d5db';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (isHeaderValid() && !e.target.disabled) {
+                    e.target.style.backgroundColor = '#E9EBEF';
+                  }
+                }}
+                title={!isHeaderValid() ? 'Please fill in City, Title, Description, and Preview Photo' : ''}
+              >
+                Save as Draft
+              </button>
+
+              {/* Submit for Moderation button - opens settings */}
+              <button
+                onClick={() => setIsTourSettingsCollapsed(!isTourSettingsCollapsed)}
+                style={{
+                  width: '185px',
+                  height: '40px',
+                  backgroundColor: 'white',
+                  color: '#111827',
+                  border: '1px solid #D5D7DC',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#f9fafb';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'white';
+                }}
+              >
+                Submit for Moderation
+                <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                  {isTourSettingsCollapsed ? '▼' : '▲'}
+                </span>
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Tour Settings Block */}
-        <div style={{
-          backgroundColor: 'white',
-          padding: '24px'
-        }}>
-          <div 
-            style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              cursor: 'pointer',
-              marginBottom: isTourSettingsCollapsed ? 0 : '8px'
-            }}
-            onClick={() => setIsTourSettingsCollapsed(!isTourSettingsCollapsed)}
-          >
-            <div>
-              <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '4px' }}>
-                Tour Settings
-              </h2>
-              <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
-                Complete the settings to submit your tour for moderation. Review takes up to 24 hours.
-              </p>
-            </div>
-            <span style={{ fontSize: '24px', color: '#6b7280' }}>
-              {isTourSettingsCollapsed ? '▼' : '▲'}
-            </span>
-          </div>
+        {/* Tour Settings Block - Collapsible */}
+        {!isTourSettingsCollapsed && (
+          <div style={{
+            backgroundColor: 'white',
+            padding: '24px 0',
+            maxHeight: 'calc(80vh - 65px)',
+            overflowY: 'auto'
+          }}>
+            {/* Inner container with maxWidth ~700px */}
+            <div style={{
+              maxWidth: '700px',
+              width: '100%',
+              margin: '0 auto',
+              padding: '0 20px'
+            }}>
+              <div style={{ marginBottom: '24px' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '4px' }}>
+                  Tour Settings
+                </h2>
+                <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
+                  Complete the settings to submit your tour for moderation. Review takes up to 24 hours.
+                </p>
+              </div>
 
-          {!isTourSettingsCollapsed && (
-            <>
               {/* Tour Format & Pricing Section */}
-              <div style={{ marginBottom: '24px', marginTop: '24px' }}>
+              <div style={{ marginBottom: '24px' }}>
                 <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500', fontSize: '16px' }}>
                   Tour Format & Pricing
                 </label>
