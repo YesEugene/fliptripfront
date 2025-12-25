@@ -2721,6 +2721,551 @@ export default function TripVisualizerPage() {
             </>
           )}
         </div>
+
+      {/* Fixed Bottom Panel - Action buttons and Tour Settings */}
+      <div style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: 'white',
+        boxShadow: '0 -2px 8px rgba(0,0,0,0.1)',
+        zIndex: 1000,
+        transition: 'transform 0.3s ease',
+        transform: isTourSettingsCollapsed ? 'translateY(0)' : 'translateY(calc(-100% + 120px))',
+        maxHeight: '100vh',
+        overflowY: 'auto'
+      }}>
+        {/* Action buttons - Add Block and Save as Draft */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '12px', 
+          padding: '16px 20px',
+          borderBottom: '1px solid #e5e7eb'
+        }}>
+          <button
+            onClick={() => setShowBlockSelector(true)}
+            style={{
+              flex: '1',
+              minWidth: '150px',
+              padding: '14px 28px',
+              backgroundColor: '#fbbf24',
+              color: '#111827',
+              border: 'none',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#f59e0b';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = '#fbbf24';
+            }}
+          >
+            <span style={{ fontSize: '22px', fontWeight: 'bold', lineHeight: 1 }}>+</span>
+            Add block
+          </button>
+          <button
+            onClick={handleSaveAsDraft}
+            disabled={!isHeaderValid()}
+            style={{
+              flex: '1',
+              minWidth: '150px',
+              padding: '14px 28px',
+              backgroundColor: isHeaderValid() ? '#6b7280' : '#d1d5db',
+              color: 'white',
+              border: 'none',
+              borderRadius: '10px',
+              cursor: isHeaderValid() ? 'pointer' : 'not-allowed',
+              fontSize: '16px',
+              fontWeight: '600',
+              transition: 'all 0.2s',
+              opacity: isHeaderValid() ? 1 : 0.6
+            }}
+            onMouseEnter={(e) => {
+              if (isHeaderValid() && !e.target.disabled) {
+                e.target.style.backgroundColor = '#4b5563';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (isHeaderValid() && !e.target.disabled) {
+                e.target.style.backgroundColor = '#6b7280';
+              }
+            }}
+            title={!isHeaderValid() ? 'Please fill in City, Title, Description, and Preview Photo' : ''}
+          >
+            Save as Draft
+          </button>
+        </div>
+
+        {/* Tour Settings Block */}
+        <div style={{
+          backgroundColor: 'white',
+          padding: '24px',
+          maxHeight: 'calc(100vh - 120px)',
+          overflowY: 'auto'
+        }}>
+          <div 
+            style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              cursor: 'pointer',
+              marginBottom: isTourSettingsCollapsed ? 0 : '8px'
+            }}
+            onClick={() => setIsTourSettingsCollapsed(!isTourSettingsCollapsed)}
+          >
+            <div>
+              <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '4px' }}>
+                Tour Settings
+              </h2>
+              <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
+                Complete the settings to submit your tour for moderation. Review takes up to 24 hours.
+              </p>
+            </div>
+            <span style={{ fontSize: '24px', color: '#6b7280' }}>
+              {isTourSettingsCollapsed ? '▼' : '▲'}
+            </span>
+          </div>
+
+          {!isTourSettingsCollapsed && (
+            <>
+              {/* Tour Format & Pricing Section */}
+              <div style={{ marginBottom: '24px', marginTop: '24px' }}>
+                <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500', fontSize: '16px' }}>
+                  Tour Format & Pricing
+                </label>
+                
+                {/* Self-guided Tour (Optional Checkbox) */}
+                <div style={{
+                  padding: '16px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  marginBottom: '16px',
+                  backgroundColor: tourSettings.selfGuided ? '#f0fdf4' : '#f9fafb'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                    <input
+                      type="checkbox"
+                      checked={tourSettings.selfGuided || false}
+                      onChange={(e) => {
+                        setTourSettings(prev => ({
+                          ...prev,
+                          selfGuided: e.target.checked
+                        }));
+                      }}
+                      style={{ marginRight: '8px', width: '18px', height: '18px', cursor: 'pointer' }}
+                    />
+                    <strong style={{ fontSize: '16px' }}>Self-guided Tour (PDF)</strong>
+                  </div>
+                  {tourSettings.selfGuided && (
+                    <div style={{ marginLeft: '26px', color: '#6b7280', fontSize: '14px' }}>
+                      Fixed price: <strong style={{ color: '#059669' }}>${tourSettings.price.pdfPrice || 16}</strong>
+                      <br />
+                      <span style={{ fontSize: '12px' }}>Travelers can download the PDF route and explore independently</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Guided Tour Format (Optional Checkbox) */}
+                <div style={{
+                  padding: '16px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  marginBottom: '16px',
+                  backgroundColor: tourSettings.withGuide ? '#eff6ff' : '#f9fafb'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                    <input
+                      type="checkbox"
+                      checked={tourSettings.withGuide || false}
+                      onChange={(e) => {
+                        setTourSettings(prev => ({
+                          ...prev,
+                          withGuide: e.target.checked
+                        }));
+                      }}
+                      style={{ marginRight: '8px', width: '18px', height: '18px', cursor: 'pointer' }}
+                    />
+                    <strong style={{ fontSize: '16px' }}>With Guide (Optional)</strong>
+                  </div>
+                  <div style={{ marginLeft: '26px', color: '#6b7280', fontSize: '13px', marginBottom: '8px' }}>
+                    Check this if you're ready to accompany travelers on this tour
+                  </div>
+                  
+                  {tourSettings.withGuide && (
+                    <div style={{ marginLeft: '26px', marginTop: '12px' }}>
+                      <div style={{ marginBottom: '12px' }}>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500' }}>
+                          Your Price (USD) *
+                        </label>
+                        <input
+                          type="number"
+                          value={tourSettings.price.guidedPrice || ''}
+                          onChange={(e) => setTourSettings(prev => ({
+                            ...prev,
+                            price: { ...prev.price, guidedPrice: parseFloat(e.target.value) || 0 }
+                          }))}
+                          min="0"
+                          step="0.01"
+                          required={tourSettings.withGuide}
+                          placeholder="0.00"
+                          style={{
+                            width: '100%',
+                            padding: '8px',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '6px',
+                            fontSize: '14px'
+                          }}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: '12px' }}>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500' }}>
+                          Meeting Point *
+                        </label>
+                        <input
+                          type="text"
+                          value={tourSettings.price.meetingPoint || ''}
+                          onChange={(e) => setTourSettings(prev => ({
+                            ...prev,
+                            price: { ...prev.price, meetingPoint: e.target.value }
+                          }))}
+                          required={tourSettings.withGuide}
+                          placeholder="e.g., Central Station, Main Square"
+                          style={{
+                            width: '100%',
+                            padding: '8px',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '6px',
+                            fontSize: '14px'
+                          }}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: '12px' }}>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500' }}>
+                          Meeting Time *
+                        </label>
+                        <input
+                          type="time"
+                          value={tourSettings.price.meetingTime || ''}
+                          onChange={(e) => setTourSettings(prev => ({
+                            ...prev,
+                            price: { ...prev.price, meetingTime: e.target.value }
+                          }))}
+                          required={tourSettings.withGuide}
+                          style={{
+                            width: '100%',
+                            padding: '8px',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '6px',
+                            fontSize: '14px'
+                          }}
+                        />
+                      </div>
+
+                      {/* Availability Calendar - Inline */}
+                      <div style={{ marginBottom: '12px' }}>
+                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>
+                          Manage Available Dates *
+                        </label>
+                        <div style={{
+                          border: '1px solid #d1d5db',
+                          borderRadius: '8px',
+                          padding: '12px',
+                          backgroundColor: '#f9fafb'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                            <button
+                              type="button"
+                              onClick={() => setAvailabilityCalendarMonth(prev => {
+                                if (prev === 0) {
+                                  setAvailabilityCalendarYear(year => year - 1);
+                                  return 11;
+                                }
+                                return prev - 1;
+                              })}
+                              style={{
+                                padding: '4px 12px',
+                                backgroundColor: '#e5e7eb',
+                                color: '#374151',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '14px'
+                              }}
+                            >
+                              ←
+                            </button>
+                            <span style={{ fontSize: '16px', fontWeight: '600' }}>
+                              {MONTHS[availabilityCalendarMonth]} {availabilityCalendarYear}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setAvailabilityCalendarMonth(prev => {
+                                if (prev === 11) {
+                                  setAvailabilityCalendarYear(year => year + 1);
+                                  return 0;
+                                }
+                                return prev + 1;
+                              })}
+                              style={{
+                                padding: '4px 12px',
+                                backgroundColor: '#e5e7eb',
+                                color: '#374151',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '14px'
+                              }}
+                            >
+                              →
+                            </button>
+                          </div>
+
+                          <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(7, 1fr)',
+                            gap: '4px',
+                            marginBottom: '8px'
+                          }}>
+                            {WEEKDAYS.map((day, index) => (
+                              <div key={index} style={{
+                                textAlign: 'center',
+                                fontSize: '12px',
+                                fontWeight: '500',
+                                color: '#6b7280'
+                              }}>
+                                {day}
+                              </div>
+                            ))}
+                          </div>
+
+                          {availabilityLoading ? (
+                            <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
+                              Loading...
+                            </div>
+                          ) : (
+                            <div style={{
+                              display: 'grid',
+                              gridTemplateColumns: 'repeat(7, 1fr)',
+                              gap: '4px'
+                            }}>
+                              {(() => {
+                                const days = [];
+                                const daysInMonth = getDaysInMonth(availabilityCalendarMonth, availabilityCalendarYear);
+                                const firstDay = getFirstDayOfMonth(availabilityCalendarMonth, availabilityCalendarYear);
+
+                                for (let i = 0; i < firstDay; i++) {
+                                  days.push(null);
+                                }
+
+                                for (let day = 1; day <= daysInMonth; day++) {
+                                  const date = new Date(availabilityCalendarYear, availabilityCalendarMonth, day);
+                                  days.push(date);
+                                }
+
+                                return days.map((date, index) => {
+                                  if (!date) {
+                                    return <div key={index} style={{ aspectRatio: '1', padding: '4px' }}></div>;
+                                  }
+
+                                  const today = new Date();
+                                  today.setHours(0, 0, 0, 0);
+                                  const isPast = date < today;
+                                  const dateStr = formatDateStr(date);
+                                  const isAvailable = isDateInAvailableDates(date) || isDateInSlots(date);
+                                  const isBlocked = isDateBlocked(date);
+                                  const isSelected = isDateSelected(date);
+
+                                  let backgroundColor = '#ffffff';
+                                  let color = '#111827';
+                                  let cursor = 'pointer';
+
+                                  if (isPast) {
+                                    backgroundColor = '#f3f4f6';
+                                    color = '#9ca3af';
+                                    cursor = 'not-allowed';
+                                  } else if (isSelected) {
+                                    backgroundColor = '#3b82f6';
+                                    color = 'white';
+                                  } else if (isBlocked) {
+                                    backgroundColor = '#fee2e2';
+                                    color = '#991b1b';
+                                  } else if (isAvailable) {
+                                    backgroundColor = '#d1fae5';
+                                    color = '#065f46';
+                                  }
+
+                                  return (
+                                    <div
+                                      key={index}
+                                      onClick={() => !isPast && handleCalendarDateClick(date.getDate())}
+                                      style={{
+                                        aspectRatio: '1',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor,
+                                        color,
+                                        borderRadius: '4px',
+                                        cursor: isPast ? 'not-allowed' : cursor,
+                                        fontWeight: '500',
+                                        transition: 'background-color 0.2s'
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        if (!isPast && !isSelected && !isBlocked) {
+                                          e.target.style.backgroundColor = isAvailable ? '#a7f3d0' : '#e0e7ff';
+                                        }
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        if (!isPast && !isSelected && !isBlocked) {
+                                          e.target.style.backgroundColor = isAvailable ? '#d1fae5' : '#ffffff';
+                                        }
+                                      }}
+                                    >
+                                      {date.getDate()}
+                                    </div>
+                                  );
+                                });
+                              })()}
+                            </div>
+                          )}
+
+                          <div style={{ display: 'flex', gap: '8px', marginTop: '16px', flexWrap: 'wrap' }}>
+                            <button
+                              type="button"
+                              onClick={handleMarkDatesAsAvailable}
+                              disabled={selectedCalendarDates.length === 0 || availabilityLoading}
+                              style={{
+                                flex: 1,
+                                padding: '8px 12px',
+                                backgroundColor: '#10b981',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '13px',
+                                opacity: selectedCalendarDates.length === 0 || availabilityLoading ? 0.6 : 1
+                              }}
+                            >
+                              Mark as Available
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleBlockDates}
+                              disabled={selectedCalendarDates.length === 0 || availabilityLoading}
+                              style={{
+                                flex: 1,
+                                padding: '8px 12px',
+                                backgroundColor: '#ef4444',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '13px',
+                                opacity: selectedCalendarDates.length === 0 || availabilityLoading ? 0.6 : 1
+                              }}
+                            >
+                              Block Dates
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedCalendarDates([])}
+                              disabled={selectedCalendarDates.length === 0}
+                              style={{
+                                flex: 1,
+                                padding: '8px 12px',
+                                backgroundColor: '#6b7280',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '13px',
+                                opacity: selectedCalendarDates.length === 0 ? 0.6 : 1
+                              }}
+                            >
+                              Clear Selection
+                            </button>
+                          </div>
+
+                          {(tourSettings.price.availableDates && tourSettings.price.availableDates.length > 0) && (
+                            <div style={{ marginTop: '12px' }}>
+                              <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px' }}>
+                                Available dates ({tourSettings.price.availableDates.length}):
+                              </div>
+                              <div style={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: '6px'
+                              }}>
+                                {tourSettings.price.availableDates.map((dateStr, idx) => (
+                                  <span key={idx} style={{
+                                    backgroundColor: '#e0e7ff',
+                                    color: '#3b82f6',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '12px',
+                                    fontWeight: '500'
+                                  }}>
+                                    {new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Submit for Moderation Button */}
+              <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #e5e7eb' }}>
+                <button
+                  onClick={handleSubmitForModeration}
+                  disabled={!isHeaderValid() || !isTourSettingsValid()}
+                  style={{
+                    width: '100%',
+                    padding: '14px 28px',
+                    backgroundColor: (isHeaderValid() && isTourSettingsValid()) ? '#4ade80' : '#d1d5db',
+                    color: (isHeaderValid() && isTourSettingsValid()) ? '#111827' : '#9ca3af',
+                    border: 'none',
+                    borderRadius: '10px',
+                    cursor: (isHeaderValid() && isTourSettingsValid()) ? 'pointer' : 'not-allowed',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    transition: 'all 0.2s',
+                    opacity: (isHeaderValid() && isTourSettingsValid()) ? 1 : 0.6
+                  }}
+                  onMouseEnter={(e) => {
+                    if (isHeaderValid() && isTourSettingsValid() && !e.target.disabled) {
+                      e.target.style.backgroundColor = '#22c55e';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (isHeaderValid() && isTourSettingsValid() && !e.target.disabled) {
+                      e.target.style.backgroundColor = '#4ade80';
+                    }
+                  }}
+                  title={!isHeaderValid() ? 'Please fill in City, Title, Description, and Preview Photo' : (!isTourSettingsValid() ? 'Please select at least one tour format (Self-guided or With Guide)' : '')}
+                >
+                  Submit for Moderation
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
       </div>
 
       {/* Block Selector Modal */}
