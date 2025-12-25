@@ -1851,10 +1851,6 @@ export default function TripVisualizerPage() {
 
         {/* Spacer to prevent content from being hidden behind fixed bottom panel */}
         <div style={{ height: isTourSettingsCollapsed ? '120px' : '600px' }} />
-                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                    <input
-                      type="checkbox"
-                      checked={tourSettings.selfGuided || false}
                       onChange={(e) => {
                         setTourSettings(prev => ({
                           ...prev,
