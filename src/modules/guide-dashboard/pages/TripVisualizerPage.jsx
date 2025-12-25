@@ -630,9 +630,18 @@ export default function TripVisualizerPage() {
       case '3columns':
         defaultContent = { 
           columns: [
-            { photo: null, text: 'Column 1 text' },
-            { photo: null, text: 'Column 2 text' },
-            { photo: null, text: 'Column 3 text' }
+            { 
+              photo: Photo1Image, 
+              text: 'Mornings in Barcelona don\'t rush you.\nThey wait until you\'re ready.' 
+            },
+            { 
+              photo: Photo2Image, 
+              text: 'The city is best understood while walking without a destination.' 
+            },
+            { 
+              photo: Photo3Image, 
+              text: 'Stay when it feels right.\nLeaving can wait.' 
+            }
           ]
         };
         break;
