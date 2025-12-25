@@ -28,6 +28,7 @@ import Photo3Image from '../../../assets/Photo-3.jpg';
 import PhotoImage from '../../../assets/Photo.jpg';
 import SlideImage from '../../../assets/Slide.jpg';
 import { getTourById } from '../../../services/api';
+import { getTourAvailability, updateAvailabilitySlots } from '../services/availabilityService';
 import BlockRenderer from '../components/BlockRenderer';
 import TextEditor from '../components/TextEditor';
 import GoogleMapsLocationSelector from '../components/GoogleMapsLocationSelector';
@@ -114,11 +115,26 @@ export default function TripVisualizerPage() {
 
   // Tag input state
   const [tagInput, setTagInput] = useState('');
+  
+  // Availability calendar state
+  const [availabilityCalendarMonth, setAvailabilityCalendarMonth] = useState(new Date().getMonth());
+  const [availabilityCalendarYear, setAvailabilityCalendarYear] = useState(new Date().getFullYear());
+  const [availabilitySlots, setAvailabilitySlots] = useState([]);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [selectedCalendarDates, setSelectedCalendarDates] = useState([]);
+  const [defaultGroupSize, setDefaultGroupSize] = useState(10);
   const [tagSuggestions, setTagSuggestions] = useState([]);
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
 
   // Tour settings block collapsed state
   const [isTourSettingsCollapsed, setIsTourSettingsCollapsed] = useState(true);
+
+  // Load availability slots when tour has guide format
+  useEffect(() => {
+    if (tourSettings.withGuide && tourId) {
+      loadAvailabilitySlots(tourId);
+    }
+  }, [tourSettings.withGuide, tourId]);
 
   useEffect(() => {
     loadUser();
@@ -265,8 +281,213 @@ export default function TripVisualizerPage() {
         // Table might not exist yet - silently ignore
         setBlocks([]);
       }
+      
+      // Load availability slots if tour has guide format
+      if (withGuide && tourIdToLoad) {
+        loadAvailabilitySlots(tourIdToLoad);
+      }
     } catch (error) {
       console.error('Error loading tour:', error);
+    }
+  };
+  
+  // Load availability slots for calendar
+  const loadAvailabilitySlots = async (tourIdParam) => {
+    if (!tourIdParam) return;
+    
+    try {
+      setAvailabilityLoading(true);
+      const slots = await getTourAvailability(tourIdParam);
+      setAvailabilitySlots(slots || []);
+      
+      // Extract dates from slots and update tourSettings
+      const availableDates = [...new Set(slots
+        .filter(slot => slot.is_available && !slot.is_blocked)
+        .map(slot => slot.date)
+        .filter(Boolean)
+      )].sort();
+      
+      setTourSettings(prev => ({
+        ...prev,
+        price: {
+          ...prev.price,
+          availableDates: availableDates
+        }
+      }));
+      
+      // Set default group size from first slot or tour
+      if (slots.length > 0 && slots[0].max_group_size) {
+        setDefaultGroupSize(slots[0].max_group_size);
+      }
+    } catch (err) {
+      console.warn('Could not load availability slots:', err);
+      setAvailabilitySlots([]);
+    } finally {
+      setAvailabilityLoading(false);
+    }
+  };
+  
+  // Mark selected dates as available
+  const handleMarkDatesAsAvailable = async () => {
+    if (selectedCalendarDates.length === 0 || !tourId) {
+      // For new tours, just update local state
+      const dateStrings = selectedCalendarDates.map(d => {
+        if (d instanceof Date) {
+          return d.toISOString().split('T')[0];
+        }
+        return d;
+      });
+      
+      setTourSettings(prev => ({
+        ...prev,
+        price: {
+          ...prev.price,
+          availableDates: [...new Set([...(prev.price.availableDates || []), ...dateStrings])].sort()
+        }
+      }));
+      setSelectedCalendarDates([]);
+      return;
+    }
+    
+    try {
+      setAvailabilityLoading(true);
+      const slots = selectedCalendarDates.map(date => {
+        const dateStr = date instanceof Date ? date.toISOString().split('T')[0] : date;
+        return {
+          date: dateStr,
+          max_group_size: defaultGroupSize,
+          is_available: true,
+          is_blocked: false
+        };
+      });
+      
+      await updateAvailabilitySlots(tourId, slots);
+      await loadAvailabilitySlots(tourId);
+      setSelectedCalendarDates([]);
+    } catch (err) {
+      console.error('Failed to mark dates as available:', err);
+      alert('Failed to save availability. Please try again.');
+    } finally {
+      setAvailabilityLoading(false);
+    }
+  };
+  
+  // Block selected dates
+  const handleBlockDates = async () => {
+    if (selectedCalendarDates.length === 0 || !tourId) {
+      // For new tours, remove from availableDates
+      const dateStrings = selectedCalendarDates.map(d => {
+        if (d instanceof Date) {
+          return d.toISOString().split('T')[0];
+        }
+        return d;
+      });
+      
+      setTourSettings(prev => ({
+        ...prev,
+        price: {
+          ...prev.price,
+          availableDates: (prev.price.availableDates || []).filter(d => !dateStrings.includes(d))
+        }
+      }));
+      setSelectedCalendarDates([]);
+      return;
+    }
+    
+    try {
+      setAvailabilityLoading(true);
+      const dateStrings = selectedCalendarDates.map(date => {
+        return date instanceof Date ? date.toISOString().split('T')[0] : date;
+      });
+      
+      // Update slots to be blocked
+      const slots = dateStrings.map(dateStr => ({
+        date: dateStr,
+        max_group_size: defaultGroupSize,
+        is_available: false,
+        is_blocked: true
+      }));
+      
+      await updateAvailabilitySlots(tourId, slots);
+      await loadAvailabilitySlots(tourId);
+      setSelectedCalendarDates([]);
+    } catch (err) {
+      console.error('Failed to block dates:', err);
+      alert('Failed to block dates. Please try again.');
+    } finally {
+      setAvailabilityLoading(false);
+    }
+  };
+  
+  // Calendar helper functions
+  const getDaysInMonth = (month, year) => {
+    return new Date(year, month + 1, 0).getDate();
+  };
+  
+  const getFirstDayOfMonth = (month, year) => {
+    const date = new Date(year, month, 1);
+    return (date.getDay() + 6) % 7; // Monday = 0
+  };
+  
+  const formatDateStr = (date) => {
+    if (!date) return '';
+    const d = date instanceof Date ? date : new Date(date);
+    return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+  };
+  
+  const isDateInAvailableDates = (date) => {
+    const dateStr = formatDateStr(date);
+    return (tourSettings.price.availableDates || []).includes(dateStr);
+  };
+  
+  const isDateInSlots = (date) => {
+    const dateStr = formatDateStr(date);
+    return availabilitySlots.some(slot => slot.date === dateStr && slot.is_available && !slot.is_blocked);
+  };
+  
+  const isDateBlocked = (date) => {
+    const dateStr = formatDateStr(date);
+    return availabilitySlots.some(slot => slot.date === dateStr && slot.is_blocked);
+  };
+  
+  const isDateSelected = (date) => {
+    const dateStr = formatDateStr(date);
+    return selectedCalendarDates.some(d => formatDateStr(d) === dateStr);
+  };
+  
+  const handleCalendarDateClick = (day) => {
+    const clickedDate = new Date(availabilityCalendarYear, availabilityCalendarMonth, day);
+    clickedDate.setHours(0, 0, 0, 0);
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (clickedDate < today) return; // Can't select past dates
+    
+    setSelectedCalendarDates(prev => {
+      const dateStr = formatDateStr(clickedDate);
+      if (prev.some(d => formatDateStr(d) === dateStr)) {
+        return prev.filter(d => formatDateStr(d) !== dateStr);
+      } else {
+        return [...prev, clickedDate];
+      }
+    });
+  };
+  
+  const goToPreviousMonth = () => {
+    if (availabilityCalendarMonth === 0) {
+      setAvailabilityCalendarMonth(11);
+      setAvailabilityCalendarYear(availabilityCalendarYear - 1);
+    } else {
+      setAvailabilityCalendarMonth(availabilityCalendarMonth - 1);
+    }
+  };
+  
+  const goToNextMonth = () => {
+    if (availabilityCalendarMonth === 11) {
+      setAvailabilityCalendarMonth(0);
+      setAvailabilityCalendarYear(availabilityCalendarYear + 1);
+    } else {
+      setAvailabilityCalendarMonth(availabilityCalendarMonth + 1);
     }
   };
 
@@ -1851,90 +2072,349 @@ export default function TripVisualizerPage() {
                     />
                   </div>
 
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <label style={{ fontSize: '14px', fontWeight: '500' }}>
-                        Available Dates *
-                      </label>
+                  {/* Availability Calendar */}
+                  <div style={{ marginTop: '16px' }}>
+                    <label style={{ display: 'block', marginBottom: '12px', fontSize: '14px', fontWeight: '500' }}>
+                      Available Dates *
+                    </label>
+                    
+                    {/* Calendar Controls */}
+                    <div style={{ 
+                      display: 'flex', 
+                      gap: '8px', 
+                      marginBottom: '12px',
+                      flexWrap: 'wrap',
+                      alignItems: 'center'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <label style={{ fontSize: '13px', color: '#6b7280' }}>Group Size:</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="100"
+                          value={defaultGroupSize}
+                          onChange={(e) => setDefaultGroupSize(parseInt(e.target.value) || 10)}
+                          style={{
+                            width: '60px',
+                            padding: '4px 8px',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '4px',
+                            fontSize: '13px'
+                          }}
+                        />
+                      </div>
+                      <div style={{ fontSize: '13px', color: '#6b7280' }}>
+                        Selected: {selectedCalendarDates.length}
+                      </div>
                       <button
                         type="button"
-                        onClick={() => {
-                          setTourSettings(prev => ({
-                            ...prev,
-                            price: {
-                              ...prev.price,
-                              availableDates: [...(prev.price.availableDates || []), '']
-                            }
-                          }));
-                        }}
+                        onClick={handleMarkDatesAsAvailable}
+                        disabled={selectedCalendarDates.length === 0 || availabilityLoading}
                         style={{
-                          padding: '4px 12px',
-                          backgroundColor: '#10b981',
+                          padding: '6px 12px',
+                          backgroundColor: selectedCalendarDates.length > 0 && !availabilityLoading ? '#10b981' : '#d1d5db',
                           color: 'white',
                           border: 'none',
                           borderRadius: '6px',
-                          cursor: 'pointer',
-                          fontSize: '12px'
+                          cursor: selectedCalendarDates.length > 0 && !availabilityLoading ? 'pointer' : 'not-allowed',
+                          fontSize: '12px',
+                          fontWeight: '500'
                         }}
                       >
-                        + Add Date
+                        Mark as Available
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleBlockDates}
+                        disabled={selectedCalendarDates.length === 0 || availabilityLoading}
+                        style={{
+                          padding: '6px 12px',
+                          backgroundColor: selectedCalendarDates.length > 0 && !availabilityLoading ? '#ef4444' : '#d1d5db',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: selectedCalendarDates.length > 0 && !availabilityLoading ? 'pointer' : 'not-allowed',
+                          fontSize: '12px',
+                          fontWeight: '500'
+                        }}
+                      >
+                        Block Dates
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCalendarDates([])}
+                        disabled={selectedCalendarDates.length === 0}
+                        style={{
+                          padding: '6px 12px',
+                          backgroundColor: selectedCalendarDates.length > 0 ? '#6b7280' : '#d1d5db',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: selectedCalendarDates.length > 0 ? 'pointer' : 'not-allowed',
+                          fontSize: '12px',
+                          fontWeight: '500'
+                        }}
+                      >
+                        Clear Selection
                       </button>
                     </div>
-                    {tourSettings.price.availableDates && tourSettings.price.availableDates.length > 0 ? (
-                      tourSettings.price.availableDates.map((date, index) => (
-                        <div key={index} style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                          <input
-                            type="date"
-                            value={date}
-                            onChange={(e) => {
-                              const newDates = [...tourSettings.price.availableDates];
-                              newDates[index] = e.target.value;
-                              setTourSettings(prev => ({
-                                ...prev,
-                                price: { ...prev.price, availableDates: newDates }
-                              }));
-                            }}
-                            required={tourSettings.withGuide}
-                            style={{
-                              flex: 1,
-                              padding: '8px',
-                              border: '1px solid #d1d5db',
-                              borderRadius: '6px',
-                              fontSize: '14px'
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newDates = tourSettings.price.availableDates.filter((_, i) => i !== index);
-                              setTourSettings(prev => ({
-                                ...prev,
-                                price: { ...prev.price, availableDates: newDates }
-                              }));
-                            }}
-                            style={{
-                              padding: '8px 12px',
-                              backgroundColor: '#ef4444',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '12px'
-                            }}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ))
-                    ) : (
-                      <div style={{ 
-                        padding: '12px', 
-                        backgroundColor: '#fef3c7', 
-                        borderRadius: '6px',
-                        fontSize: '13px',
-                        color: '#92400e'
+                    
+                    {/* Calendar */}
+                    <div style={{
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      padding: '16px',
+                      backgroundColor: '#fafafa'
+                    }}>
+                      {/* Calendar Header */}
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '12px'
                       }}>
-                        No dates added. Click &quot;+ Add Date&quot; to add available dates for your guided tour.
+                        <button
+                          type="button"
+                          onClick={goToPreviousMonth}
+                          style={{
+                            padding: '4px 8px',
+                            backgroundColor: 'white',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '14px'
+                          }}
+                        >
+                          ←
+                        </button>
+                        <div style={{ fontSize: '16px', fontWeight: '600' }}>
+                          {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][availabilityCalendarMonth]} {availabilityCalendarYear}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={goToNextMonth}
+                          style={{
+                            padding: '4px 8px',
+                            backgroundColor: 'white',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '14px'
+                          }}
+                        >
+                          →
+                        </button>
+                      </div>
+                      
+                      {/* Calendar Weekdays */}
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(7, 1fr)',
+                        gap: '4px',
+                        marginBottom: '8px'
+                      }}>
+                        {['П', 'В', 'С', 'Ч', 'П', 'С', 'В'].map((day, index) => (
+                          <div key={index} style={{
+                            textAlign: 'center',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            color: '#6b7280',
+                            padding: '4px'
+                          }}>
+                            {day}
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Calendar Days Grid */}
+                      {availabilityLoading ? (
+                        <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
+                          Loading...
+                        </div>
+                      ) : (
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(7, 1fr)',
+                          gap: '4px'
+                        }}>
+                          {(() => {
+                            const days = [];
+                            const daysInMonth = getDaysInMonth(availabilityCalendarMonth, availabilityCalendarYear);
+                            const firstDay = getFirstDayOfMonth(availabilityCalendarMonth, availabilityCalendarYear);
+                            
+                            // Add empty cells for days before the first day of the month
+                            for (let i = 0; i < firstDay; i++) {
+                              days.push(null);
+                            }
+                            
+                            // Add days of the month
+                            for (let day = 1; day <= daysInMonth; day++) {
+                              const date = new Date(availabilityCalendarYear, availabilityCalendarMonth, day);
+                              days.push(date);
+                            }
+                            
+                            return days.map((date, index) => {
+                              if (!date) {
+                                return <div key={index} style={{ aspectRatio: '1', padding: '4px' }}></div>;
+                              }
+                              
+                              const today = new Date();
+                              today.setHours(0, 0, 0, 0);
+                              const isPast = date < today;
+                              const dateStr = formatDateStr(date);
+                              const isAvailable = isDateInAvailableDates(date) || isDateInSlots(date);
+                              const isBlocked = isDateBlocked(date);
+                              const isSelected = isDateSelected(date);
+                              
+                              let backgroundColor = '#ffffff';
+                              let color = '#111827';
+                              let cursor = 'pointer';
+                              
+                              if (isPast) {
+                                backgroundColor = '#f3f4f6';
+                                color = '#9ca3af';
+                                cursor = 'not-allowed';
+                              } else if (isSelected) {
+                                backgroundColor = '#3b82f6';
+                                color = 'white';
+                              } else if (isBlocked) {
+                                backgroundColor = '#fee2e2';
+                                color = '#991b1b';
+                              } else if (isAvailable) {
+                                backgroundColor = '#d1fae5';
+                                color = '#065f46';
+                              }
+                              
+                              return (
+                                <div
+                                  key={index}
+                                  onClick={() => !isPast && handleCalendarDateClick(date.getDate())}
+                                  style={{
+                                    aspectRatio: '1',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    backgroundColor,
+                                    color,
+                                    borderRadius: '4px',
+                                    cursor: isPast ? 'not-allowed' : cursor,
+                                    fontSize: '13px',
+                                    fontWeight: isSelected ? '600' : '400',
+                                    border: isSelected ? '2px solid #2563eb' : '1px solid #e5e7eb',
+                                    transition: 'all 0.2s'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (!isPast) {
+                                      e.target.style.opacity = '0.8';
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (!isPast) {
+                                      e.target.style.opacity = '1';
+                                    }
+                                  }}
+                                >
+                                  {date.getDate()}
+                                </div>
+                              );
+                            });
+                          })()}
+                        </div>
+                      )}
+                      
+                      {/* Calendar Legend */}
+                      <div style={{
+                        display: 'flex',
+                        gap: '16px',
+                        marginTop: '12px',
+                        fontSize: '11px',
+                        color: '#6b7280',
+                        justifyContent: 'center',
+                        flexWrap: 'wrap'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <div style={{ width: '12px', height: '12px', backgroundColor: '#d1fae5', borderRadius: '2px' }}></div>
+                          <span>Available</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <div style={{ width: '12px', height: '12px', backgroundColor: '#fee2e2', borderRadius: '2px' }}></div>
+                          <span>Blocked</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <div style={{ width: '12px', height: '12px', backgroundColor: '#3b82f6', borderRadius: '2px' }}></div>
+                          <span>Selected</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Selected Dates List */}
+                    {(tourSettings.price.availableDates && tourSettings.price.availableDates.length > 0) && (
+                      <div style={{ marginTop: '12px' }}>
+                        <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px' }}>
+                          Available dates ({tourSettings.price.availableDates.length}):
+                        </div>
+                        <div style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '6px'
+                        }}>
+                          {tourSettings.price.availableDates.map((date, index) => (
+                            <div
+                              key={index}
+                              style={{
+                                padding: '4px 8px',
+                                backgroundColor: '#d1fae5',
+                                color: '#065f46',
+                                borderRadius: '4px',
+                                fontSize: '12px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                              }}
+                            >
+                              {new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  const newDates = tourSettings.price.availableDates.filter((_, i) => i !== index);
+                                  setTourSettings(prev => ({
+                                    ...prev,
+                                    price: { ...prev.price, availableDates: newDates }
+                                  }));
+                                  
+                                  // If tour exists, also block the date in database
+                                  if (tourId) {
+                                    try {
+                                      const dateStr = date;
+                                      const slots = [{
+                                        date: dateStr,
+                                        max_group_size: defaultGroupSize,
+                                        is_available: false,
+                                        is_blocked: true
+                                      }];
+                                      await updateAvailabilitySlots(tourId, slots);
+                                      await loadAvailabilitySlots(tourId);
+                                    } catch (err) {
+                                      console.error('Failed to block date:', err);
+                                    }
+                                  }
+                                }}
+                                style={{
+                                  padding: '0',
+                                  backgroundColor: 'transparent',
+                                  border: 'none',
+                                  color: '#065f46',
+                                  cursor: 'pointer',
+                                  fontSize: '14px',
+                                  lineHeight: '1',
+                                  marginLeft: '4px'
+                                }}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
