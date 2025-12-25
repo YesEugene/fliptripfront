@@ -2397,7 +2397,6 @@ export default function TripVisualizerPage() {
           )}
         </div>
       </div>
-      </div>
 
       {/* Block Selector Modal */}
       {showBlockSelector && (
