@@ -234,6 +234,7 @@ export default function TripVisualizerPage() {
         // Load availability dates if tour has guide format
         let availableDates = [];
         if (withGuide && tourIdToLoad) {
+          // withGuide is defined in this scope (line 230)
           try {
             const availabilityResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-availability?tourId=${tourIdToLoad}`).catch(() => null);
             if (availabilityResponse && availabilityResponse.ok) {
