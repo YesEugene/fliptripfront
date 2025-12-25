@@ -32,6 +32,7 @@ export default function ItineraryPage() {
   const [isSubtitleExpanded, setIsSubtitleExpanded] = useState(false); // Subtitle expand/collapse state
   const [tourIdState, setTourId] = useState(null); // Tour ID state for generated tours
   const [contentBlocks, setContentBlocks] = useState([]); // Blocks from tour_content_blocks table
+  const [useNewFormat, setUseNewFormat] = useState(false); // Flag to use new format (contentBlocks) or old format (daily_plan)
   const [isAuthorTextExpanded, setIsAuthorTextExpanded] = useState(false); // Author text expand/collapse state
   const [isMobile, setIsMobile] = useState(false); // Mobile detection
 
