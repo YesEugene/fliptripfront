@@ -1956,9 +1956,7 @@ export default function TripVisualizerPage() {
         {/* Tour Settings Block */}
         <div style={{
           backgroundColor: 'white',
-          padding: '24px',
-          maxHeight: 'calc(100vh - 120px)',
-          overflowY: 'auto'
+          padding: '24px'
         }}>
           <div 
             style={{ 
