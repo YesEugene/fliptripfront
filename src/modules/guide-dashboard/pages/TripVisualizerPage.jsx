@@ -1869,7 +1869,7 @@ export default function TripVisualizerPage() {
         ))}
 
         {/* Spacer to prevent content from being hidden behind fixed bottom panel */}
-        <div style={{ height: isTourSettingsCollapsed ? (isMobile ? '75px' : '65px') : '80vh' }} />
+        <div style={{ height: isTourSettingsCollapsed ? (isMobile ? '95px' : '85px') : '80vh' }} />
       </div>
 
       {/* Fixed Bottom Panel - Action buttons and Tour Settings */}
