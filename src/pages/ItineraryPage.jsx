@@ -1868,7 +1868,8 @@ export default function ItineraryPage() {
               )}
             </div>
           )}
-        </div>
+          </div>
+        )}
 
         {/* Email and Payment Block - Show only if preview and not paid (for both formats) */}
         {previewOnly && !isPaid && (() => {
