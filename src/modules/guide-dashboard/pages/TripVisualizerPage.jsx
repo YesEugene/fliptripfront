@@ -1851,13 +1851,6 @@ export default function TripVisualizerPage() {
 
         {/* Spacer to prevent content from being hidden behind fixed bottom panel */}
         <div style={{ height: isTourSettingsCollapsed ? '120px' : '600px' }} />
-                <div style={{
-                  padding: '16px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  marginBottom: '16px',
-                  backgroundColor: tourSettings.selfGuided ? '#f0fdf4' : '#f9fafb'
-                }}>
                   <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
                     <input
                       type="checkbox"
