@@ -1851,16 +1851,6 @@ export default function TripVisualizerPage() {
 
         {/* Spacer to prevent content from being hidden behind fixed bottom panel */}
         <div style={{ height: isTourSettingsCollapsed ? '120px' : '600px' }} />
-          <div 
-            style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              cursor: 'pointer',
-              marginBottom: isTourSettingsCollapsed ? 0 : '8px'
-            }}
-            onClick={() => setIsTourSettingsCollapsed(!isTourSettingsCollapsed)}
-          >
             <div>
               <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '4px' }}>
                 Tour Settings
