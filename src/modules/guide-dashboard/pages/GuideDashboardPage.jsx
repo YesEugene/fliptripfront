@@ -682,7 +682,7 @@ export default function GuideDashboardPage() {
                           View
                         </Link>
                         <Link
-                          to={`/guide/tours/edit/${tour.id}`}
+                          to={`/guide/tours/visualizer/${tour.id}`}
                           style={{
                             flex: 1,
                             minWidth: '80px',
