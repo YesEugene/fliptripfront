@@ -445,6 +445,11 @@ export default function ItineraryPage() {
             loadedContentBlocks = blocksData.blocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
             setContentBlocks(loadedContentBlocks);
             console.log('✅ Content blocks loaded:', loadedContentBlocks.length, 'blocks');
+            
+            // If we have content blocks, mark as using new format
+            if (loadedContentBlocks.length > 0) {
+              setUseNewFormat(true);
+            }
           } else {
             console.log('ℹ️ No content blocks found for this tour');
           }

@@ -54,7 +54,17 @@ export default function GuideDashboardPage() {
       setIsMobile(window.innerWidth < 768);
     };
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    
+    // Reload tours when window gains focus (user returns from editing)
+    const handleFocus = () => {
+      loadGuideTours();
+    };
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   // Load statistics when Statistics tab is active
