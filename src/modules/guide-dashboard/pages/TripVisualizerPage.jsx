@@ -196,24 +196,56 @@ export default function TripVisualizerPage() {
         });
 
         // Load tour settings
-        const withGuide = tourObj.default_format === 'with_guide' || tourObj.default_format === 'guided';
+        // First, check if draft_data.tourSettings exists (for tours created in Visualizer)
+        let loadedSettings = null;
+        if (draftData && draftData.tourSettings) {
+          loadedSettings = draftData.tourSettings;
+        }
+        
+        // Determine format from tour data
+        const defaultFormat = tourObj.default_format;
+        const selfGuided = loadedSettings?.selfGuided ?? (defaultFormat === 'self_guided');
+        const withGuide = loadedSettings?.withGuide ?? (defaultFormat === 'with_guide' || defaultFormat === 'guided');
+        
         const tags = tourObj.tour_tags?.map(tt => tt.tag?.name).filter(Boolean) || [];
         
+        // Load availability dates if tour has guide format
+        let availableDates = [];
+        if (withGuide && tourIdToLoad) {
+          try {
+            const availabilityResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-availability?tourId=${tourIdToLoad}`).catch(() => null);
+            if (availabilityResponse && availabilityResponse.ok) {
+              const availabilityData = await availabilityResponse.json();
+              if (availabilityData.success && availabilityData.slots) {
+                // Extract unique dates from availability slots
+                availableDates = [...new Set(availabilityData.slots
+                  .filter(slot => slot.available_spots > 0)
+                  .map(slot => slot.date)
+                  .filter(Boolean)
+                )].sort();
+              }
+            }
+          } catch (err) {
+            console.warn('Could not load availability dates:', err);
+          }
+        }
+        
         setTourSettings({
+          selfGuided: selfGuided,
           withGuide: withGuide,
           price: {
-            pdfPrice: tourObj.price_pdf || 16,
-            guidedPrice: tourObj.price_guided || 0,
-            currency: tourObj.currency || 'USD',
-            availableDates: [], // Will be loaded from availability slots if needed
-            meetingPoint: tourObj.meeting_point || '',
-            meetingTime: tourObj.meeting_time || ''
+            pdfPrice: loadedSettings?.price?.pdfPrice ?? tourObj.price_pdf ?? 16,
+            guidedPrice: loadedSettings?.price?.guidedPrice ?? tourObj.price_guided ?? 0,
+            currency: loadedSettings?.price?.currency ?? tourObj.currency ?? 'USD',
+            availableDates: loadedSettings?.price?.availableDates ?? availableDates,
+            meetingPoint: loadedSettings?.price?.meetingPoint ?? tourObj.meeting_point ?? '',
+            meetingTime: loadedSettings?.price?.meetingTime ?? tourObj.meeting_time ?? ''
           },
           additionalOptions: {
-            platformOptions: ['insurance', 'accommodation'],
-            creatorOptions: {} // Will be loaded from tour metadata if available
+            platformOptions: loadedSettings?.additionalOptions?.platformOptions ?? ['insurance', 'accommodation'],
+            creatorOptions: loadedSettings?.additionalOptions?.creatorOptions ?? {}
           },
-          tags: tags
+          tags: loadedSettings?.tags ?? tags
         });
       }
 
