@@ -1851,21 +1851,6 @@ export default function TripVisualizerPage() {
 
         {/* Spacer to prevent content from being hidden behind fixed bottom panel */}
         <div style={{ height: isTourSettingsCollapsed ? '120px' : '600px' }} />
-            <div>
-              <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '4px' }}>
-                Tour Settings
-              </h2>
-              <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
-                Complete the settings to submit your tour for moderation. Review takes up to 24 hours.
-              </p>
-            </div>
-            <span style={{ fontSize: '24px', color: '#6b7280' }}>
-              {isTourSettingsCollapsed ? '▼' : '▲'}
-            </span>
-          </div>
-
-          {!isTourSettingsCollapsed && (
-            <>
               {/* Tour Format & Pricing Section */}
               <div style={{ marginBottom: '24px', marginTop: '24px' }}>
                 <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500', fontSize: '16px' }}>
