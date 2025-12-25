@@ -501,8 +501,8 @@ export default function ItineraryPage() {
           isEmpty: true // Flag to indicate empty tour
         };
         setItinerary(itineraryData);
-        setUseNewFormat(true); // Use new format rendering even if empty
         setContentBlocks([]); // Empty blocks array
+        setUseNewFormat(true); // Use new format rendering even if empty
         setLoading(false);
         return; // Exit early - will show empty state in UI
       }
