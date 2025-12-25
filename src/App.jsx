@@ -66,14 +66,15 @@ function App() {
               </ProtectedRoute>
             } 
           />
-          <Route 
+          {/* EditTourPage route removed - editing now done in Trip Visualizer */}
+          {/* <Route 
             path="/guide/tours/edit/:id" 
             element={
               <ProtectedRoute requiredRole="guide">
                 <EditTourPage />
               </ProtectedRoute>
             } 
-          />
+          /> */}
           <Route 
             path="/guide/settings" 
             element={

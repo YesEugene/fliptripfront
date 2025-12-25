@@ -508,29 +508,6 @@ export default function GuideDashboardPage() {
           {activeTab === 'tours' && (
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <button
-                onClick={() => navigate('/guide/tours/create')}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: '500',
-                  transition: 'all 0.2s',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#2563eb';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = '#3b82f6';
-                }}
-              >
-                Create new trip
-              </button>
-              <button
                 onClick={() => navigate('/guide/tours/visualizer')}
                 style={{
                   padding: '10px 20px',
@@ -592,11 +569,11 @@ export default function GuideDashboardPage() {
                   No tours yet. Create your first tour!
                 </p>
                 <Link
-                  to="/guide/tours/create"
+                  to="/guide/tours/visualizer"
                   style={{
                     display: 'inline-block',
                     padding: '12px 24px',
-                    backgroundColor: '#3b82f6',
+                    backgroundColor: '#10b981',
                     color: 'white',
                     borderRadius: '8px',
                     textDecoration: 'none',
@@ -604,10 +581,10 @@ export default function GuideDashboardPage() {
                     fontSize: '16px',
                     transition: 'background-color 0.2s'
                   }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#2563eb'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = '#3b82f6'}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#10b981'}
                 >
-                  + Create Tour
+                  Trip Visualizer
                 </Link>
               </div>
             ) : (
