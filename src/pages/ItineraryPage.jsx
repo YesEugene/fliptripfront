@@ -536,6 +536,7 @@ export default function ItineraryPage() {
         
         console.log('✅ Converted tour to itinerary format (new format):', itineraryData);
         setItinerary(itineraryData);
+        setUseNewFormat(true); // Mark as using new format (contentBlocks)
         
         // Reset tour type selection based on tour data
         const supportsGuide = tour.withGuide || 
