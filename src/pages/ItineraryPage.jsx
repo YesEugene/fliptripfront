@@ -1408,8 +1408,8 @@ export default function ItineraryPage() {
     color: '#9ca3af'
   };
 
-  // Determine which format to use: new (contentBlocks) or old (daily_plan)
-  const useNewFormat = contentBlocks.length > 0;
+  // useNewFormat is a state variable set in loadTourFromDatabase
+  // It determines whether to use new format (contentBlocks) or old format (daily_plan)
   console.log('🔍 Format check:', {
     useNewFormat,
     contentBlocksCount: contentBlocks.length,
