@@ -431,7 +431,7 @@ function PhotoTextBlock({ block, onEdit }) {
       display: 'flex',
       gap: '24px',
       flexDirection: alignment === 'right' ? 'row-reverse' : 'row',
-      alignItems: 'center'
+      alignItems: 'flex-start'
     }}>
       <div style={{ flex: '0 0 300px' }}>
         {photo ? (

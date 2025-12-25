@@ -2344,30 +2344,68 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
   const initialContent = block.content || {};
   const isOldFormat = !initialContent.mainLocation && (initialContent.title || initialContent.time);
   
-  const [content, setContent] = useState(() => {
+  // Helper function to normalize content
+  const normalizeContent = (contentToNormalize) => {
+    if (!contentToNormalize || Object.keys(contentToNormalize).length === 0) {
+      // Return default content based on block type
+      if (block.block_type === 'location') {
+        return {
+          mainLocation: {
+            time: '09:00 - 12:00',
+            title: '',
+            address: '',
+            description: '',
+            photo: null,
+            recommendations: '',
+            category: null,
+            interests: [],
+            price_level: '',
+            approx_cost: ''
+          },
+          alternativeLocations: []
+        };
+      }
+      return {};
+    }
+    
     if (isOldFormat) {
       // Convert old format to new format
       return {
-        mainLocation: initialContent,
+        mainLocation: contentToNormalize,
         alternativeLocations: []
       };
     }
-    return {
-      mainLocation: initialContent.mainLocation || {
-        time: '09:00 - 12:00',
-        title: '',
-        address: '',
-        description: '',
-        photo: null,
-        recommendations: '',
-        category: null,
-        interests: [],
-        price_level: '',
-        approx_cost: ''
-      },
-      alternativeLocations: initialContent.alternativeLocations || []
-    };
-  });
+    
+    // For location blocks, ensure mainLocation structure
+    if (block.block_type === 'location') {
+      return {
+        mainLocation: contentToNormalize.mainLocation || {
+          time: '09:00 - 12:00',
+          title: '',
+          address: '',
+          description: '',
+          photo: null,
+          recommendations: '',
+          category: null,
+          interests: [],
+          price_level: '',
+          approx_cost: ''
+        },
+        alternativeLocations: contentToNormalize.alternativeLocations || []
+      };
+    }
+    
+    // For other blocks, return as is
+    return contentToNormalize;
+  };
+  
+  const [content, setContent] = useState(() => normalizeContent(initialContent));
+  
+  // Update content when block changes (e.g., after save and reload)
+  useEffect(() => {
+    const updatedContent = normalizeContent(block.content || {});
+    setContent(updatedContent);
+  }, [block.id, block.content]);
   
   const [editingLocationIndex, setEditingLocationIndex] = useState(null); // null = main, number = alternative index
   const [interestsStructure, setInterestsStructure] = useState(null);
