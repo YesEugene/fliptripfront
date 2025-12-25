@@ -93,6 +93,29 @@ export default function TripVisualizerPage() {
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
 
+  // Tour settings state
+  const [tourSettings, setTourSettings] = useState({
+    withGuide: false,
+    price: {
+      pdfPrice: 16,
+      guidedPrice: 0,
+      currency: 'USD',
+      availableDates: [],
+      meetingPoint: '',
+      meetingTime: ''
+    },
+    additionalOptions: {
+      platformOptions: ['insurance', 'accommodation'],
+      creatorOptions: {}
+    },
+    tags: []
+  });
+
+  // Tag input state
+  const [tagInput, setTagInput] = useState('');
+  const [tagSuggestions, setTagSuggestions] = useState([]);
+  const [showTagSuggestions, setShowTagSuggestions] = useState(false);
+
   useEffect(() => {
     loadUser();
     loadGuideProfile();
@@ -166,6 +189,27 @@ export default function TripVisualizerPage() {
           title: sourceData.title || tourObj.title || 'Barcelona without the rush',
           description: sourceData.description || tourObj.description || 'I return to Barcelona not for landmarks, but for its rhythm. The way the city lives between meals, walks, and pauses. I made this guide for moments when you don\'t want to impress yourself with how much you\'ve seen. When you want the city to feel human, readable, and calm.\n\nThese are the places and routes I choose when I want Barcelona to feel like a place I\'m living in — not passing through.',
           preview: sourceData.preview || tourObj.preview_media_url || BarcelonaExampleImage
+        });
+
+        // Load tour settings
+        const withGuide = tourObj.default_format === 'with_guide' || tourObj.default_format === 'guided';
+        const tags = tourObj.tour_tags?.map(tt => tt.tag?.name).filter(Boolean) || [];
+        
+        setTourSettings({
+          withGuide: withGuide,
+          price: {
+            pdfPrice: tourObj.price_pdf || 16,
+            guidedPrice: tourObj.price_guided || 0,
+            currency: tourObj.currency || 'USD',
+            availableDates: [], // Will be loaded from availability slots if needed
+            meetingPoint: tourObj.meeting_point || '',
+            meetingTime: tourObj.meeting_time || ''
+          },
+          additionalOptions: {
+            platformOptions: ['insurance', 'accommodation'],
+            creatorOptions: {} // Will be loaded from tour metadata if available
+          },
+          tags: tags
         });
       }
 
@@ -345,7 +389,22 @@ export default function TripVisualizerPage() {
             description: tourInfo.description || '',
             preview: tourInfo.preview || null,
             previewType: 'image',
-            saveAsDraft: true
+            saveAsDraft: true,
+            format: tourSettings.withGuide ? 'guided' : 'self-guided',
+            withGuide: tourSettings.withGuide,
+            price: {
+              pdfPrice: tourSettings.price.pdfPrice || 16,
+              guidedPrice: tourSettings.price.guidedPrice || 0,
+              currency: tourSettings.price.currency || 'USD',
+              availableDates: tourSettings.price.availableDates || [],
+              meetingPoint: tourSettings.price.meetingPoint || '',
+              meetingTime: tourSettings.price.meetingTime || ''
+            },
+            additionalOptions: {
+              platformOptions: tourSettings.additionalOptions.platformOptions || ['insurance', 'accommodation'],
+              creatorOptions: tourSettings.additionalOptions.creatorOptions || {}
+            },
+            tags: tourSettings.tags || []
           })
         });
 
@@ -400,6 +459,12 @@ export default function TripVisualizerPage() {
       // Validate required fields
       if (!tourInfo.city || !tourInfo.title) {
         alert('Please fill in City and Trip name before submitting');
+        return;
+      }
+
+      // Validate tour settings
+      if (!isTourSettingsValid()) {
+        alert('Please complete tour settings. If "With Guide" is selected, fill all required fields (Price, Meeting Point, Meeting Time, and at least one Available Date).');
         return;
       }
       
@@ -486,7 +551,22 @@ export default function TripVisualizerPage() {
             description: tourInfo.description || '',
             preview: tourInfo.preview || null,
             previewType: 'image',
-            status: 'pending'
+            status: 'pending',
+            format: tourSettings.withGuide ? 'guided' : 'self-guided',
+            withGuide: tourSettings.withGuide,
+            price: {
+              pdfPrice: tourSettings.price.pdfPrice || 16,
+              guidedPrice: tourSettings.price.guidedPrice || 0,
+              currency: tourSettings.price.currency || 'USD',
+              availableDates: tourSettings.price.availableDates || [],
+              meetingPoint: tourSettings.price.meetingPoint || '',
+              meetingTime: tourSettings.price.meetingTime || ''
+            },
+            additionalOptions: {
+              platformOptions: tourSettings.additionalOptions.platformOptions || ['insurance', 'accommodation'],
+              creatorOptions: tourSettings.additionalOptions.creatorOptions || {}
+            },
+            tags: tourSettings.tags || []
           })
         });
 
@@ -1470,6 +1550,565 @@ export default function TripVisualizerPage() {
           </div>
         ))}
 
+        {/* Tour Settings Block */}
+        <div style={{
+          backgroundColor: 'white',
+          padding: '24px',
+          borderRadius: '12px',
+          marginBottom: '24px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '8px' }}>
+            Tour Settings
+          </h2>
+          <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '24px' }}>
+            Complete the settings to submit your tour for moderation. Review takes up to 24 hours.
+          </p>
+
+          {/* Tour Format & Pricing Section */}
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500', fontSize: '16px' }}>
+              Tour Format & Pricing
+            </label>
+            
+            {/* PDF Format (Default - Always Available) */}
+            <div style={{
+              padding: '16px',
+              border: '1px solid #d1d5db',
+              borderRadius: '8px',
+              marginBottom: '16px',
+              backgroundColor: '#f0fdf4',
+              borderLeft: '4px solid #10b981'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                <span style={{ 
+                  marginRight: '8px', 
+                  fontSize: '20px',
+                  color: '#10b981'
+                }}>✓</span>
+                <strong style={{ fontSize: '16px' }}>Self-guided Tour (PDF) - Always Available</strong>
+              </div>
+              <div style={{ marginLeft: '28px', color: '#6b7280', fontSize: '14px' }}>
+                Fixed price: <strong style={{ color: '#059669' }}>${tourSettings.price.pdfPrice || 16}</strong>
+                <br />
+                <span style={{ fontSize: '12px' }}>Travelers can download the PDF route and explore independently</span>
+              </div>
+            </div>
+
+            {/* Guided Tour Format (Optional Checkbox) */}
+            <div style={{
+              padding: '16px',
+              border: '1px solid #d1d5db',
+              borderRadius: '8px',
+              marginBottom: '16px',
+              backgroundColor: tourSettings.withGuide ? '#eff6ff' : '#f9fafb'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                <input
+                  type="checkbox"
+                  checked={tourSettings.withGuide || false}
+                  onChange={(e) => {
+                    setTourSettings(prev => ({
+                      ...prev,
+                      withGuide: e.target.checked
+                    }));
+                  }}
+                  style={{ marginRight: '8px', width: '18px', height: '18px', cursor: 'pointer' }}
+                />
+                <strong style={{ fontSize: '16px' }}>With Guide (Optional)</strong>
+              </div>
+              <div style={{ marginLeft: '26px', color: '#6b7280', fontSize: '13px', marginBottom: '8px' }}>
+                Check this if you're ready to accompany travelers on this tour
+              </div>
+              
+              {tourSettings.withGuide && (
+                <div style={{ marginLeft: '26px', marginTop: '12px' }}>
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500' }}>
+                      Your Price (USD) *
+                    </label>
+                    <input
+                      type="number"
+                      value={tourSettings.price.guidedPrice || ''}
+                      onChange={(e) => setTourSettings(prev => ({
+                        ...prev,
+                        price: { ...prev.price, guidedPrice: parseFloat(e.target.value) || 0 }
+                      }))}
+                      min="0"
+                      step="0.01"
+                      required={tourSettings.withGuide}
+                      placeholder="0.00"
+                      style={{
+                        width: '100%',
+                        padding: '8px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        fontSize: '14px'
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500' }}>
+                      Meeting Point *
+                    </label>
+                    <input
+                      type="text"
+                      value={tourSettings.price.meetingPoint || ''}
+                      onChange={(e) => setTourSettings(prev => ({
+                        ...prev,
+                        price: { ...prev.price, meetingPoint: e.target.value }
+                      }))}
+                      required={tourSettings.withGuide}
+                      placeholder="e.g., Central Station, Main Square"
+                      style={{
+                        width: '100%',
+                        padding: '8px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        fontSize: '14px'
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500' }}>
+                      Meeting Time *
+                    </label>
+                    <input
+                      type="time"
+                      value={tourSettings.price.meetingTime || ''}
+                      onChange={(e) => setTourSettings(prev => ({
+                        ...prev,
+                        price: { ...prev.price, meetingTime: e.target.value }
+                      }))}
+                      required={tourSettings.withGuide}
+                      style={{
+                        width: '100%',
+                        padding: '8px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        fontSize: '14px'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <label style={{ fontSize: '14px', fontWeight: '500' }}>
+                        Available Dates *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTourSettings(prev => ({
+                            ...prev,
+                            price: {
+                              ...prev.price,
+                              availableDates: [...(prev.price.availableDates || []), '']
+                            }
+                          }));
+                        }}
+                        style={{
+                          padding: '4px 12px',
+                          backgroundColor: '#10b981',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '12px'
+                        }}
+                      >
+                        + Add Date
+                      </button>
+                    </div>
+                    {tourSettings.price.availableDates && tourSettings.price.availableDates.length > 0 ? (
+                      tourSettings.price.availableDates.map((date, index) => (
+                        <div key={index} style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                          <input
+                            type="date"
+                            value={date}
+                            onChange={(e) => {
+                              const newDates = [...tourSettings.price.availableDates];
+                              newDates[index] = e.target.value;
+                              setTourSettings(prev => ({
+                                ...prev,
+                                price: { ...prev.price, availableDates: newDates }
+                              }));
+                            }}
+                            required={tourSettings.withGuide}
+                            style={{
+                              flex: 1,
+                              padding: '8px',
+                              border: '1px solid #d1d5db',
+                              borderRadius: '6px',
+                              fontSize: '14px'
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newDates = tourSettings.price.availableDates.filter((_, i) => i !== index);
+                              setTourSettings(prev => ({
+                                ...prev,
+                                price: { ...prev.price, availableDates: newDates }
+                              }));
+                            }}
+                            style={{
+                              padding: '8px 12px',
+                              backgroundColor: '#ef4444',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '12px'
+                            }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <div style={{ 
+                        padding: '12px', 
+                        backgroundColor: '#fef3c7', 
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        color: '#92400e'
+                      }}>
+                        No dates added. Click &quot;+ Add Date&quot; to add available dates for your guided tour.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Platform Additional Options */}
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500', fontSize: '16px' }}>
+              Platform Additional Options
+            </label>
+            <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px' }}>
+              Options automatically provided by FlipTrip platform (always available)
+            </div>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+              gap: '12px'
+            }}>
+              {tourSettings.additionalOptions.platformOptions.map((optionId) => {
+                const optionLabels = {
+                  insurance: 'Travel Insurance',
+                  accommodation: 'Accommodation'
+                };
+                return (
+                  <div
+                    key={optionId}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      backgroundColor: '#f0fdf4',
+                      borderLeft: '4px solid #10b981'
+                    }}
+                  >
+                    <span style={{ 
+                      marginRight: '8px', 
+                      fontSize: '18px',
+                      color: '#10b981'
+                    }}>✓</span>
+                    <span style={{ fontSize: '14px', fontWeight: '500' }}>
+                      {optionLabels[optionId] || optionId}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Creator Additional Services */}
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500', fontSize: '16px' }}>
+              Your Additional Services
+            </label>
+            <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px' }}>
+              Additional services you can provide to travelers (check and set price)
+            </div>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              {[
+                { id: 'photography', label: 'Photography Service' },
+                { id: 'food', label: 'Food & Dining' },
+                { id: 'transport', label: 'Transportation' }
+              ].map((option) => {
+                const isChecked = tourSettings.additionalOptions?.creatorOptions?.[option.id] !== undefined;
+                const price = tourSettings.additionalOptions?.creatorOptions?.[option.id] || 0;
+                
+                return (
+                  <div
+                    key={option.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      backgroundColor: isChecked ? '#eff6ff' : 'white',
+                      transition: 'background-color 0.2s',
+                      gap: '12px',
+                      flexWrap: isMobile ? 'wrap' : 'nowrap'
+                    }}
+                  >
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                        flex: '0 0 auto',
+                        minWidth: isMobile ? '100%' : '200px'
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={(e) => {
+                          const currentOptions = tourSettings.additionalOptions?.creatorOptions || {};
+                          if (e.target.checked) {
+                            setTourSettings(prev => ({
+                              ...prev,
+                              additionalOptions: {
+                                ...prev.additionalOptions,
+                                creatorOptions: {
+                                  ...currentOptions,
+                                  [option.id]: currentOptions[option.id] || 0
+                                }
+                              }
+                            }));
+                          } else {
+                            const newOptions = { ...currentOptions };
+                            delete newOptions[option.id];
+                            setTourSettings(prev => ({
+                              ...prev,
+                              additionalOptions: {
+                                ...prev.additionalOptions,
+                                creatorOptions: newOptions
+                              }
+                            }));
+                          }
+                        }}
+                        style={{
+                          marginRight: '8px',
+                          width: '18px',
+                          height: '18px',
+                          cursor: 'pointer'
+                        }}
+                      />
+                      <span style={{ fontSize: '14px', fontWeight: '500' }}>
+                        {option.label}
+                      </span>
+                    </label>
+                    {isChecked && (
+                      <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '8px',
+                        flex: isMobile ? '1 1 100%' : '1 1 auto',
+                        minWidth: isMobile ? '100%' : '200px'
+                      }}>
+                        <label style={{ fontSize: '13px', color: '#6b7280', whiteSpace: 'nowrap' }}>
+                          Price (USD):
+                        </label>
+                        <input
+                          type="number"
+                          value={price}
+                          onChange={(e) => {
+                            const currentOptions = tourSettings.additionalOptions?.creatorOptions || {};
+                            setTourSettings(prev => ({
+                              ...prev,
+                              additionalOptions: {
+                                ...prev.additionalOptions,
+                                creatorOptions: {
+                                  ...currentOptions,
+                                  [option.id]: parseFloat(e.target.value) || 0
+                                }
+                              }
+                            }));
+                          }}
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          style={{
+                            flex: '1 1 auto',
+                            padding: '6px 10px',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '6px',
+                            fontSize: '14px',
+                            maxWidth: '120px'
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Tags Section */}
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500', fontSize: '16px' }}>
+              Tags
+            </label>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>
+                Add Tags (for search and discovery)
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  value={tagInput}
+                  onChange={(e) => {
+                    setTagInput(e.target.value);
+                    // Generate tag suggestions (simplified - can be enhanced with API)
+                    if (e.target.value.length > 1) {
+                      // Simple keyword extraction
+                      const words = e.target.value.toLowerCase().split(/\s+/);
+                      setTagSuggestions(words.filter(w => w.length > 2));
+                      setShowTagSuggestions(true);
+                    } else {
+                      setShowTagSuggestions(false);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && tagInput.trim()) {
+                      e.preventDefault();
+                      if (!tourSettings.tags.includes(tagInput.trim())) {
+                        setTourSettings(prev => ({
+                          ...prev,
+                          tags: [...prev.tags, tagInput.trim()]
+                        }));
+                      }
+                      setTagInput('');
+                      setShowTagSuggestions(false);
+                    }
+                  }}
+                  placeholder="Type to add tags and press Enter"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '16px'
+                  }}
+                />
+                {showTagSuggestions && tagSuggestions.length > 0 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    backgroundColor: 'white',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    marginTop: '4px',
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    zIndex: 1000,
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                  }}>
+                    {tagSuggestions
+                      .filter(tag => !tourSettings.tags.includes(tag) && tag.toLowerCase().includes(tagInput.toLowerCase()))
+                      .slice(0, 5)
+                      .map((tag, index) => (
+                        <div
+                          key={index}
+                          onClick={() => {
+                            if (!tourSettings.tags.includes(tag)) {
+                              setTourSettings(prev => ({
+                                ...prev,
+                                tags: [...prev.tags, tag]
+                              }));
+                            }
+                            setTagInput('');
+                            setShowTagSuggestions(false);
+                          }}
+                          style={{
+                            padding: '10px 12px',
+                            cursor: 'pointer',
+                            borderBottom: index < tagSuggestions.length - 1 ? '1px solid #e5e7eb' : 'none'
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                        >
+                          {tag}
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>
+                Tags help travelers discover your tour. Add keywords that describe your tour.
+              </p>
+            </div>
+
+            {/* Display selected tags */}
+            {tourSettings.tags.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {tourSettings.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      padding: '6px 12px',
+                      backgroundColor: '#eff6ff',
+                      color: '#1e40af',
+                      borderRadius: '20px',
+                      fontSize: '14px',
+                      fontWeight: '500'
+                    }}
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTourSettings(prev => ({
+                          ...prev,
+                          tags: prev.tags.filter(t => t !== tag)
+                        }));
+                      }}
+                      style={{
+                        marginLeft: '8px',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        color: '#1e40af',
+                        cursor: 'pointer',
+                        fontSize: '16px',
+                        lineHeight: '1',
+                        padding: '0',
+                        width: '18px',
+                        height: '18px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Action buttons */}
         <div style={{ 
           display: 'flex', 
@@ -1540,32 +2179,32 @@ export default function TripVisualizerPage() {
           </button>
           <button
             onClick={handleSubmitForModeration}
-            disabled={!isHeaderValid()}
+            disabled={!isHeaderValid() || !isTourSettingsValid()}
             style={{
               flex: '1',
               minWidth: '150px',
               padding: '14px 28px',
-              backgroundColor: isHeaderValid() ? '#4ade80' : '#d1d5db',
-              color: isHeaderValid() ? '#111827' : '#9ca3af',
+              backgroundColor: (isHeaderValid() && isTourSettingsValid()) ? '#4ade80' : '#d1d5db',
+              color: (isHeaderValid() && isTourSettingsValid()) ? '#111827' : '#9ca3af',
               border: 'none',
               borderRadius: '10px',
-              cursor: isHeaderValid() ? 'pointer' : 'not-allowed',
+              cursor: (isHeaderValid() && isTourSettingsValid()) ? 'pointer' : 'not-allowed',
               fontSize: '16px',
               fontWeight: '600',
               transition: 'all 0.2s',
-              opacity: isHeaderValid() ? 1 : 0.6
+              opacity: (isHeaderValid() && isTourSettingsValid()) ? 1 : 0.6
             }}
             onMouseEnter={(e) => {
-              if (isHeaderValid() && !e.target.disabled) {
+              if (isHeaderValid() && isTourSettingsValid() && !e.target.disabled) {
                 e.target.style.backgroundColor = '#22c55e';
               }
             }}
             onMouseLeave={(e) => {
-              if (isHeaderValid() && !e.target.disabled) {
+              if (isHeaderValid() && isTourSettingsValid() && !e.target.disabled) {
                 e.target.style.backgroundColor = '#4ade80';
               }
             }}
-            title={!isHeaderValid() ? 'Please fill in City, Title, Description, and Preview Photo' : ''}
+            title={!isHeaderValid() ? 'Please fill in City, Title, Description, and Preview Photo' : (!isTourSettingsValid() ? 'Please complete tour settings (if With Guide is selected, fill all required fields)' : '')}
           >
             Submit for Moderation
           </button>
