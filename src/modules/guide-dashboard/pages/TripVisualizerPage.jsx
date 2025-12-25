@@ -1997,7 +1997,8 @@ export default function TripVisualizerPage() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  transition: 'all 0.2s'
+                  transition: 'all 0.2s',
+                  marginBottom: '5px'
                 }}
                 onMouseEnter={(e) => {
                   e.target.style.backgroundColor = '#f9fafb';
