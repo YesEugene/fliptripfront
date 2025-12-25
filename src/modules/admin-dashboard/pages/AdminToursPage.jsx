@@ -316,6 +316,33 @@ export default function AdminToursPage() {
     }
   };
 
+  // Check if tour has format selected
+  const hasTourFormat = (tour) => {
+    // Check default_format field
+    if (tour.default_format && (tour.default_format === 'self_guided' || tour.default_format === 'with_guide')) {
+      return true;
+    }
+    
+    // Check draft_data.tourSettings for tours created in Visualizer
+    if (tour.draft_data && tour.draft_data.tourSettings) {
+      const settings = tour.draft_data.tourSettings;
+      if (settings.selfGuided === true || settings.withGuide === true) {
+        return true;
+      }
+    }
+    
+    // Check legacy fields
+    if (tour.format && (tour.format === 'self-guided' || tour.format === 'guided' || tour.format === 'self_guided' || tour.format === 'with_guide')) {
+      return true;
+    }
+    
+    if (tour.withGuide === true) {
+      return true;
+    }
+    
+    return false;
+  };
+
   // Handle approve tour
   const handleApproveTour = async (tourId) => {
     // Validate tourId is a valid UUID
@@ -323,6 +350,13 @@ export default function AdminToursPage() {
     if (!tourId || !uuidRegex.test(tourId)) {
       console.error('Invalid tourId format:', tourId, 'Type:', typeof tourId);
       alert('Error: Invalid tour ID format. Please refresh the page and try again.');
+      return;
+    }
+
+    // Find tour in the list to check format
+    const tour = tours.find(t => t.id === tourId);
+    if (tour && !hasTourFormat(tour)) {
+      alert('Cannot approve tour: Tour format (Self-guided or With Guide) must be selected in Tour Settings before approval.');
       return;
     }
 

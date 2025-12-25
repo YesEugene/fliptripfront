@@ -2382,6 +2382,22 @@ export default function ItineraryPage() {
                     </div>
                   ))}
                   
+                  {/* Payment Block - Show after first 2 blocks in preview mode (new format) */}
+                  {shouldLimitBlocks && blocksToShow.length >= 2 && (
+                    <div id="unlock-full-itinerary" style={{
+                      backgroundColor: '#f9fafb',
+                      borderRadius: '12px',
+                      padding: '24px',
+                      border: '1px solid #e5e7eb',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                      marginTop: '32px',
+                      marginBottom: '0',
+                      width: '100%'
+                    }}>
+                      {/* Payment block content will be rendered by the existing payment block code below */}
+                      {/* This is just a placeholder anchor for the "Unlock full itinerary" button */}
+                    </div>
+                  )}
                 </>
               );
             })()}
