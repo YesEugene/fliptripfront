@@ -663,6 +663,7 @@ export default function ItineraryPage() {
       
           console.log('✅ Converted tour to itinerary format:', itineraryData);
           setItinerary(itineraryData);
+          setUseNewFormat(false); // Mark as using old format (daily_plan)
           
           // Reset tour type selection based on tour data
           const supportsGuide = tour.withGuide || 
