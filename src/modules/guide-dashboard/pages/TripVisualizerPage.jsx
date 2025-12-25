@@ -1878,10 +1878,11 @@ export default function TripVisualizerPage() {
         backgroundColor: 'white',
         boxShadow: '0 -2px 8px rgba(0,0,0,0.1)',
         zIndex: 1000,
-        transition: 'transform 0.3s ease',
-        transform: isTourSettingsCollapsed ? 'translateY(0)' : 'translateY(calc(-100% + 120px))',
-        maxHeight: '100vh',
-        overflowY: 'auto'
+        maxHeight: isTourSettingsCollapsed ? '120px' : '80vh',
+        transition: 'max-height 0.3s ease',
+        overflowY: 'auto',
+        display: 'flex',
+        flexDirection: 'column'
       }}>
         {/* Action buttons - Add Block and Save as Draft */}
         <div style={{ 
