@@ -807,7 +807,9 @@ function PhotoBlock({ block, onEdit }) {
               fontSize: '14px', 
               fontStyle: 'italic',
               textAlign: 'center',
-              margin: 0
+              margin: 0,
+              lineHeight: '1.6',
+              whiteSpace: 'pre-line'
             }}>
               {caption}
             </p>
