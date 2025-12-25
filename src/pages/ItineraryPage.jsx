@@ -1608,48 +1608,6 @@ export default function ItineraryPage() {
             }}>
               {tourTitle}
             </h1>
-
-            {/* Author Info Below Title - Only for DB tours */}
-            {guideInfo && guideName && (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                marginTop: '12px'
-              }}>
-                <img 
-                  src={guideAvatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&q=80'}
-                  alt={guideName}
-                  style={{
-                    width: '34px', // Reduced by 30% (48px * 0.7 = 33.6px, rounded to 34px)
-                    height: '34px', // Reduced by 30% (48px * 0.7 = 33.6px, rounded to 34px)
-                    borderRadius: '50%',
-                    border: '2px solid rgba(255, 255, 255, 0.8)', // 2px border
-                    objectFit: 'cover',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
-                  }}
-                />
-                <div>
-                  <div style={{
-                    fontSize: '12px',
-                    color: 'rgba(255, 255, 255, 0.9)',
-                    marginBottom: '2px',
-                    lineHeight: '1.4',
-                    textShadow: '0 1px 4px rgba(0, 0, 0, 0.5)'
-                  }}>
-                    Tour created
-                  </div>
-                  <div style={{
-                    fontSize: '12px',
-                    color: 'rgba(255, 255, 255, 0.9)',
-                    lineHeight: '1.4',
-                    textShadow: '0 1px 4px rgba(0, 0, 0, 0.5)'
-                  }}>
-                    by {guideName}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Download PDF Button at Bottom - Show only after payment or if not preview */}
