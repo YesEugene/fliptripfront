@@ -633,7 +633,101 @@ function ThreeColumnsBlock({ block, onEdit }) {
     { photo: null, text: 'Column 2 text' },
     { photo: null, text: 'Column 3 text' }
   ];
+  const [isMobile, setIsMobile] = useState(false);
 
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  // Mobile: horizontal scroll with swipe
+  if (isMobile) {
+    return (
+      <div style={{
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        WebkitOverflowScrolling: 'touch',
+        scrollSnapType: 'x mandatory',
+        scrollbarWidth: 'none', // Firefox
+        msOverflowStyle: 'none', // IE/Edge
+        paddingBottom: '8px'
+      }}
+      onTouchStart={(e) => {
+        // Enable smooth scrolling on touch devices
+        e.currentTarget.style.scrollBehavior = 'smooth';
+      }}
+      >
+        <style>{`
+          div::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+          }
+        `}</style>
+        <div style={{
+          display: 'flex',
+          gap: '16px',
+          width: 'max-content',
+          paddingRight: '16px'
+        }}>
+          {columns.map((column, index) => (
+            <div 
+              key={index}
+              style={{
+                flex: '0 0 calc(100vw - 64px)',
+                maxWidth: 'calc(100vw - 64px)',
+                scrollSnapAlign: 'start'
+              }}
+            >
+              {column.photo ? (
+                <img 
+                  src={column.photo} 
+                  alt={`Column ${index + 1}`} 
+                  style={{ 
+                    width: '100%', 
+                    height: '200px', 
+                    objectFit: 'cover', 
+                    borderRadius: '8px',
+                    marginBottom: '12px'
+                  }} 
+                />
+              ) : (
+                <div style={{
+                  width: '100%',
+                  height: '200px',
+                  backgroundColor: '#e5e7eb',
+                  borderRadius: '8px',
+                  marginBottom: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#9ca3af',
+                  fontSize: '12px'
+                }}>
+                  No photo
+                </div>
+              )}
+              <p style={{ 
+                color: '#6b7280', 
+                fontSize: '14px', 
+                lineHeight: '1.6', 
+                margin: 0,
+                whiteSpace: 'pre-line'
+              }}>
+                {column.text}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop: grid layout
   return (
     <div>
       <div style={{
