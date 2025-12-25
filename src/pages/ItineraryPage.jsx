@@ -1870,7 +1870,7 @@ export default function ItineraryPage() {
           )}
         </div>
 
-        {/* Email and Payment Block - Show only if preview and not paid */}
+        {/* Email and Payment Block - Show only if preview and not paid (for both formats) */}
         {previewOnly && !isPaid && (() => {
           // Determine if tour supports guide option
           const supportsGuide = tourData?.withGuide || 
