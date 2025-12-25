@@ -1851,13 +1851,6 @@ export default function TripVisualizerPage() {
 
         {/* Spacer to prevent content from being hidden behind fixed bottom panel */}
         <div style={{ height: isTourSettingsCollapsed ? '120px' : '600px' }} />
-              {/* Tour Format & Pricing Section */}
-              <div style={{ marginBottom: '24px', marginTop: '24px' }}>
-                <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500', fontSize: '16px' }}>
-                  Tour Format & Pricing
-                </label>
-                
-                {/* Self-guided Tour (Optional Checkbox) */}
                 <div style={{
                   padding: '16px',
                   border: '1px solid #d1d5db',
