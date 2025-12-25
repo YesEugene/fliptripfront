@@ -236,7 +236,7 @@ export default function TripVisualizerPage() {
         if (withGuide && tourIdToLoad) {
           // withGuide is defined in this scope (line 230)
           try {
-            const availabilityResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-availability?tourId=${tourIdToLoad}`).catch(() => null);
+            const availabilityResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/guide-availability?tour_id=${tourIdToLoad}`).catch(() => null);
             if (availabilityResponse && availabilityResponse.ok) {
               const availabilityData = await availabilityResponse.json();
               if (availabilityData.success && availabilityData.slots) {
@@ -1824,7 +1824,7 @@ export default function TripVisualizerPage() {
                   backgroundColor: '#FFDD00',
                   color: '#111827',
                   border: 'none',
-                  borderRadius: '5px',
+                  borderRadius: '10px',
                   cursor: 'pointer',
                   fontSize: '13px',
                   fontWeight: '500',
@@ -1849,7 +1849,7 @@ export default function TripVisualizerPage() {
                   backgroundColor: '#F66969',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '5px',
+                  borderRadius: '10px',
                   cursor: 'pointer',
                   fontSize: '13px',
                   fontWeight: '500',
@@ -1880,14 +1880,15 @@ export default function TripVisualizerPage() {
         display: 'flex',
         flexDirection: 'column'
       }}>
-        {/* White button panel - 65px height */}
+        {/* White button panel - dynamic height: 75px on mobile (to fit buttons + 10px), 65px on desktop */}
         <div style={{
           width: '100%',
-          height: '65px',
+          height: isMobile ? '75px' : '65px',
           backgroundColor: 'white',
           boxShadow: '0px -20px 18.4px 0px rgba(0, 0, 0, 0.04)',
           display: 'flex',
-          alignItems: 'center'
+          alignItems: 'center',
+          padding: isMobile ? '10px 0' : '0'
         }}>
           {/* Inner container matching content width */}
           <div style={{
@@ -1919,7 +1920,7 @@ export default function TripVisualizerPage() {
                   backgroundColor: '#FFDD00',
                   color: '#111827',
                   border: 'none',
-                  borderRadius: '5px',
+                  borderRadius: '10px',
                   cursor: 'pointer',
                   fontSize: '14px',
                   fontWeight: '600',
@@ -1985,7 +1986,7 @@ export default function TripVisualizerPage() {
                   backgroundColor: 'white',
                   color: '#111827',
                   border: '1px solid #D5D7DC',
-                  borderRadius: '5px',
+                  borderRadius: '10px',
                   cursor: 'pointer',
                   fontSize: '14px',
                   fontWeight: '600',
@@ -2017,7 +2018,7 @@ export default function TripVisualizerPage() {
                   backgroundColor: 'white',
                   color: '#111827',
                   border: '1px solid #D5D7DC',
-                  borderRadius: '5px',
+                  borderRadius: '10px',
                   cursor: 'pointer',
                   fontSize: '14px',
                   fontWeight: '600',
