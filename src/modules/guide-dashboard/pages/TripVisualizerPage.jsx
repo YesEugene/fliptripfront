@@ -289,7 +289,7 @@ export default function TripVisualizerPage() {
       }
       
       // Load availability slots if tour has guide format
-      if (withGuide && tourIdToLoad) {
+      if (tourSettings.withGuide && tourIdToLoad) {
         loadAvailabilitySlots(tourIdToLoad);
       }
     } catch (error) {
@@ -1894,16 +1894,17 @@ export default function TripVisualizerPage() {
             width: '100%',
             margin: '0 auto',
             padding: '0 20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px'
+            display: isMobile ? 'flex' : 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            alignItems: isMobile ? 'stretch' : 'center',
+            justifyContent: isMobile ? 'flex-start' : 'space-between',
+            gap: isMobile ? '12px' : '12px'
           }}>
-            {/* Add New Block button - left aligned */}
+            {/* Add New Block button - left aligned on desktop, full width on mobile */}
             <button
               onClick={() => setShowBlockSelector(true)}
               style={{
-                width: '145px',
+                width: isMobile ? '100%' : '145px',
                 height: '40px',
                 backgroundColor: '#FFDD00',
                 color: '#111827',
@@ -1929,18 +1930,20 @@ export default function TripVisualizerPage() {
               Add New Block
             </button>
 
-            {/* Right side buttons */}
+            {/* Right side buttons - stacked on mobile */}
             <div style={{
               display: 'flex',
-              alignItems: 'center',
-              gap: '12px'
+              flexDirection: isMobile ? 'column' : 'row',
+              alignItems: 'stretch',
+              gap: '12px',
+              width: isMobile ? '100%' : 'auto'
             }}>
               {/* Save as Draft button */}
               <button
                 onClick={handleSaveAsDraft}
                 disabled={!isHeaderValid()}
                 style={{
-                  width: '105px',
+                  width: isMobile ? '100%' : '105px',
                   height: '40px',
                   backgroundColor: '#E9EBEF',
                   color: '#111827',
@@ -1971,7 +1974,7 @@ export default function TripVisualizerPage() {
               <button
                 onClick={() => setIsTourSettingsCollapsed(!isTourSettingsCollapsed)}
                 style={{
-                  width: '185px',
+                  width: isMobile ? '100%' : '185px',
                   height: '40px',
                   backgroundColor: 'white',
                   color: '#111827',
