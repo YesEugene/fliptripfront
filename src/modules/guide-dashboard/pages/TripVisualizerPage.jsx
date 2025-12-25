@@ -2451,9 +2451,9 @@ export default function TripVisualizerPage() {
                   Submit for Moderation
                 </button>
               </div>
-            </>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Block Selector Modal */}
