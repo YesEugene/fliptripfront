@@ -457,15 +457,61 @@ export default function ItineraryPage() {
       // Extract city name
       const cityName = typeof tour.city === 'string' ? tour.city : tour.city?.name || 'Unknown City';
       
+      // Check if tour uses new format (contentBlocks) or old format (daily_plan)
+      // For new format tours, daily_plan might be empty, which is OK
+      const hasContentBlocks = contentBlocks.length > 0;
+      const hasDailyPlan = tour.daily_plan && tour.daily_plan.length > 0;
+      
+      // Only throw error if tour has neither contentBlocks nor daily_plan
+      if (!hasContentBlocks && !hasDailyPlan) {
+        throw new Error('Tour has no content blocks or daily plan');
+      }
+      
+      // If using new format (contentBlocks), skip daily_plan processing
+      if (hasContentBlocks) {
+        console.log('✅ Tour uses new format (contentBlocks), skipping daily_plan processing');
+        // Create minimal itinerary data for new format
+        const itineraryData = {
+          title: tour.title || 'Tour',
+          subtitle: tour.description || `Explore ${cityName} with this curated tour`,
+          city: cityName,
+          date: formData.date || new Date().toISOString().slice(0, 10),
+          budget: null,
+          daily_plan: [], // Empty for new format - content comes from contentBlocks
+          tourId: tourIdParam,
+          preview_media_url: tour.preview_media_url || tour.preview || null,
+          tags: {
+            city: cityName,
+            date: formData.date || new Date().toISOString().slice(0, 10),
+            audience: null,
+            budget: null,
+            interests: []
+          }
+        };
+        
+        console.log('✅ Converted tour to itinerary format (new format):', itineraryData);
+        setItinerary(itineraryData);
+        
+        // Reset tour type selection based on tour data
+        const supportsGuide = tour.withGuide || 
+                              tour.default_format === 'with_guide' || 
+                              tour.format === 'guided' ||
+                              (tour.price?.guidedPrice && tour.price.guidedPrice > 0);
+        
+        if (!supportsGuide) {
+          setTourType('self-guided');
+          setSelectedDate(null);
+        }
+        
+        setLoading(false);
+        return; // Exit early for new format tours
+      }
+      
       // CRITICAL: Check if we should show all days or just first day
       // Preview mode: show only first day with 2 locations
       // Full mode (paid): show all days with all locations
       const shouldShowAllDays = (isFull || isPaid) && !actualPreviewOnly;
       const shouldLimitItems = actualPreviewOnly && !isFull && !isPaid;
-      
-      if (!tour.daily_plan || tour.daily_plan.length === 0) {
-        throw new Error('Tour has no daily plan');
-      }
       
       // Process all days or just first day based on mode
       let daysToShow = [];
