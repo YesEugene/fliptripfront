@@ -19,6 +19,7 @@ export default function GuideDashboardPage() {
   const [activeTab, setActiveTab] = useState('tours'); // 'tours', 'profile', 'statistics'
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [availabilityTour, setAvailabilityTour] = useState(null); // Tour for which to manage availability
+  const [tourBlockCounts, setTourBlockCounts] = useState({}); // Cache for block counts
   
   // Profile state
   const [profileLoading, setProfileLoading] = useState(true);
@@ -79,7 +80,40 @@ export default function GuideDashboardPage() {
       setLoading(true);
       const data = await getGuideTours();
       if (data.success) {
-        setTours(data.tours || []);
+        const toursList = data.tours || [];
+        setTours(toursList);
+        
+        // Load block counts for each tour
+        const blockCounts = {};
+        for (const tour of toursList) {
+          try {
+            const token = localStorage.getItem('authToken');
+            if (token && tour.id) {
+              const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripbackend.vercel.app';
+              const response = await fetch(`${API_BASE_URL}/api/tour-content-blocks?tourId=${tour.id}`, {
+                headers: {
+                  'Authorization': `Bearer ${token}`
+                }
+              });
+              
+              if (response && response.ok) {
+                const blocksData = await response.json();
+                if (blocksData.success && blocksData.blocks) {
+                  // Count blocks excluding 'title' (header) and 'divider'
+                  const count = blocksData.blocks.filter(block => 
+                    block.block_type !== 'title' && block.block_type !== 'divider'
+                  ).length;
+                  // Add 1 for header block (hero block with image)
+                  blockCounts[tour.id] = count + 1;
+                }
+              }
+            }
+          } catch (error) {
+            console.warn(`Could not load blocks for tour ${tour.id}:`, error);
+            blockCounts[tour.id] = 0;
+          }
+        }
+        setTourBlockCounts(blockCounts);
       }
     } catch (error) {
       console.error('Error loading guide tours:', error);
