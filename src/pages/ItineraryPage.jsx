@@ -485,9 +485,25 @@ export default function ItineraryPage() {
       const hasContentBlocks = loadedContentBlocks.length > 0;
       const hasDailyPlan = tour.daily_plan && tour.daily_plan.length > 0;
       
-      // Only throw error if tour has neither contentBlocks nor daily_plan
+      // If tour has neither contentBlocks nor daily_plan, show empty state instead of error
+      // This can happen for tours created in visualizer but not yet populated with blocks
       if (!hasContentBlocks && !hasDailyPlan) {
-        throw new Error('Tour has no content blocks or daily plan');
+        console.log('ℹ️ Tour has no content blocks or daily plan - showing empty state');
+        // Create minimal itinerary data to show tour info even without content
+        const itineraryData = {
+          title: tour.title || 'Tour',
+          subtitle: tour.description || `Explore ${cityName} with this curated tour`,
+          city: cityName,
+          tourId: tourIdParam,
+          preview_media_url: tour.preview_media_url || tour.preview || null,
+          tags: calculateTourTags(tour),
+          isEmpty: true // Flag to indicate empty tour
+        };
+        setItinerary(itineraryData);
+        setUseNewFormat(true); // Use new format rendering even if empty
+        setContentBlocks([]); // Empty blocks array
+        setLoading(false);
+        return; // Exit early - will show empty state in UI
       }
       
       // If using new format (contentBlocks), skip daily_plan processing
@@ -2362,6 +2378,52 @@ export default function ItineraryPage() {
           <div style={{ maxWidth: '750px', margin: '0 auto', padding: '0 20px' }}>
             {/* Determine which blocks to show based on preview mode */}
             {(() => {
+              // Check if tour is empty (no blocks)
+              if (itinerary?.isEmpty || contentBlocks.length === 0) {
+                return (
+                  <div style={{
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '12px',
+                    padding: '48px 24px',
+                    textAlign: 'center',
+                    marginTop: '32px',
+                    marginBottom: '32px',
+                    border: '1px solid #e5e7eb'
+                  }}>
+                    <div style={{
+                      fontSize: '48px',
+                      marginBottom: '16px'
+                    }}>📝</div>
+                    <h3 style={{
+                      fontSize: '20px',
+                      fontWeight: '600',
+                      color: '#1f2937',
+                      marginBottom: '8px'
+                    }}>
+                      Tour content is being prepared
+                    </h3>
+                    <p style={{
+                      fontSize: '14px',
+                      color: '#6b7280',
+                      marginBottom: '24px',
+                      maxWidth: '400px',
+                      margin: '0 auto 24px'
+                    }}>
+                      This tour is currently being created. Content blocks will appear here once the creator adds them.
+                    </p>
+                    {guideName && (
+                      <div style={{
+                        fontSize: '13px',
+                        color: '#9ca3af',
+                        fontStyle: 'italic'
+                      }}>
+                        Created by {guideName}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              
               const shouldLimitBlocks = previewOnly && !isPaid;
               const blocksToShow = shouldLimitBlocks 
                 ? contentBlocks.slice(0, 2) // Show only first 2 blocks in preview
