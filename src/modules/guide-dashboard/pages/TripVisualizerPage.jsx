@@ -345,8 +345,9 @@ export default function TripVisualizerPage() {
               total_estimated_cost: '€0'
             },
             // Add default values to match CreateTourPage format
-            format: 'self-guided',
-            withGuide: false,
+            format: tourSettings.selfGuided ? 'self-guided' : (tourSettings.withGuide ? 'guided' : 'self-guided'),
+            withGuide: tourSettings.withGuide,
+            selfGuided: tourSettings.selfGuided,
             price: {
               pdfPrice: 16,
               guidedPrice: 0,
@@ -394,8 +395,9 @@ export default function TripVisualizerPage() {
             preview: tourInfo.preview || null,
             previewType: 'image',
             saveAsDraft: true,
-            format: tourSettings.withGuide ? 'guided' : 'self-guided',
+            format: tourSettings.withGuide ? 'guided' : (tourSettings.selfGuided ? 'self-guided' : 'self-guided'),
             withGuide: tourSettings.withGuide,
+            selfGuided: tourSettings.selfGuided,
             price: {
               pdfPrice: tourSettings.price.pdfPrice || 16,
               guidedPrice: tourSettings.price.guidedPrice || 0,
@@ -501,8 +503,9 @@ export default function TripVisualizerPage() {
               total_estimated_cost: '€0'
             },
             // Add default values to match CreateTourPage format
-            format: 'self-guided',
-            withGuide: false,
+            format: tourSettings.selfGuided ? 'self-guided' : (tourSettings.withGuide ? 'guided' : 'self-guided'),
+            withGuide: tourSettings.withGuide,
+            selfGuided: tourSettings.selfGuided,
             price: {
               pdfPrice: 16,
               guidedPrice: 0,
@@ -656,8 +659,9 @@ export default function TripVisualizerPage() {
             audience: 'him',
             total_estimated_cost: '€0'
           },
-          format: 'self-guided',
-          withGuide: false,
+          format: tourSettings.selfGuided ? 'self-guided' : (tourSettings.withGuide ? 'guided' : 'self-guided'),
+          withGuide: tourSettings.withGuide,
+          selfGuided: tourSettings.selfGuided,
           price: {
             pdfPrice: 16,
             guidedPrice: 0,
