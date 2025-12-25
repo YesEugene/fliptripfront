@@ -6,6 +6,7 @@ import { isAuthenticated, getCurrentUser, logout } from '../modules/auth/service
 import html2pdf from 'html2pdf.js';
 import PhotoGallery from '../components/PhotoGallery';
 import AvailabilityCalendar from '../components/AvailabilityCalendar';
+import BlockRenderer from '../modules/guide-dashboard/components/BlockRenderer';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import PDFIcon from '../assets/PDF.svg';
 // import SkateboardingGif from '../assets/Skateboarding.gif'; // File not found, commented out
@@ -30,6 +31,9 @@ export default function ItineraryPage() {
   const [maxGroupSize, setMaxGroupSize] = useState(null); // Max group size for selected date
   const [isSubtitleExpanded, setIsSubtitleExpanded] = useState(false); // Subtitle expand/collapse state
   const [tourIdState, setTourId] = useState(null); // Tour ID state for generated tours
+  const [contentBlocks, setContentBlocks] = useState([]); // Blocks from tour_content_blocks table
+  const [isAuthorTextExpanded, setIsAuthorTextExpanded] = useState(false); // Author text expand/collapse state
+  const [isMobile, setIsMobile] = useState(false); // Mobile detection
 
   // City images mapping
   const cityImagesMap = {
