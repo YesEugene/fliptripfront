@@ -3513,11 +3513,47 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
       
       const data = await response.json();
       if (data.success && data.interest) {
+        const newTags = [...currentTags, data.interest.id];
         // Add new interest to tags
-        onChange({ ...tourInfo, tags: [...currentTags, data.interest.id] });
+        onChange({ ...tourInfo, tags: newTags });
         setNewInterestInput('');
         setInterestSuggestions([]);
         setShowInterestSuggestions(false);
+        
+        // CRITICAL: Save to DB immediately if tour exists
+        if (tourId) {
+          console.log('💾 Auto-saving newly created interest immediately:', data.interest.id);
+          try {
+            const saveResponse = await fetch(`${API_BASE_URL}/api/tours-update?id=${tourId}`, {
+              method: 'PUT',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                city: tourInfo.city,
+                title: tourInfo.title,
+                tags: newTags
+              })
+            });
+            if (saveResponse.ok) {
+              const saveData = await saveResponse.json();
+              console.log('✅ Newly created interest saved immediately');
+              // Update from response to ensure sync
+              if (saveData.tour?.tour_tags) {
+                const interestIds = saveData.tour.tour_tags.map(tt => String(tt.interest?.id || tt.interest_id)).filter(Boolean);
+                if (interestIds.length > 0) {
+                  onChange({ ...tourInfo, tags: interestIds });
+                }
+              }
+            } else {
+              console.error('❌ Failed to save newly created interest:', await saveResponse.text());
+            }
+          } catch (error) {
+            console.error('❌ Error saving newly created interest:', error);
+          }
+        }
+        
         // Reload interests structure to include new interest
         const reloadResponse = await fetch(`${API_BASE_URL}/api/interests?full_structure=true`);
         const reloadData = await reloadResponse.json();
