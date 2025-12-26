@@ -1641,12 +1641,12 @@ export default function TripVisualizerPage() {
           flexWrap: 'wrap'
         }}>
           <div style={{
-            height: '30px',
+            height: '35px',
             padding: '0 12px',
             backgroundColor: '#FFE7CE',
             color: '#111827',
             borderRadius: '10px',
-            fontSize: '15px',
+            fontSize: '10px',
             fontWeight: '500',
             display: 'flex',
             alignItems: 'center'
@@ -1654,12 +1654,12 @@ export default function TripVisualizerPage() {
             {tourInfo.city || 'City'}
           </div>
           <div style={{
-            height: '30px',
+            height: '35px',
             padding: '0 12px',
             backgroundColor: '#CFF2FF',
             color: '#111827',
             borderRadius: '10px',
-            fontSize: '15px',
+            fontSize: '10px',
             fontWeight: '500',
             display: 'flex',
             alignItems: 'center'
@@ -1667,20 +1667,21 @@ export default function TripVisualizerPage() {
             Dates
           </div>
           <div style={{
-            height: '30px',
+            height: '35px',
             padding: '0 12px',
             backgroundColor: '#CFFFE1',
             color: '#111827',
             borderRadius: '10px',
-            fontSize: '15px',
+            fontSize: '10px',
             fontWeight: '500',
             display: 'flex',
             alignItems: 'center'
           }}>
             Budget
           </div>
-          {/* Display actual tags/interests */}
+          {/* Display interests: show default "Interests" tag if no tags, or actual tags if they exist */}
           {tourInfo.tags && tourInfo.tags.length > 0 ? (
+            // Show actual interest tags (white with border)
             tourInfo.tags.map(tagId => {
               const interest = allInterestsForDisplay.find(i => i.id === tagId);
               if (!interest) return null;
@@ -1689,7 +1690,7 @@ export default function TripVisualizerPage() {
                 <div
                   key={tagId}
                   style={{
-                    height: '30px',
+                    height: '35px',
                     padding: '0 12px',
                     backgroundColor: 'white',
                     color: '#111827',
@@ -1706,13 +1707,17 @@ export default function TripVisualizerPage() {
               );
             })
           ) : (
+            // Show default "Interests" tag (colored like others)
             <div style={{
-              padding: '10px 20px',
+              height: '35px',
+              padding: '0 12px',
               backgroundColor: '#FFCFCF',
               color: '#111827',
-              borderRadius: '24px',
-              fontSize: '15px',
-              fontWeight: '500'
+              borderRadius: '10px',
+              fontSize: '10px',
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center'
             }}>
               Interests
             </div>
