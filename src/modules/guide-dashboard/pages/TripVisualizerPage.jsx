@@ -2710,7 +2710,36 @@ export default function TripVisualizerPage() {
       {showTourEditor && (
         <TourEditorModal
           tourInfo={tourInfo}
-          onClose={() => setShowTourEditor(false)}
+          onClose={async () => {
+            // Auto-save tags when closing modal if tour exists
+            if (tourId && tourInfo.tags && tourInfo.tags.length > 0) {
+              console.log('💾 Auto-saving tags on modal close:', tourInfo.tags);
+              try {
+                const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+                if (token) {
+                  const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tours-update?id=${tourId}`, {
+                    method: 'PUT',
+                    headers: { 
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                      tags: tourInfo.tags
+                    })
+                  });
+                  if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Auto-saved tags:', data);
+                  } else {
+                    console.warn('⚠️ Could not auto-save tags:', await response.text());
+                  }
+                }
+              } catch (error) {
+                console.error('❌ Error auto-saving tags:', error);
+              }
+            }
+            setShowTourEditor(false);
+          }}
           onSave={handleSaveTour}
           onChange={setTourInfo}
           onImageUpload={handleImageUpload}
