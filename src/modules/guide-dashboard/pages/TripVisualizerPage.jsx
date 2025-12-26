@@ -1881,14 +1881,14 @@ export default function TripVisualizerPage() {
         ))}
 
         {/* Spacer to prevent content from being hidden behind fixed bottom panel */}
-        <div style={{ height: isTourSettingsCollapsed ? (isMobile ? '105px' : '65px') : '80vh' }} />
+        <div style={{ height: isTourSettingsCollapsed ? (isMobile ? `calc(115px + env(safe-area-inset-bottom, 0px))` : '65px') : '80vh' }} />
       </div>
 
       {/* Notification Banner - appears above fixed bottom panel */}
       {showNotification && (
         <div style={{
           position: 'fixed',
-          bottom: isMobile ? '105px' : '65px',
+          bottom: isMobile ? `calc(115px + env(safe-area-inset-bottom, 0px))` : '65px',
           left: 0,
           right: 0,
           height: '25px',
@@ -1913,22 +1913,22 @@ export default function TripVisualizerPage() {
       {/* Fixed Bottom Panel - Action buttons and Tour Settings */}
       <div style={{
         position: 'fixed',
-        bottom: 0,
+        bottom: isMobile ? 'env(safe-area-inset-bottom, 0px)' : '0',
         left: 0,
         right: 0,
         zIndex: 1000,
         display: 'flex',
         flexDirection: 'column'
       }}>
-        {/* White button panel - dynamic height: 105px on mobile, 65px on desktop */}
+        {/* White button panel - dynamic height: 115px on mobile (increased for safe area), 65px on desktop */}
         <div style={{
           width: '100%',
-          height: isMobile ? '105px' : '65px',
+          height: isMobile ? '115px' : '65px',
           backgroundColor: 'white',
           boxShadow: '0px -20px 18.4px 0px rgba(0, 0, 0, 0.04)',
           display: 'flex',
           alignItems: 'center',
-          padding: isMobile ? '30px 0' : '0'
+          padding: isMobile ? `30px 0 calc(30px + env(safe-area-inset-bottom, 0px)) 0` : '0'
         }}>
           {/* Inner container matching content width */}
           <div style={{
@@ -2036,7 +2036,7 @@ export default function TripVisualizerPage() {
                   justifyContent: 'center',
                   gap: '8px',
                   transition: 'all 0.2s',
-                  marginBottom: '5px'
+                  marginBottom: '15px'
                 }}
                 onMouseEnter={(e) => {
                   e.target.style.backgroundColor = '#f9fafb';
