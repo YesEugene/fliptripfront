@@ -3379,16 +3379,92 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
     setShowInterestSuggestions(false);
   };
 
-  // Handle interest selection
-  const handleInterestSelect = (interestId) => {
+  // Handle interest selection - save immediately to DB
+  const handleInterestSelect = async (interestId) => {
     if (!currentTags.includes(interestId)) {
-      onChange({ ...tourInfo, tags: [...currentTags, interestId] });
+      const newTags = [...currentTags, interestId];
+      onChange({ ...tourInfo, tags: newTags });
+      
+      // CRITICAL: Save to DB immediately if tour exists
+      if (tourId) {
+        console.log('💾 Auto-saving interest immediately on select:', interestId);
+        try {
+          const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
+          const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+          if (token) {
+            const response = await fetch(`${API_BASE_URL}/api/tours-update?id=${tourId}`, {
+              method: 'PUT',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                city: tourInfo.city,
+                title: tourInfo.title,
+                tags: newTags
+              })
+            });
+            if (response.ok) {
+              const data = await response.json();
+              console.log('✅ Interest saved immediately on select');
+              // Update from response to ensure sync
+              if (data.tour?.tour_tags) {
+                const interestIds = data.tour.tour_tags.map(tt => String(tt.interest?.id || tt.interest_id)).filter(Boolean);
+                if (interestIds.length > 0) {
+                  onChange({ ...tourInfo, tags: interestIds });
+                }
+              }
+            } else {
+              console.error('❌ Failed to save interest:', await response.text());
+            }
+          }
+        } catch (error) {
+          console.error('❌ Error auto-saving interest:', error);
+        }
+      }
     }
   };
 
-  // Handle interest removal
-  const handleInterestRemove = (interestId) => {
-    onChange({ ...tourInfo, tags: currentTags.filter(id => id !== interestId) });
+  // Handle interest removal - save immediately to DB
+  const handleInterestRemove = async (interestId) => {
+    const newTags = currentTags.filter(id => id !== interestId);
+    onChange({ ...tourInfo, tags: newTags });
+    
+    // CRITICAL: Save to DB immediately if tour exists
+    if (tourId) {
+      console.log('💾 Auto-saving interest removal immediately:', interestId);
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
+        const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+        if (token) {
+          const response = await fetch(`${API_BASE_URL}/api/tours-update?id=${tourId}`, {
+            method: 'PUT',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              city: tourInfo.city,
+              title: tourInfo.title,
+              tags: newTags
+            })
+          });
+          if (response.ok) {
+            const data = await response.json();
+            console.log('✅ Interest removal saved immediately');
+            // Update from response to ensure sync
+            if (data.tour?.tour_tags) {
+              const interestIds = data.tour.tour_tags.map(tt => String(tt.interest?.id || tt.interest_id)).filter(Boolean);
+              onChange({ ...tourInfo, tags: interestIds });
+            }
+          } else {
+            console.error('❌ Failed to save interest removal:', await response.text());
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error auto-saving interest removal:', error);
+      }
+    }
   };
 
   // Handle new interest input with suggestions
