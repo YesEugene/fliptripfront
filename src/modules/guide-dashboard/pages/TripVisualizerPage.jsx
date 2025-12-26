@@ -1644,31 +1644,23 @@ export default function TripVisualizerPage() {
               const interest = allInterestsForDisplay.find(i => i.id === tagId);
               if (!interest) return null;
               
-              // Find category for icon
-              const category = interestsStructureForDisplay?.find(c => 
-                c.id === interest.category_id || 
-                c.subcategories?.some(s => s.id === interest.subcategory_id)
-              ) || interestsStructureForDisplay?.find(c => 
-                c.direct_interests?.some(i => i.id === interest.id) ||
-                c.subcategories?.some(s => s.interests?.some(i => i.id === interest.id))
-              );
-              
               return (
                 <div
                   key={tagId}
                   style={{
-                    padding: '10px 20px',
-                    backgroundColor: '#FFCFCF',
+                    height: '30px',
+                    padding: '0 12px',
+                    backgroundColor: 'white',
                     color: '#111827',
-                    borderRadius: '24px',
-                    fontSize: '15px',
+                    borderRadius: '10px',
+                    fontSize: '10px',
                     fontWeight: '500',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px'
+                    border: '1px solid #DEDEDE'
                   }}
                 >
-                  {category?.icon} {interest.name}
+                  {interest.name}
                 </div>
               );
             })
@@ -3715,38 +3707,37 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
                   const interest = availableInterests.find(i => i.id === tagId);
                   if (!interest) return null;
                   
-                  const categoryForInterest = interestsStructure?.find(c => 
-                    c.id === interest.category_id || 
-                    c.subcategories?.some(s => s.id === interest.subcategory_id)
-                  );
-                  
                   return (
                     <span
                       key={tagId}
                       style={{
-                        padding: '6px 12px',
-                        backgroundColor: '#e0e7ff',
-                        color: '#3730a3',
-                        borderRadius: '6px',
-                        fontSize: '12px',
+                        height: '30px',
+                        padding: '0 12px',
+                        backgroundColor: 'white',
+                        color: '#111827',
+                        borderRadius: '10px',
+                        fontSize: '10px',
+                        fontWeight: '500',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '6px'
+                        gap: '6px',
+                        border: '1px solid #DEDEDE'
                       }}
                     >
-                      {categoryForInterest?.icon} {interest.name}
+                      {interest.name}
                       <button
                         type="button"
                         onClick={() => handleInterestRemove(tagId)}
                         style={{
                           background: 'none',
                           border: 'none',
-                          color: '#3730a3',
+                          color: '#111827',
                           cursor: 'pointer',
-                          fontSize: '16px',
+                          fontSize: '14px',
                           padding: '0',
                           lineHeight: '1',
-                          fontWeight: 'bold'
+                          fontWeight: 'bold',
+                          marginLeft: '4px'
                         }}
                       >
                         ×
