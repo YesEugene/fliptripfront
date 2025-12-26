@@ -771,6 +771,8 @@ export default function TripVisualizerPage() {
             tags: tourInfo.tags || [] // Tags/interests from tour header
           })
         });
+        
+        console.log('💾 Saving tour (update) with tags:', tourInfo.tags, 'type:', tourInfo.tags?.map(t => typeof t));
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
@@ -780,6 +782,7 @@ export default function TripVisualizerPage() {
         }
         
         const data = await response.json();
+        console.log('📥 Tour update response:', { success: data.success, hasTour: !!data.tour, tourTags: data.tour?.tour_tags });
         if (data.success) {
           // Always preserve current preview in state (it was just saved)
           // Update other fields from response
@@ -789,9 +792,10 @@ export default function TripVisualizerPage() {
             // Convert to strings for consistency
             const tagIds = data.tour.tour_tags?.map(tt => {
               const id = tt.interest?.id || tt.interest_id || tt.tag?.id || tt.tag_id;
+              console.log('🔍 Extracting tag ID from response:', { tt, id, idType: typeof id });
               return id ? String(id) : null;
             }).filter(Boolean) || tourInfo.tags || [];
-            console.log('🔄 Updated tags from server response:', tagIds);
+            console.log('🔄 Updated tags from server response:', tagIds, 'previous tags:', tourInfo.tags);
             setTourInfo({
               city: data.tour.city?.name || tourInfo.city,
               title: data.tour.title || tourInfo.title,
