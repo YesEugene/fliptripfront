@@ -265,7 +265,14 @@ export default function TripVisualizerPage() {
         
         // Extract tag/interest IDs from tour_tags
         // Support both: interest object (new system) and interest_id/tag_id (legacy)
-        const tagIds = tourObj.tour_tags?.map(tt => tt.interest?.id || tt.tag?.id || tt.interest_id || tt.tag_id).filter(Boolean) || [];
+        console.log('📋 Tour tour_tags:', tourObj.tour_tags);
+        const tagIds = tourObj.tour_tags?.map(tt => {
+          // Try multiple ways to get the ID
+          const id = tt.interest?.id || tt.tag?.id || tt.interest_id || tt.tag_id;
+          console.log('🔍 Processing tour_tag:', { tt, extractedId: id });
+          return id;
+        }).filter(Boolean) || [];
+        console.log('✅ Extracted tag IDs:', tagIds);
         
         setTourInfo({
           city: sourceData.city || tourObj.city?.name || 'Barcelona',
