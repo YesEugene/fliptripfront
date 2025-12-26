@@ -326,13 +326,19 @@ export default function TripVisualizerPage() {
 
       // Load content blocks (ignore errors if table doesn't exist yet)
       try {
-        const blocksResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks?tourId=${tourIdToLoad}`).catch(() => null);
+        const blocksUrl = `${import.meta.env.VITE_API_URL}/api/tour-content-blocks?tourId=${tourIdToLoad}`;
+        console.log('🔍 Loading blocks from:', blocksUrl);
+        const blocksResponse = await fetch(blocksUrl).catch((err) => {
+          console.error('❌ Fetch error:', err);
+          return null;
+        });
+        
         if (blocksResponse && blocksResponse.ok) {
           const blocksData = await blocksResponse.json();
-          console.log('📦 Loaded blocks:', blocksData);
+          console.log('📦 Blocks API response:', blocksData);
           if (blocksData.success) {
             const loadedBlocks = blocksData.blocks || [];
-            console.log(`✅ Loaded ${loadedBlocks.length} blocks for tour ${tourIdToLoad}`);
+            console.log(`✅ Loaded ${loadedBlocks.length} blocks for tour ${tourIdToLoad}:`, loadedBlocks.map(b => ({ id: b.id, type: b.block_type, order: b.order_index })));
             // Sort blocks by order_index to ensure correct display order
             const sortedBlocks = loadedBlocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
             setBlocks(sortedBlocks);
@@ -341,7 +347,8 @@ export default function TripVisualizerPage() {
             setBlocks([]);
           }
         } else {
-          console.warn('⚠️ Blocks API request failed:', blocksResponse?.status, blocksResponse?.statusText);
+          const errorText = blocksResponse ? await blocksResponse.text().catch(() => '') : 'No response';
+          console.warn('⚠️ Blocks API request failed:', blocksResponse?.status, blocksResponse?.statusText, errorText);
           // Table might not exist yet - silently ignore
           setBlocks([]);
         }
