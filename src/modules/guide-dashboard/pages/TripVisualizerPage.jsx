@@ -3789,8 +3789,13 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {currentTags.map(tagId => {
-                  const interest = availableInterests.find(i => i.id === tagId);
-                  if (!interest) return null;
+                  // Convert both to strings for comparison
+                  const tagIdString = String(tagId);
+                  const interest = availableInterests.find(i => String(i.id) === tagIdString);
+                  if (!interest) {
+                    console.warn('⚠️ Interest not found in availableInterests for tagId:', tagIdString);
+                    return null;
+                  }
                   
                   return (
                     <span
