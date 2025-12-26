@@ -707,12 +707,14 @@ export default function TripVisualizerPage() {
           // Update other fields from response
           if (data.tour) {
             setTour(data.tour);
+            // Extract tag/interest IDs from tour_tags in response
+            const tagIds = data.tour.tour_tags?.map(tt => tt.interest?.id || tt.tag?.id || tt.interest_id).filter(Boolean) || tourInfo.tags || [];
             setTourInfo({
               city: data.tour.city?.name || tourInfo.city,
               title: data.tour.title || tourInfo.title,
               description: data.tour.description || tourInfo.description,
               preview: tourInfo.preview, // Keep current preview (was just saved)
-              tags: tourInfo.tags || [] // Keep current tags
+              tags: tagIds // Update tags from server response
             });
           }
           showNotificationMessage('Tour saved as draft!');
