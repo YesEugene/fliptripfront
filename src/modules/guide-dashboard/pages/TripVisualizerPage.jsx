@@ -245,7 +245,15 @@ export default function TripVisualizerPage() {
     
     try {
       // Load tour basic info
-      const tourData = await getTourById(tourIdToLoad);
+      let tourData;
+      try {
+        tourData = await getTourById(tourIdToLoad);
+      } catch (tourError) {
+        console.error('❌ Error loading tour from API:', tourError);
+        // If tour loading fails, try to continue with empty state
+        setBlocks([]);
+        return;
+      }
       // getTourById returns tour object directly, not wrapped
       const tourObj = tourData?.tour || tourData;
       if (tourObj) {
