@@ -765,6 +765,21 @@ export default function TripVisualizerPage() {
               preview: tourInfo.preview, // Keep current preview (was just saved)
               tags: tagIds // Update tags from server response
             });
+            // Reload blocks after saving tour to ensure they're up to date
+            const currentTourId = data.tour.id || tourId;
+            if (currentTourId) {
+              console.log('🔄 Reloading blocks after tour save...');
+              const blocksResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks?tourId=${currentTourId}`).catch(() => null);
+              if (blocksResponse && blocksResponse.ok) {
+                const blocksData = await blocksResponse.json();
+                if (blocksData.success) {
+                  const loadedBlocks = blocksData.blocks || [];
+                  const sortedBlocks = loadedBlocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+                  setBlocks(sortedBlocks);
+                  console.log(`✅ Reloaded ${sortedBlocks.length} blocks after save`);
+                }
+              }
+            }
           }
           showNotificationMessage('Tour saved as draft!');
         } else {
