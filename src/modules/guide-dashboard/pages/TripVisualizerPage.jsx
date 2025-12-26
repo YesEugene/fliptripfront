@@ -2730,6 +2730,8 @@ export default function TripVisualizerPage() {
                       'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
+                      city: tourInfo.city, // Required for validation
+                      title: tourInfo.title, // Required for validation
                       tags: tourInfo.tags // Backend expects 'tags' parameter but treats them as interests
                     })
                   });
