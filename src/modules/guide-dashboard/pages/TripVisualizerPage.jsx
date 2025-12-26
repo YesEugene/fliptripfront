@@ -1609,32 +1609,41 @@ export default function TripVisualizerPage() {
           flexWrap: 'wrap'
         }}>
           <div style={{
-            padding: '10px 20px',
+            height: '30px',
+            padding: '0 12px',
             backgroundColor: '#FFE7CE',
             color: '#111827',
-            borderRadius: '24px',
+            borderRadius: '10px',
             fontSize: '15px',
-            fontWeight: '500'
+            fontWeight: '500',
+            display: 'flex',
+            alignItems: 'center'
           }}>
             {tourInfo.city || 'City'}
           </div>
           <div style={{
-            padding: '10px 20px',
+            height: '30px',
+            padding: '0 12px',
             backgroundColor: '#CFF2FF',
             color: '#111827',
-            borderRadius: '24px',
+            borderRadius: '10px',
             fontSize: '15px',
-            fontWeight: '500'
+            fontWeight: '500',
+            display: 'flex',
+            alignItems: 'center'
           }}>
             Dates
           </div>
           <div style={{
-            padding: '10px 20px',
+            height: '30px',
+            padding: '0 12px',
             backgroundColor: '#CFFFE1',
             color: '#111827',
-            borderRadius: '24px',
+            borderRadius: '10px',
             fontSize: '15px',
-            fontWeight: '500'
+            fontWeight: '500',
+            display: 'flex',
+            alignItems: 'center'
           }}>
             Budget
           </div>
