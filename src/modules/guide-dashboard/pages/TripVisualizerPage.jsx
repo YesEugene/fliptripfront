@@ -838,16 +838,54 @@ export default function TripVisualizerPage() {
 
   const handleSaveTour = async () => {
     // This function is called from TourEditorModal when clicking "Save"
-    // Similar to CreateTourPage's handleSubmit - validate and save
+    // CRITICAL: Save interests immediately to DB when Save is clicked
     if (!tourInfo.city || !tourInfo.title) {
       alert('Please fill in City and Trip name before saving');
       return;
     }
     
-    // Close modal first
+    // CRITICAL: Save interests to DB immediately if tour exists
+    if (tourId && tourInfo.tags && tourInfo.tags.length > 0) {
+      console.log('💾 Saving interests immediately on Save button:', tourInfo.tags);
+      try {
+        const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+        if (token) {
+          const saveResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tours-update?id=${tourId}`, {
+            method: 'PUT',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              city: tourInfo.city,
+              title: tourInfo.title,
+              tags: tourInfo.tags // Save interests immediately
+            })
+          });
+          
+          if (saveResponse.ok) {
+            const saveData = await saveResponse.json();
+            console.log('✅ Interests saved immediately:', saveData);
+            // Update from response
+            if (saveData.tour?.tour_tags) {
+              const interestIds = saveData.tour.tour_tags.map(tt => String(tt.interest?.id || tt.interest_id)).filter(Boolean);
+              if (interestIds.length > 0) {
+                setTourInfo(prev => ({ ...prev, tags: interestIds }));
+              }
+            }
+          } else {
+            console.error('❌ Failed to save interests immediately:', await saveResponse.text());
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error saving interests immediately:', error);
+      }
+    }
+    
+    // Close modal
     setShowTourEditor(false);
     
-    // Save tour as draft (same as CreateTourPage creates tour)
+    // Also save full tour as draft
     await handleSaveAsDraft();
   };
 
@@ -2716,6 +2754,7 @@ export default function TripVisualizerPage() {
       {showTourEditor && (
         <TourEditorModal
           tourInfo={tourInfo}
+          tourId={tourId}
           onClose={async () => {
             // Auto-save interests when closing modal if tour exists
             if (tourId && tourInfo.tags && tourInfo.tags.length > 0) {
