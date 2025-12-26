@@ -104,7 +104,8 @@ export default function TripVisualizerPage() {
     city: 'Barcelona',
     title: 'Barcelona without the rush',
     description: 'I return to Barcelona not for landmarks, but for its rhythm. The way the city lives between meals, walks, and pauses. I made this guide for moments when you don\'t want to impress yourself with how much you\'ve seen. When you want the city to feel human, readable, and calm.\n\nThese are the places and routes I choose when I want Barcelona to feel like a place I\'m living in — not passing through.',
-    preview: BarcelonaExampleImage
+    preview: BarcelonaExampleImage,
+    tags: [] // Tags/interests for the tour
   });
 
   // City autocomplete state
@@ -143,6 +144,7 @@ export default function TripVisualizerPage() {
   const [defaultGroupSize, setDefaultGroupSize] = useState(10);
   const [tagSuggestions, setTagSuggestions] = useState([]);
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
+  const [allInterestsForDisplay, setAllInterestsForDisplay] = useState([]); // For displaying tags in visualizer
 
   // Tour settings block collapsed state
   const [isTourSettingsCollapsed, setIsTourSettingsCollapsed] = useState(true);
@@ -222,11 +224,15 @@ export default function TripVisualizerPage() {
         const draftData = tourObj.draft_data;
         const sourceData = draftData || tourObj;
         
+        // Extract tag IDs from tour_tags
+        const tagIds = tourObj.tour_tags?.map(tt => tt.tag?.id || tt.interest_id).filter(Boolean) || [];
+        
         setTourInfo({
           city: sourceData.city || tourObj.city?.name || 'Barcelona',
           title: sourceData.title || tourObj.title || 'Barcelona without the rush',
           description: sourceData.description || tourObj.description || 'I return to Barcelona not for landmarks, but for its rhythm. The way the city lives between meals, walks, and pauses. I made this guide for moments when you don\'t want to impress yourself with how much you\'ve seen. When you want the city to feel human, readable, and calm.\n\nThese are the places and routes I choose when I want Barcelona to feel like a place I\'m living in — not passing through.',
-          preview: sourceData.preview || tourObj.preview_media_url || BarcelonaExampleImage
+          preview: sourceData.preview || tourObj.preview_media_url || BarcelonaExampleImage,
+          tags: tagIds // Store tag/interest IDs
         });
 
         // Load tour settings
@@ -612,7 +618,7 @@ export default function TripVisualizerPage() {
             previewType: 'image',
             status: 'draft',
             daily_plan: [], // Empty daily_plan for visualizer tours
-            tags: [],
+            tags: tourInfo.tags || [], // Tags/interests from tour header
             meta: {
               interests: [],
               audience: 'him',
@@ -684,7 +690,7 @@ export default function TripVisualizerPage() {
               platformOptions: tourSettings.additionalOptions.platformOptions || ['insurance', 'accommodation'],
               creatorOptions: tourSettings.additionalOptions.creatorOptions || {}
             },
-            tags: tourSettings.tags || []
+            tags: tourInfo.tags || [] // Tags/interests from tour header
           })
         });
 
@@ -705,7 +711,8 @@ export default function TripVisualizerPage() {
               city: data.tour.city?.name || tourInfo.city,
               title: data.tour.title || tourInfo.title,
               description: data.tour.description || tourInfo.description,
-              preview: tourInfo.preview // Keep current preview (was just saved)
+              preview: tourInfo.preview, // Keep current preview (was just saved)
+              tags: tourInfo.tags || [] // Keep current tags
             });
           }
           showNotificationMessage('Tour saved as draft!');
@@ -770,7 +777,7 @@ export default function TripVisualizerPage() {
             previewType: 'image',
             status: 'pending',
             daily_plan: [], // Empty daily_plan for visualizer tours
-            tags: [],
+            tags: tourInfo.tags || [], // Tags/interests from tour header
             meta: {
               interests: [],
               audience: 'him',
@@ -848,7 +855,7 @@ export default function TripVisualizerPage() {
               platformOptions: tourSettings.additionalOptions.platformOptions || ['insurance', 'accommodation'],
               creatorOptions: tourSettings.additionalOptions.creatorOptions || {}
             },
-            tags: tourSettings.tags || []
+            tags: tourInfo.tags || [] // Tags/interests from tour header
           })
         });
 
@@ -1597,16 +1604,52 @@ export default function TripVisualizerPage() {
           }}>
             Budget
           </div>
-          <div style={{
-            padding: '10px 20px',
-            backgroundColor: '#FFCFCF',
-            color: '#111827',
-            borderRadius: '24px',
-            fontSize: '15px',
-            fontWeight: '500'
-          }}>
-            Interests
-          </div>
+          {/* Display actual tags/interests */}
+          {tourInfo.tags && tourInfo.tags.length > 0 ? (
+            tourInfo.tags.map(tagId => {
+              const interest = allInterestsForDisplay.find(i => i.id === tagId);
+              if (!interest) return null;
+              
+              // Find category for icon
+              const category = interestsStructure?.find(c => 
+                c.id === interest.category_id || 
+                c.subcategories?.some(s => s.id === interest.subcategory_id)
+              ) || interestsStructure?.find(c => 
+                c.direct_interests?.some(i => i.id === interest.id) ||
+                c.subcategories?.some(s => s.interests?.some(i => i.id === interest.id))
+              );
+              
+              return (
+                <div
+                  key={tagId}
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: '#FFCFCF',
+                    color: '#111827',
+                    borderRadius: '24px',
+                    fontSize: '15px',
+                    fontWeight: '500',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  {category?.icon} {interest.name}
+                </div>
+              );
+            })
+          ) : (
+            <div style={{
+              padding: '10px 20px',
+              backgroundColor: '#FFCFCF',
+              color: '#111827',
+              borderRadius: '24px',
+              fontSize: '15px',
+              fontWeight: '500'
+            }}>
+              Interests
+            </div>
+          )}
         </div>
 
         {/* From author block */}
@@ -3058,6 +3101,172 @@ function HintButton({ hintKey }) {
 }
 
 function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, cities = [], citySuggestions = [], showCitySuggestions = false, setCitySuggestions, setShowCitySuggestions }) {
+  const [interestsStructure, setInterestsStructure] = useState(null);
+  const [availableInterests, setAvailableInterests] = useState([]);
+  const [loadingInterests, setLoadingInterests] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [newInterestInput, setNewInterestInput] = useState('');
+  const [interestSuggestions, setInterestSuggestions] = useState([]);
+  const [showInterestSuggestions, setShowInterestSuggestions] = useState(false);
+  
+  // Load interests structure
+  useEffect(() => {
+    const loadInterests = async () => {
+      try {
+        setLoadingInterests(true);
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
+        const response = await fetch(`${API_BASE_URL}/api/interests?full_structure=true`);
+        const data = await response.json();
+        if (data.success && data.categories) {
+          setInterestsStructure(data.categories || []);
+          // Flatten all interests for easy access
+          const allInterests = [];
+          data.categories.forEach(category => {
+            if (category.direct_interests) {
+              allInterests.push(...category.direct_interests);
+            }
+            if (category.subcategories) {
+              category.subcategories.forEach(subcategory => {
+                if (subcategory.interests) {
+                  allInterests.push(...subcategory.interests);
+                }
+              });
+            }
+          });
+          setAvailableInterests(allInterests);
+        }
+      } catch (err) {
+        console.error('Error loading interests:', err);
+      } finally {
+        setLoadingInterests(false);
+      }
+    };
+    loadInterests();
+  }, []);
+
+  // Get current tags (interests) from tourInfo
+  const currentTags = tourInfo.tags || [];
+  
+  // Get available interests for selected category
+  const getAvailableInterestsForCategory = () => {
+    if (!selectedCategory || !interestsStructure) return [];
+    const category = interestsStructure.find(c => c.id === selectedCategory);
+    if (!category) return [];
+    
+    const interestsList = [];
+    if (category.direct_interests) {
+      interestsList.push(...category.direct_interests);
+    }
+    if (category.subcategories) {
+      category.subcategories.forEach(subcategory => {
+        if (subcategory.interests) {
+          interestsList.push(...subcategory.interests);
+        }
+      });
+    }
+    return interestsList.filter(interest => !currentTags.includes(interest.id));
+  };
+
+  // Handle category selection
+  const handleCategorySelect = (categoryId) => {
+    setSelectedCategory(categoryId);
+    setNewInterestInput('');
+    setInterestSuggestions([]);
+    setShowInterestSuggestions(false);
+  };
+
+  // Handle interest selection
+  const handleInterestSelect = (interestId) => {
+    if (!currentTags.includes(interestId)) {
+      onChange({ ...tourInfo, tags: [...currentTags, interestId] });
+    }
+  };
+
+  // Handle interest removal
+  const handleInterestRemove = (interestId) => {
+    onChange({ ...tourInfo, tags: currentTags.filter(id => id !== interestId) });
+  };
+
+  // Handle new interest input with suggestions
+  const handleNewInterestInput = (value) => {
+    setNewInterestInput(value);
+    if (value.length > 1) {
+      // Search across all interests (not just selected category) to avoid duplicates
+      const matches = availableInterests.filter(interest =>
+        interest.name.toLowerCase().includes(value.toLowerCase()) &&
+        !currentTags.includes(interest.id)
+      );
+      setInterestSuggestions(matches.slice(0, 5));
+      setShowInterestSuggestions(matches.length > 0);
+    } else {
+      setInterestSuggestions([]);
+      setShowInterestSuggestions(false);
+    }
+  };
+
+  // Create new interest
+  const handleCreateNewInterest = async () => {
+    if (!newInterestInput.trim() || !selectedCategory) return;
+    
+    // Check if suggestion was selected
+    if (interestSuggestions.length > 0 && showInterestSuggestions) {
+      // User should select from suggestions instead
+      return;
+    }
+    
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      
+      // Create new interest
+      const response = await fetch(`${API_BASE_URL}/api/interests`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: newInterestInput.trim(),
+          category_id: selectedCategory
+        })
+      });
+      
+      const data = await response.json();
+      if (data.success && data.interest) {
+        // Add new interest to tags
+        onChange({ ...tourInfo, tags: [...currentTags, data.interest.id] });
+        setNewInterestInput('');
+        setInterestSuggestions([]);
+        setShowInterestSuggestions(false);
+        // Reload interests structure to include new interest
+        const reloadResponse = await fetch(`${API_BASE_URL}/api/interests?full_structure=true`);
+        const reloadData = await reloadResponse.json();
+        if (reloadData.success && reloadData.categories) {
+          setInterestsStructure(reloadData.categories || []);
+          const allInterests = [];
+          reloadData.categories.forEach(category => {
+            if (category.direct_interests) {
+              allInterests.push(...category.direct_interests);
+            }
+            if (category.subcategories) {
+              category.subcategories.forEach(subcategory => {
+                if (subcategory.interests) {
+                  allInterests.push(...subcategory.interests);
+                }
+              });
+            }
+          });
+          setAvailableInterests(allInterests);
+        }
+      } else {
+        alert(data.error || 'Failed to create interest');
+      }
+    } catch (error) {
+      console.error('Error creating interest:', error);
+      alert('Failed to create interest. Please try again.');
+    }
+  };
+
   return (
     <div style={{
       position: 'fixed',
@@ -3291,6 +3500,231 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
           />
         </div>
 
+        {/* Tags/Interests Section */}
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+            Tags / Interests
+          </label>
+          
+          {/* Category Selection */}
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#6b7280' }}>
+              Select Category
+            </label>
+            <select
+              value={selectedCategory || ''}
+              onChange={(e) => handleCategorySelect(e.target.value || null)}
+              disabled={loadingInterests}
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '16px',
+                boxSizing: 'border-box',
+                backgroundColor: 'white'
+              }}
+            >
+              <option value="">Choose category</option>
+              {interestsStructure?.map(category => (
+                <option key={category.id} value={category.id}>
+                  {category.icon} {CATEGORY_NAMES[category.name] || category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Interests Selection - shown after category is selected */}
+          {selectedCategory && (
+            <>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#6b7280' }}>
+                  Select Interests
+                </label>
+                {getAvailableInterestsForCategory().length > 0 ? (
+                  <select
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        handleInterestSelect(e.target.value);
+                        e.target.value = '';
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box',
+                      backgroundColor: 'white',
+                      marginBottom: '12px'
+                    }}
+                  >
+                    <option value="">Select interest</option>
+                    {getAvailableInterestsForCategory().map(interest => (
+                      <option key={interest.id} value={interest.id}>
+                        {interest.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '12px' }}>
+                    All interests from this category are already selected.
+                  </p>
+                )}
+              </div>
+
+              {/* Create New Interest */}
+              <div style={{ marginBottom: '16px', position: 'relative' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#6b7280' }}>
+                  Or create new interest
+                </label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    value={newInterestInput}
+                    onChange={(e) => handleNewInterestInput(e.target.value)}
+                    onFocus={() => {
+                      if (interestSuggestions.length > 0) {
+                        setShowInterestSuggestions(true);
+                      }
+                    }}
+                    placeholder="Enter new interest name"
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCreateNewInterest}
+                    disabled={!newInterestInput.trim() || showInterestSuggestions}
+                    style={{
+                      padding: '12px 20px',
+                      backgroundColor: showInterestSuggestions ? '#9ca3af' : '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: showInterestSuggestions ? 'not-allowed' : 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Create
+                  </button>
+                </div>
+                
+                {/* Interest Suggestions */}
+                {showInterestSuggestions && interestSuggestions.length > 0 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: '80px',
+                    backgroundColor: 'white',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    marginTop: '4px',
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    zIndex: 1000,
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                  }}>
+                    <div style={{ padding: '8px', fontSize: '12px', color: '#6b7280', borderBottom: '1px solid #e5e7eb' }}>
+                      Similar interests found. Please select one to avoid duplicates:
+                    </div>
+                    {interestSuggestions.map((interest, index) => {
+                      const categoryForInterest = interestsStructure?.find(c => 
+                        c.id === interest.category_id || 
+                        c.subcategories?.some(s => s.id === interest.subcategory_id)
+                      );
+                      return (
+                        <div
+                          key={interest.id}
+                          onClick={() => {
+                            handleInterestSelect(interest.id);
+                            setNewInterestInput('');
+                            setInterestSuggestions([]);
+                            setShowInterestSuggestions(false);
+                          }}
+                          style={{
+                            padding: '10px 12px',
+                            cursor: 'pointer',
+                            borderBottom: index < interestSuggestions.length - 1 ? '1px solid #e5e7eb' : 'none'
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                        >
+                          {categoryForInterest?.icon} {interest.name} <span style={{ color: '#6b7280', fontSize: '12px' }}>({CATEGORY_NAMES[categoryForInterest?.name] || categoryForInterest?.name})</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Selected Tags/Interests */}
+          {currentTags.length > 0 && (
+            <div style={{ marginTop: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#6b7280' }}>
+                Selected Tags
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {currentTags.map(tagId => {
+                  const interest = availableInterests.find(i => i.id === tagId);
+                  if (!interest) return null;
+                  
+                  const categoryForInterest = interestsStructure?.find(c => 
+                    c.id === interest.category_id || 
+                    c.subcategories?.some(s => s.id === interest.subcategory_id)
+                  );
+                  
+                  return (
+                    <span
+                      key={tagId}
+                      style={{
+                        padding: '6px 12px',
+                        backgroundColor: '#e0e7ff',
+                        color: '#3730a3',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      {categoryForInterest?.icon} {interest.name}
+                      <button
+                        type="button"
+                        onClick={() => handleInterestRemove(tagId)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#3730a3',
+                          cursor: 'pointer',
+                          fontSize: '16px',
+                          padding: '0',
+                          lineHeight: '1',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
           <button
             onClick={onClose}
@@ -3408,42 +3842,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
     }
   }, [block.block_type]);
 
-  // Load interests structure for location block
-  useEffect(() => {
-    if (block.block_type === 'location') {
-      const loadInterests = async () => {
-        try {
-          setLoadingInterests(true);
-          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
-          const response = await fetch(`${API_BASE_URL}/api/interests?full_structure=true`);
-          const data = await response.json();
-          if (data.success && data.categories) {
-            setInterestsStructure(data.categories || []);
-            // Flatten all interests for easy access
-            const allInterests = [];
-            data.categories.forEach(category => {
-              if (category.direct_interests) {
-                allInterests.push(...category.direct_interests);
-              }
-              if (category.subcategories) {
-                category.subcategories.forEach(subcategory => {
-                  if (subcategory.interests) {
-                    allInterests.push(...subcategory.interests);
-                  }
-                });
-              }
-            });
-            setAvailableInterests(allInterests);
-          }
-        } catch (err) {
-          console.error('Error loading interests:', err);
-        } finally {
-          setLoadingInterests(false);
-        }
-      };
-      loadInterests();
-    }
-  }, [block.block_type]);
+  // Interests structure loading removed - interests are now edited in tour header only
 
   const handleSave = () => {
     onSave({ ...block, content });
@@ -4277,203 +4676,6 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                   />
                 </div>
 
-                {/* Category of interests */}
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
-                    Category of interests
-                    <HintButton hintKey="categoryOfInterests" />
-                  </label>
-                  <select
-                    value={currentLocation.category || ''}
-                    onChange={(e) => {
-                      const categoryId = e.target.value || null;
-                      updateCurrentLocation({ 
-                        category: categoryId,
-                        subcategory: null, // Reset subcategory when category changes
-                        interests: [] // Reset interests when category changes
-                      });
-                    }}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '8px',
-                      fontSize: '16px',
-                      boxSizing: 'border-box',
-                      backgroundColor: 'white'
-                    }}
-                  >
-                    <option value="">Choose category</option>
-                    {interestsStructure?.map(category => (
-                      <option key={category.id} value={category.id}>
-                        {category.icon} {CATEGORY_NAMES[category.name] || category.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Subcategory (if category has subcategories) */}
-                {currentLocation.category && interestsStructure?.find(c => c.id === currentLocation.category)?.subcategories?.length > 0 && (
-                  <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                      Subcategory (optional)
-                    </label>
-                    <select
-                      value={currentLocation.subcategory || ''}
-                      onChange={(e) => {
-                        const subcategoryId = e.target.value || null;
-                        updateCurrentLocation({ 
-                          subcategory: subcategoryId,
-                          interests: [] // Reset interests when subcategory changes
-                        });
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '12px',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '8px',
-                        fontSize: '16px',
-                        boxSizing: 'border-box',
-                        backgroundColor: 'white'
-                      }}
-                    >
-                      <option value="">All interests in category</option>
-                      {interestsStructure
-                        .find(c => c.id === currentLocation.category)
-                        ?.subcategories?.map(subcategory => (
-                          <option key={subcategory.id} value={subcategory.id}>
-                            {SUBCATEGORY_NAMES[subcategory.name] || subcategory.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                )}
-
-                {/* Interests Selection */}
-                {currentLocation.category && (() => {
-                  const category = interestsStructure?.find(c => c.id === currentLocation.category);
-                  if (!category) return null;
-                  
-                  let availableInterestsList = [];
-                  if (currentLocation.subcategory) {
-                    const subcategory = category.subcategories?.find(s => s.id === currentLocation.subcategory);
-                    availableInterestsList = subcategory?.interests || [];
-                  } else {
-                    if (category.direct_interests) {
-                      availableInterestsList.push(...category.direct_interests);
-                    }
-                    if (category.subcategories) {
-                      category.subcategories.forEach(subcategory => {
-                        if (subcategory.interests) {
-                          availableInterestsList.push(...subcategory.interests);
-                        }
-                      });
-                    }
-                  }
-                  
-                  const currentInterestIds = currentLocation.interests || [];
-                  const availableToAdd = availableInterestsList.filter(interest => 
-                    !currentInterestIds.includes(interest.id)
-                  );
-                  
-                  return (
-                    <>
-                      <div style={{ marginBottom: '20px' }}>
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                          Interests
-                        </label>
-                        {availableToAdd.length > 0 && (
-                          <select
-                            onChange={(e) => {
-                              const interestId = e.target.value;
-                              if (interestId && !currentInterestIds.includes(interestId)) {
-                                updateCurrentLocation({ 
-                                  interests: [...currentInterestIds, interestId]
-                                });
-                              }
-                              e.target.value = ''; // Reset select
-                            }}
-                            style={{
-                              width: '100%',
-                              padding: '12px',
-                              border: '1px solid #d1d5db',
-                              borderRadius: '8px',
-                              fontSize: '16px',
-                              boxSizing: 'border-box',
-                              backgroundColor: 'white',
-                              marginBottom: '12px'
-                            }}
-                          >
-                            <option value="">Select interests</option>
-                            {availableToAdd.map(interest => (
-                              <option key={interest.id} value={interest.id}>
-                                {interest.name}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                      </div>
-
-                      {/* Selected interests */}
-                      {currentInterestIds.length > 0 && (
-                        <div style={{ marginBottom: '20px' }}>
-                          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                            Selected interests
-                          </label>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                            {currentInterestIds.map(interestId => {
-                              const interest = availableInterests.find(i => i.id === interestId);
-                              if (!interest) return null;
-                              
-                              const categoryForInterest = interestsStructure?.find(c => 
-                                c.id === interest.category_id || 
-                                c.subcategories?.some(s => s.id === interest.subcategory_id)
-                              );
-                              
-                              return (
-                                <span
-                                  key={interestId}
-                                  style={{
-                                    padding: '6px 12px',
-                                    backgroundColor: '#e0e7ff',
-                                    color: '#3730a3',
-                                    borderRadius: '6px',
-                                    fontSize: '12px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px'
-                                  }}
-                                >
-                                  {categoryForInterest?.icon} {interest.name}
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      updateCurrentLocation({ 
-                                        interests: currentInterestIds.filter(id => id !== interestId)
-                                      });
-                                    }}
-                                    style={{
-                                      background: 'none',
-                                      border: 'none',
-                                      color: '#3730a3',
-                                      cursor: 'pointer',
-                                      fontSize: '16px',
-                                      padding: '0',
-                                      lineHeight: '1',
-                                      fontWeight: 'bold'
-                                    }}
-                                  >
-                                    ×
-                                  </button>
-                                </span>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  );
-                })()}
 
                 {/* Price Level and Approximate Cost */}
                 <div style={{ 
