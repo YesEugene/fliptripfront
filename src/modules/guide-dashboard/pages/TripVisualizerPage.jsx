@@ -263,14 +263,12 @@ export default function TripVisualizerPage() {
         const draftData = tourObj.draft_data;
         const sourceData = draftData || tourObj;
         
-        // Extract tag/interest IDs from tour_tags
-        // Support both: interest object (new system) and interest_id/tag_id (legacy)
-        console.log('📋 Tour tour_tags:', tourObj.tour_tags);
-        const tagIds = tourObj.tour_tags?.map(tt => {
-          // Try multiple ways to get the ID
-          // Check interest object first, then interest_id field, then tag
-          // Convert to string for consistency (IDs can be numbers or UUIDs)
-          const id = tt.interest?.id || tt.interest_id || tt.tag?.id || tt.tag_id;
+        // Extract interest IDs from tour_tags
+        // tour_tags contains objects with interest_id and interest object
+        console.log('📋 Tour tour_tags from API:', tourObj.tour_tags);
+        const interestIds = tourObj.tour_tags?.map(tt => {
+          // Get interest ID from interest object or interest_id field
+          const id = tt.interest?.id || tt.interest_id;
           const idString = id ? String(id) : null;
           console.log('🔍 Processing tour_tag:', { 
             hasInterest: !!tt.interest, 
@@ -278,22 +276,19 @@ export default function TripVisualizerPage() {
             interestIdType: typeof tt.interest?.id,
             interest_id: tt.interest_id,
             interest_idType: typeof tt.interest_id,
-            hasTag: !!tt.tag,
-            tagId: tt.tag?.id,
-            tag_id: tt.tag_id,
             extractedId: id,
             extractedIdString: idString
           });
           return idString;
         }).filter(id => id !== null && id !== undefined && id !== '') || [];
-        console.log('✅ Extracted tag IDs:', tagIds);
+        console.log('✅ Extracted interest IDs:', interestIds);
         
         setTourInfo({
           city: sourceData.city || tourObj.city?.name || 'Barcelona',
           title: sourceData.title || tourObj.title || 'Barcelona without the rush',
           description: sourceData.description || tourObj.description || 'I return to Barcelona not for landmarks, but for its rhythm. The way the city lives between meals, walks, and pauses. I made this guide for moments when you don\'t want to impress yourself with how much you\'ve seen. When you want the city to feel human, readable, and calm.\n\nThese are the places and routes I choose when I want Barcelona to feel like a place I\'m living in — not passing through.',
           preview: sourceData.preview || tourObj.preview_media_url || BarcelonaExampleImage,
-          tags: tagIds // Store tag/interest IDs
+          tags: interestIds // Store interest IDs
         });
 
         // Load tour settings
@@ -788,20 +783,31 @@ export default function TripVisualizerPage() {
           // Update other fields from response
           if (data.tour) {
             setTour(data.tour);
-            // Extract tag/interest IDs from tour_tags in response
+            // Extract interest IDs from tour_tags in response
             // Convert to strings for consistency
-            const tagIds = data.tour.tour_tags?.map(tt => {
-              const id = tt.interest?.id || tt.interest_id || tt.tag?.id || tt.tag_id;
-              console.log('🔍 Extracting tag ID from response:', { tt, id, idType: typeof id });
+            const interestIds = data.tour.tour_tags?.map(tt => {
+              const id = tt.interest?.id || tt.interest_id;
+              console.log('🔍 Extracting interest ID from response:', { 
+                tt, 
+                hasInterest: !!tt.interest,
+                interestId: tt.interest?.id,
+                interest_id: tt.interest_id,
+                extractedId: id, 
+                idType: typeof id 
+              });
               return id ? String(id) : null;
-            }).filter(Boolean) || tourInfo.tags || [];
-            console.log('🔄 Updated tags from server response:', tagIds, 'previous tags:', tourInfo.tags);
+            }).filter(Boolean) || [];
+            
+            console.log('🔄 Updated interests from server response:', interestIds);
+            console.log('🔄 Previous interests in state:', tourInfo.tags);
+            console.log('🔄 Will set interests to:', interestIds.length > 0 ? interestIds : tourInfo.tags);
+            
             setTourInfo({
               city: data.tour.city?.name || tourInfo.city,
               title: data.tour.title || tourInfo.title,
               description: data.tour.description || tourInfo.description,
               preview: tourInfo.preview, // Keep current preview (was just saved)
-              tags: tagIds // Update tags from server response
+              tags: interestIds.length > 0 ? interestIds : tourInfo.tags // Update interests from server response, fallback to current if empty
             });
             // Reload blocks after saving tour to ensure they're up to date
             const currentTourId = data.tour.id || tourId;
