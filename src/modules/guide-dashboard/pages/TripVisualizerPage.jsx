@@ -268,10 +268,24 @@ export default function TripVisualizerPage() {
         console.log('📋 Tour tour_tags:', tourObj.tour_tags);
         const tagIds = tourObj.tour_tags?.map(tt => {
           // Try multiple ways to get the ID
-          const id = tt.interest?.id || tt.tag?.id || tt.interest_id || tt.tag_id;
-          console.log('🔍 Processing tour_tag:', { tt, extractedId: id });
-          return id;
-        }).filter(Boolean) || [];
+          // Check interest object first, then interest_id field, then tag
+          // Convert to string for consistency (IDs can be numbers or UUIDs)
+          const id = tt.interest?.id || tt.interest_id || tt.tag?.id || tt.tag_id;
+          const idString = id ? String(id) : null;
+          console.log('🔍 Processing tour_tag:', { 
+            hasInterest: !!tt.interest, 
+            interestId: tt.interest?.id,
+            interestIdType: typeof tt.interest?.id,
+            interest_id: tt.interest_id,
+            interest_idType: typeof tt.interest_id,
+            hasTag: !!tt.tag,
+            tagId: tt.tag?.id,
+            tag_id: tt.tag_id,
+            extractedId: id,
+            extractedIdString: idString
+          });
+          return idString;
+        }).filter(id => id !== null && id !== undefined && id !== '') || [];
         console.log('✅ Extracted tag IDs:', tagIds);
         
         setTourInfo({
