@@ -786,7 +786,12 @@ export default function TripVisualizerPage() {
           if (data.tour) {
             setTour(data.tour);
             // Extract tag/interest IDs from tour_tags in response
-            const tagIds = data.tour.tour_tags?.map(tt => tt.interest?.id || tt.tag?.id || tt.interest_id).filter(Boolean) || tourInfo.tags || [];
+            // Convert to strings for consistency
+            const tagIds = data.tour.tour_tags?.map(tt => {
+              const id = tt.interest?.id || tt.interest_id || tt.tag?.id || tt.tag_id;
+              return id ? String(id) : null;
+            }).filter(Boolean) || tourInfo.tags || [];
+            console.log('🔄 Updated tags from server response:', tagIds);
             setTourInfo({
               city: data.tour.city?.name || tourInfo.city,
               title: data.tour.title || tourInfo.title,
