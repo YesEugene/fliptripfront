@@ -3304,7 +3304,7 @@ function HintButton({ hintKey }) {
     );
 }
 
-function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, cities = [], citySuggestions = [], showCitySuggestions = false, setCitySuggestions, setShowCitySuggestions }) {
+function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageUpload, cities = [], citySuggestions = [], showCitySuggestions = false, setCitySuggestions, setShowCitySuggestions }) {
   const [interestsStructure, setInterestsStructure] = useState(null);
   const [availableInterests, setAvailableInterests] = useState([]);
   const [loadingInterests, setLoadingInterests] = useState(false);
