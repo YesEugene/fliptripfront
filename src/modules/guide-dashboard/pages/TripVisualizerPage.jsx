@@ -3,7 +3,7 @@
  * Allows guides to create tours with flexible content blocks
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getCurrentUser } from '../../auth/services/authService';
 import { getGuideProfile } from '../../../modules/guide-profile';
@@ -145,6 +145,7 @@ export default function TripVisualizerPage() {
   const [tagSuggestions, setTagSuggestions] = useState([]);
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
   const [allInterestsForDisplay, setAllInterestsForDisplay] = useState([]); // For displaying tags in visualizer
+  const [interestsStructureForDisplay, setInterestsStructureForDisplay] = useState(null); // For displaying tags in visualizer
 
   // Tour settings block collapsed state
   const [isTourSettingsCollapsed, setIsTourSettingsCollapsed] = useState(true);
@@ -176,6 +177,36 @@ export default function TripVisualizerPage() {
       }
     };
     loadCities();
+    
+    // Load interests structure for displaying tags
+    const loadInterestsForDisplay = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
+        const response = await fetch(`${API_BASE_URL}/api/interests?full_structure=true`);
+        const data = await response.json();
+        if (data.success && data.categories) {
+          setInterestsStructureForDisplay(data.categories || []);
+          // Flatten all interests for easy access
+          const allInterests = [];
+          data.categories.forEach(category => {
+            if (category.direct_interests) {
+              allInterests.push(...category.direct_interests);
+            }
+            if (category.subcategories) {
+              category.subcategories.forEach(subcategory => {
+                if (subcategory.interests) {
+                  allInterests.push(...subcategory.interests);
+                }
+              });
+            }
+          });
+          setAllInterestsForDisplay(allInterests);
+        }
+      } catch (err) {
+        console.error('Error loading interests for display:', err);
+      }
+    };
+    loadInterestsForDisplay();
     
     // Close city suggestions when clicking outside
     const handleClickOutside = (e) => {
@@ -1613,10 +1644,10 @@ export default function TripVisualizerPage() {
               if (!interest) return null;
               
               // Find category for icon
-              const category = interestsStructure?.find(c => 
+              const category = interestsStructureForDisplay?.find(c => 
                 c.id === interest.category_id || 
                 c.subcategories?.some(s => s.id === interest.subcategory_id)
-              ) || interestsStructure?.find(c => 
+              ) || interestsStructureForDisplay?.find(c => 
                 c.direct_interests?.some(i => i.id === interest.id) ||
                 c.subcategories?.some(s => s.interests?.some(i => i.id === interest.id))
               );
@@ -3146,8 +3177,8 @@ function TourEditorModal({ tourInfo, onClose, onSave, onChange, onImageUpload, c
     loadInterests();
   }, []);
 
-  // Get current tags (interests) from tourInfo
-  const currentTags = tourInfo.tags || [];
+  // Get current tags (interests) from tourInfo - use useMemo to ensure reactivity
+  const currentTags = useMemo(() => tourInfo.tags || [], [tourInfo.tags]);
   
   // Get available interests for selected category
   const getAvailableInterestsForCategory = () => {
