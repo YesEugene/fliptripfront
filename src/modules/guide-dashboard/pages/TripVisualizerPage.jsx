@@ -3996,9 +3996,32 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
                 {currentTags.map(tagId => {
                   // Convert both to strings for comparison
                   const tagIdString = String(tagId);
+                  
+                  // Wait for interests to load before trying to find them
+                  if (loadingInterests || availableInterests.length === 0) {
+                    return (
+                      <span key={tagIdString} style={{ 
+                        padding: '6px 12px', 
+                        backgroundColor: '#f3f4f6', 
+                        borderRadius: '20px', 
+                        fontSize: '14px',
+                        color: '#6b7280'
+                      }}>
+                        Loading...
+                      </span>
+                    );
+                  }
+                  
                   const interest = availableInterests.find(i => String(i.id) === tagIdString);
                   if (!interest) {
-                    console.warn('⚠️ Interest not found in availableInterests for tagId:', tagIdString);
+                    // Don't show warning if interests are still loading
+                    if (!loadingInterests) {
+                      console.warn('⚠️ Interest not found in availableInterests for tagId:', tagIdString, {
+                        availableCount: availableInterests.length,
+                        availableIds: availableInterests.slice(0, 5).map(i => i.id),
+                        searchingFor: tagIdString
+                      });
+                    }
                     return null;
                   }
                   
