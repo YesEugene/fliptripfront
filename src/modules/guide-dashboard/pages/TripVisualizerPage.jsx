@@ -329,14 +329,24 @@ export default function TripVisualizerPage() {
         const blocksResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks?tourId=${tourIdToLoad}`).catch(() => null);
         if (blocksResponse && blocksResponse.ok) {
           const blocksData = await blocksResponse.json();
+          console.log('📦 Loaded blocks:', blocksData);
           if (blocksData.success) {
-            setBlocks(blocksData.blocks || []);
+            const loadedBlocks = blocksData.blocks || [];
+            console.log(`✅ Loaded ${loadedBlocks.length} blocks for tour ${tourIdToLoad}`);
+            // Sort blocks by order_index to ensure correct display order
+            const sortedBlocks = loadedBlocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+            setBlocks(sortedBlocks);
+          } else {
+            console.warn('⚠️ Blocks API returned success: false', blocksData);
+            setBlocks([]);
           }
         } else {
+          console.warn('⚠️ Blocks API request failed:', blocksResponse?.status, blocksResponse?.statusText);
           // Table might not exist yet - silently ignore
           setBlocks([]);
         }
       } catch (blocksError) {
+        console.error('❌ Error loading blocks:', blocksError);
         // Table might not exist yet - silently ignore
         setBlocks([]);
       }
