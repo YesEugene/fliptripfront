@@ -3337,7 +3337,14 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
               });
             }
           });
+          console.log('✅ Loaded interests for modal:', {
+            totalCount: allInterests.length,
+            interestIds: allInterests.slice(0, 10).map(i => i.id),
+            categoriesCount: data.categories.length
+          });
           setAvailableInterests(allInterests);
+        } else {
+          console.warn('⚠️ Failed to load interests structure:', data);
         }
       } catch (err) {
         console.error('Error loading interests:', err);
