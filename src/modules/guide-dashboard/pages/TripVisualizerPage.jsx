@@ -2717,9 +2717,9 @@ export default function TripVisualizerPage() {
         <TourEditorModal
           tourInfo={tourInfo}
           onClose={async () => {
-            // Auto-save tags when closing modal if tour exists
+            // Auto-save interests when closing modal if tour exists
             if (tourId && tourInfo.tags && tourInfo.tags.length > 0) {
-              console.log('💾 Auto-saving tags on modal close:', tourInfo.tags);
+              console.log('💾 Auto-saving interests on modal close:', tourInfo.tags);
               try {
                 const token = localStorage.getItem('authToken') || localStorage.getItem('token');
                 if (token) {
@@ -2730,19 +2730,32 @@ export default function TripVisualizerPage() {
                       'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
-                      tags: tourInfo.tags
+                      tags: tourInfo.tags // Backend expects 'tags' parameter but treats them as interests
                     })
                   });
                   if (response.ok) {
                     const data = await response.json();
-                    console.log('✅ Auto-saved tags:', data);
+                    console.log('✅ Auto-saved interests response:', data);
+                    // Update tags from response if available
+                    if (data.tour?.tour_tags) {
+                      const interestIds = data.tour.tour_tags.map(tt => String(tt.interest?.id || tt.interest_id)).filter(Boolean);
+                      console.log('✅ Auto-saved interests IDs from response:', interestIds);
+                      if (interestIds.length > 0) {
+                        setTourInfo(prev => ({ ...prev, tags: interestIds }));
+                      }
+                    }
                   } else {
-                    console.warn('⚠️ Could not auto-save tags:', await response.text());
+                    const errorText = await response.text();
+                    console.error('❌ Could not auto-save interests:', errorText);
                   }
+                } else {
+                  console.warn('⚠️ No auth token for auto-saving interests');
                 }
               } catch (error) {
-                console.error('❌ Error auto-saving tags:', error);
+                console.error('❌ Error auto-saving interests:', error);
               }
+            } else {
+              console.log('📋 Skipping auto-save - no tourId or no interests:', { tourId, hasTags: !!tourInfo.tags, tagsCount: tourInfo.tags?.length || 0 });
             }
             setShowTourEditor(false);
           }}
