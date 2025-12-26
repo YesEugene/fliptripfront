@@ -1717,8 +1717,13 @@ export default function TripVisualizerPage() {
           {tourInfo.tags && tourInfo.tags.length > 0 ? (
             // Show actual interest tags (white with border)
             tourInfo.tags.map(tagId => {
-              const interest = allInterestsForDisplay.find(i => i.id === tagId);
-              if (!interest) return null;
+              // Convert both to strings for comparison (IDs can be numbers or UUIDs)
+              const tagIdString = String(tagId);
+              const interest = allInterestsForDisplay.find(i => String(i.id) === tagIdString);
+              if (!interest) {
+                console.warn('⚠️ Interest not found for tagId:', tagIdString, 'Available interests:', allInterestsForDisplay.map(i => ({ id: i.id, name: i.name })));
+                return null;
+              }
               
               return (
                 <div
