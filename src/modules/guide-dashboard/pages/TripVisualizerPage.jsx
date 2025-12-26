@@ -72,6 +72,18 @@ export default function TripVisualizerPage() {
   const [isAuthorTextExpanded, setIsAuthorTextExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showLocationSelector, setShowLocationSelector] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [showNotification, setShowNotification] = useState(false);
+
+  // Show notification message for 2 seconds
+  const showNotificationMessage = (message) => {
+    setNotificationMessage(message);
+    setShowNotification(true);
+    setTimeout(() => {
+      setShowNotification(false);
+      setNotificationMessage('');
+    }, 2000);
+  };
 
   // Detect screen size for responsive layout
   useEffect(() => {
@@ -638,7 +650,7 @@ export default function TripVisualizerPage() {
           setTour(data.tour);
           // Update tourId in state by reloading tour
           await loadTour(newTourId);
-          alert('Tour saved as draft!');
+          showNotificationMessage('Tour saved as draft!');
         } else {
           alert(data.error || 'Failed to save tour');
         }
@@ -696,7 +708,7 @@ export default function TripVisualizerPage() {
               preview: tourInfo.preview // Keep current preview (was just saved)
             });
           }
-          alert('Tour saved as draft!');
+          showNotificationMessage('Tour saved as draft!');
         } else {
           alert(data.error || 'Failed to save tour');
         }
@@ -851,7 +863,7 @@ export default function TripVisualizerPage() {
         if (data.success) {
           // Reload tour to get updated preview image
           await loadTour();
-          alert('Tour submitted for moderation!');
+          showNotificationMessage('Tour submitted for moderation!');
         } else {
           alert(data.error || 'Failed to submit tour');
         }
@@ -1871,6 +1883,32 @@ export default function TripVisualizerPage() {
         {/* Spacer to prevent content from being hidden behind fixed bottom panel */}
         <div style={{ height: isTourSettingsCollapsed ? (isMobile ? '105px' : '65px') : '80vh' }} />
       </div>
+
+      {/* Notification Banner - appears above fixed bottom panel */}
+      {showNotification && (
+        <div style={{
+          position: 'fixed',
+          bottom: isMobile ? '105px' : '65px',
+          left: 0,
+          right: 0,
+          height: '25px',
+          backgroundColor: '#CEF1D6',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1001,
+          transition: 'opacity 0.3s ease',
+          opacity: showNotification ? 1 : 0
+        }}>
+          <span style={{
+            fontSize: '14px',
+            color: '#111827',
+            fontWeight: '500'
+          }}>
+            {notificationMessage}
+          </span>
+        </div>
+      )}
 
       {/* Fixed Bottom Panel - Action buttons and Tour Settings */}
       <div style={{
