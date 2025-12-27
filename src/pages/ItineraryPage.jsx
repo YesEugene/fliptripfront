@@ -1620,8 +1620,8 @@ export default function ItineraryPage() {
         margin: '0 auto',
         padding: '0',
         marginBottom: '32px',
-        paddingLeft: isMobile ? '10px' : '20px',
-        paddingRight: isMobile ? '10px' : '20px'
+        paddingLeft: '0',
+        paddingRight: '0'
       }}>
         <div 
           style={{
