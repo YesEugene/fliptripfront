@@ -540,18 +540,30 @@ export default function ItineraryPage() {
         
         // Reset tour type selection based on tour data
         // CRITICAL: Check draft_data.tourSettings first for explicit saved values
+        // If tourSettings exist, use ONLY those values (don't check other fields)
         const draftData = tour.draft_data || {};
         const tourSettings = draftData.tourSettings || {};
-        const selfGuided = tourSettings.selfGuided !== undefined ? tourSettings.selfGuided : true; // Default: true
-        const withGuide = tourSettings.withGuide !== undefined ? tourSettings.withGuide : false;
         
-        // Determine available formats
+        // If tourSettings exist, use explicit values from there
+        // Otherwise, infer from tour fields
+        let selfGuided, withGuide;
+        if (tourSettings.selfGuided !== undefined || tourSettings.withGuide !== undefined) {
+          // Use explicit values from tourSettings
+          selfGuided = tourSettings.selfGuided !== undefined ? tourSettings.selfGuided : true; // Default: true
+          withGuide = tourSettings.withGuide !== undefined ? tourSettings.withGuide : false;
+        } else {
+          // Fallback: infer from tour fields
+          selfGuided = tour.default_format !== 'with_guide' && tour.default_format !== 'guided';
+          withGuide = tour.withGuide || 
+                     tour.default_format === 'with_guide' || 
+                     tour.default_format === 'guided' ||
+                     tour.format === 'guided' ||
+                     (tour.price?.guidedPrice && tour.price.guidedPrice > 0);
+        }
+        
+        // Determine available formats - use explicit values from tourSettings
         const supportsSelfGuided = selfGuided === true;
-        const supportsGuide = withGuide === true || 
-                              tour.withGuide || 
-                              tour.default_format === 'with_guide' || 
-                              tour.format === 'guided' ||
-                              (tour.price?.guidedPrice && tour.price.guidedPrice > 0);
+        const supportsGuide = withGuide === true;
         
         // Set default tour type based on available formats
         if (supportsSelfGuided && !supportsGuide) {
@@ -692,18 +704,30 @@ export default function ItineraryPage() {
           
           // Reset tour type selection based on tour data
           // CRITICAL: Check draft_data.tourSettings first for explicit saved values
+          // If tourSettings exist, use ONLY those values (don't check other fields)
           const draftData = tour.draft_data || {};
           const tourSettings = draftData.tourSettings || {};
-          const selfGuided = tourSettings.selfGuided !== undefined ? tourSettings.selfGuided : true; // Default: true
-          const withGuide = tourSettings.withGuide !== undefined ? tourSettings.withGuide : false;
           
-          // Determine available formats
+          // If tourSettings exist, use explicit values from there
+          // Otherwise, infer from tour fields
+          let selfGuided, withGuide;
+          if (tourSettings.selfGuided !== undefined || tourSettings.withGuide !== undefined) {
+            // Use explicit values from tourSettings
+            selfGuided = tourSettings.selfGuided !== undefined ? tourSettings.selfGuided : true; // Default: true
+            withGuide = tourSettings.withGuide !== undefined ? tourSettings.withGuide : false;
+          } else {
+            // Fallback: infer from tour fields
+            selfGuided = tour.default_format !== 'with_guide' && tour.default_format !== 'guided';
+            withGuide = tour.withGuide || 
+                       tour.default_format === 'with_guide' || 
+                       tour.default_format === 'guided' ||
+                       tour.format === 'guided' ||
+                       (tour.price?.guidedPrice && tour.price.guidedPrice > 0);
+          }
+          
+          // Determine available formats - use explicit values from tourSettings
           const supportsSelfGuided = selfGuided === true;
-          const supportsGuide = withGuide === true || 
-                                tour.withGuide || 
-                                tour.default_format === 'with_guide' || 
-                                tour.format === 'guided' ||
-                                (tour.price?.guidedPrice && tour.price.guidedPrice > 0);
+          const supportsGuide = withGuide === true;
           
           // Set default tour type based on available formats
           if (supportsSelfGuided && !supportsGuide) {
@@ -1963,18 +1987,30 @@ export default function ItineraryPage() {
         {/* Email and Payment Block - Show only if preview and not paid (for both formats) */}
         {previewOnly && !isPaid && (() => {
           // Determine available formats from draft_data.tourSettings
+          // CRITICAL: If tourSettings exist, use ONLY those values (don't check other fields)
           const draftData = tourData?.draft_data || {};
           const tourSettings = draftData.tourSettings || {};
-          const selfGuided = tourSettings.selfGuided !== undefined ? tourSettings.selfGuided : true; // Default: true
-          const withGuide = tourSettings.withGuide !== undefined ? tourSettings.withGuide : false;
           
-          // Determine available formats
+          // If tourSettings exist, use explicit values from there
+          // Otherwise, infer from tour fields
+          let selfGuided, withGuide;
+          if (tourSettings.selfGuided !== undefined || tourSettings.withGuide !== undefined) {
+            // Use explicit values from tourSettings
+            selfGuided = tourSettings.selfGuided !== undefined ? tourSettings.selfGuided : true; // Default: true
+            withGuide = tourSettings.withGuide !== undefined ? tourSettings.withGuide : false;
+          } else {
+            // Fallback: infer from tour fields
+            selfGuided = tourData?.default_format !== 'with_guide' && tourData?.default_format !== 'guided';
+            withGuide = tourData?.withGuide || 
+                       tourData?.default_format === 'with_guide' || 
+                       tourData?.default_format === 'guided' ||
+                       tourData?.format === 'guided' ||
+                       (tourData?.price?.guidedPrice && tourData.price.guidedPrice > 0);
+          }
+          
+          // Determine available formats - use explicit values from tourSettings
           const supportsSelfGuided = selfGuided === true;
-          const supportsGuide = withGuide === true || 
-                                tourData?.withGuide || 
-                                tourData?.default_format === 'with_guide' || 
-                                tourData?.format === 'guided' ||
-                                (tourData?.price?.guidedPrice && tourData.price.guidedPrice > 0);
+          const supportsGuide = withGuide === true;
           
           console.log('🔍 Payment block debug:', {
             tourData: !!tourData,
