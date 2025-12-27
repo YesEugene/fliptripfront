@@ -2647,7 +2647,7 @@ export default function ItineraryPage() {
                           <div id="unlock-full-itinerary" style={{
                             backgroundColor: 'white',
                             borderRadius: '12px',
-                            padding: isMobile ? '20px' : '24px',
+                            padding: '20px',
                             border: '1px solid #e5e7eb',
                             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                           }}>
@@ -2762,8 +2762,8 @@ export default function ItineraryPage() {
           <div 
             className="enhanced-card"
             style={{
-              marginLeft: isMobile ? '10px' : 'auto',
-              marginRight: isMobile ? '10px' : 'auto',
+              marginLeft: '10px',
+              marginRight: '10px',
               maxWidth: '750px'
             }}
           >
@@ -2931,8 +2931,8 @@ export default function ItineraryPage() {
               return (
                 <div style={{
                   width: '100%',
-                  margin: isMobile ? '10px 0 0' : '32px 0 0',
-                  padding: isMobile ? '0 10px' : '0',
+                  margin: '10px 0 0',
+                  padding: '0 10px',
                   paddingLeft: '0',
                   paddingRight: '0',
                   marginLeft: '0',
