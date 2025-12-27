@@ -2590,11 +2590,13 @@ export default function ItineraryPage() {
                     
                     return (
                       <div style={{
-                        maxWidth: '750px',
-                        margin: '32px auto 0',
+                        width: '100%',
+                        margin: '32px 0 0',
                         padding: '0',
                         paddingLeft: '0',
-                        paddingRight: '0'
+                        paddingRight: '0',
+                        marginLeft: '0',
+                        marginRight: '0'
                       }}>
                         <div className="payment-cards-container" style={{
                           display: 'grid',
@@ -2602,6 +2604,8 @@ export default function ItineraryPage() {
                           gap: '20px',
                           marginBottom: '0',
                           margin: '0',
+                          marginLeft: '0',
+                          marginRight: '0',
                           padding: '0',
                           paddingLeft: '0',
                           paddingRight: '0'
@@ -2611,7 +2615,10 @@ export default function ItineraryPage() {
                             borderRadius: '12px',
                             padding: '24px',
                             border: '1px solid #e5e7eb',
-                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                            margin: '0',
+                            marginLeft: '0',
+                            marginRight: '0'
                           }}>
                         <h4 style={{
                           fontSize: '21px',
@@ -2885,11 +2892,13 @@ export default function ItineraryPage() {
               
               return (
                 <div style={{
-                  maxWidth: '750px',
-                  margin: '32px auto 0',
+                  width: '100%',
+                  margin: '32px 0 0',
                   padding: '0',
                   paddingLeft: '0',
-                  paddingRight: '0'
+                  paddingRight: '0',
+                  marginLeft: '0',
+                  marginRight: '0'
                 }}>
                   <div className="payment-cards-container" style={{
                     display: 'grid',
@@ -2897,6 +2906,8 @@ export default function ItineraryPage() {
                     gap: '20px',
                     marginBottom: '0',
                     margin: '0',
+                    marginLeft: '0',
+                    marginRight: '0',
                     padding: '0',
                     paddingLeft: '0',
                     paddingRight: '0'
@@ -2906,7 +2917,10 @@ export default function ItineraryPage() {
                       borderRadius: '12px',
                       padding: '24px',
                       border: '1px solid #e5e7eb',
-                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                      margin: '0',
+                      marginLeft: '0',
+                      marginRight: '0'
                     }}>
                   <h4 style={{
                     fontSize: '21px',
