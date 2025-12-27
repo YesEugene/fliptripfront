@@ -2599,14 +2599,10 @@ export default function ItineraryPage() {
                         <div id="unlock-full-itinerary" style={{
                           backgroundColor: '#f9fafb',
                           borderRadius: '12px',
-                          padding: '24px 20px',
+                          padding: '24px',
                           border: '1px solid #e5e7eb',
                           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                          marginTop: '0',
-                          marginBottom: '0',
-                          margin: '0',
-                          paddingLeft: '0',
-                          paddingRight: '0'
+                          margin: '0'
                         }}>
                         <h4 style={{
                           fontSize: '21px',
@@ -2888,14 +2884,10 @@ export default function ItineraryPage() {
                   <div id="unlock-full-itinerary" style={{
                     backgroundColor: '#f9fafb',
                     borderRadius: '12px',
-                    padding: '24px 20px',
+                    padding: '24px',
                     border: '1px solid #e5e7eb',
                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                    marginTop: '0',
-                    marginBottom: '0',
-                    margin: '0',
-                    paddingLeft: '0',
-                    paddingRight: '0'
+                    margin: '0'
                   }}>
                   <h4 style={{
                     fontSize: '21px',
