@@ -2101,10 +2101,12 @@ export default function ItineraryPage() {
           
           return (
             <div style={{
-              marginTop: '24px',
-              marginBottom: '24px',
+              marginTop: isMobile ? '10px' : '24px',
+              marginBottom: isMobile ? '10px' : '24px',
               maxWidth: '750px',
-              margin: '24px auto',
+              margin: isMobile ? '10px 10px' : '24px auto',
+              marginLeft: isMobile ? '10px' : 'auto',
+              marginRight: isMobile ? '10px' : 'auto',
               padding: '0',
               paddingLeft: '0',
               paddingRight: '0'
@@ -2124,7 +2126,7 @@ export default function ItineraryPage() {
                 <div style={{
                   backgroundColor: 'white',
                   borderRadius: '12px',
-                  padding: '24px',
+                  padding: isMobile ? '20px' : '24px',
                   border: '1px solid #e5e7eb',
                   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                 }}>
