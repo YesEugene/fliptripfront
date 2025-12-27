@@ -2626,25 +2626,20 @@ export default function ItineraryPage() {
                       }}>
                         <div className="payment-cards-container" style={{
                           display: 'grid',
-                          gridTemplateColumns: '1fr',
+                          gridTemplateColumns: '1fr 1fr',
                           gap: '20px',
                           marginBottom: '0',
                           margin: '0',
-                          marginLeft: '0',
-                          marginRight: '0',
                           padding: '0',
                           paddingLeft: '0',
                           paddingRight: '0'
                         }}>
                           <div id="unlock-full-itinerary" style={{
-                            backgroundColor: '#f9fafb',
+                            backgroundColor: 'white',
                             borderRadius: '12px',
                             padding: isMobile ? '20px' : '24px',
                             border: '1px solid #e5e7eb',
-                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                            margin: '0',
-                            marginLeft: '0',
-                            marginRight: '0'
+                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                           }}>
                         <h4 style={{
                           fontSize: '21px',
