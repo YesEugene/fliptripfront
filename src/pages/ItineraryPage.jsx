@@ -2752,7 +2752,14 @@ export default function ItineraryPage() {
 
         {/* Itinerary Plan - Old Format (backward compatibility) */}
         {!useNewFormat && (
-          <div className="enhanced-card">
+          <div 
+            className="enhanced-card"
+            style={{
+              marginLeft: isMobile ? '10px' : 'auto',
+              marginRight: isMobile ? '10px' : 'auto',
+              maxWidth: '750px'
+            }}
+          >
             <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937', marginBottom: '24px' }}>
               📅 Day Plan
             </h2>
