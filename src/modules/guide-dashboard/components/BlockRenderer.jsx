@@ -85,12 +85,10 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
   return (
     <div style={{ 
       marginBottom: '32px',
-      padding: '10px'
+      padding: '0'
     }}>
       <div style={{
-        padding: '0',
-        paddingLeft: '0',
-        paddingRight: '0'
+        padding: '10px'
       }}>
       {/* Time badge */}
       {mainLocation.time && (
@@ -451,12 +449,10 @@ function TitleBlock({ block, onEdit }) {
   return (
     <div style={{ 
       marginBottom: '32px',
-      padding: '10px'
+      padding: '0'
     }}>
       <div style={{
-        padding: '0',
-        paddingLeft: '0',
-        paddingRight: '0'
+        padding: '10px'
       }}>
         <h2 style={{
           fontSize: fontSizeMap[size],
@@ -554,12 +550,10 @@ function PhotoTextBlock({ block, onEdit }) {
   return (
     <div style={{ 
       marginBottom: '32px',
-      padding: '10px'
+      padding: '0'
     }}>
       <div style={{
-        padding: '0',
-        paddingLeft: '0',
-        paddingRight: '0'
+        padding: '10px'
       }}>
         <div style={{
       display: 'flex',
@@ -706,12 +700,10 @@ function TextBlock({ block, onEdit }) {
   return (
     <div style={{ 
       marginBottom: '32px',
-      padding: '10px'
+      padding: '0'
     }}>
       <div style={{
-        padding: '0',
-        paddingLeft: '0',
-        paddingRight: '0'
+        padding: '10px'
       }}>
       {formatted ? (
         <div 
@@ -747,12 +739,10 @@ function SlideBlock({ block, onEdit }) {
   return (
     <div style={{ 
       marginBottom: '32px',
-      padding: '10px'
+      padding: '0'
     }}>
       <div style={{
-        padding: '0',
-        paddingLeft: '0',
-        paddingRight: '0'
+        padding: '10px'
       }}>
         <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '12px' }}>
           {title}
@@ -918,12 +908,10 @@ function ThreeColumnsBlock({ block, onEdit }) {
   return (
     <div style={{ 
       marginBottom: '32px',
-      padding: '10px'
+      padding: '0'
     }}>
       <div style={{
-        padding: '0',
-        paddingLeft: '0',
-        paddingRight: '0'
+        padding: '10px'
       }}>
         <div style={{
           display: 'grid',
@@ -986,12 +974,10 @@ function PhotoBlock({ block, onEdit }) {
   return (
     <div style={{ 
       marginBottom: '32px',
-      padding: '10px'
+      padding: '0'
     }}>
       <div style={{
-        padding: '0',
-        paddingLeft: '0',
-        paddingRight: '0'
+        padding: '10px'
       }}>
         {photo ? (
         <>
@@ -1052,12 +1038,10 @@ function DividerBlock({ block, onEdit }) {
   return (
     <div style={{ 
       marginBottom: '32px',
-      padding: '10px'
+      padding: '0'
     }}>
       <div style={{
-        padding: '0',
-        paddingLeft: '0',
-        paddingRight: '0'
+        padding: '10px'
       }}>
         <div style={{ position: 'relative' }}>
       <hr style={{
