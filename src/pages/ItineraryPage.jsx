@@ -2126,7 +2126,7 @@ export default function ItineraryPage() {
               maxWidth: '750px',
               width: '100%',
               boxSizing: 'border-box',
-              margin: isMobile ? '10px 10px 30px' : '10px auto 30px',
+              margin: isMobile ? '10px 10px 30px' : '0px auto 30px',
               padding: '0',
               paddingLeft: '0',
               paddingRight: '0'
