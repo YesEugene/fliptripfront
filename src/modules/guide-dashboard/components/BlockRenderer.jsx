@@ -740,6 +740,7 @@ function TextBlock({ block, onEdit }) {
           {text}
         </p>
       )}
+      </div>
     </div>
   );
 }
