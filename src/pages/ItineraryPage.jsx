@@ -2643,7 +2643,7 @@ export default function ItineraryPage() {
                     
                     return (
                       <div style={{
-                        width: isMobile ? 'calc(100% - 10px)' : '100%',
+                        width: '100%',
                         boxSizing: 'border-box',
                         marginTop: isMobile ? '10px' : '0px',
                         marginBottom: '30px',
@@ -2953,7 +2953,7 @@ export default function ItineraryPage() {
               
               return (
                 <div style={{
-                  width: isMobile ? 'calc(100% - 10px)' : '100%',
+                  width: '100%',
                   boxSizing: 'border-box',
                   marginTop: isMobile ? '10px' : '0px',
                   marginBottom: '30px',
