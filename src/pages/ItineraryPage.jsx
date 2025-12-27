@@ -1619,7 +1619,9 @@ export default function ItineraryPage() {
         maxWidth: '750px',
         margin: '0 auto',
         padding: '0',
-        marginBottom: '32px' // Match visualizer: 32px
+        marginBottom: '32px',
+        paddingLeft: isMobile ? '10px' : '20px',
+        paddingRight: isMobile ? '10px' : '20px'
       }}>
         <div 
           style={{
@@ -1634,8 +1636,7 @@ export default function ItineraryPage() {
             display: 'flex',
             alignItems: 'flex-start',
             justifyContent: 'flex-start',
-            padding: isMobile ? '20px 10px' : '20px 30px',
-            margin: isMobile ? '0 10px' : '0 20px'
+            padding: isMobile ? '20px 10px' : '20px 30px'
           }}
         >
           {/* Black Gradient Overlay - from black to transparent (top to bottom) */}
