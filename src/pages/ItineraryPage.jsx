@@ -1715,15 +1715,18 @@ export default function ItineraryPage() {
 
       {/* Tags Section - Match visualizer exactly */}
       <div style={{ 
-        display: 'flex', 
-        gap: '10px', 
-        marginBottom: '30px',
-        marginTop: '-10px',
-        flexWrap: 'wrap',
         maxWidth: '750px',
         margin: '-10px auto 30px',
-        padding: '0 20px'
+        padding: '0',
+        paddingLeft: '0',
+        paddingRight: '0'
       }}>
+        <div style={{ 
+          display: 'flex', 
+          gap: '10px', 
+          flexWrap: 'wrap',
+          margin: isMobile ? '0 10px' : '0 20px'
+        }}>
           {/* City tag */}
           <div style={{
             height: '35px',
