@@ -1647,7 +1647,8 @@ export default function ItineraryPage() {
       <div style={{
         width: '100%',
         boxSizing: 'border-box',
-        margin: isMobile ? '0 10px 32px' : '0 0 32px',
+        marginTop: '0',
+        marginBottom: '32px',
         marginLeft: isMobile ? '10px' : '0',
         marginRight: isMobile ? '10px' : '0',
         padding: '0',
@@ -1748,7 +1749,8 @@ export default function ItineraryPage() {
       <div style={{ 
         width: '100%',
         boxSizing: 'border-box',
-        margin: isMobile ? '-10px 10px 30px' : '-10px 0 30px',
+        marginTop: '-10px',
+        marginBottom: '30px',
         marginLeft: isMobile ? '10px' : '0',
         marginRight: isMobile ? '10px' : '0',
         padding: '0',
@@ -1865,7 +1867,8 @@ export default function ItineraryPage() {
           borderRadius: '16px',
           padding: '20px',
           border: '1px solid #D0D0D0',
-          margin: isMobile ? '-10px 10px 10px' : '-10px 0 10px',
+          marginTop: '-10px',
+          marginBottom: '10px',
           marginLeft: isMobile ? '10px' : '0',
           marginRight: isMobile ? '10px' : '0'
         }}>
@@ -2136,7 +2139,8 @@ export default function ItineraryPage() {
             <div style={{
               width: isMobile ? '100%' : 'calc(100% + 40px)',
               boxSizing: 'border-box',
-              margin: isMobile ? '10px 10px 30px' : '0px -20px 30px',
+              marginTop: isMobile ? '10px' : '0px',
+              marginBottom: '30px',
               marginLeft: isMobile ? '10px' : '-20px',
               marginRight: isMobile ? '10px' : '-20px',
               padding: '0',
@@ -2535,7 +2539,8 @@ export default function ItineraryPage() {
           <div style={{ 
             width: isMobile ? '100%' : 'calc(100% + 40px)',
             boxSizing: 'border-box',
-            margin: isMobile ? '40px 10px 0' : '40px -20px 0',
+            marginTop: '40px',
+            marginBottom: '0',
             marginLeft: isMobile ? '10px' : '-20px',
             marginRight: isMobile ? '10px' : '-20px',
             padding: '0', 
@@ -2640,8 +2645,9 @@ export default function ItineraryPage() {
                       <div style={{
                         width: '100%',
                         boxSizing: 'border-box',
-                        margin: isMobile ? '10px 10px 30px' : '0px 0 30px',
-                        marginLeft: isMobile ? '0' : '0',
+                        marginTop: isMobile ? '10px' : '0px',
+                        marginBottom: '30px',
+                        marginLeft: isMobile ? '10px' : '0',
                         marginRight: isMobile ? '10px' : '0',
                         padding: '0',
                         paddingLeft: '0',
@@ -2947,8 +2953,9 @@ export default function ItineraryPage() {
                 <div style={{
                   width: '100%',
                   boxSizing: 'border-box',
-                  margin: isMobile ? '10px 10px 30px' : '0px 0 30px',
-                  marginLeft: isMobile ? '0' : '0',
+                  marginTop: isMobile ? '10px' : '0px',
+                  marginBottom: '30px',
+                  marginLeft: isMobile ? '10px' : '0',
                   marginRight: isMobile ? '10px' : '0',
                   padding: '0',
                   paddingLeft: '0',
