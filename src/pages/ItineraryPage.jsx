@@ -1617,11 +1617,11 @@ export default function ItineraryPage() {
       {/* Hero Image Section with Rounded Corners */}
       <div style={{
         maxWidth: '750px',
-        margin: '0 auto',
+        margin: isMobile ? '0 10px 32px' : '0 auto 32px',
+        marginLeft: isMobile ? '10px' : 'auto',
+        marginRight: isMobile ? '10px' : 'auto',
         padding: '0',
-        marginBottom: '32px',
-        paddingLeft: '0',
-        paddingRight: '0'
+        marginBottom: '32px'
       }}>
         <div 
           style={{
@@ -1636,9 +1636,7 @@ export default function ItineraryPage() {
             display: 'flex',
             alignItems: 'flex-start',
             justifyContent: 'flex-start',
-            padding: isMobile ? '20px 10px' : '20px 30px',
-            marginLeft: isMobile ? '10px' : '0',
-            marginRight: isMobile ? '10px' : '0'
+            padding: isMobile ? '20px 10px' : '20px 30px'
           }}
         >
           {/* Black Gradient Overlay - from black to transparent (top to bottom) */}
