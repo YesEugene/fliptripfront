@@ -1618,7 +1618,7 @@ export default function ItineraryPage() {
       <div style={{
         maxWidth: '750px',
         margin: '0 auto',
-        padding: isMobile ? '0 10px' : '0 20px',
+        padding: '0 20px',
         marginBottom: '32px' // Match visualizer: 32px
       }}>
         <div 
@@ -1720,7 +1720,7 @@ export default function ItineraryPage() {
         flexWrap: 'wrap',
         maxWidth: '750px',
         margin: '-10px auto 30px',
-        padding: isMobile ? '0 10px' : '0 20px'
+        padding: '0 20px'
       }}>
         {/* City tag */}
         <div style={{
@@ -1821,7 +1821,7 @@ export default function ItineraryPage() {
         <div style={{
           backgroundColor: 'white',
           borderRadius: '16px',
-          padding: isMobile ? '24px 10px' : '32px',
+          padding: isMobile ? '24px 20px' : '32px',
           border: '1px solid #D0D0D0',
           marginBottom: '40px',
           marginTop: '-10px',
@@ -1935,7 +1935,7 @@ export default function ItineraryPage() {
                         {shouldShowButton && (
                           <div style={{
                             display: 'flex',
-                            justifyContent: isMobile ? 'center' : 'flex-start',
+                            justifyContent: 'center',
                             width: '100%'
                           }}>
                             <button 
@@ -2105,7 +2105,10 @@ export default function ItineraryPage() {
           return (
             <div style={{
               marginTop: '24px',
-              marginBottom: '24px'
+              marginBottom: '24px',
+              maxWidth: '750px',
+              margin: '24px auto',
+              padding: '0 20px'
             }}>
               {/* Choose type of your trip - with calendar on side for desktop when With Guide is selected */}
               <div className="payment-cards-container" style={{
@@ -2487,7 +2490,7 @@ export default function ItineraryPage() {
 
         {/* Content Blocks - New Format (using BlockRenderer) */}
         {useNewFormat && (
-          <div style={{ maxWidth: '750px', margin: '0 auto', padding: isMobile ? '0 10px' : '0 20px' }}>
+          <div style={{ maxWidth: '750px', margin: '0 auto', padding: '0 20px' }}>
             {/* Determine which blocks to show based on preview mode */}
             {(() => {
               // Check if tour is empty (no blocks)
