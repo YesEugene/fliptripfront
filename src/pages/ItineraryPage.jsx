@@ -1826,8 +1826,7 @@ export default function ItineraryPage() {
           marginBottom: '40px',
           marginTop: '-10px',
           maxWidth: '750px',
-          margin: '-10px auto 40px',
-          padding: '32px'
+          margin: '-10px auto 40px'
         }}>
             <div style={{ 
               display: 'flex', 
