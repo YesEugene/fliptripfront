@@ -1741,7 +1741,7 @@ export default function ItineraryPage() {
           )}
         </div>
       </div>
-
+      
       {/* Tags Section - Match visualizer exactly */}
       <div style={{ 
         width: '100%',
@@ -3059,6 +3059,7 @@ export default function ItineraryPage() {
           })()}
           </div>
         )}
+      </div>
       </div>
 
         {/* Footer */}
