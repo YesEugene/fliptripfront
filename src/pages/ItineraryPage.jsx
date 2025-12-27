@@ -1816,22 +1816,19 @@ export default function ItineraryPage() {
         )}
       </div>
 
-      {/* From author block - Show only if using new format (contentBlocks) */}
+      {/* From author block - Show only if using new format (contentBlocks) - Match visualizer exactly */}
       {useNewFormat && guideName && (
         <div style={{
-          maxWidth: '750px',
-          margin: '0 auto',
-          padding: '0 20px',
+          backgroundColor: 'white',
+          borderRadius: '16px',
+          padding: '32px',
+          border: '1px solid #D0D0D0',
           marginBottom: '40px',
-          marginTop: '-10px'
+          marginTop: '-10px',
+          maxWidth: '750px',
+          margin: '-10px auto 40px',
+          padding: '32px'
         }}>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '16px',
-            padding: '32px',
-            border: '1px solid #D0D0D0',
-            marginBottom: '40px'
-          }}>
             <div style={{ 
               display: 'flex', 
               gap: '24px', 
