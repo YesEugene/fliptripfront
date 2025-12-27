@@ -2128,11 +2128,11 @@ export default function ItineraryPage() {
           
           return (
             <div style={{
-              width: isMobile ? '100%' : 'calc(100% + 20px)',
+              width: isMobile ? '100%' : 'calc(100% + 40px)',
               boxSizing: 'border-box',
-              margin: isMobile ? '10px 10px 30px' : '0px -10px 30px',
-              marginLeft: isMobile ? '10px' : '-10px',
-              marginRight: isMobile ? '10px' : '-10px',
+              margin: isMobile ? '10px 10px 30px' : '0px -20px 30px',
+              marginLeft: isMobile ? '10px' : '-20px',
+              marginRight: isMobile ? '10px' : '-20px',
               padding: '0',
               paddingLeft: '0',
               paddingRight: '0'
