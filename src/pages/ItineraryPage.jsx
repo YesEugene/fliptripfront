@@ -2643,7 +2643,6 @@ export default function ItineraryPage() {
                     
                     return (
                       <div style={{
-                        display: 'none',
                         width: isMobile ? '90%' : '100%',
                         boxSizing: 'border-box',
                         marginTop: isMobile ? '10px' : '0px',
@@ -2954,7 +2953,6 @@ export default function ItineraryPage() {
               
               return (
                 <div style={{
-                  display: 'none',
                   width: isMobile ? '90%' : '100%',
                   boxSizing: 'border-box',
                   marginTop: isMobile ? '10px' : '0px',
@@ -3095,7 +3093,6 @@ export default function ItineraryPage() {
 
         {/* Footer */}
         <div className="footer-enhanced" style={{
-          display: 'none',
           width: isMobile ? '90%' : '100%',
           marginLeft: isMobile ? 'auto' : '0',
           marginRight: isMobile ? 'auto' : '0'
