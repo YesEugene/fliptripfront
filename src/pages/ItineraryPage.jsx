@@ -1637,6 +1637,7 @@ export default function ItineraryPage() {
 
       {/* Hero Image Section with Rounded Corners */}
       <div style={{
+        maxWidth: '750px',
         margin: '0 10px 32px',
         marginLeft: '10px',
         marginRight: '10px',
@@ -1736,6 +1737,7 @@ export default function ItineraryPage() {
 
       {/* Tags Section - Match visualizer exactly */}
       <div style={{ 
+        maxWidth: '750px',
         margin: '-10px 10px 30px',
         marginLeft: '10px',
         marginRight: '10px',
@@ -1847,6 +1849,7 @@ export default function ItineraryPage() {
       {/* From author block - Show only if using new format (contentBlocks) - Match visualizer exactly */}
       {useNewFormat && guideName && (
         <div style={{
+          maxWidth: '750px',
           backgroundColor: 'white',
           borderRadius: '16px',
           padding: '20px',
@@ -2122,6 +2125,7 @@ export default function ItineraryPage() {
           
           return (
             <div style={{
+              maxWidth: '750px',
               marginTop: '10px',
               marginBottom: '30px',
               margin: '10px 10px 30px',
@@ -2516,6 +2520,7 @@ export default function ItineraryPage() {
         {/* Content Blocks - New Format (using BlockRenderer) */}
         {useNewFormat && (
           <div style={{ 
+            maxWidth: '750px',
             margin: '40px 10px 0', 
             marginTop: '40px',
             marginLeft: '10px',
@@ -2620,12 +2625,13 @@ export default function ItineraryPage() {
                     
                     return (
                       <div style={{
+                        maxWidth: '750px',
                         marginTop: '10px',
                         marginBottom: '10px',
                         width: '100%',
-                        margin: '10px 0',
-                        marginLeft: '0',
-                        marginRight: '0',
+                        margin: '10px 10px',
+                        marginLeft: '10px',
+                        marginRight: '10px',
                         padding: '0',
                         paddingLeft: '0',
                         paddingRight: '0'
@@ -2926,13 +2932,14 @@ export default function ItineraryPage() {
               
               return (
                 <div style={{
+                  maxWidth: '750px',
                   width: '100%',
-                  margin: '10px 0 0',
-                  padding: '0 10px',
+                  margin: '10px 10px 0',
+                  padding: '0',
                   paddingLeft: '0',
                   paddingRight: '0',
-                  marginLeft: '0',
-                  marginRight: '0'
+                  marginLeft: '10px',
+                  marginRight: '10px'
                 }}>
                   <div className="payment-cards-container" style={{
                     display: 'grid',
