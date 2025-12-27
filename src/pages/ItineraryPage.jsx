@@ -2137,7 +2137,7 @@ export default function ItineraryPage() {
           
           return (
             <div style={{
-              width: isMobile ? '90%' : 'calc(100% + 40px)',
+              width: isMobile ? 'calc(90% + 40px)' : 'calc(100% + 40px)',
               boxSizing: 'border-box',
               marginTop: isMobile ? '10px' : '0px',
               marginBottom: '30px',
@@ -2537,7 +2537,7 @@ export default function ItineraryPage() {
         {/* Content Blocks - New Format (using BlockRenderer) */}
         {useNewFormat && (
           <div style={{ 
-            width: isMobile ? '90%' : 'calc(100% + 40px)',
+            width: isMobile ? 'calc(90% + 40px)' : 'calc(100% + 40px)',
             boxSizing: 'border-box',
             marginTop: '40px',
             marginBottom: '0',
