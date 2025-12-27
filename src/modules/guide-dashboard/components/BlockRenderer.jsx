@@ -84,11 +84,11 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
   
   return (
     <div style={{ 
-      marginBottom: '32px',
-      padding: '0'
+      marginBottom: isMobile ? '10px' : '32px',
+      padding: isMobile ? '0 10px' : '0'
     }}>
       <div style={{
-        padding: '0'
+        padding: isMobile ? '20px' : '0'
       }}>
       {/* Time badge */}
       {mainLocation.time && (
@@ -446,13 +446,26 @@ function TitleBlock({ block, onEdit }) {
     large: '48px'
   };
 
+  const [isMobileTitle, setIsMobileTitle] = useState(false);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobileTitle(window.innerWidth < 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
   return (
     <div style={{ 
-      marginBottom: '32px',
-      padding: '0'
+      marginBottom: isMobileTitle ? '10px' : '32px',
+      padding: isMobileTitle ? '0 10px' : '0'
     }}>
       <div style={{
-        padding: '0'
+        padding: isMobileTitle ? '20px' : '0'
       }}>
         <h2 style={{
           fontSize: fontSizeMap[size],
@@ -491,15 +504,11 @@ function PhotoTextBlock({ block, onEdit }) {
   if (isMobile) {
     return (
       <div style={{ 
-        marginBottom: '32px',
-        padding: '0',
-        paddingLeft: '0',
-        paddingRight: '0'
+        marginBottom: '10px',
+        padding: '0 10px'
       }}>
         <div style={{
-          padding: '0',
-          paddingLeft: '0',
-          paddingRight: '0'
+          padding: '20px'
         }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div>
@@ -626,15 +635,11 @@ function TextBlock({ block, onEdit }) {
     
     return (
       <div style={{ 
-        marginBottom: '32px',
-        padding: '0',
-        paddingLeft: '0',
-        paddingRight: '0'
+        marginBottom: isMobile ? '10px' : '32px',
+        padding: isMobile ? '0 10px' : '0'
       }}>
         <div style={{
-          padding: '0',
-          paddingLeft: '0',
-          paddingRight: '0'
+          padding: isMobile ? '20px' : '0'
         }}>
           <div style={{ 
         display: 'grid', 
@@ -699,11 +704,11 @@ function TextBlock({ block, onEdit }) {
 
   return (
     <div style={{ 
-      marginBottom: '32px',
-      padding: '0'
+      marginBottom: isMobile ? '10px' : '32px',
+      padding: isMobile ? '0 10px' : '0'
     }}>
       <div style={{
-        padding: '0'
+        padding: isMobile ? '20px' : '0'
       }}>
       {formatted ? (
         <div 
@@ -813,15 +818,11 @@ function ThreeColumnsBlock({ block, onEdit }) {
   if (isMobile) {
     return (
       <div style={{ 
-        marginBottom: '32px',
-        padding: '0',
-        paddingLeft: '0',
-        paddingRight: '0'
+        marginBottom: '10px',
+        padding: '0 10px'
       }}>
         <div style={{
-          padding: '0',
-          paddingLeft: '0',
-          paddingRight: '0'
+          padding: '20px'
         }}>
           <div style={{
         overflowX: 'auto',
@@ -970,14 +971,26 @@ function PhotoBlock({ block, onEdit }) {
   const content = block.content || {};
   const photo = content.photo;
   const caption = content.caption || '';
+  const [isMobilePhoto, setIsMobilePhoto] = useState(false);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobilePhoto(window.innerWidth < 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   return (
     <div style={{ 
-      marginBottom: '32px',
-      padding: '0'
+      marginBottom: isMobilePhoto ? '10px' : '32px',
+      padding: isMobilePhoto ? '0 10px' : '0'
     }}>
       <div style={{
-        padding: '0'
+        padding: isMobilePhoto ? '20px' : '0'
       }}>
         {photo ? (
         <>
