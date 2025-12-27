@@ -1854,7 +1854,6 @@ export default function ItineraryPage() {
           border: '1px solid #D0D0D0',
           marginBottom: '10px',
           marginTop: '-10px',
-          maxWidth: '750px',
           margin: '-10px 10px 10px',
           marginLeft: '10px',
           marginRight: '10px'
@@ -2519,7 +2518,6 @@ export default function ItineraryPage() {
         {/* Content Blocks - New Format (using BlockRenderer) */}
         {useNewFormat && (
           <div style={{ 
-            maxWidth: '750px', 
             margin: '40px 10px 0', 
             marginTop: '40px',
             marginLeft: '10px',
