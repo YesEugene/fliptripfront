@@ -221,10 +221,11 @@
     padding: 0;
   }
   
-  /* Remove side margins for all blocks on mobile - full width */
+  /* Set all blocks to 90% width and center them on mobile */
   .itinerary-container > div > div {
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    width: 90% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
   }
   
   .header-section {

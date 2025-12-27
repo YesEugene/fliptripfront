@@ -1645,12 +1645,12 @@ export default function ItineraryPage() {
       }}>
       {/* Hero Image Section with Rounded Corners */}
       <div style={{
-        width: '100%',
+        width: isMobile ? '90%' : '100%',
         boxSizing: 'border-box',
         marginTop: '0',
         marginBottom: '32px',
-        marginLeft: '0',
-        marginRight: '0',
+        marginLeft: isMobile ? 'auto' : '0',
+        marginRight: isMobile ? 'auto' : '0',
         padding: '0',
         paddingLeft: '0',
         paddingRight: '0'
@@ -1747,12 +1747,12 @@ export default function ItineraryPage() {
       
       {/* Tags Section - Match visualizer exactly */}
       <div style={{ 
-        width: '100%',
+        width: isMobile ? '90%' : '100%',
         boxSizing: 'border-box',
         marginTop: '-10px',
         marginBottom: '30px',
-        marginLeft: '0',
-        marginRight: '0',
+        marginLeft: isMobile ? 'auto' : '0',
+        marginRight: isMobile ? 'auto' : '0',
         padding: '0',
         paddingLeft: '0',
         paddingRight: '0'
@@ -1861,7 +1861,7 @@ export default function ItineraryPage() {
       {/* From author block - Show only if using new format (contentBlocks) - Match visualizer exactly */}
       {useNewFormat && guideName && (
         <div style={{
-          width: '100%',
+          width: isMobile ? '90%' : '100%',
           boxSizing: 'border-box',
           backgroundColor: 'white',
           borderRadius: '16px',
@@ -1869,8 +1869,8 @@ export default function ItineraryPage() {
           border: '1px solid #D0D0D0',
           marginTop: '-10px',
           marginBottom: '10px',
-          marginLeft: '0',
-          marginRight: '0'
+          marginLeft: isMobile ? 'auto' : '0',
+          marginRight: isMobile ? 'auto' : '0'
         }}>
             {/* Avatar section - always on top */}
             <div style={{ 
@@ -2137,12 +2137,12 @@ export default function ItineraryPage() {
           
           return (
             <div style={{
-              width: isMobile ? '100%' : 'calc(100% + 40px)',
+              width: isMobile ? '90%' : 'calc(100% + 40px)',
               boxSizing: 'border-box',
               marginTop: isMobile ? '10px' : '0px',
               marginBottom: '30px',
-              marginLeft: isMobile ? '0' : '-20px',
-              marginRight: isMobile ? '0' : '-20px',
+              marginLeft: isMobile ? 'auto' : '-20px',
+              marginRight: isMobile ? 'auto' : '-20px',
               padding: '0',
               paddingLeft: '0',
               paddingRight: '0'
@@ -2537,12 +2537,12 @@ export default function ItineraryPage() {
         {/* Content Blocks - New Format (using BlockRenderer) */}
         {useNewFormat && (
           <div style={{ 
-            width: isMobile ? '100%' : 'calc(100% + 40px)',
+            width: isMobile ? '90%' : 'calc(100% + 40px)',
             boxSizing: 'border-box',
             marginTop: '40px',
             marginBottom: '0',
-            marginLeft: isMobile ? '0' : '-20px',
-            marginRight: isMobile ? '0' : '-20px',
+            marginLeft: isMobile ? 'auto' : '-20px',
+            marginRight: isMobile ? 'auto' : '-20px',
             padding: '0', 
             paddingLeft: '0', 
             paddingRight: '0'
@@ -2644,12 +2644,12 @@ export default function ItineraryPage() {
                     return (
                       <div style={{
                         display: 'none',
-                        width: '100%',
+                        width: isMobile ? '90%' : '100%',
                         boxSizing: 'border-box',
                         marginTop: isMobile ? '10px' : '0px',
                         marginBottom: '30px',
-                        marginLeft: '0',
-                        marginRight: '0',
+                        marginLeft: isMobile ? 'auto' : '0',
+                        marginRight: isMobile ? 'auto' : '0',
                         padding: '0',
                         paddingLeft: '0',
                         paddingRight: '0'
@@ -2955,12 +2955,12 @@ export default function ItineraryPage() {
               return (
                 <div style={{
                   display: 'none',
-                  width: '100%',
+                  width: isMobile ? '90%' : '100%',
                   boxSizing: 'border-box',
                   marginTop: isMobile ? '10px' : '0px',
                   marginBottom: '30px',
-                  marginLeft: '0',
-                  marginRight: '0',
+                  marginLeft: isMobile ? 'auto' : '0',
+                  marginRight: isMobile ? 'auto' : '0',
                   padding: '0',
                   paddingLeft: '0',
                   paddingRight: '0'
@@ -3096,8 +3096,9 @@ export default function ItineraryPage() {
         {/* Footer */}
         <div className="footer-enhanced" style={{
           display: 'none',
-          marginLeft: '0',
-          marginRight: '0'
+          width: isMobile ? '90%' : '100%',
+          marginLeft: isMobile ? 'auto' : '0',
+          marginRight: isMobile ? 'auto' : '0'
         }}>
           <p>Created with ❤️ in FlipTrip</p>
         </div>
