@@ -1635,14 +1635,19 @@ export default function ItineraryPage() {
         </div>
       </div>
 
-      {/* Hero Image Section with Rounded Corners */}
+      {/* Content Wrapper - Centers all content blocks at 750px max width */}
       <div style={{
         maxWidth: '750px',
         width: '100%',
+        margin: isMobile ? '0' : '0 auto',
+        padding: '0',
+        boxSizing: 'border-box'
+      }}>
+      {/* Hero Image Section with Rounded Corners */}
+      <div style={{
+        width: '100%',
         boxSizing: 'border-box',
-        margin: isMobile ? '0 10px 32px' : '0 auto 32px',
-        marginLeft: isMobile ? '10px' : 'auto',
-        marginRight: isMobile ? '10px' : 'auto',
+        margin: isMobile ? '0 10px 32px' : '0 0 32px',
         padding: '0',
         paddingLeft: '0',
         paddingRight: '0'
@@ -1739,12 +1744,9 @@ export default function ItineraryPage() {
 
       {/* Tags Section - Match visualizer exactly */}
       <div style={{ 
-        maxWidth: '750px',
         width: '100%',
         boxSizing: 'border-box',
-        margin: isMobile ? '-10px 10px 30px' : '-10px auto 30px',
-        marginLeft: isMobile ? '10px' : 'auto',
-        marginRight: isMobile ? '10px' : 'auto',
+        margin: isMobile ? '-10px 10px 30px' : '-10px 0 30px',
         padding: '0',
         paddingLeft: '0',
         paddingRight: '0'
@@ -1853,16 +1855,13 @@ export default function ItineraryPage() {
       {/* From author block - Show only if using new format (contentBlocks) - Match visualizer exactly */}
       {useNewFormat && guideName && (
         <div style={{
-          maxWidth: '750px',
           width: '100%',
           boxSizing: 'border-box',
           backgroundColor: 'white',
           borderRadius: '16px',
           padding: '20px',
           border: '1px solid #D0D0D0',
-          margin: isMobile ? '-10px 10px 10px' : '-10px auto 10px',
-          marginLeft: isMobile ? '10px' : 'auto',
-          marginRight: isMobile ? '10px' : 'auto'
+          margin: isMobile ? '-10px 10px 10px' : '-10px 0 10px'
         }}>
             {/* Avatar section - always on top */}
             <div style={{ 
@@ -2129,12 +2128,9 @@ export default function ItineraryPage() {
           
           return (
             <div style={{
-              maxWidth: '750px',
               width: '100%',
               boxSizing: 'border-box',
-              margin: isMobile ? '10px 10px 30px' : '0px auto 30px',
-              marginLeft: isMobile ? '10px' : 'auto',
-              marginRight: isMobile ? '10px' : 'auto',
+              margin: isMobile ? '10px 10px 30px' : '0px 0 30px',
               padding: '0',
               paddingLeft: '0',
               paddingRight: '0'
@@ -2524,12 +2520,9 @@ export default function ItineraryPage() {
         {/* Content Blocks - New Format (using BlockRenderer) */}
         {useNewFormat && (
           <div style={{ 
-            maxWidth: '750px',
             width: '100%',
             boxSizing: 'border-box',
-            margin: isMobile ? '40px 10px 0' : '40px auto 0',
-            marginLeft: isMobile ? '10px' : 'auto',
-            marginRight: isMobile ? '10px' : 'auto',
+            margin: isMobile ? '40px 10px 0' : '40px 0 0',
             padding: '0', 
             paddingLeft: '0', 
             paddingRight: '0'
@@ -2630,12 +2623,9 @@ export default function ItineraryPage() {
                     
                     return (
                       <div style={{
-                        maxWidth: '750px',
                         width: '100%',
                         boxSizing: 'border-box',
-                        margin: isMobile ? '10px 10px' : '10px auto',
-                        marginLeft: isMobile ? '10px' : 'auto',
-                        marginRight: isMobile ? '10px' : 'auto',
+                        margin: isMobile ? '10px 10px' : '10px 0',
                         padding: '0',
                         paddingLeft: '0',
                         paddingRight: '0'
@@ -2936,12 +2926,9 @@ export default function ItineraryPage() {
               
               return (
                 <div style={{
-                  maxWidth: '750px',
                   width: '100%',
                   boxSizing: 'border-box',
-                  margin: isMobile ? '10px 10px 0' : '10px auto 0',
-                  marginLeft: isMobile ? '10px' : 'auto',
-                  marginRight: isMobile ? '10px' : 'auto',
+                  margin: isMobile ? '10px 10px 0' : '10px 0 0',
                   padding: '0',
                   paddingLeft: '0',
                   paddingRight: '0'
@@ -3072,6 +3059,7 @@ export default function ItineraryPage() {
           })()}
           </div>
         )}
+      </div>
 
         {/* Footer */}
         <div className="footer-enhanced">
