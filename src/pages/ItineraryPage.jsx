@@ -2670,7 +2670,10 @@ export default function ItineraryPage() {
                             borderRadius: '12px',
                             padding: '20px',
                             border: '1px solid #e5e7eb',
-                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                            margin: '0',
+                            marginLeft: '0',
+                            marginRight: '0'
                           }}>
                         <h4 style={{
                           fontSize: '21px',
