@@ -1967,7 +1967,7 @@ export default function ItineraryPage() {
         </div>
       )}
 
-      <div className="content-section" style={{ padding: '0' }}>
+      <div className="content-section" style={{ padding: '0 !important', paddingLeft: '0 !important', paddingRight: '0 !important' }}>
         {/* Subtitle Card - Description only - Show only if using old format */}
         {!useNewFormat && (
           <div className="enhanced-card">
@@ -2550,13 +2550,24 @@ export default function ItineraryPage() {
                   {blocksToShow.map((block, index) => (
                     <div 
                       key={block.id} 
-                      style={{ marginBottom: '54px' }}
+                      style={{ 
+                        marginBottom: '54px',
+                        padding: '0',
+                        paddingLeft: '0',
+                        paddingRight: '0'
+                      }}
                     >
-                      <BlockRenderer 
-                        block={block} 
-                        onEdit={() => {}} // No edit on client page
-                        onSwitchLocation={() => {}} // No switch on client page
-                      />
+                      <div style={{
+                        padding: '0',
+                        paddingLeft: '0',
+                        paddingRight: '0'
+                      }}>
+                        <BlockRenderer 
+                          block={block} 
+                          onEdit={() => {}} // No edit on client page
+                          onSwitchLocation={() => {}} // No switch on client page
+                        />
+                      </div>
                     </div>
                   ))}
                   

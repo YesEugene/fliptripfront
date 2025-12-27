@@ -83,7 +83,17 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
   };
   
   return (
-    <div style={{ marginBottom: '32px' }}>
+    <div style={{ 
+      marginBottom: '32px',
+      padding: '0',
+      paddingLeft: '0',
+      paddingRight: '0'
+    }}>
+      <div style={{
+        padding: '0',
+        paddingLeft: '0',
+        paddingRight: '0'
+      }}>
       {/* Time badge */}
       {mainLocation.time && (
         <div style={{ marginBottom: '16px' }}>
