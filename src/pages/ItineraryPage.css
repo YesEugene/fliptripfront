@@ -222,7 +222,8 @@
   }
   
   /* Set all blocks to 90% width and center them on mobile */
-  .itinerary-container > div > div {
+  /* Note: Choose type and content blocks have custom widths, so we exclude them */
+  .itinerary-container > div[style*="maxWidth"] > div:not([style*="calc(90% + 40px)"]) {
     width: 90% !important;
     margin-left: auto !important;
     margin-right: auto !important;
