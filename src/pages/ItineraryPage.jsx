@@ -1950,8 +1950,8 @@ export default function ItineraryPage() {
                                 fontSize: '13px',
                                 fontWeight: '500',
                                 transition: 'all 0.2s',
-                              marginTop: '4px'
-                            }}
+                                marginTop: '4px'
+                              }}
                             onMouseEnter={(e) => {
                               e.target.style.backgroundColor = '#e5e5e5';
                             }}
