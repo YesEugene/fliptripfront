@@ -2014,10 +2014,15 @@ export default function ItineraryPage() {
           
           console.log('🔍 Payment block debug:', {
             tourData: !!tourData,
-            withGuide: tourData?.withGuide,
+            draftData: !!tourData?.draft_data,
+            tourSettings: tourData?.draft_data?.tourSettings,
+            selfGuided: tourSettings?.selfGuided,
+            withGuide: tourSettings?.withGuide,
+            tourDataWithGuide: tourData?.withGuide,
             default_format: tourData?.default_format,
             format: tourData?.format,
             guidedPrice: tourData?.price?.guidedPrice || tourData?.price_guided,
+            supportsSelfGuided,
             supportsGuide,
             tourId,
             tourType,
