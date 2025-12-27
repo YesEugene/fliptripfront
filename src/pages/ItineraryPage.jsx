@@ -2131,6 +2131,8 @@ export default function ItineraryPage() {
               width: '100%',
               boxSizing: 'border-box',
               margin: isMobile ? '10px 10px 30px' : '0px 0 30px',
+              marginLeft: isMobile ? '10px' : '0',
+              marginRight: isMobile ? '10px' : '0',
               padding: '0',
               paddingLeft: '0',
               paddingRight: '0'
@@ -2142,6 +2144,8 @@ export default function ItineraryPage() {
                 gap: '20px',
                 marginBottom: '0',
                 margin: '0',
+                marginLeft: '0',
+                marginRight: '0',
                 padding: '0',
                 paddingLeft: '0',
                 paddingRight: '0'
@@ -2152,7 +2156,10 @@ export default function ItineraryPage() {
                   borderRadius: '12px',
                   padding: '20px',
                   border: '1px solid #e5e7eb',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                  margin: '0',
+                  marginLeft: '0',
+                  marginRight: '0'
                 }}>
                   <h4 style={{
                     fontSize: '21px',
