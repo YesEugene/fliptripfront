@@ -1908,7 +1908,9 @@ export default function ItineraryPage() {
                             lineHeight: isMobile ? '1.5' : '1.7', 
                             marginBottom: '16px',
                             marginTop: 0,
-                            whiteSpace: 'pre-line'
+                            whiteSpace: 'pre-line',
+                            textAlign: isMobile ? 'center' : 'left',
+                            width: '100%'
                           }}>
                             {text}
                           </p>
@@ -1923,24 +1925,31 @@ export default function ItineraryPage() {
                             WebkitLineClamp: 5,
                             WebkitBoxOrient: 'vertical',
                             overflow: 'hidden',
-                            whiteSpace: 'pre-line'
+                            whiteSpace: 'pre-line',
+                            textAlign: isMobile ? 'center' : 'left',
+                            width: '100%'
                           }}>
                             {text}
                           </p>
                         )}
                         {shouldShowButton && (
-                          <button 
-                            onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
-                            style={{
-                              padding: '8px 16px',
-                              backgroundColor: '#EFEFEF',
-                              color: '#6b7280',
-                              border: 'none',
-                              borderRadius: '8px',
-                              cursor: 'pointer',
-                              fontSize: '13px',
-                              fontWeight: '500',
-                              transition: 'all 0.2s',
+                          <div style={{
+                            display: 'flex',
+                            justifyContent: isMobile ? 'center' : 'flex-start',
+                            width: '100%'
+                          }}>
+                            <button 
+                              onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
+                              style={{
+                                padding: '8px 16px',
+                                backgroundColor: '#EFEFEF',
+                                color: '#6b7280',
+                                border: 'none',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontSize: '13px',
+                                fontWeight: '500',
+                                transition: 'all 0.2s',
                               marginTop: '4px'
                             }}
                             onMouseEnter={(e) => {
