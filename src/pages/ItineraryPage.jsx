@@ -1728,7 +1728,9 @@ export default function ItineraryPage() {
       {/* Tags Section - Match visualizer exactly */}
       <div style={{ 
         maxWidth: '750px',
-        margin: '-10px auto 30px',
+        margin: isMobile ? '-10px 10px 30px' : '-10px auto 30px',
+        marginLeft: isMobile ? '10px' : 'auto',
+        marginRight: isMobile ? '10px' : 'auto',
         padding: '0',
         paddingLeft: '0',
         paddingRight: '0'
@@ -1737,7 +1739,7 @@ export default function ItineraryPage() {
           display: 'flex', 
           gap: '10px', 
           flexWrap: 'wrap',
-          margin: isMobile ? '0 10px' : '0 20px'
+          margin: isMobile ? '0' : '0 20px'
         }}>
           {/* City tag */}
           <div style={{
@@ -2507,7 +2509,15 @@ export default function ItineraryPage() {
 
         {/* Content Blocks - New Format (using BlockRenderer) */}
         {useNewFormat && (
-          <div style={{ maxWidth: '750px', margin: '0 auto', padding: '0', paddingLeft: '0', paddingRight: '0' }}>
+          <div style={{ 
+            maxWidth: '750px', 
+            margin: isMobile ? '0 10px' : '0 auto', 
+            marginLeft: isMobile ? '10px' : 'auto',
+            marginRight: isMobile ? '10px' : 'auto',
+            padding: '0', 
+            paddingLeft: '0', 
+            paddingRight: '0' 
+          }}>
             {/* Determine which blocks to show based on preview mode */}
             {(() => {
               // Check if tour is empty (no blocks)
