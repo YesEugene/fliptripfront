@@ -2527,9 +2527,11 @@ export default function ItineraryPage() {
         {/* Content Blocks - New Format (using BlockRenderer) */}
         {useNewFormat && (
           <div style={{ 
-            width: '100%',
+            width: isMobile ? '100%' : 'calc(100% + 40px)',
             boxSizing: 'border-box',
-            margin: isMobile ? '40px 10px 0' : '40px 0 0',
+            margin: isMobile ? '40px 10px 0' : '40px -20px 0',
+            marginLeft: isMobile ? '10px' : '-20px',
+            marginRight: isMobile ? '10px' : '-20px',
             padding: '0', 
             paddingLeft: '0', 
             paddingRight: '0'
@@ -2630,9 +2632,11 @@ export default function ItineraryPage() {
                     
                     return (
                       <div style={{
-                        width: '100%',
+                        width: isMobile ? '100%' : 'calc(100% + 40px)',
                         boxSizing: 'border-box',
-                        margin: isMobile ? '10px 10px' : '10px 0',
+                        margin: isMobile ? '10px 10px' : '10px -20px',
+                        marginLeft: isMobile ? '10px' : '-20px',
+                        marginRight: isMobile ? '10px' : '-20px',
                         padding: '0',
                         paddingLeft: '0',
                         paddingRight: '0'
@@ -2933,9 +2937,11 @@ export default function ItineraryPage() {
               
               return (
                 <div style={{
-                  width: '100%',
+                  width: isMobile ? '100%' : 'calc(100% + 40px)',
                   boxSizing: 'border-box',
-                  margin: isMobile ? '10px 10px 0' : '10px 0 0',
+                  margin: isMobile ? '10px 10px 0' : '10px -20px 0',
+                  marginLeft: isMobile ? '10px' : '-20px',
+                  marginRight: isMobile ? '10px' : '-20px',
                   padding: '0',
                   paddingLeft: '0',
                   paddingRight: '0'
