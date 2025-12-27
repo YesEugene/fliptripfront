@@ -2614,13 +2614,15 @@ export default function ItineraryPage() {
                     
                     return (
                       <div style={{
-                        width: '100%',
-                        margin: isMobile ? '10px 0 0' : '32px 0 0',
-                        padding: isMobile ? '0 10px' : '0',
+                        marginTop: isMobile ? '10px' : '24px',
+                        marginBottom: isMobile ? '10px' : '24px',
+                        maxWidth: '750px',
+                        margin: isMobile ? '10px 10px' : '24px auto',
+                        marginLeft: isMobile ? '10px' : 'auto',
+                        marginRight: isMobile ? '10px' : 'auto',
+                        padding: '0',
                         paddingLeft: '0',
-                        paddingRight: '0',
-                        marginLeft: '0',
-                        marginRight: '0'
+                        paddingRight: '0'
                       }}>
                         <div className="payment-cards-container" style={{
                           display: 'grid',
