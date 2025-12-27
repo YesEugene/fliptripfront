@@ -1666,53 +1666,47 @@ export default function ItineraryPage() {
             {tourTitle}
           </div>
 
-          {/* Download PDF Button at Bottom - Show only after payment or if not preview */}
+          {/* Download PDF Button at Bottom - Match visualizer exactly */}
           {(!previewOnly || isPaid) && (
-            <div style={{
-              position: 'relative',
-              zIndex: 2,
-              marginBottom: '20px' // 20px from bottom
-            }}>
-              <button
-                onClick={handleDownloadPDF}
-                style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  color: '#1f2937',
-                  border: 'none',
-                  borderRadius: '6px', // Reduced by 30% (8px * 0.7 = 5.6px, rounded to 6px)
-                  padding: '8px 17px', // Reduced by 30% (12px * 0.7 = 8.4px, 24px * 0.7 = 16.8px, rounded)
-                  fontSize: '11px', // Reduced by 30% (16px * 0.7 = 11.2px, rounded to 11px)
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  boxShadow: '0 3px 8px rgba(0, 0, 0, 0.3)', // Reduced by 30%
-                  transition: 'all 0.2s ease',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px' // Reduced by 30% (8px * 0.7 = 5.6px, rounded to 6px)
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 1)';
-                  e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = '0 4px 11px rgba(0, 0, 0, 0.4)'; // Reduced by 30%
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 3px 8px rgba(0, 0, 0, 0.3)'; // Reduced by 30%
-                }}
-              >
-                <img 
-                  src={PDFIcon} 
-                  alt="PDF" 
-                  style={{
-                    width: '20px',
-                    height: '20px',
-                    objectFit: 'contain'
-                  }}
-                />
-                Download PDF
-              </button>
-            </div>
+            <button
+              onClick={handleDownloadPDF}
+              style={{
+                position: 'absolute',
+                bottom: '20px',
+                left: '20px',
+                padding: '11.04px 22.08px',
+                backgroundColor: 'white',
+                color: '#111827',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '13.8px',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '9.2px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                zIndex: 2,
+                transition: 'all 0.2s',
+                transform: 'scale(0.92)',
+                transformOrigin: 'left bottom'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(0.92) translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(0.92) translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+              }}
+            >
+              <img 
+                src={PDFIcon} 
+                alt="PDF" 
+                style={{ width: '18.4px', height: '18.4px' }}
+              />
+              Download PDF
+            </button>
           )}
         </div>
       </div>
