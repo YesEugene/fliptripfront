@@ -2634,9 +2634,9 @@ export default function ItineraryPage() {
                       <div style={{
                         width: '100%',
                         boxSizing: 'border-box',
-                        margin: isMobile ? '10px auto 30px' : '0px 0 30px',
-                        marginLeft: isMobile ? 'auto' : '0',
-                        marginRight: isMobile ? 'auto' : '0',
+                        margin: isMobile ? '10px 10px 30px' : '0px 0 30px',
+                        marginLeft: isMobile ? '10px' : '0',
+                        marginRight: isMobile ? '10px' : '0',
                         padding: '0',
                         paddingLeft: '0',
                         paddingRight: '0'
@@ -2941,9 +2941,9 @@ export default function ItineraryPage() {
                 <div style={{
                   width: '100%',
                   boxSizing: 'border-box',
-                  margin: isMobile ? '10px auto 30px' : '0px 0 30px',
-                  marginLeft: isMobile ? 'auto' : '0',
-                  marginRight: isMobile ? 'auto' : '0',
+                  margin: isMobile ? '10px 10px 30px' : '0px 0 30px',
+                  marginLeft: isMobile ? '10px' : '0',
+                  marginRight: isMobile ? '10px' : '0',
                   padding: '0',
                   paddingLeft: '0',
                   paddingRight: '0'
