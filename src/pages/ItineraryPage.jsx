@@ -2113,7 +2113,10 @@ export default function ItineraryPage() {
                 gridTemplateColumns: '1fr 1fr',
                 gap: '20px',
                 marginBottom: '0',
-                margin: '0 10px'
+                margin: '0',
+                padding: '0',
+                paddingLeft: '0',
+                paddingRight: '0'
               }}>
                 {/* Left Card: Choose type of your trip */}
                 <div style={{
