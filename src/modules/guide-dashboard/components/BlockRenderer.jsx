@@ -301,15 +301,19 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
       {/* Description */}
       {mainLocation.description && (
         <div style={{ marginBottom: '16px' }}>
-          <p style={{ 
-            fontSize: '16px', 
-            lineHeight: '1.6', 
-            color: '#374151',
-            margin: 0,
-            whiteSpace: 'pre-line'
-          }}>
-            {mainLocation.description}
-          </p>
+          {mainLocation.description.split('\n\n').map((paragraph, index, array) => (
+            <p 
+              key={index}
+              style={{ 
+                fontSize: '16px', 
+                lineHeight: '1.6', 
+                color: '#374151',
+                margin: 0,
+                marginBottom: index < array.length - 1 ? '8px' : 0
+              }}>
+              {paragraph.trim()}
+            </p>
+          ))}
         </div>
       )}
 
@@ -324,15 +328,19 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
           }}>
             Recommendations
           </h4>
-          <p style={{ 
-            fontSize: '15px', 
-            lineHeight: '1.6', 
-            color: '#4b5563',
-            margin: 0,
-            whiteSpace: 'pre-line'
-          }}>
-            {mainLocation.recommendations}
-          </p>
+          {mainLocation.recommendations.split('\n\n').map((paragraph, index, array) => (
+            <p 
+              key={index}
+              style={{ 
+                fontSize: '15px', 
+                lineHeight: '1.6', 
+                color: '#4b5563',
+                margin: 0,
+                marginBottom: index < array.length - 1 ? '8px' : 0
+              }}>
+              {paragraph.trim()}
+            </p>
+          ))}
         </div>
       )}
 
@@ -539,15 +547,19 @@ function PhotoTextBlock({ block, onEdit }) {
           )}
         </div>
         <div>
-          <p style={{ 
-            color: '#111827', 
-            fontSize: '16px', 
-            lineHeight: '1.6',
-            margin: 0,
-            whiteSpace: 'pre-line'
-          }}>
-            {text}
-          </p>
+          {text.split('\n\n').map((paragraph, index, array) => (
+            <p 
+              key={index}
+              style={{ 
+                color: '#111827', 
+                fontSize: '16px', 
+                lineHeight: '1.6',
+                margin: 0,
+                marginBottom: index < array.length - 1 ? '8px' : 0
+              }}>
+              {paragraph.trim()}
+            </p>
+          ))}
         </div>
           </div>
         </div>
@@ -598,15 +610,19 @@ function PhotoTextBlock({ block, onEdit }) {
         )}
       </div>
       <div style={{ flex: 1 }}>
-        <p style={{ 
-          color: '#111827', 
-          fontSize: '16px', 
-          lineHeight: '1.6',
-          margin: 0,
-          whiteSpace: 'pre-line'
-        }}>
-          {text}
-        </p>
+        {text.split('\n\n').map((paragraph, index, array) => (
+          <p 
+            key={index}
+            style={{ 
+              color: '#111827', 
+              fontSize: '16px', 
+              lineHeight: '1.6',
+              margin: 0,
+              marginBottom: index < array.length - 1 ? '8px' : 0
+            }}>
+            {paragraph.trim()}
+          </p>
+        ))}
       </div>
         </div>
       </div>
@@ -659,15 +675,21 @@ function TextBlock({ block, onEdit }) {
               }}
             />
           ) : (
-            <p style={{ 
-              color: '#111827', 
-              fontSize: '16px', 
-              lineHeight: '1.6',
-              margin: 0,
-              whiteSpace: 'pre-line'
-            }}>
-              {column1}
-            </p>
+            <>
+              {column1.split('\n\n').map((paragraph, index, array) => (
+                <p 
+                  key={index}
+                  style={{ 
+                    color: '#111827', 
+                    fontSize: '16px', 
+                    lineHeight: '1.6',
+                    margin: 0,
+                    marginBottom: index < array.length - 1 ? '8px' : 0
+                  }}>
+                  {paragraph.trim()}
+                </p>
+              ))}
+            </>
           )}
         </div>
         <div>
@@ -682,15 +704,21 @@ function TextBlock({ block, onEdit }) {
               }}
             />
           ) : (
-            <p style={{ 
-              color: '#111827', 
-              fontSize: '16px', 
-              lineHeight: '1.6',
-              margin: 0,
-              whiteSpace: 'pre-line'
-            }}>
-              {column2}
-            </p>
+            <>
+              {column2.split('\n\n').map((paragraph, index, array) => (
+                <p 
+                  key={index}
+                  style={{
+                    color: '#111827', 
+                    fontSize: '16px', 
+                    lineHeight: '1.6',
+                    margin: 0,
+                    marginBottom: index < array.length - 1 ? '8px' : 0
+                  }}>
+                  {paragraph.trim()}
+                </p>
+              ))}
+            </>
           )}
         </div>
           </div>
@@ -720,14 +748,21 @@ function TextBlock({ block, onEdit }) {
           }}
         />
       ) : (
-        <p style={{ 
-          color: '#111827', 
-          fontSize: '16px', 
-          lineHeight: '1.6',
-          margin: 0
-        }}>
-          {text}
-        </p>
+        <>
+          {text.split('\n\n').map((paragraph, index, array) => (
+            <p 
+              key={index}
+              style={{ 
+                color: '#111827', 
+                fontSize: '16px', 
+                lineHeight: '1.6',
+                margin: 0,
+                marginBottom: index < array.length - 1 ? '8px' : 0
+              }}>
+              {paragraph.trim()}
+            </p>
+          ))}
+        </>
       )}
       </div>
     </div>
@@ -791,15 +826,19 @@ function SlideBlock({ block, onEdit }) {
           No photo
         </div>
       )}
-      <p style={{ 
-        color: '#6b7280', 
-        fontSize: '14px', 
-        lineHeight: '1.6', 
-        margin: 0,
-        whiteSpace: 'pre-line'
-      }}>
-        {text}
-      </p>
+      {text.split('\n\n').map((paragraph, index, array) => (
+        <p 
+          key={index}
+          style={{ 
+            color: '#6b7280', 
+            fontSize: '14px', 
+            lineHeight: '1.6', 
+            margin: 0,
+            marginBottom: index < array.length - 1 ? '8px' : 0
+          }}>
+          {paragraph.trim()}
+        </p>
+      ))}
       </div>
     </div>
   );
