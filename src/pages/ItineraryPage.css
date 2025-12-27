@@ -216,7 +216,7 @@
 @media (max-width: 768px) {
   .itinerary-container {
     max-width: 100%;
-    padding: 0 16px;
+    padding: 0;
   }
   
   .header-section {
@@ -299,7 +299,7 @@
 
 @media (max-width: 480px) {
   .itinerary-container {
-    padding: 0 8px;
+    padding: 0;
   }
   
   .header-section {
