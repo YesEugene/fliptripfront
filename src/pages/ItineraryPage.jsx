@@ -1637,7 +1637,6 @@ export default function ItineraryPage() {
 
       {/* Hero Image Section with Rounded Corners */}
       <div style={{
-        maxWidth: '750px',
         margin: '0 10px 32px',
         marginLeft: '10px',
         marginRight: '10px',
@@ -1736,7 +1735,6 @@ export default function ItineraryPage() {
 
       {/* Tags Section - Match visualizer exactly */}
       <div style={{ 
-        maxWidth: '750px',
         margin: '-10px 10px 30px',
         marginLeft: '10px',
         marginRight: '10px',
@@ -2125,7 +2123,6 @@ export default function ItineraryPage() {
             <div style={{
               marginTop: '10px',
               marginBottom: '30px',
-              maxWidth: '750px',
               margin: '10px 10px 30px',
               marginLeft: '10px',
               marginRight: '10px',
