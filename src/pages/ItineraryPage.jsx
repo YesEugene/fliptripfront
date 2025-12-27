@@ -1641,7 +1641,8 @@ export default function ItineraryPage() {
         marginLeft: '10px',
         marginRight: '10px',
         padding: '0',
-        marginBottom: '32px'
+        paddingLeft: '0',
+        paddingRight: '0'
       }}>
         <div 
           style={{
