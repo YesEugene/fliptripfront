@@ -88,7 +88,7 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
       padding: '0'
     }}>
       <div style={{
-        padding: '10px'
+        padding: '0'
       }}>
       {/* Time badge */}
       {mainLocation.time && (
@@ -452,7 +452,7 @@ function TitleBlock({ block, onEdit }) {
       padding: '0'
     }}>
       <div style={{
-        padding: '10px'
+        padding: '0'
       }}>
         <h2 style={{
           fontSize: fontSizeMap[size],
@@ -553,7 +553,7 @@ function PhotoTextBlock({ block, onEdit }) {
       padding: '0'
     }}>
       <div style={{
-        padding: '10px'
+        padding: '0'
       }}>
         <div style={{
       display: 'flex',
@@ -703,7 +703,7 @@ function TextBlock({ block, onEdit }) {
       padding: '0'
     }}>
       <div style={{
-        padding: '10px'
+        padding: '0'
       }}>
       {formatted ? (
         <div 
@@ -742,7 +742,7 @@ function SlideBlock({ block, onEdit }) {
       padding: '0'
     }}>
       <div style={{
-        padding: '10px'
+        padding: '0'
       }}>
         <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '12px' }}>
           {title}
@@ -911,7 +911,7 @@ function ThreeColumnsBlock({ block, onEdit }) {
       padding: '0'
     }}>
       <div style={{
-        padding: '10px'
+        padding: '0'
       }}>
         <div style={{
           display: 'grid',
@@ -977,7 +977,7 @@ function PhotoBlock({ block, onEdit }) {
       padding: '0'
     }}>
       <div style={{
-        padding: '10px'
+        padding: '0'
       }}>
         {photo ? (
         <>
@@ -1041,7 +1041,7 @@ function DividerBlock({ block, onEdit }) {
       padding: '0'
     }}>
       <div style={{
-        padding: '10px'
+        padding: '0'
       }}>
         <div style={{ position: 'relative' }}>
       <hr style={{
