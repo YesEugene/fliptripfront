@@ -1638,6 +1638,8 @@ export default function ItineraryPage() {
       {/* Hero Image Section with Rounded Corners */}
       <div style={{
         maxWidth: '750px',
+        width: '100%',
+        boxSizing: 'border-box',
         margin: '0 auto 32px',
         padding: '0',
         paddingLeft: '0',
@@ -1736,6 +1738,8 @@ export default function ItineraryPage() {
       {/* Tags Section - Match visualizer exactly */}
       <div style={{ 
         maxWidth: '750px',
+        width: '100%',
+        boxSizing: 'border-box',
         margin: '-10px auto 30px',
         padding: '0',
         paddingLeft: '0',
@@ -1846,6 +1850,8 @@ export default function ItineraryPage() {
       {useNewFormat && guideName && (
         <div style={{
           maxWidth: '750px',
+          width: '100%',
+          boxSizing: 'border-box',
           backgroundColor: 'white',
           borderRadius: '16px',
           padding: '20px',
@@ -2118,6 +2124,8 @@ export default function ItineraryPage() {
           return (
             <div style={{
               maxWidth: '750px',
+              width: '100%',
+              boxSizing: 'border-box',
               margin: '10px auto 30px',
               padding: '0',
               paddingLeft: '0',
@@ -2509,6 +2517,8 @@ export default function ItineraryPage() {
         {useNewFormat && (
           <div style={{ 
             maxWidth: '750px',
+            width: '100%',
+            boxSizing: 'border-box',
             margin: '40px auto 0',
             padding: '0', 
             paddingLeft: '0', 
@@ -2611,8 +2621,9 @@ export default function ItineraryPage() {
                     return (
                       <div style={{
                         maxWidth: '750px',
-                        margin: '10px auto',
                         width: '100%',
+                        boxSizing: 'border-box',
+                        margin: '10px auto',
                         padding: '0',
                         paddingLeft: '0',
                         paddingRight: '0'
@@ -2915,6 +2926,7 @@ export default function ItineraryPage() {
                 <div style={{
                   maxWidth: '750px',
                   width: '100%',
+                  boxSizing: 'border-box',
                   margin: '10px auto 0',
                   padding: '0',
                   paddingLeft: '0',

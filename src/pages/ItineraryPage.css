@@ -6,6 +6,11 @@
   margin: 0;
   padding: 0 10px;
   position: relative;
+  box-sizing: border-box;
+}
+
+.itinerary-container > div[style*="maxWidth"] {
+  box-sizing: border-box;
 }
 
 .header-section {
