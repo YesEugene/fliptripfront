@@ -441,7 +441,17 @@ export default function TripVisualizerPage() {
   
   // Mark selected dates as available
   const handleMarkDatesAsAvailable = async () => {
-    if (selectedCalendarDates.length === 0 || !tourId) {
+    if (selectedCalendarDates.length === 0) {
+      return;
+    }
+    
+    // Validate group size
+    if (!defaultGroupSize || defaultGroupSize < 1) {
+      alert('Please enter a valid number of available spots (at least 1)');
+      return;
+    }
+    
+    if (!tourId) {
       // For new tours, just update local state
       const dateStrings = selectedCalendarDates.map(d => {
         if (d instanceof Date) {
@@ -484,9 +494,13 @@ export default function TripVisualizerPage() {
     }
   };
   
-  // Block selected dates
-  const handleBlockDates = async () => {
-    if (selectedCalendarDates.length === 0 || !tourId) {
+  // Clear availability for selected dates (remove them from available dates)
+  const handleClearAvailability = async () => {
+    if (selectedCalendarDates.length === 0) {
+      return;
+    }
+    
+    if (!tourId) {
       // For new tours, remove from availableDates
       const dateStrings = selectedCalendarDates.map(d => {
         if (d instanceof Date) {
@@ -512,20 +526,20 @@ export default function TripVisualizerPage() {
         return date instanceof Date ? date.toISOString().split('T')[0] : date;
       });
       
-      // Update slots to be blocked
+      // Update slots to be unavailable (is_available = false)
       const slots = dateStrings.map(dateStr => ({
         date: dateStr,
         max_group_size: defaultGroupSize,
         is_available: false,
-        is_blocked: true
+        is_blocked: false
       }));
       
       await updateAvailabilitySlots(tourId, slots);
       await loadAvailabilitySlots(tourId);
       setSelectedCalendarDates([]);
     } catch (err) {
-      console.error('Failed to block dates:', err);
-      alert('Failed to block dates. Please try again.');
+      console.error('Failed to clear availability:', err);
+      alert('Failed to clear availability. Please try again.');
     } finally {
       setAvailabilityLoading(false);
     }
@@ -2569,8 +2583,9 @@ export default function TripVisualizerPage() {
                                   today.setHours(0, 0, 0, 0);
                                   const isPast = date < today;
                                   const dateStr = formatDateStr(date);
-                                  const isAvailable = isDateInAvailableDates(date) || isDateInSlots(date);
-                                  const isBlocked = isDateBlocked(date);
+                                  // Check if date is available (has slot with is_available = true and not blocked)
+                                  const slot = availabilitySlots.find(s => s.date === dateStr && s.is_available && !s.is_blocked);
+                                  const isAvailable = !!slot;
                                   const isSelected = isDateSelected(date);
 
                                   let backgroundColor = '#ffffff';
@@ -2584,12 +2599,13 @@ export default function TripVisualizerPage() {
                                   } else if (isSelected) {
                                     backgroundColor = '#3b82f6';
                                     color = 'white';
-                                  } else if (isBlocked) {
-                                    backgroundColor = '#fee2e2';
-                                    color = '#991b1b';
                                   } else if (isAvailable) {
                                     backgroundColor = '#d1fae5';
                                     color = '#065f46';
+                                  } else {
+                                    // Empty date - not available (default white)
+                                    backgroundColor = '#ffffff';
+                                    color = '#111827';
                                   }
 
                                   return (
@@ -2609,12 +2625,12 @@ export default function TripVisualizerPage() {
                                         transition: 'background-color 0.2s'
                                       }}
                                       onMouseEnter={(e) => {
-                                        if (!isPast && !isSelected && !isBlocked) {
+                                        if (!isPast && !isSelected) {
                                           e.target.style.backgroundColor = isAvailable ? '#a7f3d0' : '#e0e7ff';
                                         }
                                       }}
                                       onMouseLeave={(e) => {
-                                        if (!isPast && !isSelected && !isBlocked) {
+                                        if (!isPast && !isSelected) {
                                           e.target.style.backgroundColor = isAvailable ? '#d1fae5' : '#ffffff';
                                         }
                                       }}
@@ -2627,11 +2643,40 @@ export default function TripVisualizerPage() {
                             </div>
                           )}
 
-                          <div style={{ display: 'flex', gap: '8px', marginTop: '16px', flexWrap: 'wrap' }}>
+                          {/* Input for number of available spots */}
+                          <div style={{ marginTop: '16px', marginBottom: '12px' }}>
+                            <label style={{ 
+                              display: 'block', 
+                              fontSize: '14px', 
+                              fontWeight: '500', 
+                              color: '#374151',
+                              marginBottom: '6px'
+                            }}>
+                              Number of available spots:
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              max="100"
+                              value={defaultGroupSize}
+                              onChange={(e) => setDefaultGroupSize(parseInt(e.target.value) || 1)}
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                              }}
+                              placeholder="Enter number of spots"
+                            />
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
                             <button
                               type="button"
                               onClick={handleMarkDatesAsAvailable}
-                              disabled={selectedCalendarDates.length === 0 || availabilityLoading}
+                              disabled={selectedCalendarDates.length === 0 || availabilityLoading || !defaultGroupSize || defaultGroupSize < 1}
                               style={{
                                 flex: 1,
                                 padding: '8px 12px',
@@ -2641,33 +2686,15 @@ export default function TripVisualizerPage() {
                                 borderRadius: '6px',
                                 cursor: 'pointer',
                                 fontSize: '13px',
-                                opacity: selectedCalendarDates.length === 0 || availabilityLoading ? 0.6 : 1
+                                opacity: (selectedCalendarDates.length === 0 || availabilityLoading || !defaultGroupSize || defaultGroupSize < 1) ? 0.6 : 1
                               }}
                             >
                               Mark as Available
                             </button>
                             <button
                               type="button"
-                              onClick={handleBlockDates}
+                              onClick={handleClearAvailability}
                               disabled={selectedCalendarDates.length === 0 || availabilityLoading}
-                              style={{
-                                flex: 1,
-                                padding: '8px 12px',
-                                backgroundColor: '#ef4444',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '13px',
-                                opacity: selectedCalendarDates.length === 0 || availabilityLoading ? 0.6 : 1
-                              }}
-                            >
-                              Block Dates
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setSelectedCalendarDates([])}
-                              disabled={selectedCalendarDates.length === 0}
                               style={{
                                 flex: 1,
                                 padding: '8px 12px',
@@ -2677,10 +2704,10 @@ export default function TripVisualizerPage() {
                                 borderRadius: '6px',
                                 cursor: 'pointer',
                                 fontSize: '13px',
-                                opacity: selectedCalendarDates.length === 0 ? 0.6 : 1
+                                opacity: (selectedCalendarDates.length === 0 || availabilityLoading) ? 0.6 : 1
                               }}
                             >
-                              Clear Selection
+                              Clear Availability
                             </button>
                           </div>
 
