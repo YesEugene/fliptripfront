@@ -2643,6 +2643,7 @@ export default function ItineraryPage() {
                     
                     return (
                       <div style={{
+                        display: 'none',
                         width: '100%',
                         boxSizing: 'border-box',
                         marginTop: isMobile ? '10px' : '0px',
@@ -2953,6 +2954,7 @@ export default function ItineraryPage() {
               
               return (
                 <div style={{
+                  display: 'none',
                   width: '100%',
                   boxSizing: 'border-box',
                   marginTop: isMobile ? '10px' : '0px',
