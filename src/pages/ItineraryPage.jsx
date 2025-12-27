@@ -2526,11 +2526,13 @@ export default function ItineraryPage() {
                   <div style={{
                     backgroundColor: '#f9fafb',
                     borderRadius: '12px',
-                    padding: '48px 24px',
+                    padding: isMobile ? '48px 20px' : '48px 24px',
                     textAlign: 'center',
                     marginTop: '32px',
                     marginBottom: '32px',
-                    border: '1px solid #e5e7eb'
+                    border: '1px solid #e5e7eb',
+                    marginLeft: isMobile ? '10px' : '0',
+                    marginRight: isMobile ? '10px' : '0'
                   }}>
                     <div style={{
                       fontSize: '48px',
