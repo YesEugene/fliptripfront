@@ -2522,7 +2522,7 @@ export default function ItineraryPage() {
             margin: isMobile ? '40px 10px 0' : '40px auto 0',
             padding: '0', 
             paddingLeft: '0', 
-            paddingRight: '0' 
+            paddingRight: '0'
           }}>
             {/* Determine which blocks to show based on preview mode */}
             {(() => {
