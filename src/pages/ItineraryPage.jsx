@@ -1619,22 +1619,22 @@ export default function ItineraryPage() {
         maxWidth: '750px',
         margin: '0 auto',
         padding: '0 20px',
-        marginBottom: '20px'
+        marginBottom: '32px' // Match visualizer: 32px
       }}>
         <div 
           style={{
             position: 'relative',
             width: '100%',
-            height: '300px', // Reduced by 100px (was 400px)
+            height: '300px',
             backgroundImage: `url(${heroImage})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             borderRadius: '16px',
             overflow: 'hidden',
             display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            padding: '20px 20px 20px 30px' // 30px left padding, 20px for others
+            alignItems: 'flex-start',
+            justifyContent: 'flex-start',
+            padding: '20px 30px' // Match visualizer: 20px 30px
           }}
         >
           {/* Black Gradient Overlay - from black to transparent (top to bottom) */}
@@ -1650,26 +1650,20 @@ export default function ItineraryPage() {
             zIndex: 1
           }} />
 
-          {/* Title and Author at Top */}
-          <div style={{
-            position: 'relative',
+          {/* Title overlay - top left aligned - Match visualizer exactly */}
+          <div style={{ 
+            color: 'white', 
+            fontSize: '35px', 
+            fontWeight: '700',
+            textAlign: 'left',
+            lineHeight: '1.2',
+            letterSpacing: '-0.3px',
             zIndex: 2,
-            color: 'white',
-            marginTop: '0px' // 20px - 20px = 0px (raised by 20px)
+            maxWidth: '80%',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            position: 'relative'
           }}>
-            <h1 style={{
-              fontSize: useNewFormat ? '35px' : '36px',
-              fontWeight: useNewFormat ? '700' : 'bold',
-              marginBottom: '16px',
-              textShadow: '0 2px 8px rgba(0, 0, 0, 0.7)',
-              lineHeight: '1.2',
-              textAlign: useNewFormat ? 'left' : 'left',
-              letterSpacing: useNewFormat ? '-0.3px' : 'normal',
-              fontFamily: useNewFormat ? 'system-ui, -apple-system, sans-serif' : 'inherit',
-              maxWidth: useNewFormat ? '80%' : '100%'
-            }}>
-              {tourTitle}
-            </h1>
+            {tourTitle}
           </div>
 
           {/* Download PDF Button at Bottom - Show only after payment or if not preview */}
@@ -1723,59 +1717,109 @@ export default function ItineraryPage() {
         </div>
       </div>
 
-      {/* Tags Section - Moved below hero image, before description */}
-      <div style={{
+      {/* Tags Section - Match visualizer exactly */}
+      <div style={{ 
+        display: 'flex', 
+        gap: '10px', 
+        marginBottom: '30px',
+        marginTop: '-10px',
+        flexWrap: 'wrap',
         maxWidth: '750px',
-        margin: '0 auto',
-        padding: '0 20px',
-        marginBottom: '10px' // Reduced from 20px to 10px
+        margin: '-10px auto 30px',
+        padding: '0 20px'
       }}>
-        <div className="badges">
-            {/* City tag */}
-            <span className="badge-enhanced" style={{ backgroundColor: '#dbeafe', color: '#1e40af' }}>
-              🌍 {itinerary?.tags?.city || formData.city || 'Unknown'}
-            </span>
-            
-            {/* Date tag */}
-            <span className="badge-enhanced" style={{ backgroundColor: '#f3e8ff', color: '#7c3aed' }}>
-              📅 {itinerary?.tags?.date || formData.date || new Date().toISOString().slice(0, 10)}
-            </span>
-            
-            {/* Audience tag - only show if from filters */}
-            {itinerary?.tags?.audience && (
-              <span className="badge-enhanced" style={{ backgroundColor: '#dcfce7', color: '#166534' }}>
-                For: {itinerary.tags.audience}
-              </span>
-            )}
-            
-            {/* Budget tag - always show if available */}
-            {itinerary?.tags?.budget && (
-              <span className="badge-enhanced" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>
-                Budget: {itinerary.tags.budget}
-              </span>
-            )}
-            
-            {/* Fallback: show budget from itinerary.budget if tags.budget is not available */}
-            {!itinerary?.tags?.budget && itinerary?.budget && (
-              <span className="badge-enhanced" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>
-                Budget: {itinerary.budget}
-              </span>
-            )}
-            
-            {/* Interests tags - show from tags if available, otherwise from formData */}
-            {(itinerary?.tags?.interests && itinerary.tags.interests.length > 0) && itinerary.tags.interests.map((interest, index) => (
-              <span key={index} className="badge-enhanced" style={{ backgroundColor: '#fde7e7', color: '#b91c1c' }}>
-                🎯 {interest}
-              </span>
-            ))}
-            
-            {/* Fallback: show interests from formData if tags.interests is empty */}
-            {(!itinerary?.tags?.interests || itinerary.tags.interests.length === 0) && formData.interests && formData.interests.length > 0 && formData.interests.map((interest, index) => (
-              <span key={index} className="badge-enhanced" style={{ backgroundColor: '#fde7e7', color: '#b91c1c' }}>
-                🎯 {interest}
-              </span>
-            ))}
+        {/* City tag */}
+        <div style={{
+          height: '35px',
+          padding: '0 12px',
+          backgroundColor: '#FFE7CE',
+          color: '#111827',
+          borderRadius: '10px',
+          fontSize: '10px',
+          fontWeight: '500',
+          display: 'flex',
+          alignItems: 'center'
+        }}>
+          {itinerary?.tags?.city || formData.city || tourData?.city?.name || (typeof tourData?.city === 'string' ? tourData.city : 'City')}
         </div>
+        
+        {/* Date tag */}
+        <div style={{
+          height: '35px',
+          padding: '0 12px',
+          backgroundColor: '#CFF2FF',
+          color: '#111827',
+          borderRadius: '10px',
+          fontSize: '10px',
+          fontWeight: '500',
+          display: 'flex',
+          alignItems: 'center'
+        }}>
+          Dates
+        </div>
+        
+        {/* Budget tag */}
+        <div style={{
+          height: '35px',
+          padding: '0 12px',
+          backgroundColor: '#CFFFE1',
+          color: '#111827',
+          borderRadius: '10px',
+          fontSize: '10px',
+          fontWeight: '500',
+          display: 'flex',
+          alignItems: 'center'
+        }}>
+          Budget
+        </div>
+        
+        {/* Interests tags - from tourData.tour_tags for new format tours */}
+        {useNewFormat && tourData?.tour_tags && tourData.tour_tags.length > 0 ? (
+          tourData.tour_tags.map((tt, idx) => {
+            const interest = tt.interest;
+            if (!interest) return null;
+            return (
+              <div
+                key={idx}
+                style={{
+                  height: '35px',
+                  padding: '0 12px',
+                  backgroundColor: 'white',
+                  color: '#111827',
+                  borderRadius: '10px',
+                  fontSize: '10px',
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: '1px solid #DEDEDE'
+                }}
+              >
+                {interest.name}
+              </div>
+            );
+          })
+        ) : (
+          // Fallback: show from itinerary.tags.interests or formData.interests
+          (itinerary?.tags?.interests && itinerary.tags.interests.length > 0 ? itinerary.tags.interests : (formData.interests || [])).map((interest, index) => (
+            <div
+              key={index}
+              style={{
+                height: '35px',
+                padding: '0 12px',
+                backgroundColor: 'white',
+                color: '#111827',
+                borderRadius: '10px',
+                fontSize: '10px',
+                fontWeight: '500',
+                display: 'flex',
+                alignItems: 'center',
+                border: '1px solid #DEDEDE'
+              }}
+            >
+              {interest}
+            </div>
+          ))
+        )}
       </div>
 
       {/* From author block - Show only if using new format (contentBlocks) */}
