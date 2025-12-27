@@ -1865,19 +1865,27 @@ export default function ItineraryPage() {
           boxSizing: 'border-box',
           backgroundColor: 'white',
           borderRadius: '16px',
-          padding: '20px',
+          padding: isMobile ? '20px' : '32px',
           border: '1px solid #D0D0D0',
           marginTop: '-10px',
           marginBottom: '10px',
           marginLeft: isMobile ? 'auto' : '0',
           marginRight: isMobile ? 'auto' : '0'
         }}>
-            {/* Avatar section - always on top */}
+          <div style={{ 
+            display: 'flex', 
+            gap: '24px', 
+            alignItems: 'flex-start',
+            flexDirection: isMobile ? 'column' : 'row'
+          }}>
+            {/* Avatar section - left on desktop, top on mobile */}
             <div style={{ 
               display: 'flex', 
               flexDirection: 'column', 
               alignItems: 'center', 
-              marginBottom: '16px'
+              flexShrink: 0, 
+              minWidth: isMobile ? '100%' : '120px',
+              width: isMobile ? '100%' : 'auto'
             }}>
               <div style={{
                 width: '100px',
@@ -1908,84 +1916,80 @@ export default function ItineraryPage() {
               </p>
             </div>
             
-            {/* Title, text and button section - below avatar */}
-            <div style={{ 
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center'
-            }}>
+            {/* Title, text and button section - right on desktop, below avatar on mobile */}
+            <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
               <h3 style={{ 
                 fontSize: '20px', 
                 fontWeight: '500', 
                 marginBottom: '16px', 
                 color: '#111827',
                 marginTop: 0,
-                textAlign: 'center',
+                textAlign: isMobile ? 'center' : 'left',
                 width: '100%'
               }}>
                 A note from the author
               </h3>
-                <div>
-                  {(() => {
-                    const text = tourDescription || '';
-                    
-                    // Check if text is likely to be more than 5 lines
-                    const lineCount = text ? (text.split('\n').length + Math.ceil(text.replace(/\n/g, '').length / 90)) : 0;
-                    const shouldShowButton = lineCount > 5;
-                    
-                    return (
-                      <>
-                        {isAuthorTextExpanded ? (
-                          <p style={{ 
-                            color: '#4b5563', 
-                            fontSize: '15px', 
-                            lineHeight: isMobile ? '1.5' : '1.7', 
-                            marginBottom: '16px',
-                            marginTop: 0,
-                            whiteSpace: 'pre-line',
-                            textAlign: 'left',
-                            width: '100%'
-                          }}>
-                            {text}
-                          </p>
-                        ) : (
-                          <p style={{ 
-                            color: '#4b5563', 
-                            fontSize: '15px', 
-                            lineHeight: isMobile ? '1.5' : '1.7', 
-                            marginBottom: shouldShowButton ? '12px' : '16px',
-                            marginTop: 0,
-                            display: '-webkit-box',
-                            WebkitLineClamp: 5,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            whiteSpace: 'pre-line',
-                            textAlign: 'left',
-                            width: '100%'
-                          }}>
-                            {text}
-                          </p>
-                        )}
-                        {shouldShowButton && (
-                          <div style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            width: '100%'
-                          }}>
-                            <button 
-                              onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
-                              style={{
-                                padding: '8px 16px',
-                                backgroundColor: '#EFEFEF',
-                                color: '#6b7280',
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontSize: '13px',
-                                fontWeight: '500',
-                                transition: 'all 0.2s',
-                                marginTop: '4px'
-                              }}
+              <div>
+                {(() => {
+                  const text = tourDescription || '';
+                  
+                  // Check if text is likely to be more than 5 lines
+                  const lineCount = text ? (text.split('\n').length + Math.ceil(text.replace(/\n/g, '').length / 90)) : 0;
+                  const shouldShowButton = lineCount > 5;
+                  
+                  return (
+                    <>
+                      {isAuthorTextExpanded ? (
+                        <p style={{ 
+                          color: '#4b5563', 
+                          fontSize: '15px', 
+                          lineHeight: isMobile ? '1.5' : '1.7', 
+                          marginBottom: '16px',
+                          marginTop: 0,
+                          whiteSpace: 'pre-line',
+                          textAlign: 'left',
+                          width: '100%'
+                        }}>
+                          {text}
+                        </p>
+                      ) : (
+                        <p style={{ 
+                          color: '#4b5563', 
+                          fontSize: '15px', 
+                          lineHeight: isMobile ? '1.5' : '1.7', 
+                          marginBottom: shouldShowButton ? '12px' : '16px',
+                          marginTop: 0,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 5,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          whiteSpace: 'pre-line',
+                          textAlign: 'left',
+                          width: '100%'
+                        }}>
+                          {text}
+                        </p>
+                      )}
+                      {shouldShowButton && (
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: isMobile ? 'center' : 'flex-start',
+                          width: '100%'
+                        }}>
+                          <button 
+                            onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
+                            style={{
+                              padding: '8px 16px',
+                              backgroundColor: '#EFEFEF',
+                              color: '#6b7280',
+                              border: 'none',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              fontSize: '13px',
+                              fontWeight: '500',
+                              transition: 'all 0.2s',
+                              marginTop: '4px'
+                            }}
                             onMouseEnter={(e) => {
                               e.target.style.backgroundColor = '#e5e5e5';
                             }}
@@ -1995,13 +1999,14 @@ export default function ItineraryPage() {
                           >
                             {isAuthorTextExpanded ? 'Read less' : 'Read more'}
                           </button>
-                          </div>
-                        )}
-                      </>
-                    );
-                  })()}
-                </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
             </div>
+          </div>
         </div>
       )}
 
