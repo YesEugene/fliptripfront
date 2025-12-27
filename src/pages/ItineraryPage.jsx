@@ -539,15 +539,34 @@ export default function ItineraryPage() {
         setUseNewFormat(true); // Mark as using new format (contentBlocks)
         
         // Reset tour type selection based on tour data
-        const supportsGuide = tour.withGuide || 
+        // CRITICAL: Check draft_data.tourSettings first for explicit saved values
+        const draftData = tour.draft_data || {};
+        const tourSettings = draftData.tourSettings || {};
+        const selfGuided = tourSettings.selfGuided !== undefined ? tourSettings.selfGuided : true; // Default: true
+        const withGuide = tourSettings.withGuide !== undefined ? tourSettings.withGuide : false;
+        
+        // Determine available formats
+        const supportsSelfGuided = selfGuided === true;
+        const supportsGuide = withGuide === true || 
+                              tour.withGuide || 
                               tour.default_format === 'with_guide' || 
                               tour.format === 'guided' ||
                               (tour.price?.guidedPrice && tour.price.guidedPrice > 0);
         
-        if (!supportsGuide) {
+        // Set default tour type based on available formats
+        if (supportsSelfGuided && !supportsGuide) {
           setTourType('self-guided');
-          setSelectedDate(null);
+        } else if (!supportsSelfGuided && supportsGuide) {
+          setTourType('with-guide');
+        } else if (supportsSelfGuided && supportsGuide) {
+          // Both available - default to self-guided
+          setTourType('self-guided');
+        } else {
+          // Neither available - default to self-guided as fallback
+          setTourType('self-guided');
         }
+        
+        setSelectedDate(null);
         
         setLoading(false);
         return; // Exit early for new format tours
@@ -672,15 +691,34 @@ export default function ItineraryPage() {
           setUseNewFormat(false); // Mark as using old format (daily_plan)
           
           // Reset tour type selection based on tour data
-          const supportsGuide = tour.withGuide || 
+          // CRITICAL: Check draft_data.tourSettings first for explicit saved values
+          const draftData = tour.draft_data || {};
+          const tourSettings = draftData.tourSettings || {};
+          const selfGuided = tourSettings.selfGuided !== undefined ? tourSettings.selfGuided : true; // Default: true
+          const withGuide = tourSettings.withGuide !== undefined ? tourSettings.withGuide : false;
+          
+          // Determine available formats
+          const supportsSelfGuided = selfGuided === true;
+          const supportsGuide = withGuide === true || 
+                                tour.withGuide || 
                                 tour.default_format === 'with_guide' || 
                                 tour.format === 'guided' ||
                                 (tour.price?.guidedPrice && tour.price.guidedPrice > 0);
           
-          if (!supportsGuide) {
+          // Set default tour type based on available formats
+          if (supportsSelfGuided && !supportsGuide) {
             setTourType('self-guided');
-            setSelectedDate(null);
+          } else if (!supportsSelfGuided && supportsGuide) {
+            setTourType('with-guide');
+          } else if (supportsSelfGuided && supportsGuide) {
+            // Both available - default to self-guided
+            setTourType('self-guided');
+          } else {
+            // Neither available - default to self-guided as fallback
+            setTourType('self-guided');
           }
+          
+          setSelectedDate(null);
           
           setLoading(false);
     } catch (err) {
@@ -1924,8 +1962,16 @@ export default function ItineraryPage() {
 
         {/* Email and Payment Block - Show only if preview and not paid (for both formats) */}
         {previewOnly && !isPaid && (() => {
-          // Determine if tour supports guide option
-          const supportsGuide = tourData?.withGuide || 
+          // Determine available formats from draft_data.tourSettings
+          const draftData = tourData?.draft_data || {};
+          const tourSettings = draftData.tourSettings || {};
+          const selfGuided = tourSettings.selfGuided !== undefined ? tourSettings.selfGuided : true; // Default: true
+          const withGuide = tourSettings.withGuide !== undefined ? tourSettings.withGuide : false;
+          
+          // Determine available formats
+          const supportsSelfGuided = selfGuided === true;
+          const supportsGuide = withGuide === true || 
+                                tourData?.withGuide || 
                                 tourData?.default_format === 'with_guide' || 
                                 tourData?.format === 'guided' ||
                                 (tourData?.price?.guidedPrice && tourData.price.guidedPrice > 0);
@@ -1998,18 +2044,19 @@ export default function ItineraryPage() {
                     gap: '12px',
                     padding: '12px',
                     borderRadius: '8px',
-                    cursor: 'pointer',
+                    cursor: supportsSelfGuided ? 'pointer' : 'not-allowed',
                     transition: 'background-color 0.2s',
-                    backgroundColor: tourType === 'self-guided' ? '#eff6ff' : 'transparent',
+                    backgroundColor: tourType === 'self-guided' && supportsSelfGuided ? '#eff6ff' : 'transparent',
+                    opacity: supportsSelfGuided ? 1 : 0.5,
                     marginBottom: '12px'
                   }}
                   onMouseEnter={(e) => {
-                    if (tourType !== 'self-guided') {
+                    if (supportsSelfGuided && tourType !== 'self-guided') {
                       e.currentTarget.style.backgroundColor = '#f9fafb';
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (tourType !== 'self-guided') {
+                    if (supportsSelfGuided && tourType !== 'self-guided') {
                       e.currentTarget.style.backgroundColor = 'transparent';
                     }
                   }}
@@ -2020,12 +2067,15 @@ export default function ItineraryPage() {
                       value="self-guided"
                       checked={tourType === 'self-guided'}
                       onChange={(e) => {
-                        setTourType('self-guided');
-                        setSelectedDate(null);
+                        if (supportsSelfGuided) {
+                          setTourType('self-guided');
+                          setSelectedDate(null);
+                        }
                       }}
+                      disabled={!supportsSelfGuided}
                       style={{
                         marginTop: '2px',
-                        cursor: 'pointer',
+                        cursor: supportsSelfGuided ? 'pointer' : 'not-allowed',
                         width: '18px',
                         height: '18px'
                       }}
@@ -2034,17 +2084,19 @@ export default function ItineraryPage() {
                       <div style={{
                         fontSize: '14px',
                         fontWeight: '600',
-                        color: '#111827',
+                        color: supportsSelfGuided ? '#111827' : '#9ca3af',
                         marginBottom: '4px'
                       }}>
                         Self-guided Tour
                       </div>
                       <div style={{
                         fontSize: '12px',
-                        color: '#6b7280',
+                        color: supportsSelfGuided ? '#6b7280' : '#9ca3af',
                         lineHeight: '1.5'
                       }}>
-                        Fixed price: {currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency}{pdfPrice}. Travelers can download the PDF route and explore independently
+                        {supportsSelfGuided 
+                          ? `Fixed price: ${currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency}${pdfPrice}. Travelers can download the PDF route and explore independently`
+                          : 'This option is not available for this tour'}
                       </div>
                     </div>
                   </label>
