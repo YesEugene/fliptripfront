@@ -1821,76 +1821,66 @@ export default function ItineraryPage() {
         <div style={{
           backgroundColor: 'white',
           borderRadius: '16px',
-          padding: isMobile ? '24px 20px' : '32px',
+          padding: isMobile ? '24px 20px' : '32px 20px',
           border: '1px solid #D0D0D0',
           marginBottom: '40px',
           marginTop: '-10px',
           maxWidth: '750px',
           margin: '-10px auto 40px'
         }}>
+            {/* Avatar section - always on top */}
             <div style={{ 
               display: 'flex', 
-              gap: '24px', 
-              alignItems: isMobile ? 'center' : 'flex-start',
-              flexDirection: isMobile ? 'column' : 'row'
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              marginBottom: '16px'
             }}>
-              <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                flexShrink: 0, 
-                minWidth: isMobile ? '100%' : '120px',
-                width: isMobile ? '100%' : 'auto',
-                order: isMobile ? 1 : 0
+              <div style={{
+                width: '100px',
+                height: '100px',
+                borderRadius: '50%',
+                backgroundColor: '#e5e7eb',
+                overflow: 'hidden',
+                marginBottom: '12px',
+                border: '3px solid #f3f4f6'
               }}>
-                <div style={{
-                  width: '100px',
-                  height: '100px',
-                  borderRadius: '50%',
-                  backgroundColor: '#e5e7eb',
-                  overflow: 'hidden',
-                  marginBottom: '12px',
-                  border: '3px solid #f3f4f6'
-                }}>
-                  {guideAvatar ? (
-                    <img src={guideAvatar} alt="Author" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '40px' }}>
-                      👤
-                    </div>
-                  )}
-                </div>
-                <p style={{ 
-                  margin: 0, 
-                  fontSize: '14px', 
-                  color: '#6b7280',
-                  textAlign: 'center',
-                  lineHeight: '1.5',
-                  whiteSpace: 'pre-line',
-                  marginBottom: isMobile ? '16px' : '0'
-                }}>
-                  Tour created{'\n'}by <strong style={{ color: '#111827', fontWeight: '600' }}>{guideName}</strong>
-                </p>
+                {guideAvatar ? (
+                  <img src={guideAvatar} alt="Author" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '40px' }}>
+                    👤
+                  </div>
+                )}
               </div>
-              <div style={{ 
-                flex: 1, 
-                width: isMobile ? '100%' : 'auto',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: isMobile ? 'center' : 'flex-start',
-                order: isMobile ? 2 : 0
+              <p style={{ 
+                margin: 0, 
+                fontSize: '14px', 
+                color: '#6b7280',
+                textAlign: 'center',
+                lineHeight: '1.5',
+                whiteSpace: 'pre-line'
               }}>
-                <h3 style={{ 
-                  fontSize: '20px', 
-                  fontWeight: '500', 
-                  marginBottom: '16px', 
-                  color: '#111827',
-                  marginTop: 0,
-                  textAlign: 'center',
-                  width: '100%'
-                }}>
-                  A note from the author
-                </h3>
+                Tour created{'\n'}by <strong style={{ color: '#111827', fontWeight: '600' }}>{guideName}</strong>
+              </p>
+            </div>
+            
+            {/* Title, text and button section - below avatar */}
+            <div style={{ 
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center'
+            }}>
+              <h3 style={{ 
+                fontSize: '20px', 
+                fontWeight: '500', 
+                marginBottom: '16px', 
+                color: '#111827',
+                marginTop: 0,
+                textAlign: 'center',
+                width: '100%'
+              }}>
+                A note from the author
+              </h3>
                 <div>
                   {(() => {
                     const text = tourDescription || '';
