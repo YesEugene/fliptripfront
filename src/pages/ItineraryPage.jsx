@@ -3067,6 +3067,5 @@ export default function ItineraryPage() {
           <p>Created with ❤️ in FlipTrip</p>
         </div>
       </div>
-    </div>
   );
 }
