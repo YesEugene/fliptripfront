@@ -2616,10 +2616,10 @@ export default function ItineraryPage() {
                       <div style={{
                         marginTop: isMobile ? '10px' : '24px',
                         marginBottom: isMobile ? '10px' : '24px',
-                        maxWidth: '750px',
-                        margin: isMobile ? '10px 10px' : '24px auto',
-                        marginLeft: isMobile ? '10px' : 'auto',
-                        marginRight: isMobile ? '10px' : 'auto',
+                        width: '100%',
+                        margin: isMobile ? '10px 0' : '24px 0',
+                        marginLeft: '0',
+                        marginRight: '0',
                         padding: '0',
                         paddingLeft: '0',
                         paddingRight: '0'
