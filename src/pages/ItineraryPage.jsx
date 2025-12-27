@@ -1814,34 +1814,24 @@ export default function ItineraryPage() {
             {itinerary?.tags?.budget ? `${itinerary.tags.budget}€` : 'Budget'}
           </div>
           
-          {/* Interests tags - from tourData.tour_tags for new format tours */}
-          {useNewFormat && tourData?.tour_tags && tourData.tour_tags.length > 0 ? (
-            tourData.tour_tags.map((tt, idx) => {
-              const interest = tt.interest;
-              if (!interest) return null;
-              return (
-                <div
-                  key={idx}
-                  style={{
-                    height: '35px',
-                    padding: '0 12px',
-                    backgroundColor: 'white',
-                    color: '#111827',
-                    borderRadius: '10px',
-                    fontSize: '10px',
-                    fontWeight: '500',
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: '1px solid #DEDEDE'
-                  }}
-                >
-                  {interest.name}
-                </div>
-              );
-            })
-          ) : (
-            // Fallback: show from itinerary.tags.interests or formData.interests
-            (itinerary?.tags?.interests && itinerary.tags.interests.length > 0 ? itinerary.tags.interests : (formData.interests || [])).map((interest, index) => (
+          {/* Interests tags - from tourData.tour_tags OR itinerary.tags.interests */}
+          {(() => {
+            // First try to get from tourData.tour_tags (for tours from DB)
+            let interestsToShow = [];
+            if (useNewFormat && tourData?.tour_tags && tourData.tour_tags.length > 0) {
+              interestsToShow = tourData.tour_tags
+                .map(tt => tt.interest?.name)
+                .filter(Boolean);
+            }
+            
+            // Fallback to itinerary.tags.interests or formData.interests
+            if (interestsToShow.length === 0) {
+              const interestsFromItinerary = itinerary?.tags?.interests || [];
+              const interestsFromForm = formData.interests || [];
+              interestsToShow = interestsFromItinerary.length > 0 ? interestsFromItinerary : interestsFromForm;
+            }
+            
+            return interestsToShow.map((interest, index) => (
               <div
                 key={index}
                 style={{
@@ -1859,8 +1849,8 @@ export default function ItineraryPage() {
               >
                 {interest}
               </div>
-            ))
-          )}
+            ));
+          })()}
         </div>
       </div>
 
