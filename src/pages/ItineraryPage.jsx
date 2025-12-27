@@ -2703,6 +2703,7 @@ export default function ItineraryPage() {
                             {processingPayment ? 'Processing...' : 'Proceed to payment'}
                           </button>
                         </div>
+                        </div>
                       </div>
                     );
                   })()}
