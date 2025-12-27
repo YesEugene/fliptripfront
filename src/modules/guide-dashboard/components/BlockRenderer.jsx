@@ -85,9 +85,7 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
   return (
     <div style={{ 
       marginBottom: '32px',
-      padding: '0',
-      paddingLeft: '0',
-      paddingRight: '0'
+      padding: '10px'
     }}>
       <div style={{
         padding: '0',
@@ -453,9 +451,7 @@ function TitleBlock({ block, onEdit }) {
   return (
     <div style={{ 
       marginBottom: '32px',
-      padding: '0',
-      paddingLeft: '0',
-      paddingRight: '0'
+      padding: '10px'
     }}>
       <div style={{
         padding: '0',
@@ -558,9 +554,7 @@ function PhotoTextBlock({ block, onEdit }) {
   return (
     <div style={{ 
       marginBottom: '32px',
-      padding: '0',
-      paddingLeft: '0',
-      paddingRight: '0'
+      padding: '10px'
     }}>
       <div style={{
         padding: '0',
@@ -712,9 +706,7 @@ function TextBlock({ block, onEdit }) {
   return (
     <div style={{ 
       marginBottom: '32px',
-      padding: '0',
-      paddingLeft: '0',
-      paddingRight: '0'
+      padding: '10px'
     }}>
       <div style={{
         padding: '0',
@@ -755,9 +747,7 @@ function SlideBlock({ block, onEdit }) {
   return (
     <div style={{ 
       marginBottom: '32px',
-      padding: '0',
-      paddingLeft: '0',
-      paddingRight: '0'
+      padding: '10px'
     }}>
       <div style={{
         padding: '0',
@@ -928,9 +918,7 @@ function ThreeColumnsBlock({ block, onEdit }) {
   return (
     <div style={{ 
       marginBottom: '32px',
-      padding: '0',
-      paddingLeft: '0',
-      paddingRight: '0'
+      padding: '10px'
     }}>
       <div style={{
         padding: '0',
@@ -998,9 +986,7 @@ function PhotoBlock({ block, onEdit }) {
   return (
     <div style={{ 
       marginBottom: '32px',
-      padding: '0',
-      paddingLeft: '0',
-      paddingRight: '0'
+      padding: '10px'
     }}>
       <div style={{
         padding: '0',
@@ -1066,9 +1052,7 @@ function DividerBlock({ block, onEdit }) {
   return (
     <div style={{ 
       marginBottom: '32px',
-      padding: '0',
-      paddingLeft: '0',
-      paddingRight: '0'
+      padding: '10px'
     }}>
       <div style={{
         padding: '0',
