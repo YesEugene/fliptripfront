@@ -2520,10 +2520,10 @@ export default function ItineraryPage() {
         {useNewFormat && (
           <div style={{ 
             maxWidth: '750px', 
-            margin: isMobile ? '40px 10px 0' : '40px auto 0', 
+            margin: '40px 10px 0', 
             marginTop: '40px',
-            marginLeft: isMobile ? '10px' : 'auto',
-            marginRight: isMobile ? '10px' : 'auto',
+            marginLeft: '10px',
+            marginRight: '10px',
             padding: '0', 
             paddingLeft: '0', 
             paddingRight: '0' 
