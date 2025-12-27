@@ -1618,7 +1618,7 @@ export default function ItineraryPage() {
       <div style={{
         maxWidth: '750px',
         margin: '0 auto',
-        padding: isMobile ? '0 10px' : '0 20px',
+        padding: isMobile ? '0 5px' : '0 20px',
         marginBottom: '32px' // Match visualizer: 32px
       }}>
         <div 
