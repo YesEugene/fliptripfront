@@ -451,16 +451,27 @@ function TitleBlock({ block, onEdit }) {
   };
 
   return (
-    <div>
-      <h2 style={{
-        fontSize: fontSizeMap[size],
-        fontWeight: 'bold',
-        color: '#111827',
-        margin: 0,
-        lineHeight: '1.2'
+    <div style={{ 
+      marginBottom: '32px',
+      padding: '0',
+      paddingLeft: '0',
+      paddingRight: '0'
+    }}>
+      <div style={{
+        padding: '0',
+        paddingLeft: '0',
+        paddingRight: '0'
       }}>
-        {text}
-      </h2>
+        <h2 style={{
+          fontSize: fontSizeMap[size],
+          fontWeight: 'bold',
+          color: '#111827',
+          margin: 0,
+          lineHeight: '1.2'
+        }}>
+          {text}
+        </h2>
+      </div>
     </div>
   );
 }
@@ -487,7 +498,18 @@ function PhotoTextBlock({ block, onEdit }) {
   // Mobile: image first, then text below
   if (isMobile) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ 
+        marginBottom: '32px',
+        padding: '0',
+        paddingLeft: '0',
+        paddingRight: '0'
+      }}>
+        <div style={{
+          padding: '0',
+          paddingLeft: '0',
+          paddingRight: '0'
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div>
           {photo ? (
             <img 
@@ -526,13 +548,26 @@ function PhotoTextBlock({ block, onEdit }) {
             {text}
           </p>
         </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   // Desktop: side by side
   return (
-    <div style={{
+    <div style={{ 
+      marginBottom: '32px',
+      padding: '0',
+      paddingLeft: '0',
+      paddingRight: '0'
+    }}>
+      <div style={{
+        padding: '0',
+        paddingLeft: '0',
+        paddingRight: '0'
+      }}>
+        <div style={{
       display: 'flex',
       gap: '24px',
       flexDirection: alignment === 'right' ? 'row-reverse' : 'row',
@@ -576,6 +611,8 @@ function PhotoTextBlock({ block, onEdit }) {
           {text}
         </p>
       </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -601,6 +638,17 @@ function TextBlock({ block, onEdit }) {
     
     return (
       <div style={{ 
+        marginBottom: '32px',
+        padding: '0',
+        paddingLeft: '0',
+        paddingRight: '0'
+      }}>
+        <div style={{
+          padding: '0',
+          paddingLeft: '0',
+          paddingRight: '0'
+        }}>
+          <div style={{ 
         display: 'grid', 
         gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
         gap: isMobile ? '24px' : '32px',
@@ -652,6 +700,8 @@ function TextBlock({ block, onEdit }) {
             </p>
           )}
         </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -660,7 +710,17 @@ function TextBlock({ block, onEdit }) {
   const text = content.text || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.';
 
   return (
-    <div>
+    <div style={{ 
+      marginBottom: '32px',
+      padding: '0',
+      paddingLeft: '0',
+      paddingRight: '0'
+    }}>
+      <div style={{
+        padding: '0',
+        paddingLeft: '0',
+        paddingRight: '0'
+      }}>
       {formatted ? (
         <div 
           dangerouslySetInnerHTML={{ __html: text }}
@@ -692,10 +752,20 @@ function SlideBlock({ block, onEdit }) {
   const text = content.text || 'Slide description text';
 
   return (
-    <div>
-      <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '12px' }}>
-        {title}
-      </h3>
+    <div style={{ 
+      marginBottom: '32px',
+      padding: '0',
+      paddingLeft: '0',
+      paddingRight: '0'
+    }}>
+      <div style={{
+        padding: '0',
+        paddingLeft: '0',
+        paddingRight: '0'
+      }}>
+        <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '12px' }}>
+          {title}
+        </h3>
       {photo ? (
         <img 
           src={photo} 
@@ -732,6 +802,7 @@ function SlideBlock({ block, onEdit }) {
       }}>
         {text}
       </p>
+      </div>
     </div>
   );
 }
@@ -760,7 +831,18 @@ function ThreeColumnsBlock({ block, onEdit }) {
   // Mobile: horizontal scroll with swipe
   if (isMobile) {
     return (
-      <div style={{
+      <div style={{ 
+        marginBottom: '32px',
+        padding: '0',
+        paddingLeft: '0',
+        paddingRight: '0'
+      }}>
+        <div style={{
+          padding: '0',
+          paddingLeft: '0',
+          paddingRight: '0'
+        }}>
+          <div style={{
         overflowX: 'auto',
         overflowY: 'hidden',
         WebkitOverflowScrolling: 'touch',
@@ -835,13 +917,25 @@ function ThreeColumnsBlock({ block, onEdit }) {
             </div>
           ))}
         </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   // Desktop: grid layout
   return (
-    <div>
+    <div style={{ 
+      marginBottom: '32px',
+      padding: '0',
+      paddingLeft: '0',
+      paddingRight: '0'
+    }}>
+      <div style={{
+        padding: '0',
+        paddingLeft: '0',
+        paddingRight: '0'
+      }}>
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(3, 1fr)',
@@ -889,6 +983,8 @@ function ThreeColumnsBlock({ block, onEdit }) {
           </div>
         ))}
       </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -900,8 +996,18 @@ function PhotoBlock({ block, onEdit }) {
   const caption = content.caption || '';
 
   return (
-    <div>
-      {photo ? (
+    <div style={{ 
+      marginBottom: '32px',
+      padding: '0',
+      paddingLeft: '0',
+      paddingRight: '0'
+    }}>
+      <div style={{
+        padding: '0',
+        paddingLeft: '0',
+        paddingRight: '0'
+      }}>
+        {photo ? (
         <>
           <img 
             src={photo} 
@@ -941,6 +1047,7 @@ function PhotoBlock({ block, onEdit }) {
           No photo
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -957,7 +1064,18 @@ function DividerBlock({ block, onEdit }) {
   };
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ 
+      marginBottom: '32px',
+      padding: '0',
+      paddingLeft: '0',
+      paddingRight: '0'
+    }}>
+      <div style={{
+        padding: '0',
+        paddingLeft: '0',
+        paddingRight: '0'
+      }}>
+        <div style={{ position: 'relative' }}>
       <hr style={{
         border: 'none',
         borderTop: `1px ${borderStyleMap[style]} #e5e7eb`,
@@ -974,6 +1092,8 @@ function DividerBlock({ block, onEdit }) {
         pointerEvents: 'auto',
         zIndex: 0
       }} />
+        </div>
+      </div>
     </div>
   );
 }

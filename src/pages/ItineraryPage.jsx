@@ -2491,7 +2491,7 @@ export default function ItineraryPage() {
 
         {/* Content Blocks - New Format (using BlockRenderer) */}
         {useNewFormat && (
-          <div style={{ maxWidth: '750px', margin: '0 auto', padding: '0 20px' }}>
+          <div style={{ maxWidth: '750px', margin: '0 auto', padding: '0', paddingLeft: '0', paddingRight: '0' }}>
             {/* Determine which blocks to show based on preview mode */}
             {(() => {
               // Check if tour is empty (no blocks)
