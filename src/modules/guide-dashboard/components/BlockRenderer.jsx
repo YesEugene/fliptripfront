@@ -462,10 +462,10 @@ function TitleBlock({ block, onEdit }) {
   return (
     <div style={{ 
       marginBottom: isMobileTitle ? '10px' : '32px',
-      padding: isMobileTitle ? '0 10px' : '0'
+      padding: '0'
     }}>
       <div style={{
-        padding: isMobileTitle ? '20px' : '0'
+        padding: '0'
       }}>
         <h2 style={{
           fontSize: fontSizeMap[size],
@@ -705,10 +705,10 @@ function TextBlock({ block, onEdit }) {
   return (
     <div style={{ 
       marginBottom: isMobile ? '10px' : '32px',
-      padding: isMobile ? '0 10px' : '0'
+      padding: '0'
     }}>
       <div style={{
-        padding: isMobile ? '20px' : '0'
+        padding: '0'
       }}>
       {formatted ? (
         <div 
@@ -756,10 +756,10 @@ function SlideBlock({ block, onEdit }) {
   return (
     <div style={{ 
       marginBottom: isMobileSlide ? '10px' : '32px',
-      padding: isMobileSlide ? '0 10px' : '0'
+      padding: '0'
     }}>
       <div style={{
-        padding: isMobileSlide ? '20px' : '0'
+        padding: '0'
       }}>
         <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '12px' }}>
           {title}
@@ -831,10 +831,10 @@ function ThreeColumnsBlock({ block, onEdit }) {
     return (
       <div style={{ 
         marginBottom: '10px',
-        padding: '0 10px'
+        padding: '0'
       }}>
         <div style={{
-          padding: '20px'
+          padding: '0'
         }}>
           <div style={{
         overflowX: 'auto',
@@ -999,10 +999,10 @@ function PhotoBlock({ block, onEdit }) {
   return (
     <div style={{ 
       marginBottom: isMobilePhoto ? '10px' : '32px',
-      padding: isMobilePhoto ? '0 10px' : '0'
+      padding: '0'
     }}>
       <div style={{
-        padding: isMobilePhoto ? '20px' : '0'
+        padding: '0'
       }}>
         {photo ? (
         <>
@@ -1075,10 +1075,10 @@ function DividerBlock({ block, onEdit }) {
   return (
     <div style={{ 
       marginBottom: isMobileDivider ? '10px' : '32px',
-      padding: isMobileDivider ? '0 10px' : '0'
+      padding: '0'
     }}>
       <div style={{
-        padding: isMobileDivider ? '20px' : '0'
+        padding: '0'
       }}>
         <div style={{ position: 'relative' }}>
       <hr style={{
