@@ -299,9 +299,17 @@ export default function TripVisualizerPage() {
         }
         
         // Determine format from tour data
+        // CRITICAL: Check default_format first, then draft_data.tourSettings
         const defaultFormat = tourObj.default_format;
-        const selfGuided = loadedSettings?.selfGuided ?? (defaultFormat === 'self_guided');
-        const withGuide = loadedSettings?.withGuide ?? (defaultFormat === 'with_guide' || defaultFormat === 'guided');
+        // If default_format is 'with_guide', then withGuide should be true
+        // If default_format is 'self_guided', then selfGuided should be true
+        // But also check draft_data.tourSettings for explicit values
+        const selfGuided = loadedSettings?.selfGuided !== undefined 
+          ? loadedSettings.selfGuided 
+          : (defaultFormat === 'self_guided' || (!defaultFormat || defaultFormat === 'self_guided'));
+        const withGuide = loadedSettings?.withGuide !== undefined 
+          ? loadedSettings.withGuide 
+          : (defaultFormat === 'with_guide' || defaultFormat === 'guided');
         
         const tags = tourObj.tour_tags?.map(tt => tt.tag?.name).filter(Boolean) || [];
         
