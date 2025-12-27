@@ -536,22 +536,28 @@ export default function ItineraryPage() {
       // If using new format (contentBlocks), skip daily_plan processing
       if (hasContentBlocks) {
         console.log('✅ Tour uses new format (contentBlocks), skipping daily_plan processing');
+        // Get filters from URL params or formData
+        const dateFromUrl = searchParams.get('date') || formData.date || new Date().toISOString().slice(0, 10);
+        const budgetFromUrl = searchParams.get('budget') || formData.budget || null;
+        const audienceFromUrl = searchParams.get('audience') || formData.audience || null;
+        const interestsFromUrl = searchParams.get('interests') ? searchParams.get('interests').split(',') : (formData.interests || []);
+        
         // Create minimal itinerary data for new format
         const itineraryData = {
           title: tour.title || 'Tour',
           subtitle: tour.description || `Explore ${cityName} with this curated tour`,
           city: cityName,
-          date: formData.date || new Date().toISOString().slice(0, 10),
-          budget: null,
+          date: dateFromUrl,
+          budget: budgetFromUrl,
           daily_plan: [], // Empty for new format - content comes from contentBlocks
           tourId: tourIdParam,
           preview_media_url: tour.preview_media_url || tour.preview || null,
           tags: {
             city: cityName,
-            date: formData.date || new Date().toISOString().slice(0, 10),
-            audience: null,
-            budget: null,
-            interests: []
+            date: dateFromUrl,
+            audience: audienceFromUrl,
+            budget: budgetFromUrl,
+            interests: interestsFromUrl
           }
         };
         
@@ -1790,7 +1796,7 @@ export default function ItineraryPage() {
             display: 'flex',
             alignItems: 'center'
           }}>
-            Dates
+            {itinerary?.tags?.date || 'Dates'}
           </div>
           
           {/* Budget tag */}
@@ -1805,7 +1811,7 @@ export default function ItineraryPage() {
             display: 'flex',
             alignItems: 'center'
           }}>
-            Budget
+            {itinerary?.tags?.budget ? `${itinerary.tags.budget}€` : 'Budget'}
           </div>
           
           {/* Interests tags - from tourData.tour_tags for new format tours */}
