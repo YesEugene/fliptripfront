@@ -1638,7 +1638,8 @@ export default function ItineraryPage() {
       {/* Hero Image Section with Rounded Corners */}
       <div style={{
         maxWidth: '750px',
-        margin: '0 10px 32px',
+        marginTop: '0',
+        marginBottom: '32px',
         marginLeft: '10px',
         marginRight: '10px',
         padding: '0',
@@ -1738,7 +1739,8 @@ export default function ItineraryPage() {
       {/* Tags Section - Match visualizer exactly */}
       <div style={{ 
         maxWidth: '750px',
-        margin: '-10px 10px 30px',
+        marginTop: '-10px',
+        marginBottom: '30px',
         marginLeft: '10px',
         marginRight: '10px',
         padding: '0',
@@ -1854,9 +1856,8 @@ export default function ItineraryPage() {
           borderRadius: '16px',
           padding: '20px',
           border: '1px solid #D0D0D0',
-          marginBottom: '10px',
           marginTop: '-10px',
-          margin: '-10px 10px 10px',
+          marginBottom: '10px',
           marginLeft: '10px',
           marginRight: '10px'
         }}>
@@ -2128,7 +2129,6 @@ export default function ItineraryPage() {
               maxWidth: '750px',
               marginTop: '10px',
               marginBottom: '30px',
-              margin: '10px 10px 30px',
               marginLeft: '10px',
               marginRight: '10px',
               padding: '0',
@@ -2521,8 +2521,8 @@ export default function ItineraryPage() {
         {useNewFormat && (
           <div style={{ 
             maxWidth: '750px',
-            margin: '40px 10px 0', 
             marginTop: '40px',
+            marginBottom: '0',
             marginLeft: '10px',
             marginRight: '10px',
             padding: '0', 
