@@ -1648,7 +1648,7 @@ export default function ItineraryPage() {
             display: 'flex',
             alignItems: 'flex-start',
             justifyContent: 'flex-start',
-            padding: isMobile ? '20px 10px' : '20px 30px'
+            padding: '20px'
           }}
         >
           {/* Black Gradient Overlay - from black to transparent (top to bottom) */}
