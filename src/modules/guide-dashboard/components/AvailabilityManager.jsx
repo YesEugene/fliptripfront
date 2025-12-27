@@ -348,84 +348,33 @@ export default function AvailabilityManager({ tour, onClose }) {
               )}
             </div>
 
-            <div className="calendar-legend">
-              <div className="legend-item">
-                <div className="legend-color available"></div>
-                <span>Available (3+ spots)</span>
-              </div>
-              <div className="legend-item">
-                <div className="legend-color low-availability"></div>
-                <span>Low availability (&lt;3 spots)</span>
-              </div>
-              <div className="legend-item">
-                <div className="legend-color full"></div>
-                <span>Full (0 spots)</span>
-              </div>
-              <div className="legend-item">
-                <div className="legend-color blocked"></div>
-                <span>Blocked</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Availability Table */}
-          <div className="availability-table-section">
-            <h3>Availability Details</h3>
-            {loading ? (
-              <div className="loading">Loading...</div>
-            ) : availability.length === 0 ? (
-              <p className="no-data">No availability slots set. Select dates and mark them as available.</p>
-            ) : (
-              <table className="availability-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Max Group</th>
-                    <th>Booked</th>
-                    <th>Available</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
+            {/* Show available dates list */}
+            {availability.filter(slot => slot.is_available && !slot.is_blocked).length > 0 && (
+              <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
+                <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px', fontWeight: '500' }}>
+                  Available dates ({availability.filter(slot => slot.is_available && !slot.is_blocked).length}):
+                </div>
+                <div style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '6px'
+                }}>
                   {availability
-                    .sort((a, b) => new Date(a.date) - new Date(b.date))
-                    .map(slot => (
-                      <tr key={slot.id} className={slot.is_blocked ? 'blocked-row' : ''}>
-                        <td>{new Date(slot.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
-                        <td>{slot.max_group_size}</td>
-                        <td>{slot.booked_spots}</td>
-                        <td>{slot.available_spots}</td>
-                        <td>
-                          {slot.is_blocked ? (
-                            <span className="status-badge blocked">Blocked</span>
-                          ) : slot.available_spots === 0 ? (
-                            <span className="status-badge full">Full</span>
-                          ) : (
-                            <span className="status-badge available">Available</span>
-                          )}
-                        </td>
-                        <td>
-                          <button
-                            onClick={async () => {
-                              try {
-                                await updateAvailabilitySlot(slot.id, {
-                                  is_blocked: !slot.is_blocked
-                                });
-                                await loadAvailability();
-                              } catch (err) {
-                                setError(err.message);
-                              }
-                            }}
-                            className="table-action-btn"
-                          >
-                            {slot.is_blocked ? 'Unblock' : 'Block'}
-                          </button>
-                        </td>
-                      </tr>
+                    .filter(slot => slot.is_available && !slot.is_blocked)
+                    .map((slot, idx) => (
+                      <span key={idx} style={{
+                        backgroundColor: '#e0e7ff',
+                        color: '#3b82f6',
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        fontWeight: '500'
+                      }}>
+                        {new Date(slot.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} ({slot.available_spots || slot.max_group_size} spots)
+                      </span>
                     ))}
-                </tbody>
-              </table>
+                </div>
+              </div>
             )}
           </div>
         </div>
