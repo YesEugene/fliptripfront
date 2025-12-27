@@ -1969,7 +1969,6 @@ export default function ItineraryPage() {
                 </div>
               </div>
             </div>
-          </div>
         </div>
       )}
 
