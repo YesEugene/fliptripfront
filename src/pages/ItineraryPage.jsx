@@ -1724,59 +1724,81 @@ export default function ItineraryPage() {
         margin: '-10px auto 30px',
         padding: '0 20px'
       }}>
-        {/* City tag */}
-        <div style={{
-          height: '35px',
-          padding: '0 12px',
-          backgroundColor: '#FFE7CE',
-          color: '#111827',
-          borderRadius: '10px',
-          fontSize: '10px',
-          fontWeight: '500',
-          display: 'flex',
-          alignItems: 'center'
-        }}>
-          {itinerary?.tags?.city || formData.city || tourData?.city?.name || (typeof tourData?.city === 'string' ? tourData.city : 'City')}
-        </div>
-        
-        {/* Date tag */}
-        <div style={{
-          height: '35px',
-          padding: '0 12px',
-          backgroundColor: '#CFF2FF',
-          color: '#111827',
-          borderRadius: '10px',
-          fontSize: '10px',
-          fontWeight: '500',
-          display: 'flex',
-          alignItems: 'center'
-        }}>
-          Dates
-        </div>
-        
-        {/* Budget tag */}
-        <div style={{
-          height: '35px',
-          padding: '0 12px',
-          backgroundColor: '#CFFFE1',
-          color: '#111827',
-          borderRadius: '10px',
-          fontSize: '10px',
-          fontWeight: '500',
-          display: 'flex',
-          alignItems: 'center'
-        }}>
-          Budget
-        </div>
-        
-        {/* Interests tags - from tourData.tour_tags for new format tours */}
-        {useNewFormat && tourData?.tour_tags && tourData.tour_tags.length > 0 ? (
-          tourData.tour_tags.map((tt, idx) => {
-            const interest = tt.interest;
-            if (!interest) return null;
-            return (
+          {/* City tag */}
+          <div style={{
+            height: '35px',
+            padding: '0 12px',
+            backgroundColor: '#FFE7CE',
+            color: '#111827',
+            borderRadius: '10px',
+            fontSize: '10px',
+            fontWeight: '500',
+            display: 'flex',
+            alignItems: 'center'
+          }}>
+            {itinerary?.tags?.city || formData.city || tourData?.city?.name || (typeof tourData?.city === 'string' ? tourData.city : 'City')}
+          </div>
+          
+          {/* Date tag */}
+          <div style={{
+            height: '35px',
+            padding: '0 12px',
+            backgroundColor: '#CFF2FF',
+            color: '#111827',
+            borderRadius: '10px',
+            fontSize: '10px',
+            fontWeight: '500',
+            display: 'flex',
+            alignItems: 'center'
+          }}>
+            Dates
+          </div>
+          
+          {/* Budget tag */}
+          <div style={{
+            height: '35px',
+            padding: '0 12px',
+            backgroundColor: '#CFFFE1',
+            color: '#111827',
+            borderRadius: '10px',
+            fontSize: '10px',
+            fontWeight: '500',
+            display: 'flex',
+            alignItems: 'center'
+          }}>
+            Budget
+          </div>
+          
+          {/* Interests tags - from tourData.tour_tags for new format tours */}
+          {useNewFormat && tourData?.tour_tags && tourData.tour_tags.length > 0 ? (
+            tourData.tour_tags.map((tt, idx) => {
+              const interest = tt.interest;
+              if (!interest) return null;
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    height: '35px',
+                    padding: '0 12px',
+                    backgroundColor: 'white',
+                    color: '#111827',
+                    borderRadius: '10px',
+                    fontSize: '10px',
+                    fontWeight: '500',
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: '1px solid #DEDEDE'
+                  }}
+                >
+                  {interest.name}
+                </div>
+              );
+            })
+          ) : (
+            // Fallback: show from itinerary.tags.interests or formData.interests
+            (itinerary?.tags?.interests && itinerary.tags.interests.length > 0 ? itinerary.tags.interests : (formData.interests || [])).map((interest, index) => (
               <div
-                key={idx}
+                key={index}
                 style={{
                   height: '35px',
                   padding: '0 12px',
@@ -1790,32 +1812,11 @@ export default function ItineraryPage() {
                   border: '1px solid #DEDEDE'
                 }}
               >
-                {interest.name}
+                {interest}
               </div>
-            );
-          })
-        ) : (
-          // Fallback: show from itinerary.tags.interests or formData.interests
-          (itinerary?.tags?.interests && itinerary.tags.interests.length > 0 ? itinerary.tags.interests : (formData.interests || [])).map((interest, index) => (
-            <div
-              key={index}
-              style={{
-                height: '35px',
-                padding: '0 12px',
-                backgroundColor: 'white',
-                color: '#111827',
-                borderRadius: '10px',
-                fontSize: '10px',
-                fontWeight: '500',
-                display: 'flex',
-                alignItems: 'center',
-                border: '1px solid #DEDEDE'
-              }}
-            >
-              {interest}
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
       </div>
 
       {/* From author block - Show only if using new format (contentBlocks) - Match visualizer exactly */}
@@ -2099,14 +2100,17 @@ export default function ItineraryPage() {
               marginBottom: '24px',
               maxWidth: '750px',
               margin: '24px auto',
-              padding: isMobile ? '0 10px' : '0 20px'
+              padding: '0',
+              paddingLeft: '0',
+              paddingRight: '0'
             }}>
               {/* Choose type of your trip - with calendar on side for desktop when With Guide is selected */}
               <div className="payment-cards-container" style={{
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
                 gap: '20px',
-                marginBottom: '0'
+                marginBottom: '0',
+                margin: isMobile ? '0 10px' : '0 20px'
               }}>
                 {/* Left Card: Choose type of your trip */}
                 <div style={{
