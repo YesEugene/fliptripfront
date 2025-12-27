@@ -2626,7 +2626,7 @@ export default function ItineraryPage() {
                       }}>
                         <div className="payment-cards-container" style={{
                           display: 'grid',
-                          gridTemplateColumns: '1fr 1fr',
+                          gridTemplateColumns: '1fr',
                           gap: '20px',
                           marginBottom: '0',
                           margin: '0',
