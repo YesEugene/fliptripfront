@@ -1967,7 +1967,7 @@ export default function ItineraryPage() {
         </div>
       )}
 
-      <div className="content-section">
+      <div className="content-section" style={{ padding: '0' }}>
         {/* Subtitle Card - Description only - Show only if using old format */}
         {!useNewFormat && (
           <div className="enhanced-card">
