@@ -2589,17 +2589,25 @@ export default function ItineraryPage() {
                     const currentPrice = tourType === 'with-guide' ? basePrice * quantity : basePrice;
                     
                     return (
-                      <div id="unlock-full-itinerary" style={{
-                        backgroundColor: '#f9fafb',
-                        borderRadius: '12px',
-                        padding: '24px 20px',
-                        border: '1px solid #e5e7eb',
-                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                        marginTop: '32px',
-                        marginBottom: '0',
+                      <div style={{
                         maxWidth: '750px',
-                        margin: '32px auto 0'
+                        margin: '32px auto 0',
+                        padding: '0',
+                        paddingLeft: '0',
+                        paddingRight: '0'
                       }}>
+                        <div id="unlock-full-itinerary" style={{
+                          backgroundColor: '#f9fafb',
+                          borderRadius: '12px',
+                          padding: '24px 20px',
+                          border: '1px solid #e5e7eb',
+                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                          marginTop: '0',
+                          marginBottom: '0',
+                          margin: '0',
+                          paddingLeft: '0',
+                          paddingRight: '0'
+                        }}>
                         <h4 style={{
                           fontSize: '21px',
                           fontWeight: '600',
@@ -2869,16 +2877,25 @@ export default function ItineraryPage() {
               const currentPrice = tourType === 'with-guide' ? basePrice * quantity : basePrice;
               
               return (
-                <div id="unlock-full-itinerary" style={{
-                  backgroundColor: '#f9fafb',
-                  borderRadius: '12px',
-                  padding: '24px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                  marginTop: '32px',
-                  marginBottom: '0',
-                  width: '100%'
+                <div style={{
+                  maxWidth: '750px',
+                  margin: '32px auto 0',
+                  padding: '0',
+                  paddingLeft: '0',
+                  paddingRight: '0'
                 }}>
+                  <div id="unlock-full-itinerary" style={{
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '12px',
+                    padding: '24px 20px',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                    marginTop: '0',
+                    marginBottom: '0',
+                    margin: '0',
+                    paddingLeft: '0',
+                    paddingRight: '0'
+                  }}>
                   <h4 style={{
                     fontSize: '21px',
                     fontWeight: '600',
@@ -2973,6 +2990,7 @@ export default function ItineraryPage() {
                     >
                       {processingPayment ? 'Processing...' : 'Proceed to payment'}
                     </button>
+                  </div>
                   </div>
                 </div>
               );
