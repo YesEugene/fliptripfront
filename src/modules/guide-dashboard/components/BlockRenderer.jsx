@@ -740,14 +740,26 @@ function SlideBlock({ block, onEdit }) {
   const title = content.title || 'Slide Title';
   const photo = content.photo;
   const text = content.text || 'Slide description text';
+  const [isMobileSlide, setIsMobileSlide] = useState(false);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobileSlide(window.innerWidth < 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   return (
     <div style={{ 
-      marginBottom: '32px',
-      padding: '0'
+      marginBottom: isMobileSlide ? '10px' : '32px',
+      padding: isMobileSlide ? '0 10px' : '0'
     }}>
       <div style={{
-        padding: '0'
+        padding: isMobileSlide ? '20px' : '0'
       }}>
         <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '12px' }}>
           {title}
@@ -1041,6 +1053,18 @@ function PhotoBlock({ block, onEdit }) {
 function DividerBlock({ block, onEdit }) {
   const content = block.content || {};
   const style = content.style || 'solid';
+  const [isMobileDivider, setIsMobileDivider] = useState(false);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobileDivider(window.innerWidth < 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   const borderStyleMap = {
     solid: 'solid',
@@ -1050,11 +1074,11 @@ function DividerBlock({ block, onEdit }) {
 
   return (
     <div style={{ 
-      marginBottom: '32px',
-      padding: '0'
+      marginBottom: isMobileDivider ? '10px' : '32px',
+      padding: isMobileDivider ? '0 10px' : '0'
     }}>
       <div style={{
-        padding: '0'
+        padding: isMobileDivider ? '20px' : '0'
       }}>
         <div style={{ position: 'relative' }}>
       <hr style={{
