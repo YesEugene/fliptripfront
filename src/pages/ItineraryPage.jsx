@@ -1620,8 +1620,8 @@ export default function ItineraryPage() {
         margin: '0 auto',
         padding: '0',
         marginBottom: '32px',
-        paddingLeft: '0',
-        paddingRight: '0'
+        paddingLeft: isMobile ? '10px' : '0',
+        paddingRight: isMobile ? '10px' : '0'
       }}>
         <div 
           style={{
@@ -1832,7 +1832,9 @@ export default function ItineraryPage() {
           marginBottom: '40px',
           marginTop: '-10px',
           maxWidth: '750px',
-          margin: '-10px auto 40px'
+          margin: isMobile ? '-10px 10px 40px' : '-10px auto 40px',
+          marginLeft: isMobile ? '10px' : 'auto',
+          marginRight: isMobile ? '10px' : 'auto'
         }}>
             {/* Avatar section - always on top */}
             <div style={{ 
