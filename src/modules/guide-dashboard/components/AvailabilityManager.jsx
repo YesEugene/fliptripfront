@@ -100,6 +100,12 @@ export default function AvailabilityManager({ tour, onClose }) {
       return;
     }
 
+    // Validate group size
+    if (!defaultGroupSize || defaultGroupSize < 1) {
+      setError('Please enter a valid number of available spots (at least 1)');
+      return;
+    }
+
     try {
       setSaving(true);
       setError('');
@@ -123,7 +129,8 @@ export default function AvailabilityManager({ tour, onClose }) {
     }
   };
 
-  const handleBlockDates = async () => {
+  // Clear availability for selected dates (remove them from available dates)
+  const handleClearAvailability = async () => {
     if (selectedDates.length === 0) {
       setError('Please select dates');
       return;
@@ -134,36 +141,20 @@ export default function AvailabilityManager({ tour, onClose }) {
       setError('');
       setSuccess('');
 
-      const dates = selectedDates.map(d => formatDate(d));
-      await bulkBlockDates(tour.id, dates, true);
-      setSuccess(`Blocked ${selectedDates.length} date(s)`);
+      // Update slots to be unavailable (is_available = false)
+      const slots = selectedDates.map(date => ({
+        date: formatDate(date),
+        max_group_size: defaultGroupSize,
+        is_available: false,
+        is_blocked: false
+      }));
+
+      await updateAvailabilitySlots(tour.id, slots);
+      setSuccess(`Cleared availability for ${selectedDates.length} date(s)`);
       setSelectedDates([]);
       await loadAvailability();
     } catch (err) {
-      setError(err.message || 'Failed to block dates');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleUnblockDates = async () => {
-    if (selectedDates.length === 0) {
-      setError('Please select dates');
-      return;
-    }
-
-    try {
-      setSaving(true);
-      setError('');
-      setSuccess('');
-
-      const dates = selectedDates.map(d => formatDate(d));
-      await bulkBlockDates(tour.id, dates, false);
-      setSuccess(`Unblocked ${selectedDates.length} date(s)`);
-      setSelectedDates([]);
-      await loadAvailability();
-    } catch (err) {
-      setError(err.message || 'Failed to unblock dates');
+      setError(err.message || 'Failed to clear availability');
     } finally {
       setSaving(false);
     }
@@ -227,17 +218,12 @@ export default function AvailabilityManager({ tour, onClose }) {
       if (isSelected) className += ' selected';
       
       // Color coding based on availability
-      if (slot) {
-        if (slot.is_blocked) {
-          className += ' blocked';
-        } else if (!slot.is_available || slot.available_spots === 0) {
-          className += ' full';
-        } else if (slot.available_spots < 3) {
-          className += ' low-availability';
-        } else {
-          className += ' available';
-        }
+      // Only show green if date is available (is_available = true and not blocked)
+      // Empty dates (no slot) = white (unavailable)
+      if (slot && slot.is_available && !slot.is_blocked) {
+        className += ' available';
       }
+      // All other cases (blocked, not available, or no slot) remain default (white)
 
       days.push(
         <button
@@ -304,54 +290,66 @@ export default function AvailabilityManager({ tour, onClose }) {
         <div className="availability-manager-content">
           {/* Settings Panel */}
           <div className="availability-settings">
+            {/* Input for number of available spots */}
             <div className="setting-group">
-              <label>Default Group Size:</label>
+              <label>Number of available spots:</label>
               <input
                 type="number"
                 min="1"
                 max="100"
                 value={defaultGroupSize}
-                onChange={(e) => setDefaultGroupSize(parseInt(e.target.value) || 10)}
+                onChange={(e) => setDefaultGroupSize(parseInt(e.target.value) || 1)}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box',
+                  marginBottom: '12px'
+                }}
+                placeholder="Enter number of spots"
               />
-              <button
-                onClick={handleApplyDefaultGroupSize}
-                disabled={selectedDates.length === 0 || saving}
-                className="apply-btn"
-              >
-                Apply to Selected Dates
-              </button>
             </div>
 
             <div className="setting-group">
               <label>Selected Dates: {selectedDates.length}</label>
-              <div className="action-buttons">
+              <div className="action-buttons" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <button
                   onClick={handleMarkAsAvailable}
-                  disabled={selectedDates.length === 0 || saving}
+                  disabled={selectedDates.length === 0 || saving || !defaultGroupSize || defaultGroupSize < 1}
                   className="action-btn available"
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    backgroundColor: '#10b981',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: (selectedDates.length === 0 || saving || !defaultGroupSize || defaultGroupSize < 1) ? 'not-allowed' : 'pointer',
+                    fontSize: '13px',
+                    opacity: (selectedDates.length === 0 || saving || !defaultGroupSize || defaultGroupSize < 1) ? 0.6 : 1
+                  }}
                 >
                   Mark as Available
                 </button>
                 <button
-                  onClick={handleBlockDates}
+                  onClick={handleClearAvailability}
                   disabled={selectedDates.length === 0 || saving}
-                  className="action-btn block"
-                >
-                  Block Dates
-                </button>
-                <button
-                  onClick={handleUnblockDates}
-                  disabled={selectedDates.length === 0 || saving}
-                  className="action-btn unblock"
-                >
-                  Unblock Dates
-                </button>
-                <button
-                  onClick={() => setSelectedDates([])}
-                  disabled={selectedDates.length === 0}
                   className="action-btn clear"
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    backgroundColor: '#6b7280',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: (selectedDates.length === 0 || saving) ? 'not-allowed' : 'pointer',
+                    fontSize: '13px',
+                    opacity: (selectedDates.length === 0 || saving) ? 0.6 : 1
+                  }}
                 >
-                  Clear Selection
+                  Clear Availability
                 </button>
               </div>
             </div>

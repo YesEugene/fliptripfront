@@ -315,7 +315,17 @@ export default function TripVisualizerPage() {
           ? loadedSettings.withGuide 
           : (defaultFormat === 'with_guide' || defaultFormat === 'guided');
         
-        const tags = tourObj.tour_tags?.map(tt => tt.tag?.name).filter(Boolean) || [];
+        // Extract interest IDs from tour_tags (new system uses interests, not legacy tags)
+        const interestIds = tourObj.tour_tags?.map(tt => {
+          const id = tt.interest?.id || tt.interest_id;
+          return id ? String(id) : null;
+        }).filter(Boolean) || [];
+        
+        console.log('📋 Loading interests from tour:', { 
+          tourTags: tourObj.tour_tags, 
+          interestIds,
+          count: interestIds.length 
+        });
         
         // Load availability dates if tour has guide format
         let availableDates = [];
@@ -356,8 +366,18 @@ export default function TripVisualizerPage() {
             platformOptions: loadedSettings?.additionalOptions?.platformOptions ?? ['insurance', 'accommodation'],
             creatorOptions: loadedSettings?.additionalOptions?.creatorOptions ?? {}
           },
-          tags: loadedSettings?.tags ?? tags
+          tags: loadedSettings?.tags ?? interestIds
         });
+        
+        // CRITICAL: Set tourInfo.tags from loaded interests
+        setTourInfo(prev => ({
+          ...prev,
+          city: tourObj.city?.name || prev.city,
+          title: tourObj.title || prev.title,
+          description: tourObj.description || prev.description,
+          preview: tourObj.preview || prev.preview,
+          tags: interestIds.length > 0 ? interestIds : (loadedSettings?.tags || prev.tags || [])
+        }));
       }
 
       // Load content blocks (ignore errors if table doesn't exist yet)
