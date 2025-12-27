@@ -2579,7 +2579,7 @@ export default function ItineraryPage() {
                     <div 
                       key={block.id} 
                       style={{ 
-                        marginBottom: isMobile ? '10px' : '54px',
+                        marginBottom: '30px',
                         padding: '0'
                       }}
                     >
