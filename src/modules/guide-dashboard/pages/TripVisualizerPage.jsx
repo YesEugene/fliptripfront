@@ -115,7 +115,7 @@ export default function TripVisualizerPage() {
 
   // Tour settings state
   const [tourSettings, setTourSettings] = useState({
-    selfGuided: false, // Self-guided is now optional
+    selfGuided: true, // Default: Self-guided is always enabled by default
     withGuide: false,
     price: {
       pdfPrice: 16,
@@ -299,14 +299,18 @@ export default function TripVisualizerPage() {
         }
         
         // Determine format from tour data
-        // CRITICAL: Check default_format first, then draft_data.tourSettings
+        // CRITICAL: Always check draft_data.tourSettings first for explicit saved values
+        // If not found, use default_format from DB
+        // Default: selfGuided = true (always enabled by default)
         const defaultFormat = tourObj.default_format;
-        // If default_format is 'with_guide', then withGuide should be true
-        // If default_format is 'self_guided', then selfGuided should be true
-        // But also check draft_data.tourSettings for explicit values
+        
+        // Load explicit saved settings from draft_data.tourSettings
+        // If settings exist, use them exactly as saved
+        // If not, infer from default_format, but default to selfGuided = true
         const selfGuided = loadedSettings?.selfGuided !== undefined 
           ? loadedSettings.selfGuided 
-          : (defaultFormat === 'self_guided' || (!defaultFormat || defaultFormat === 'self_guided'));
+          : (defaultFormat !== 'with_guide' && defaultFormat !== 'guided'); // Default to true unless explicitly with_guide
+        
         const withGuide = loadedSettings?.withGuide !== undefined 
           ? loadedSettings.withGuide 
           : (defaultFormat === 'with_guide' || defaultFormat === 'guided');
