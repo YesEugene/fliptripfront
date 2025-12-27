@@ -2587,8 +2587,8 @@ export default function ItineraryPage() {
                     return (
                       <div style={{
                         width: '100%',
-                        margin: '32px 0 0',
-                        padding: '0',
+                        margin: isMobile ? '10px 0 0' : '32px 0 0',
+                        padding: isMobile ? '0 10px' : '0',
                         paddingLeft: '0',
                         paddingRight: '0',
                         marginLeft: '0',
@@ -2609,7 +2609,7 @@ export default function ItineraryPage() {
                           <div id="unlock-full-itinerary" style={{
                             backgroundColor: '#f9fafb',
                             borderRadius: '12px',
-                            padding: '24px',
+                            padding: isMobile ? '20px' : '24px',
                             border: '1px solid #e5e7eb',
                             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                             margin: '0',
