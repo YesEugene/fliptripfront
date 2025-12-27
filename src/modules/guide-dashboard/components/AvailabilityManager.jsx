@@ -160,37 +160,6 @@ export default function AvailabilityManager({ tour, onClose }) {
     }
   };
 
-  const handleApplyDefaultGroupSize = async () => {
-    if (selectedDates.length === 0) {
-      setError('Please select dates');
-      return;
-    }
-
-    try {
-      setSaving(true);
-      setError('');
-      setSuccess('');
-
-      const slots = selectedDates.map(date => {
-        const existing = getSlotForDate(date);
-        return {
-          date: formatDate(date),
-          max_group_size: defaultGroupSize,
-          is_available: existing ? existing.is_available : true,
-          is_blocked: existing ? existing.is_blocked : false
-        };
-      });
-
-      await updateAvailabilitySlots(tour.id, slots);
-      setSuccess(`Applied group size ${defaultGroupSize} to ${selectedDates.length} date(s)`);
-      setSelectedDates([]);
-      await loadAvailability();
-    } catch (err) {
-      setError(err.message || 'Failed to apply group size');
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const renderDays = () => {
     const daysInMonth = getDaysInMonth(currentMonth, currentYear);
