@@ -1638,9 +1638,9 @@ export default function ItineraryPage() {
       {/* Hero Image Section with Rounded Corners */}
       <div style={{
         maxWidth: '750px',
-        margin: isMobile ? '0 10px 32px' : '0 auto 32px',
-        marginLeft: isMobile ? '10px' : 'auto',
-        marginRight: isMobile ? '10px' : 'auto',
+        margin: '0 10px 32px',
+        marginLeft: '10px',
+        marginRight: '10px',
         padding: '0',
         marginBottom: '32px'
       }}>
@@ -1737,9 +1737,9 @@ export default function ItineraryPage() {
       {/* Tags Section - Match visualizer exactly */}
       <div style={{ 
         maxWidth: '750px',
-        margin: isMobile ? '-10px 10px 30px' : '-10px auto 30px',
-        marginLeft: isMobile ? '10px' : 'auto',
-        marginRight: isMobile ? '10px' : 'auto',
+        margin: '-10px 10px 30px',
+        marginLeft: '10px',
+        marginRight: '10px',
         padding: '0',
         paddingLeft: '0',
         paddingRight: '0'
@@ -1748,7 +1748,7 @@ export default function ItineraryPage() {
           display: 'flex', 
           gap: '10px', 
           flexWrap: 'wrap',
-          margin: isMobile ? '0' : '0 20px'
+          margin: '0'
         }}>
           {/* City tag */}
           <div style={{
@@ -1852,12 +1852,12 @@ export default function ItineraryPage() {
           borderRadius: '16px',
           padding: '20px',
           border: '1px solid #D0D0D0',
-          marginBottom: isMobile ? '10px' : '40px',
+          marginBottom: '10px',
           marginTop: '-10px',
           maxWidth: '750px',
-          margin: isMobile ? '-10px 10px 10px' : '-10px auto 40px',
-          marginLeft: isMobile ? '10px' : 'auto',
-          marginRight: isMobile ? '10px' : 'auto'
+          margin: '-10px 10px 10px',
+          marginLeft: '10px',
+          marginRight: '10px'
         }}>
             {/* Avatar section - always on top */}
             <div style={{ 
@@ -2124,12 +2124,12 @@ export default function ItineraryPage() {
           
           return (
             <div style={{
-              marginTop: isMobile ? '10px' : '24px',
-              marginBottom: isMobile ? '30px' : '24px',
+              marginTop: '10px',
+              marginBottom: '30px',
               maxWidth: '750px',
-              margin: isMobile ? '10px 10px 30px' : '24px auto',
-              marginLeft: isMobile ? '10px' : 'auto',
-              marginRight: isMobile ? '10px' : 'auto',
+              margin: '10px 10px 30px',
+              marginLeft: '10px',
+              marginRight: '10px',
               padding: '0',
               paddingLeft: '0',
               paddingRight: '0'
@@ -2149,7 +2149,7 @@ export default function ItineraryPage() {
                 <div style={{
                   backgroundColor: 'white',
                   borderRadius: '12px',
-                  padding: isMobile ? '20px' : '24px',
+                  padding: '20px',
                   border: '1px solid #e5e7eb',
                   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                 }}>
@@ -2520,10 +2520,10 @@ export default function ItineraryPage() {
         {useNewFormat && (
           <div style={{ 
             maxWidth: '750px', 
-            margin: isMobile ? '40px 10px 0' : '40px auto 0', 
+            margin: '40px 10px 0', 
             marginTop: '40px',
-            marginLeft: isMobile ? '10px' : 'auto',
-            marginRight: isMobile ? '10px' : 'auto',
+            marginLeft: '10px',
+            marginRight: '10px',
             padding: '0', 
             paddingLeft: '0', 
             paddingRight: '0' 
@@ -2536,13 +2536,13 @@ export default function ItineraryPage() {
                   <div style={{
                     backgroundColor: '#f9fafb',
                     borderRadius: '12px',
-                    padding: isMobile ? '48px 20px' : '48px 24px',
+                    padding: '48px 20px',
                     textAlign: 'center',
                     marginTop: '32px',
                     marginBottom: '32px',
                     border: '1px solid #e5e7eb',
-                    marginLeft: isMobile ? '10px' : '0',
-                    marginRight: isMobile ? '10px' : '0'
+                    marginLeft: '10px',
+                    marginRight: '10px'
                   }}>
                     <div style={{
                       fontSize: '48px',
@@ -2624,10 +2624,10 @@ export default function ItineraryPage() {
                     
                     return (
                       <div style={{
-                        marginTop: isMobile ? '10px' : '24px',
-                        marginBottom: isMobile ? '10px' : '24px',
+                        marginTop: '10px',
+                        marginBottom: '10px',
                         width: '100%',
-                        margin: isMobile ? '10px 0' : '24px 0',
+                        margin: '10px 0',
                         marginLeft: '0',
                         marginRight: '0',
                         padding: '0',
@@ -2950,16 +2950,16 @@ export default function ItineraryPage() {
                     paddingLeft: '0',
                     paddingRight: '0'
                   }}>
-                    <div id="unlock-full-itinerary" style={{
-                      backgroundColor: '#f9fafb',
-                      borderRadius: '12px',
-                      padding: isMobile ? '20px' : '24px',
-                      border: '1px solid #e5e7eb',
-                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                      margin: '0',
-                      marginLeft: '0',
-                      marginRight: '0'
-                    }}>
+                          <div id="unlock-full-itinerary" style={{
+                            backgroundColor: '#f9fafb',
+                            borderRadius: '12px',
+                            padding: '20px',
+                            border: '1px solid #e5e7eb',
+                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                            margin: '0',
+                            marginLeft: '0',
+                            marginRight: '0'
+                          }}>
                   <h4 style={{
                     fontSize: '21px',
                     fontWeight: '600',
