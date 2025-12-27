@@ -2146,7 +2146,7 @@ export default function ItineraryPage() {
                 <div style={{
                   backgroundColor: 'white',
                   borderRadius: '12px',
-                  padding: '20px',
+                  padding: '0px',
                   border: '1px solid #e5e7eb',
                   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                 }}>
