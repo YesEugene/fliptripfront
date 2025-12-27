@@ -505,10 +505,10 @@ function PhotoTextBlock({ block, onEdit }) {
     return (
       <div style={{ 
         marginBottom: '10px',
-        padding: '0 10px'
+        padding: '0'
       }}>
         <div style={{
-          padding: '20px'
+          padding: '0'
         }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div>
