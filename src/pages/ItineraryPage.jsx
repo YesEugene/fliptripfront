@@ -3095,6 +3095,7 @@ export default function ItineraryPage() {
 
         {/* Footer */}
         <div className="footer-enhanced" style={{
+          display: 'none',
           marginLeft: isMobile ? '10px' : '0',
           marginRight: isMobile ? '10px' : '0'
         }}>
