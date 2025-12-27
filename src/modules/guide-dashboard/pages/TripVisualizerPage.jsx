@@ -1980,7 +1980,7 @@ export default function TripVisualizerPage() {
         {blocks.map((block, index) => (
           <div 
             key={block.id} 
-            style={{ marginBottom: '54px', position: 'relative' }}
+            style={{ marginBottom: '40px', position: 'relative' }}
             onMouseEnter={(e) => {
               const controls = e.currentTarget.querySelector('.block-controls');
               if (controls) controls.style.display = 'flex';
