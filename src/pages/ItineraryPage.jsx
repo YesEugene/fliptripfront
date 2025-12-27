@@ -1638,10 +1638,7 @@ export default function ItineraryPage() {
       {/* Hero Image Section with Rounded Corners */}
       <div style={{
         maxWidth: '750px',
-        marginTop: '0',
-        marginBottom: '32px',
-        marginLeft: '10px',
-        marginRight: '10px',
+        margin: '0 auto 32px',
         padding: '0',
         paddingLeft: '0',
         paddingRight: '0'
@@ -1739,10 +1736,7 @@ export default function ItineraryPage() {
       {/* Tags Section - Match visualizer exactly */}
       <div style={{ 
         maxWidth: '750px',
-        marginTop: '-10px',
-        marginBottom: '30px',
-        marginLeft: '10px',
-        marginRight: '10px',
+        margin: '-10px auto 30px',
         padding: '0',
         paddingLeft: '0',
         paddingRight: '0'
@@ -1856,10 +1850,7 @@ export default function ItineraryPage() {
           borderRadius: '16px',
           padding: '20px',
           border: '1px solid #D0D0D0',
-          marginTop: '-10px',
-          marginBottom: '10px',
-          marginLeft: '10px',
-          marginRight: '10px'
+          margin: '-10px auto 10px'
         }}>
             {/* Avatar section - always on top */}
             <div style={{ 
@@ -2127,10 +2118,7 @@ export default function ItineraryPage() {
           return (
             <div style={{
               maxWidth: '750px',
-              marginTop: '10px',
-              marginBottom: '30px',
-              marginLeft: '10px',
-              marginRight: '10px',
+              margin: '10px auto 30px',
               padding: '0',
               paddingLeft: '0',
               paddingRight: '0'
@@ -2521,10 +2509,7 @@ export default function ItineraryPage() {
         {useNewFormat && (
           <div style={{ 
             maxWidth: '750px',
-            marginTop: '40px',
-            marginBottom: '0',
-            marginLeft: '10px',
-            marginRight: '10px',
+            margin: '40px auto 0',
             padding: '0', 
             paddingLeft: '0', 
             paddingRight: '0' 
@@ -2626,12 +2611,8 @@ export default function ItineraryPage() {
                     return (
                       <div style={{
                         maxWidth: '750px',
-                        marginTop: '10px',
-                        marginBottom: '10px',
+                        margin: '10px auto',
                         width: '100%',
-                        margin: '10px 10px',
-                        marginLeft: '10px',
-                        marginRight: '10px',
                         padding: '0',
                         paddingLeft: '0',
                         paddingRight: '0'
@@ -2934,12 +2915,10 @@ export default function ItineraryPage() {
                 <div style={{
                   maxWidth: '750px',
                   width: '100%',
-                  margin: '10px 10px 0',
+                  margin: '10px auto 0',
                   padding: '0',
                   paddingLeft: '0',
-                  paddingRight: '0',
-                  marginLeft: '10px',
-                  marginRight: '10px'
+                  paddingRight: '0'
                 }}>
                   <div className="payment-cards-container" style={{
                     display: 'grid',
