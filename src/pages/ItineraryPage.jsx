@@ -1841,7 +1841,7 @@ export default function ItineraryPage() {
         <div style={{
           backgroundColor: 'white',
           borderRadius: '16px',
-          padding: isMobile ? '24px 10px' : '32px 20px',
+          padding: '20px',
           border: '1px solid #D0D0D0',
           marginBottom: '40px',
           marginTop: '-10px',
