@@ -2711,28 +2711,30 @@ export default function TripVisualizerPage() {
                             </button>
                           </div>
 
-                          {(tourSettings.price.availableDates && tourSettings.price.availableDates.length > 0) && (
+                          {availabilitySlots.filter(slot => slot.is_available && !slot.is_blocked).length > 0 && (
                             <div style={{ marginTop: '12px' }}>
                               <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px' }}>
-                                Available dates ({tourSettings.price.availableDates.length}):
+                                Available dates ({availabilitySlots.filter(slot => slot.is_available && !slot.is_blocked).length}):
                               </div>
                               <div style={{
                                 display: 'flex',
                                 flexWrap: 'wrap',
                                 gap: '6px'
                               }}>
-                                {tourSettings.price.availableDates.map((dateStr, idx) => (
-                                  <span key={idx} style={{
-                                    backgroundColor: '#e0e7ff',
-                                    color: '#3b82f6',
-                                    padding: '4px 8px',
-                                    borderRadius: '4px',
-                                    fontSize: '12px',
-                                    fontWeight: '500'
-                                  }}>
-                                    {new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                  </span>
-                                ))}
+                                {availabilitySlots
+                                  .filter(slot => slot.is_available && !slot.is_blocked)
+                                  .map((slot, idx) => (
+                                    <span key={idx} style={{
+                                      backgroundColor: '#e0e7ff',
+                                      color: '#3b82f6',
+                                      padding: '4px 8px',
+                                      borderRadius: '4px',
+                                      fontSize: '12px',
+                                      fontWeight: '500'
+                                    }}>
+                                      {new Date(slot.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} ({slot.available_spots || slot.max_group_size} spots)
+                                    </span>
+                                  ))}
                               </div>
                             </div>
                           )}
