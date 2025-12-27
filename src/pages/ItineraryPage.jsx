@@ -1649,8 +1649,8 @@ export default function ItineraryPage() {
         boxSizing: 'border-box',
         marginTop: '0',
         marginBottom: '32px',
-        marginLeft: isMobile ? '10px' : '0',
-        marginRight: isMobile ? '10px' : '0',
+        marginLeft: '0',
+        marginRight: '0',
         padding: '0',
         paddingLeft: '0',
         paddingRight: '0'
@@ -1751,8 +1751,8 @@ export default function ItineraryPage() {
         boxSizing: 'border-box',
         marginTop: '-10px',
         marginBottom: '30px',
-        marginLeft: isMobile ? '10px' : '0',
-        marginRight: isMobile ? '10px' : '0',
+        marginLeft: '0',
+        marginRight: '0',
         padding: '0',
         paddingLeft: '0',
         paddingRight: '0'
@@ -1869,8 +1869,8 @@ export default function ItineraryPage() {
           border: '1px solid #D0D0D0',
           marginTop: '-10px',
           marginBottom: '10px',
-          marginLeft: isMobile ? '10px' : '0',
-          marginRight: isMobile ? '10px' : '0'
+          marginLeft: '0',
+          marginRight: '0'
         }}>
             {/* Avatar section - always on top */}
             <div style={{ 
@@ -2141,8 +2141,8 @@ export default function ItineraryPage() {
               boxSizing: 'border-box',
               marginTop: isMobile ? '10px' : '0px',
               marginBottom: '30px',
-              marginLeft: isMobile ? '10px' : '-20px',
-              marginRight: isMobile ? '10px' : '-20px',
+              marginLeft: isMobile ? '0' : '-20px',
+              marginRight: isMobile ? '0' : '-20px',
               padding: '0',
               paddingLeft: '0',
               paddingRight: '0'
@@ -2541,8 +2541,8 @@ export default function ItineraryPage() {
             boxSizing: 'border-box',
             marginTop: '40px',
             marginBottom: '0',
-            marginLeft: isMobile ? '10px' : '-20px',
-            marginRight: isMobile ? '10px' : '-20px',
+            marginLeft: isMobile ? '0' : '-20px',
+            marginRight: isMobile ? '0' : '-20px',
             padding: '0', 
             paddingLeft: '0', 
             paddingRight: '0'
@@ -2648,8 +2648,8 @@ export default function ItineraryPage() {
                         boxSizing: 'border-box',
                         marginTop: isMobile ? '10px' : '0px',
                         marginBottom: '30px',
-                        marginLeft: isMobile ? '10px' : '0',
-                        marginRight: isMobile ? '10px' : '0',
+                        marginLeft: '0',
+                        marginRight: '0',
                         padding: '0',
                         paddingLeft: '0',
                         paddingRight: '0'
@@ -2959,8 +2959,8 @@ export default function ItineraryPage() {
                   boxSizing: 'border-box',
                   marginTop: isMobile ? '10px' : '0px',
                   marginBottom: '30px',
-                  marginLeft: isMobile ? '10px' : '0',
-                  marginRight: isMobile ? '10px' : '0',
+                  marginLeft: '0',
+                  marginRight: '0',
                   padding: '0',
                   paddingLeft: '0',
                   paddingRight: '0'
@@ -3096,8 +3096,8 @@ export default function ItineraryPage() {
         {/* Footer */}
         <div className="footer-enhanced" style={{
           display: 'none',
-          marginLeft: isMobile ? '10px' : '0',
-          marginRight: isMobile ? '10px' : '0'
+          marginLeft: '0',
+          marginRight: '0'
         }}>
           <p>Created with ❤️ in FlipTrip</p>
         </div>

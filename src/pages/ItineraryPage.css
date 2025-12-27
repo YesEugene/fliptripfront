@@ -221,10 +221,10 @@
     padding: 0;
   }
   
-  /* Ensure all blocks have equal left and right margins (10px) on mobile */
+  /* Remove side margins for all blocks on mobile - full width */
   .itinerary-container > div > div {
-    margin-left: 10px !important;
-    margin-right: 10px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
   
   .header-section {
