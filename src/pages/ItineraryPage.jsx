@@ -2643,7 +2643,7 @@ export default function ItineraryPage() {
                     
                     return (
                       <div style={{
-                        width: '100%',
+                        width: isMobile ? 'calc(100% - 10px)' : '100%',
                         boxSizing: 'border-box',
                         marginTop: isMobile ? '10px' : '0px',
                         marginBottom: '30px',
@@ -2666,10 +2666,9 @@ export default function ItineraryPage() {
                           paddingRight: '0'
                         }}>
                           <div id="unlock-full-itinerary" style={{
-                            backgroundColor: 'white',
+                            backgroundColor: '#EBF6FA',
                             borderRadius: '12px',
                             padding: '20px',
-                            border: '1px solid #e5e7eb',
                             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                             margin: '0',
                             marginLeft: '0',
@@ -2954,7 +2953,7 @@ export default function ItineraryPage() {
               
               return (
                 <div style={{
-                  width: '100%',
+                  width: isMobile ? 'calc(100% - 10px)' : '100%',
                   boxSizing: 'border-box',
                   marginTop: isMobile ? '10px' : '0px',
                   marginBottom: '30px',
@@ -2977,10 +2976,9 @@ export default function ItineraryPage() {
                     paddingRight: '0'
                   }}>
                           <div id="unlock-full-itinerary" style={{
-                            backgroundColor: '#f9fafb',
+                            backgroundColor: '#EBF6FA',
                             borderRadius: '12px',
                             padding: '20px',
-                            border: '1px solid #e5e7eb',
                             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                             margin: '0',
                             marginLeft: '0',
