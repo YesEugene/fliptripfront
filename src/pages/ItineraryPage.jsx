@@ -2643,12 +2643,12 @@ export default function ItineraryPage() {
                     
                     return (
                       <div style={{
-                        width: isMobile ? '90%' : '100%',
+                        width: isMobile ? '100%' : '100%',
                         boxSizing: 'border-box',
                         marginTop: isMobile ? '10px' : '0px',
                         marginBottom: '30px',
-                        marginLeft: isMobile ? 'auto' : '0',
-                        marginRight: isMobile ? 'auto' : '0',
+                        marginLeft: isMobile ? '0' : '0',
+                        marginRight: isMobile ? '0' : '0',
                         padding: '0',
                         paddingLeft: '0',
                         paddingRight: '0'
@@ -2953,12 +2953,12 @@ export default function ItineraryPage() {
               
               return (
                 <div style={{
-                  width: isMobile ? '90%' : '100%',
+                  width: isMobile ? '100%' : '100%',
                   boxSizing: 'border-box',
                   marginTop: isMobile ? '10px' : '0px',
                   marginBottom: '30px',
-                  marginLeft: isMobile ? 'auto' : '0',
-                  marginRight: isMobile ? 'auto' : '0',
+                  marginLeft: isMobile ? '0' : '0',
+                  marginRight: isMobile ? '0' : '0',
                   padding: '0',
                   paddingLeft: '0',
                   paddingRight: '0'
