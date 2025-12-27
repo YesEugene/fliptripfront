@@ -1641,6 +1641,8 @@ export default function ItineraryPage() {
         width: '100%',
         boxSizing: 'border-box',
         margin: isMobile ? '0 10px 32px' : '0 auto 32px',
+        marginLeft: isMobile ? '10px' : 'auto',
+        marginRight: isMobile ? '10px' : 'auto',
         padding: '0',
         paddingLeft: '0',
         paddingRight: '0'
@@ -1741,6 +1743,8 @@ export default function ItineraryPage() {
         width: '100%',
         boxSizing: 'border-box',
         margin: isMobile ? '-10px 10px 30px' : '-10px auto 30px',
+        marginLeft: isMobile ? '10px' : 'auto',
+        marginRight: isMobile ? '10px' : 'auto',
         padding: '0',
         paddingLeft: '0',
         paddingRight: '0'
@@ -1856,7 +1860,9 @@ export default function ItineraryPage() {
           borderRadius: '16px',
           padding: '20px',
           border: '1px solid #D0D0D0',
-          margin: isMobile ? '-10px 10px 10px' : '-10px auto 10px'
+          margin: isMobile ? '-10px 10px 10px' : '-10px auto 10px',
+          marginLeft: isMobile ? '10px' : 'auto',
+          marginRight: isMobile ? '10px' : 'auto'
         }}>
             {/* Avatar section - always on top */}
             <div style={{ 
@@ -2127,6 +2133,8 @@ export default function ItineraryPage() {
               width: '100%',
               boxSizing: 'border-box',
               margin: isMobile ? '10px 10px 30px' : '0px auto 30px',
+              marginLeft: isMobile ? '10px' : 'auto',
+              marginRight: isMobile ? '10px' : 'auto',
               padding: '0',
               paddingLeft: '0',
               paddingRight: '0'
@@ -2520,6 +2528,8 @@ export default function ItineraryPage() {
             width: '100%',
             boxSizing: 'border-box',
             margin: isMobile ? '40px 10px 0' : '40px auto 0',
+            marginLeft: isMobile ? '10px' : 'auto',
+            marginRight: isMobile ? '10px' : 'auto',
             padding: '0', 
             paddingLeft: '0', 
             paddingRight: '0'
@@ -2624,6 +2634,8 @@ export default function ItineraryPage() {
                         width: '100%',
                         boxSizing: 'border-box',
                         margin: isMobile ? '10px 10px' : '10px auto',
+                        marginLeft: isMobile ? '10px' : 'auto',
+                        marginRight: isMobile ? '10px' : 'auto',
                         padding: '0',
                         paddingLeft: '0',
                         paddingRight: '0'
@@ -2928,6 +2940,8 @@ export default function ItineraryPage() {
                   width: '100%',
                   boxSizing: 'border-box',
                   margin: isMobile ? '10px 10px 0' : '10px auto 0',
+                  marginLeft: isMobile ? '10px' : 'auto',
+                  marginRight: isMobile ? '10px' : 'auto',
                   padding: '0',
                   paddingLeft: '0',
                   paddingRight: '0'
