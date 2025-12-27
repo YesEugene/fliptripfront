@@ -36,6 +36,18 @@ export default function ItineraryPage() {
   const [isAuthorTextExpanded, setIsAuthorTextExpanded] = useState(false); // Author text expand/collapse state
   const [isMobile, setIsMobile] = useState(false); // Mobile detection
 
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkScreenSize(); // Check on mount
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
   // City images mapping
   const cityImagesMap = {
     'Paris': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&h=600&fit=crop&q=80',
