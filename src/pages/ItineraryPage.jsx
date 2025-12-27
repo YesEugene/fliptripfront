@@ -1618,7 +1618,7 @@ export default function ItineraryPage() {
       <div style={{
         maxWidth: '750px',
         margin: '0 auto',
-        padding: '0 20px',
+        padding: isMobile ? '0 10px' : '0 20px',
         marginBottom: '32px' // Match visualizer: 32px
       }}>
         <div 
@@ -1821,7 +1821,7 @@ export default function ItineraryPage() {
         <div style={{
           backgroundColor: 'white',
           borderRadius: '16px',
-          padding: isMobile ? '24px 20px' : '32px 20px',
+          padding: isMobile ? '24px 10px' : '32px 20px',
           border: '1px solid #D0D0D0',
           marginBottom: '40px',
           marginTop: '-10px',
@@ -1957,7 +1957,6 @@ export default function ItineraryPage() {
                     );
                   })()}
                 </div>
-              </div>
             </div>
         </div>
       )}
@@ -2098,7 +2097,7 @@ export default function ItineraryPage() {
               marginBottom: '24px',
               maxWidth: '750px',
               margin: '24px auto',
-              padding: '0 20px'
+              padding: isMobile ? '0 10px' : '0 20px'
             }}>
               {/* Choose type of your trip - with calendar on side for desktop when With Guide is selected */}
               <div className="payment-cards-container" style={{
