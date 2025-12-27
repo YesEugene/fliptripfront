@@ -778,8 +778,10 @@ function ThreeColumnsBlock({ block, onEdit }) {
             <div 
               key={index}
               style={{
-                flex: '0 0 calc(100vw - 64px)',
-                maxWidth: 'calc(100vw - 64px)',
+                // First image is smaller (85% of screen) to show part of next image
+                // Other images are full width to indicate scrollability
+                flex: index === 0 ? '0 0 calc(85vw - 64px)' : '0 0 calc(100vw - 64px)',
+                maxWidth: index === 0 ? 'calc(85vw - 64px)' : 'calc(100vw - 64px)',
                 scrollSnapAlign: 'start'
               }}
             >
