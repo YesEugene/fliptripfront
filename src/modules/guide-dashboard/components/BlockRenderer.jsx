@@ -937,53 +937,52 @@ function ThreeColumnsBlock({ block, onEdit }) {
         paddingLeft: '0',
         paddingRight: '0'
       }}>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '24px'
-      }}>
-        {columns.map((column, index) => (
-          <div key={index}>
-            {column.photo ? (
-              <img 
-                src={column.photo} 
-                alt={`Column ${index + 1}`} 
-                style={{ 
-                  width: '100%', 
-                  height: '150px', 
-                  objectFit: 'cover', 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '24px'
+        }}>
+          {columns.map((column, index) => (
+            <div key={index}>
+              {column.photo ? (
+                <img 
+                  src={column.photo} 
+                  alt={`Column ${index + 1}`} 
+                  style={{ 
+                    width: '100%', 
+                    height: '150px', 
+                    objectFit: 'cover', 
+                    borderRadius: '8px',
+                    marginBottom: '12px'
+                  }} 
+                />
+              ) : (
+                <div style={{
+                  width: '100%',
+                  height: '150px',
+                  backgroundColor: '#e5e7eb',
                   borderRadius: '8px',
-                  marginBottom: '12px'
-                }} 
-              />
-            ) : (
-              <div style={{
-                width: '100%',
-                height: '150px',
-                backgroundColor: '#e5e7eb',
-                borderRadius: '8px',
-                marginBottom: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#9ca3af',
-                fontSize: '12px'
+                  marginBottom: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#9ca3af',
+                  fontSize: '12px'
+                }}>
+                  No photo
+                </div>
+              )}
+              <p style={{ 
+                color: '#6b7280', 
+                fontSize: '14px', 
+                lineHeight: '1.6', 
+                margin: 0,
+                whiteSpace: 'pre-line'
               }}>
-                No photo
-              </div>
-            )}
-            <p style={{ 
-              color: '#6b7280', 
-              fontSize: '14px', 
-              lineHeight: '1.6', 
-              margin: 0,
-              whiteSpace: 'pre-line'
-            }}>
-              {column.text}
-            </p>
-          </div>
-        ))}
-      </div>
+                {column.text}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
