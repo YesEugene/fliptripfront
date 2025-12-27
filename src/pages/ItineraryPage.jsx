@@ -1961,6 +1961,7 @@ export default function ItineraryPage() {
                           >
                             {isAuthorTextExpanded ? 'Read less' : 'Read more'}
                           </button>
+                          </div>
                         )}
                       </>
                     );
