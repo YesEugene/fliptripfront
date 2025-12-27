@@ -1618,7 +1618,7 @@ export default function ItineraryPage() {
       <div style={{
         maxWidth: '750px',
         margin: '0 auto',
-        padding: '0 20px',
+        padding: isMobile ? '0 10px' : '0 20px',
         marginBottom: '32px' // Match visualizer: 32px
       }}>
         <div 
@@ -1720,7 +1720,7 @@ export default function ItineraryPage() {
         flexWrap: 'wrap',
         maxWidth: '750px',
         margin: '-10px auto 30px',
-        padding: '0 20px'
+        padding: isMobile ? '0 10px' : '0 20px'
       }}>
         {/* City tag */}
         <div style={{
@@ -1821,7 +1821,7 @@ export default function ItineraryPage() {
         <div style={{
           backgroundColor: 'white',
           borderRadius: '16px',
-          padding: '32px',
+          padding: isMobile ? '24px 10px' : '32px',
           border: '1px solid #D0D0D0',
           marginBottom: '40px',
           marginTop: '-10px',
@@ -1831,7 +1831,7 @@ export default function ItineraryPage() {
             <div style={{ 
               display: 'flex', 
               gap: '24px', 
-              alignItems: 'flex-start',
+              alignItems: isMobile ? 'center' : 'flex-start',
               flexDirection: isMobile ? 'column' : 'row'
             }}>
               <div style={{ 
@@ -1840,7 +1840,8 @@ export default function ItineraryPage() {
                 alignItems: 'center', 
                 flexShrink: 0, 
                 minWidth: isMobile ? '100%' : '120px',
-                width: isMobile ? '100%' : 'auto'
+                width: isMobile ? '100%' : 'auto',
+                order: isMobile ? 1 : 0
               }}>
                 <div style={{
                   width: '100px',
@@ -1865,19 +1866,28 @@ export default function ItineraryPage() {
                   color: '#6b7280',
                   textAlign: 'center',
                   lineHeight: '1.5',
-                  whiteSpace: 'pre-line'
+                  whiteSpace: 'pre-line',
+                  marginBottom: isMobile ? '16px' : '0'
                 }}>
                   Tour created{'\n'}by <strong style={{ color: '#111827', fontWeight: '600' }}>{guideName}</strong>
                 </p>
               </div>
-              <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
+              <div style={{ 
+                flex: 1, 
+                width: isMobile ? '100%' : 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: isMobile ? 'center' : 'flex-start',
+                order: isMobile ? 2 : 0
+              }}>
                 <h3 style={{ 
                   fontSize: '20px', 
                   fontWeight: '500', 
                   marginBottom: '16px', 
                   color: '#111827',
                   marginTop: 0,
-                  textAlign: isMobile ? 'center' : 'left'
+                  textAlign: 'center',
+                  width: '100%'
                 }}>
                   A note from the author
                 </h3>
@@ -2468,7 +2478,7 @@ export default function ItineraryPage() {
 
         {/* Content Blocks - New Format (using BlockRenderer) */}
         {useNewFormat && (
-          <div style={{ maxWidth: '750px', margin: '0 auto', padding: '0 20px' }}>
+          <div style={{ maxWidth: '750px', margin: '0 auto', padding: isMobile ? '0 10px' : '0 20px' }}>
             {/* Determine which blocks to show based on preview mode */}
             {(() => {
               // Check if tour is empty (no blocks)
