@@ -1909,7 +1909,7 @@ export default function ItineraryPage() {
                             marginBottom: '16px',
                             marginTop: 0,
                             whiteSpace: 'pre-line',
-                            textAlign: isMobile ? 'center' : 'left',
+                            textAlign: 'left',
                             width: '100%'
                           }}>
                             {text}
@@ -1926,7 +1926,7 @@ export default function ItineraryPage() {
                             WebkitBoxOrient: 'vertical',
                             overflow: 'hidden',
                             whiteSpace: 'pre-line',
-                            textAlign: isMobile ? 'center' : 'left',
+                            textAlign: 'left',
                             width: '100%'
                           }}>
                             {text}
@@ -2580,12 +2580,13 @@ export default function ItineraryPage() {
                       <div id="unlock-full-itinerary" style={{
                         backgroundColor: '#f9fafb',
                         borderRadius: '12px',
-                        padding: '24px',
+                        padding: '24px 20px',
                         border: '1px solid #e5e7eb',
                         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                         marginTop: '32px',
                         marginBottom: '0',
-                        width: '100%'
+                        maxWidth: '750px',
+                        margin: '32px auto 0'
                       }}>
                         <h4 style={{
                           fontSize: '21px',
