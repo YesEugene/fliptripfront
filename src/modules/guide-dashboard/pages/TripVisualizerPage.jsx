@@ -266,29 +266,13 @@ export default function TripVisualizerPage() {
         // Extract interest IDs from tour_tags
         // tour_tags contains objects with interest_id and interest object
         console.log('📋 Tour tour_tags from API:', tourObj.tour_tags);
-        const interestIds = tourObj.tour_tags?.map(tt => {
-          // Get interest ID from interest object or interest_id field
-          const id = tt.interest?.id || tt.interest_id;
-          const idString = id ? String(id) : null;
-          console.log('🔍 Processing tour_tag:', { 
-            hasInterest: !!tt.interest, 
-            interestId: tt.interest?.id,
-            interestIdType: typeof tt.interest?.id,
-            interest_id: tt.interest_id,
-            interest_idType: typeof tt.interest_id,
-            extractedId: id,
-            extractedIdString: idString
-          });
-          return idString;
-        }).filter(id => id !== null && id !== undefined && id !== '') || [];
-        console.log('✅ Extracted interest IDs:', interestIds);
         
         setTourInfo({
           city: sourceData.city || tourObj.city?.name || 'Barcelona',
           title: sourceData.title || tourObj.title || 'Barcelona without the rush',
           description: sourceData.description || tourObj.description || 'I return to Barcelona not for landmarks, but for its rhythm. The way the city lives between meals, walks, and pauses. I made this guide for moments when you don\'t want to impress yourself with how much you\'ve seen. When you want the city to feel human, readable, and calm.\n\nThese are the places and routes I choose when I want Barcelona to feel like a place I\'m living in — not passing through.',
           preview: sourceData.preview || tourObj.preview_media_url || BarcelonaExampleImage,
-          tags: interestIds // Store interest IDs
+          tags: [] // Will be set later from tour_tags
         });
 
         // Load tour settings
