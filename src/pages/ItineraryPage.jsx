@@ -33,6 +33,15 @@ export default function ItineraryPage() {
   const [tourIdState, setTourId] = useState(null); // Tour ID state for generated tours
   const [contentBlocks, setContentBlocks] = useState([]); // Blocks from tour_content_blocks table
   const [useNewFormat, setUseNewFormat] = useState(false); // Flag to use new format (contentBlocks) or old format (daily_plan)
+
+  // Handle switching between main and alternative locations in LocationBlock
+  const handleSwitchLocation = (updatedBlock) => {
+    setContentBlocks(prevBlocks => 
+      prevBlocks.map(block => 
+        block.id === updatedBlock.id ? updatedBlock : block
+      )
+    );
+  };
   const [isAuthorTextExpanded, setIsAuthorTextExpanded] = useState(false); // Author text expand/collapse state
   const [isMobile, setIsMobile] = useState(false); // Mobile detection
 
@@ -2590,7 +2599,7 @@ export default function ItineraryPage() {
                         <BlockRenderer 
                           block={block} 
                           onEdit={() => {}} // No edit on client page
-                          onSwitchLocation={() => {}} // No switch on client page
+                          onSwitchLocation={handleSwitchLocation} // Switch locations on client page
                         />
                       </div>
                     </div>
