@@ -4502,18 +4502,36 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                   <span style={{ color: '#6b7280' }}>No photo selected</span>
                 )}
               </div>
-              <button style={{
-                padding: '10px 20px',
-                backgroundColor: '#3b82f6',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file && onImageUpload) {
+                    onImageUpload(file, (base64) => {
+                      setContent({ ...content, photo: base64 });
+                    });
+                  }
+                }}
+                style={{ display: 'none' }}
+                id={`photo-upload-${block.id}`}
+              />
+              <label
+                htmlFor={`photo-upload-${block.id}`}
+                style={{
+                  display: 'inline-block',
+                  padding: '10px 20px',
+                  backgroundColor: '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500'
+                }}
+              >
                 Choose photo
-              </button>
+              </label>
             </div>
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
