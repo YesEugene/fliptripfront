@@ -4681,17 +4681,37 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                       <span style={{ color: '#6b7280', fontSize: '12px' }}>No photo</span>
                     )}
                   </div>
-                  <button style={{
-                    padding: '6px 12px',
-                    backgroundColor: '#3b82f6',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontSize: '12px'
-                  }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file && onImageUpload) {
+                        onImageUpload(file, (base64) => {
+                          const newColumns = [...(content.columns || [])];
+                          newColumns[index] = { ...newColumns[index], photo: base64 };
+                          setContent({ ...content, columns: newColumns });
+                        });
+                      }
+                    }}
+                    style={{ display: 'none' }}
+                    id={`3columns-photo-upload-${block.id}-${index}`}
+                  />
+                  <label
+                    htmlFor={`3columns-photo-upload-${block.id}-${index}`}
+                    style={{
+                      display: 'inline-block',
+                      padding: '6px 12px',
+                      backgroundColor: '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '12px'
+                    }}
+                  >
                     Choose photo
-                  </button>
+                  </label>
                 </div>
                 <textarea
                   value={column.text || ''}
