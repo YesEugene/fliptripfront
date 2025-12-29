@@ -2104,11 +2104,11 @@ export default function TripVisualizerPage() {
         <div style={{ height: isTourSettingsCollapsed ? (isMobile ? `calc(115px + env(safe-area-inset-bottom, 0px))` : '65px') : '80vh' }} />
       </div>
 
-      {/* Notification Banner - appears above fixed bottom panel */}
+      {/* Notification Banner - fixed to top of browser */}
       {showNotification && (
         <div style={{
           position: 'fixed',
-          bottom: isMobile ? `calc(115px + env(safe-area-inset-bottom, 0px))` : '65px',
+          top: 0,
           left: 0,
           right: 0,
           height: '25px',
