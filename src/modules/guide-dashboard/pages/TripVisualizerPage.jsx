@@ -163,20 +163,8 @@ export default function TripVisualizerPage() {
     if (tourId) {
       loadTour();
     }
-    // Load cities for autocomplete
-    const loadCities = async () => {
-      try {
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://fliptripback.vercel.app';
-        const response = await fetch(`${API_BASE_URL}/api/admin-cities`);
-        const data = await response.json();
-        if (data.success && data.cities) {
-          setCities(data.cities);
-        }
-      } catch (err) {
-        console.error('Error loading cities:', err);
-      }
-    };
-    loadCities();
+    // No need to preload all cities - we'll search via API as user types
+    // Cities are now searched via API for better performance
     
     // Load interests structure for displaying tags
     const loadInterestsForDisplay = async () => {
@@ -3670,17 +3658,28 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
           <input
             type="text"
             value={tourInfo.city}
-            onChange={(e) => {
+            onChange={async (e) => {
               const value = e.target.value;
               onChange({ ...tourInfo, city: value });
               
-              // Show suggestions
-              if (value.length > 1 && cities && Array.isArray(cities)) {
-                const filtered = cities.filter(c => 
-                  c.name.toLowerCase().includes(value.toLowerCase())
-                );
-                if (setCitySuggestions) setCitySuggestions(filtered);
-                if (setShowCitySuggestions) setShowCitySuggestions(filtered.length > 0);
+              // Search cities via API
+              if (value.length > 1) {
+                try {
+                  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://fliptripback.vercel.app';
+                  const response = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(value)}`);
+                  const data = await response.json();
+                  if (data.success && data.cities) {
+                    if (setCitySuggestions) setCitySuggestions(data.cities);
+                    if (setShowCitySuggestions) setShowCitySuggestions(data.cities.length > 0);
+                  } else {
+                    if (setCitySuggestions) setCitySuggestions([]);
+                    if (setShowCitySuggestions) setShowCitySuggestions(false);
+                  }
+                } catch (err) {
+                  console.error('Error searching cities:', err);
+                  if (setCitySuggestions) setCitySuggestions([]);
+                  if (setShowCitySuggestions) setShowCitySuggestions(false);
+                }
               } else {
                 if (setCitySuggestions) setCitySuggestions([]);
                 if (setShowCitySuggestions) setShowCitySuggestions(false);
@@ -3690,6 +3689,25 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
               if (e.target.value.length > 1 && citySuggestions && citySuggestions.length > 0 && setShowCitySuggestions) {
                 setShowCitySuggestions(true);
               }
+            }}
+            onBlur={(e) => {
+              // Validate that selected city exists in suggestions
+              // Delay to allow onClick on suggestion to fire first
+              setTimeout(() => {
+                const currentValue = e.target.value;
+                if (currentValue && citySuggestions && citySuggestions.length > 0) {
+                  const isValid = citySuggestions.some(c => 
+                    (typeof c === 'string' ? c : c.name) === currentValue ||
+                    (typeof c === 'string' ? c : (c.displayName || c.name)) === currentValue
+                  );
+                  if (!isValid && currentValue.length > 0) {
+                    // City not found - clear or show error
+                    onChange({ ...tourInfo, city: '' });
+                    if (setCitySuggestions) setCitySuggestions([]);
+                    if (setShowCitySuggestions) setShowCitySuggestions(false);
+                  }
+                }
+              }, 200);
             }}
             style={{
               width: '100%',
@@ -3715,25 +3733,30 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
               zIndex: 1000,
               boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
             }}>
-              {citySuggestions.map((city, index) => (
-                <div
-                  key={city.id || index}
-                  onClick={() => {
-                    onChange({ ...tourInfo, city: city.name });
-                    if (setCitySuggestions) setCitySuggestions([]);
-                    if (setShowCitySuggestions) setShowCitySuggestions(false);
-                  }}
-                  style={{
-                    padding: '10px 12px',
-                    cursor: 'pointer',
-                    borderBottom: index < citySuggestions.length - 1 ? '1px solid #e5e7eb' : 'none'
-                  }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
-                >
-                  {city.name}
-                </div>
-              ))}
+              {citySuggestions.map((city, index) => {
+                const cityName = typeof city === 'string' ? city : city.name;
+                const displayName = typeof city === 'string' ? city : (city.displayName || city.name);
+                
+                return (
+                  <div
+                    key={city.id || cityName || index}
+                    onClick={() => {
+                      onChange({ ...tourInfo, city: cityName });
+                      if (setCitySuggestions) setCitySuggestions([]);
+                      if (setShowCitySuggestions) setShowCitySuggestions(false);
+                    }}
+                    style={{
+                      padding: '10px 12px',
+                      cursor: 'pointer',
+                      borderBottom: index < citySuggestions.length - 1 ? '1px solid #e5e7eb' : 'none'
+                    }}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                  >
+                    {displayName}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
