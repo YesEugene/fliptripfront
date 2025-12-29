@@ -2853,6 +2853,7 @@ export default function TripVisualizerPage() {
           onDelete={handleDeleteBlock}
           onImageUpload={handleImageUpload}
           onOpenLocationSelector={() => setShowLocationSelector(true)}
+          tourCity={tourInfo.city}
         />
       )}
 
@@ -2900,10 +2901,17 @@ export default function TripVisualizerPage() {
                   approx_cost: locationData.approximate_cost || '',
                   photos: mergedPhotos, // Use photos array
                   photo: mergedPhotos[0] || null, // Keep single photo for backward compatibility
-                  rating: locationData.rating || null
+                  rating: locationData.rating || null,
+                  city_id: locationData.city_id || null, // City ID from database (if found)
+                  city_name: locationData.city_name || null // City display name (if found)
                 }
               };
               setEditingBlock({ ...editingBlock, content: updatedContent });
+              
+              // Update city input value if city was found
+              if (locationData.city_name) {
+                // This will be handled by the BlockEditorModal's city input state
+              }
             } else {
               // Updating alternative location
               const alternativeLocations = [...(currentContent.alternativeLocations || [])];
@@ -2920,7 +2928,9 @@ export default function TripVisualizerPage() {
                 approx_cost: locationData.approximate_cost || '',
                 photos: mergedAltPhotos, // Use photos array
                 photo: mergedAltPhotos[0] || null, // Keep single photo for backward compatibility
-                rating: locationData.rating || null
+                rating: locationData.rating || null,
+                city_id: locationData.city_id || null, // City ID from database (if found)
+                city_name: locationData.city_name || null // City display name (if found)
               };
               const updatedContent = {
                 ...currentContent,
@@ -4192,7 +4202,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
   );
 }
 
-function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onOpenLocationSelector }) {
+function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onOpenLocationSelector, tourCity }) {
   // Helper function to normalize content
   const normalizeContent = (contentToNormalize) => {
     if (!contentToNormalize || Object.keys(contentToNormalize).length === 0) {
@@ -4209,7 +4219,9 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
             category: null,
             interests: [],
             price_level: '',
-            approx_cost: ''
+            approx_cost: '',
+            city_id: null,
+            city_name: null
           },
           alternativeLocations: []
         };
@@ -4224,14 +4236,22 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
       if (isOldFormat) {
         // Convert old format to new format
         return {
-          mainLocation: contentToNormalize,
+          mainLocation: {
+            ...contentToNormalize,
+            city_id: contentToNormalize.city_id || null,
+            city_name: contentToNormalize.city_name || null
+          },
           alternativeLocations: []
         };
       }
       
       // Ensure mainLocation structure exists
       return {
-        mainLocation: contentToNormalize.mainLocation || {
+        mainLocation: contentToNormalize.mainLocation ? {
+          ...contentToNormalize.mainLocation,
+          city_id: contentToNormalize.mainLocation.city_id || null,
+          city_name: contentToNormalize.mainLocation.city_name || null
+        } : {
           time: '09:00 - 12:00',
           title: '',
           address: '',
@@ -4241,7 +4261,9 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
           category: null,
           interests: [],
           price_level: '',
-          approx_cost: ''
+          approx_cost: '',
+          city_id: null,
+          city_name: null
         },
         alternativeLocations: contentToNormalize.alternativeLocations || []
       };
@@ -4258,12 +4280,27 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
   useEffect(() => {
     const updatedContent = normalizeContent(block.content || {});
     setContent(updatedContent);
+    
+    // Initialize city input value if location block has city_name
+    if (block.block_type === 'location' && updatedContent.mainLocation?.city_name) {
+      setCityInputValue(updatedContent.mainLocation.city_name);
+    } else if (block.block_type === 'location' && !updatedContent.mainLocation?.city_name && tourCity) {
+      // If no city_name but tourCity exists, try to load it
+      setCityInputValue(tourCity);
+    } else {
+      setCityInputValue('');
+    }
   }, [block.id, JSON.stringify(block.content)]);
   
   const [editingLocationIndex, setEditingLocationIndex] = useState(null); // null = main, number = alternative index
   const [interestsStructure, setInterestsStructure] = useState(null);
   const [availableInterests, setAvailableInterests] = useState([]);
   const [loadingInterests, setLoadingInterests] = useState(false);
+  
+  // City autocomplete state for location blocks
+  const [citySuggestions, setCitySuggestions] = useState([]);
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+  const [cityInputValue, setCityInputValue] = useState('');
 
   // Initialize editingLocationIndex to null (main location) for location blocks
   useEffect(() => {
@@ -4271,6 +4308,53 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
       setEditingLocationIndex(null); // Start with main location
     }
   }, [block.block_type]);
+  
+  // Update cityInputValue when switching between locations
+  useEffect(() => {
+    if (block.block_type === 'location') {
+      const currentLocation = editingLocationIndex === null 
+        ? content.mainLocation 
+        : content.alternativeLocations[editingLocationIndex];
+      
+      if (currentLocation?.city_name) {
+        setCityInputValue(currentLocation.city_name);
+      } else if (tourCity && !currentLocation?.city_id) {
+        setCityInputValue(tourCity);
+      } else {
+        setCityInputValue('');
+      }
+    }
+  }, [editingLocationIndex, block.block_type, content.mainLocation, content.alternativeLocations, tourCity]);
+  
+  // Initialize city_id from tourCity for location blocks if not set
+  useEffect(() => {
+    if (block.block_type === 'location' && tourCity && content.mainLocation && !content.mainLocation.city_id) {
+      const loadDefaultCity = async () => {
+        try {
+          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripbackend.vercel.app';
+          const response = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(tourCity)}`);
+          const data = await response.json();
+          if (data.success && data.cities && data.cities.length > 0) {
+            const match = data.cities.find(city => 
+              city.name.toLowerCase() === tourCity.toLowerCase()
+            ) || data.cities[0];
+            setContent({
+              ...content,
+              mainLocation: {
+                ...content.mainLocation,
+                city_id: match.id,
+                city_name: match.displayName || `${match.name}${match.country ? `, ${match.country}` : ''}`
+              }
+            });
+            setCityInputValue(match.displayName || `${match.name}${match.country ? `, ${match.country}` : ''}`);
+          }
+        } catch (error) {
+          console.error('Error loading default city:', error);
+        }
+      };
+      loadDefaultCity();
+    }
+  }, [block.block_type, tourCity]);
 
   // Interests structure loading removed - interests are now edited in tour header only
 
@@ -5301,6 +5385,109 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                       boxSizing: 'border-box'
                     }}
                   />
+                  
+                  {/* City field with autocomplete */}
+                  <div style={{ position: 'relative', marginBottom: '12px' }}>
+                    <input
+                      type="text"
+                      value={cityInputValue || (currentLocation?.city_name || '')}
+                      onChange={async (e) => {
+                        const value = e.target.value;
+                        setCityInputValue(value);
+                        
+                        if (value.length >= 2) {
+                          try {
+                            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripbackend.vercel.app';
+                            const response = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(value)}`);
+                            const data = await response.json();
+                            if (data.success && data.cities) {
+                              setCitySuggestions(data.cities);
+                              setShowCitySuggestions(true);
+                            }
+                          } catch (error) {
+                            console.error('Error searching cities:', error);
+                          }
+                        } else {
+                          setCitySuggestions([]);
+                          setShowCitySuggestions(false);
+                        }
+                      }}
+                      onFocus={async () => {
+                        // Load initial suggestions if city is not set
+                        if (!currentLocation.city_id && tourCity) {
+                          try {
+                            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripbackend.vercel.app';
+                            const response = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(tourCity)}`);
+                            const data = await response.json();
+                            if (data.success && data.cities) {
+                              setCitySuggestions(data.cities);
+                              setShowCitySuggestions(true);
+                            }
+                          } catch (error) {
+                            console.error('Error loading city suggestions:', error);
+                          }
+                        }
+                      }}
+                      onBlur={() => {
+                        // Delay hiding suggestions to allow clicking on them
+                        setTimeout(() => setShowCitySuggestions(false), 200);
+                      }}
+                      placeholder="City * (e.g., Barcelona, Spain)"
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                    {showCitySuggestions && citySuggestions.length > 0 && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        right: 0,
+                        backgroundColor: 'white',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        marginTop: '4px',
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        zIndex: 1000,
+                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                      }}>
+                        {citySuggestions.map((city) => (
+                          <div
+                            key={city.id}
+                            onClick={() => {
+                              updateCurrentLocation({
+                                city_id: city.id,
+                                city_name: city.displayName || `${city.name}${city.country ? `, ${city.country}` : ''}`
+                              });
+                              setCityInputValue(city.displayName || `${city.name}${city.country ? `, ${city.country}` : ''}`);
+                              setShowCitySuggestions(false);
+                            }}
+                            style={{
+                              padding: '12px',
+                              cursor: 'pointer',
+                              borderBottom: '1px solid #f3f4f6'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = '#f3f4f6';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = 'white';
+                            }}
+                          >
+                            {city.displayName || `${city.name}${city.country ? `, ${city.country}` : ''}`}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  
                   <input
                     type="text"
                     value={currentLocation.address || ''}

@@ -152,8 +152,39 @@ const GoogleMapsLocationSelector = ({ isOpen, onClose, onSelectLocation, city })
     fetchPlaceDetails(placeId);
   };
 
-  const handleConfirmSelection = () => {
+  const handleConfirmSelection = async () => {
     if (placeDetails) {
+      // Try to find city in database if city_name and country_name are available
+      let cityId = null;
+      let cityName = null;
+      
+      if (placeDetails.city_name && placeDetails.country_name) {
+        try {
+          // Search for city in database
+          const citySearchResponse = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(placeDetails.city_name)}`);
+          const citySearchData = await citySearchResponse.json();
+          
+          if (citySearchData.success && citySearchData.cities && citySearchData.cities.length > 0) {
+            // Try to find exact match by city name and country
+            const exactMatch = citySearchData.cities.find(city => 
+              city.name.toLowerCase() === placeDetails.city_name.toLowerCase() &&
+              city.country && city.country.toLowerCase() === placeDetails.country_name.toLowerCase()
+            );
+            
+            if (exactMatch) {
+              cityId = exactMatch.id;
+              cityName = exactMatch.displayName || `${exactMatch.name}, ${exactMatch.country}`;
+            } else {
+              // If no exact match, use the first result (closest match)
+              cityId = citySearchData.cities[0].id;
+              cityName = citySearchData.cities[0].displayName || `${citySearchData.cities[0].name}${citySearchData.cities[0].country ? `, ${citySearchData.cities[0].country}` : ''}`;
+            }
+          }
+        } catch (error) {
+          console.error('Error searching for city:', error);
+        }
+      }
+      
       onSelectLocation({
         title: placeDetails.name,
         address: placeDetails.address,
@@ -162,7 +193,11 @@ const GoogleMapsLocationSelector = ({ isOpen, onClose, onSelectLocation, city })
         rating: placeDetails.rating,
         photos: placeDetails.photos || (placeDetails.photo_url ? [placeDetails.photo_url] : []), // Use photos array
         photo: placeDetails.photo_url || (placeDetails.photos && placeDetails.photos.length > 0 ? placeDetails.photos[0] : null), // Keep for backward compatibility
-        location: placeDetails.location
+        location: placeDetails.location,
+        city_id: cityId, // City ID from database (if found)
+        city_name: cityName, // City display name (if found)
+        city_search_name: placeDetails.city_name, // Original city name from Google Places
+        country_name: placeDetails.country_name // Country name from Google Places
       });
       onClose();
     }
