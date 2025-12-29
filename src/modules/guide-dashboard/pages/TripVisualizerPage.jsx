@@ -4301,6 +4301,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
   const [locationCitySuggestions, setLocationCitySuggestions] = useState([]);
   const [showLocationCitySuggestions, setShowLocationCitySuggestions] = useState(false);
   const [locationCityInputValue, setLocationCityInputValue] = useState('');
+  const locationCitySearchTimeoutRef = useRef(null);
 
   // Initialize editingLocationIndex to null (main location) for location blocks
   useEffect(() => {
@@ -5395,10 +5396,28 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                         const value = e.target.value;
                         setLocationCityInputValue(value);
                         
-                        if (value.length >= 2) {
+                        // Clear previous timeout
+                        if (locationCitySearchTimeoutRef.current) {
+                          clearTimeout(locationCitySearchTimeoutRef.current);
+                        }
+                        
+                        // Clear suggestions immediately if value is too short
+                        if (value.length < 2) {
+                          setLocationCitySuggestions([]);
+                          setShowLocationCitySuggestions(false);
+                          return;
+                        }
+                        
+                        // Debounce search requests (wait 300ms after user stops typing)
+                        locationCitySearchTimeoutRef.current = setTimeout(async () => {
                           try {
                             const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://fliptripbackend.vercel.app';
                             const response = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(value)}`);
+                            
+                            if (!response.ok) {
+                              throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            
                             const data = await response.json();
                             if (data.success && data.cities) {
                               setLocationCitySuggestions(data.cities);
@@ -5408,14 +5427,14 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                               setShowLocationCitySuggestions(false);
                             }
                           } catch (error) {
-                            console.error('Error searching cities:', error);
+                            // Only log errors if value is still >= 2 (user might have cleared it)
+                            if (value.length >= 2) {
+                              console.error('Error searching cities:', error);
+                            }
                             setLocationCitySuggestions([]);
                             setShowLocationCitySuggestions(false);
                           }
-                        } else {
-                          setLocationCitySuggestions([]);
-                          setShowLocationCitySuggestions(false);
-                        }
+                        }, 300);
                       }}
                       onFocus={async () => {
                         // If user is typing, show suggestions for current input
