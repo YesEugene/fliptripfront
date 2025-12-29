@@ -700,7 +700,7 @@ function PhotoTextBlock({ block, onEdit }) {
     );
   }
 
-  // Desktop: Grid 4 columns (photo 2, text 2)
+  // Desktop: Grid 2 columns (photo 50%, text 50%) - like TextBlock
   return (
     <div style={{ 
       marginBottom: '32px',
@@ -711,14 +711,13 @@ function PhotoTextBlock({ block, onEdit }) {
       }}>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '24px',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '32px',
           alignItems: 'flex-start'
         }}>
-          {/* Photo section - 2 columns */}
+          {/* Photo section - 50% width */}
           <div style={{ 
-            gridColumn: alignment === 'right' ? 'span 2' : 'span 2',
-            gridColumnStart: alignment === 'right' ? 3 : 1
+            order: alignment === 'right' ? 2 : 1
           }}>
             {currentPhoto ? (
               <>
@@ -791,10 +790,9 @@ function PhotoTextBlock({ block, onEdit }) {
             )}
           </div>
           
-          {/* Text section - 2 columns */}
+          {/* Text section - 50% width */}
           <div style={{ 
-            gridColumn: alignment === 'right' ? 'span 2' : 'span 2',
-            gridColumnStart: alignment === 'right' ? 1 : 3
+            order: alignment === 'right' ? 1 : 2
           }}>
             {text.split('\n\n').map((paragraph, index, array) => (
               <p 
