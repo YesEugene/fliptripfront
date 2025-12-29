@@ -473,7 +473,9 @@ export default function HomePage() {
 
   // Quick filter: city selection without opening modal
   const handleCitySelect = (city) => {
-    setFormData(prev => ({ ...prev, city }));
+    // Handle both string and object formats
+    const cityName = typeof city === 'string' ? city : city.name;
+    setFormData(prev => ({ ...prev, city: cityName }));
     setIsDropdownOpen(false);
     // Don't open modal, just filter tours in real-time
     // Don't generate personalized trip (filtersApplied stays false)
@@ -961,7 +963,13 @@ export default function HomePage() {
                     boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
                   }}
                 >
-                  <span>{formData.city || 'Select a city to continue'}</span>
+                  <span>
+                    {formData.city 
+                      ? (cities.find(c => (typeof c === 'string' ? c : c.name) === formData.city)?.displayName || 
+                         cities.find(c => (typeof c === 'string' ? c : c.name) === formData.city)?.name || 
+                         formData.city)
+                      : 'Select a city to continue'}
+                  </span>
                   <span style={{ fontSize: '12px', marginLeft: 'auto' }}>▼</span>
                 </button>
                 
@@ -1004,29 +1012,44 @@ export default function HomePage() {
                   maxHeight: '320px',
                   overflowY: 'auto'
                 }}>
-                    {(cities.length > 0 ? cities : TOP_CITIES).map((city) => (
-                      <button
-                        key={city}
-                        type="button"
-                        onClick={() => handleCitySelect(city)}
-                        style={{
-                          width: '100%',
-                          padding: '12px 16px',
-                          border: 'none',
-                          backgroundColor: 'transparent',
-                          textAlign: 'left',
-                          cursor: 'pointer',
-                          borderRadius: '0',
-                          transition: 'background-color 0.2s',
-                          fontSize: '14px',
-                          color: '#374151'
-                        }}
-                        onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
-                        onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                      >
-                        {city}
-                      </button>
-                    ))}
+                    {(cities.length > 0 ? cities : TOP_CITIES.map(name => ({ name, displayName: name }))).map((city) => {
+                      const cityName = typeof city === 'string' ? city : city.name;
+                      const displayName = typeof city === 'string' ? city : (city.displayName || city.name);
+                      const isSelected = formData.city === cityName;
+                      
+                      return (
+                        <button
+                          key={cityName}
+                          type="button"
+                          onClick={() => handleCitySelect(city)}
+                          style={{
+                            width: '100%',
+                            padding: '12px 16px',
+                            border: 'none',
+                            backgroundColor: isSelected ? '#eff6ff' : 'transparent',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            borderRadius: '0',
+                            transition: 'background-color 0.2s',
+                            fontSize: '14px',
+                            color: isSelected ? '#3E85FC' : '#374151',
+                            fontWeight: isSelected ? '600' : '400'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isSelected) {
+                              e.target.style.backgroundColor = '#f3f4f6';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isSelected) {
+                              e.target.style.backgroundColor = 'transparent';
+                            }
+                          }}
+                        >
+                          {displayName}
+                        </button>
+                      );
+                    })}
                 </div>
               )}
             </div>
