@@ -160,7 +160,8 @@ const GoogleMapsLocationSelector = ({ isOpen, onClose, onSelectLocation, city })
         price_level: placeDetails.price_level,
         approx_cost: placeDetails.approximate_cost,
         rating: placeDetails.rating,
-        photo: placeDetails.photo_url,
+        photos: placeDetails.photos || (placeDetails.photo_url ? [placeDetails.photo_url] : []), // Use photos array
+        photo: placeDetails.photo_url || (placeDetails.photos && placeDetails.photos.length > 0 ? placeDetails.photos[0] : null), // Keep for backward compatibility
         location: placeDetails.location
       });
       onClose();

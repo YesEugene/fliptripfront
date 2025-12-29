@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { PhotoCarousel, FullscreenPhotoViewer } from './PhotoCarousel';
 
 export default function BlockRenderer({ block, onEdit, onSwitchLocation }) {
   if (!block) return null;
@@ -39,6 +40,8 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
   
   // Detect screen size for responsive layout
   const [isMobile, setIsMobile] = useState(false);
+  const [fullscreenPhotos, setFullscreenPhotos] = useState(null);
+  const [fullscreenIndex, setFullscreenIndex] = useState(0);
   
   useEffect(() => {
     const checkScreenSize = () => {
@@ -50,6 +53,13 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
     
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
+
+  // Handle photo click - open fullscreen viewer
+  const handlePhotoClick = (photos, index) => {
+    const photosArray = Array.isArray(photos) ? photos : [photos];
+    setFullscreenPhotos(photosArray);
+    setFullscreenIndex(index || 0);
+  };
   
   // Handle switching between main and alternative locations
   const handleSwitchLocation = (alternativeIndex) => {
@@ -117,32 +127,10 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
       }}>
         {/* Photo - Left half */}
         <div>
-          {mainLocation.photo ? (
-            <img 
-              src={mainLocation.photo} 
-              alt={mainLocation.title || 'Location'} 
-              style={{ 
-                width: '100%', 
-                aspectRatio: '1',
-                borderRadius: '12px',
-                objectFit: 'cover',
-                objectPosition: 'center'
-              }} 
-            />
-          ) : (
-            <div style={{
-              width: '100%',
-              aspectRatio: '1',
-              backgroundColor: '#e5e7eb',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#9ca3af'
-            }}>
-              No photo
-            </div>
-          )}
+          <PhotoCarousel
+            photos={mainLocation.photos || mainLocation.photo || []}
+            onPhotoClick={handlePhotoClick}
+          />
         </div>
 
         {/* Details - Right half */}
@@ -246,31 +234,45 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                       e.currentTarget.style.boxShadow = 'none';
                     }}
                   >
-                    {altLocation.photo ? (
-                      <img 
-                        src={altLocation.photo} 
-                        alt={altLocation.title || 'Alternative location'} 
-                        style={{ 
-                          width: '100%', 
+                    {(() => {
+                      const altPhotos = altLocation.photos || altLocation.photo || [];
+                      const altPhotosArray = Array.isArray(altPhotos) ? altPhotos : [altPhotos];
+                      const firstPhoto = altPhotosArray[0];
+                      
+                      return firstPhoto ? (
+                        <img 
+                          src={firstPhoto} 
+                          alt={altLocation.title || 'Alternative location'} 
+                          style={{ 
+                            width: '100%', 
+                            height: '59px',
+                            objectFit: 'cover',
+                            objectPosition: 'center',
+                            cursor: 'pointer'
+                          }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (altPhotosArray.length > 0) {
+                              handlePhotoClick(altPhotosArray, 0);
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div style={{
+                          width: '100%',
                           height: '59px',
-                          objectFit: 'cover',
-                          objectPosition: 'center'
-                        }} 
-                      />
-                    ) : (
-                      <div style={{
-                        width: '100%',
-                        height: '59px',
-                        backgroundColor: '#e5e7eb',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#9ca3af',
-                        fontSize: '9px'
-                      }}>
-                        No photo
-                      </div>
-                    )}
+                          backgroundColor: '#e5e7eb',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#9ca3af',
+                          fontSize: '9px'
+                        }}>
+                          No photo
+                        </div>
+                      );
+                    })()}
                     <div style={{ padding: '5px' }}>
                       <h5 style={{ 
                         fontSize: '10px', 
@@ -388,31 +390,45 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               >
-                {altLocation.photo ? (
-                  <img 
-                    src={altLocation.photo} 
-                    alt={altLocation.title || 'Alternative location'} 
-                    style={{ 
-                      width: '100%', 
+                {(() => {
+                  const altPhotos = altLocation.photos || altLocation.photo || [];
+                  const altPhotosArray = Array.isArray(altPhotos) ? altPhotos : [altPhotos];
+                  const firstPhoto = altPhotosArray[0];
+                  
+                  return firstPhoto ? (
+                    <img 
+                      src={firstPhoto} 
+                      alt={altLocation.title || 'Alternative location'} 
+                      style={{ 
+                        width: '100%', 
+                        height: '59px',
+                        objectFit: 'cover',
+                        objectPosition: 'center',
+                        cursor: 'pointer'
+                      }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (altPhotosArray.length > 0) {
+                          handlePhotoClick(altPhotosArray, 0);
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: '100%',
                       height: '59px',
-                      objectFit: 'cover',
-                      objectPosition: 'center'
-                    }} 
-                  />
-                ) : (
-                  <div style={{
-                    width: '100%',
-                    height: '59px',
-                    backgroundColor: '#e5e7eb',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#9ca3af',
-                    fontSize: '9px'
-                  }}>
-                    No photo
-                  </div>
-                )}
+                      backgroundColor: '#e5e7eb',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#9ca3af',
+                      fontSize: '9px'
+                    }}>
+                      No photo
+                    </div>
+                  );
+                })()}
                 <div style={{ padding: '5px' }}>
                   <h5 style={{ 
                     fontSize: '10px', 
@@ -436,6 +452,18 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Fullscreen Photo Viewer */}
+      {fullscreenPhotos && (
+        <FullscreenPhotoViewer
+          photos={fullscreenPhotos}
+          initialIndex={fullscreenIndex}
+          onClose={() => {
+            setFullscreenPhotos(null);
+            setFullscreenIndex(0);
+          }}
+        />
       )}
       </div>
     </div>
