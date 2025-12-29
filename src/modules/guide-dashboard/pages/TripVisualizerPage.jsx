@@ -5390,7 +5390,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                   <div style={{ position: 'relative', marginBottom: '12px' }}>
                     <input
                       type="text"
-                      value={locationCityInputValue || (currentLocation?.city_name || '')}
+                      value={locationCityInputValue !== '' ? locationCityInputValue : (currentLocation?.city_name || '')}
                       onChange={async (e) => {
                         const value = e.target.value;
                         setLocationCityInputValue(value);
@@ -5403,9 +5403,14 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                             if (data.success && data.cities) {
                               setLocationCitySuggestions(data.cities);
                               setShowLocationCitySuggestions(true);
+                            } else {
+                              setLocationCitySuggestions([]);
+                              setShowLocationCitySuggestions(false);
                             }
                           } catch (error) {
                             console.error('Error searching cities:', error);
+                            setLocationCitySuggestions([]);
+                            setShowLocationCitySuggestions(false);
                           }
                         } else {
                           setLocationCitySuggestions([]);
@@ -5413,8 +5418,22 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                         }
                       }}
                       onFocus={async () => {
-                        // Load initial suggestions if city is not set
-                        if (!currentLocation?.city_id && tourCity) {
+                        // If user is typing, show suggestions for current input
+                        const currentValue = locationCityInputValue || currentLocation?.city_name || '';
+                        if (currentValue.length >= 2) {
+                          try {
+                            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripbackend.vercel.app';
+                            const response = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(currentValue)}`);
+                            const data = await response.json();
+                            if (data.success && data.cities) {
+                              setLocationCitySuggestions(data.cities);
+                              setShowLocationCitySuggestions(true);
+                            }
+                          } catch (error) {
+                            console.error('Error loading city suggestions:', error);
+                          }
+                        } else if (!currentLocation?.city_id && tourCity) {
+                          // Load initial suggestions if city is not set
                           try {
                             const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripbackend.vercel.app';
                             const response = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(tourCity)}`);
