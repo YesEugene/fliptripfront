@@ -335,7 +335,7 @@ export default function LocationFormModal({ location, onClose, onSave }) {
                   <option value="">Select a city</option>
                   {cities.map(city => (
                     <option key={city.id} value={city.id}>
-                      {city.name} {city.country ? `(${city.country.name})` : ''}
+                      {city.displayName || city.name}
                     </option>
                   ))}
                 </select>

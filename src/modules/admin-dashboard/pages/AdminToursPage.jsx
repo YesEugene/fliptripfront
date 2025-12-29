@@ -50,31 +50,35 @@ export default function AdminToursPage() {
     loadCities();
   }, []);
 
-  // Load cities on component mount
+  // Load cities on component mount - no longer needed, we use API search
   const loadCities = async () => {
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
-      const response = await fetch(`${API_BASE_URL}/api/admin-cities`);
-      const data = await response.json();
-      if (data.success && data.cities) {
-        setCities(data.cities);
-      }
-    } catch (err) {
-      console.error('Error loading cities:', err);
-    }
+    // No need to preload all cities - we'll search via API
+    setCities([]);
   };
 
-  // Handle city input change - show suggestions
-  const handleCityInputChange = (e) => {
+  // Handle city input change - search via API
+  const handleCityInputChange = async (e) => {
     const value = e.target.value;
     setEditFormData({ ...editFormData, city: value });
     
     if (value.length > 1) {
-      const filtered = cities.filter(c => 
-        c.name.toLowerCase().includes(value.toLowerCase())
-      );
-      setCitySuggestions(filtered);
-      setShowCitySuggestions(filtered.length > 0);
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
+        // Search cities via API
+        const response = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(value)}`);
+        const data = await response.json();
+        if (data.success && data.cities) {
+          setCitySuggestions(data.cities);
+          setShowCitySuggestions(data.cities.length > 0);
+        } else {
+          setCitySuggestions([]);
+          setShowCitySuggestions(false);
+        }
+      } catch (err) {
+        console.error('Error searching cities:', err);
+        setCitySuggestions([]);
+        setShowCitySuggestions(false);
+      }
     } else {
       setCitySuggestions([]);
       setShowCitySuggestions(false);
@@ -965,12 +969,7 @@ export default function AdminToursPage() {
                               e.target.style.backgroundColor = 'white';
                             }}
                           >
-                        {city.name}
-                        {city.country && (
-                          <span style={{ color: '#6b7280', fontSize: '14px', marginLeft: '8px' }}>
-                            {typeof city.country === 'string' ? city.country : (city.country.name || city.country)}
-                          </span>
-                        )}
+                            {city.displayName || city.name}
                           </div>
                         ))}
                       </div>

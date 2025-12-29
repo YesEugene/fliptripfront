@@ -88,6 +88,7 @@ export default function HomePage() {
   const [loadingTours, setLoadingTours] = useState(false);
   
   // Cities from database (replaces hardcoded TOP_CITIES)
+  // Format: { id, name, country, displayName }
   const [cities, setCities] = useState([]);
   const [loadingCities, setLoadingCities] = useState(false);
   
@@ -251,22 +252,22 @@ export default function HomePage() {
     loadInterests();
   }, []);
 
-  // Load cities from database
+  // Load cities from database (only cities with tours or locations)
   useEffect(() => {
     const loadCities = async () => {
       try {
         setLoadingCities(true);
-        const response = await fetch(`${API_BASE_URL}/api/admin-cities`);
+        // Load only cities that have tours or locations
+        const response = await fetch(`${API_BASE_URL}/api/admin-cities?onlyWithContent=true`);
         const data = await response.json();
         if (data.success && data.cities) {
-          // Extract city names from the cities array
-          const cityNames = data.cities.map(city => city.name);
-          setCities(cityNames);
+          // Store full city objects with displayName
+          setCities(data.cities);
         }
       } catch (err) {
         console.error('Error loading cities:', err);
         // Fallback to hardcoded cities if API fails
-        setCities(TOP_CITIES);
+        setCities(TOP_CITIES.map(name => ({ name, displayName: name })));
       } finally {
         setLoadingCities(false);
       }
@@ -1403,41 +1404,47 @@ export default function HomePage() {
                     maxHeight: '320px',
                     overflowY: 'auto'
                   }}>
-                    {(cities.length > 0 ? cities : TOP_CITIES).map((city) => (
-                      <button
-                        key={city}
-                        type="button"
-                        onClick={() => {
-                          setFormData(prev => ({ ...prev, city }));
-                          setIsFilterCityDropdownOpen(false);
-                        }}
-                        style={{
-                          width: '100%',
-                          padding: '12px 16px',
-                          border: 'none',
-                          backgroundColor: formData.city === city ? '#eff6ff' : 'transparent',
-                          textAlign: 'left',
-                          cursor: 'pointer',
-                          borderRadius: '0',
-                          transition: 'background-color 0.2s',
-                          fontSize: '14px',
-                          color: formData.city === city ? '#3E85FC' : '#374151',
-                          fontWeight: formData.city === city ? '600' : '400'
-                        }}
-                        onMouseEnter={(e) => {
-                          if (formData.city !== city) {
-                            e.target.style.backgroundColor = '#f3f4f6';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (formData.city !== city) {
-                            e.target.style.backgroundColor = 'transparent';
-                          }
-                        }}
-                      >
-                        {city}
-                      </button>
-                    ))}
+                    {(cities.length > 0 ? cities : TOP_CITIES.map(name => ({ name, displayName: name }))).map((city) => {
+                      const cityName = typeof city === 'string' ? city : city.name;
+                      const displayName = typeof city === 'string' ? city : (city.displayName || city.name);
+                      const isSelected = formData.city === cityName;
+                      
+                      return (
+                        <button
+                          key={cityName}
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({ ...prev, city: cityName }));
+                            setIsFilterCityDropdownOpen(false);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '12px 16px',
+                            border: 'none',
+                            backgroundColor: isSelected ? '#eff6ff' : 'transparent',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            borderRadius: '0',
+                            transition: 'background-color 0.2s',
+                            fontSize: '14px',
+                            color: isSelected ? '#3E85FC' : '#374151',
+                            fontWeight: isSelected ? '600' : '400'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isSelected) {
+                              e.target.style.backgroundColor = '#f3f4f6';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isSelected) {
+                              e.target.style.backgroundColor = 'transparent';
+                            }
+                          }}
+                        >
+                          {displayName}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
