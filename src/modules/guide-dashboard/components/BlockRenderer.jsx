@@ -1122,7 +1122,6 @@ function PhotoBlock({ block, onEdit }) {
               height: photoHeight,
               borderRadius: '8px',
               overflow: 'hidden',
-              backgroundColor: '#e5e7eb',
               position: 'relative',
               cursor: 'pointer',
               marginBottom: caption ? '12px' : 0
@@ -1138,7 +1137,7 @@ function PhotoBlock({ block, onEdit }) {
               style={{ 
                 width: '100%', 
                 height: '100%', 
-                objectFit: 'contain',
+                objectFit: 'cover',
                 objectPosition: 'center',
                 userSelect: 'none',
                 pointerEvents: 'none'
