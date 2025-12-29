@@ -4331,7 +4331,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
     if (block.block_type === 'location' && tourCity && content.mainLocation && !content.mainLocation.city_id) {
       const loadDefaultCity = async () => {
         try {
-          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripbackend.vercel.app';
+          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://fliptripbackend.vercel.app';
           const response = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(tourCity)}`);
           const data = await response.json();
           if (data.success && data.cities && data.cities.length > 0) {
