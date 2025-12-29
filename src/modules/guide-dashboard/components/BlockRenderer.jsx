@@ -1048,9 +1048,12 @@ function ThreeColumnsBlock({ block, onEdit }) {
 // Photo Block
 function PhotoBlock({ block, onEdit }) {
   const content = block.content || {};
-  const photo = content.photo;
+  const photos = content.photos || (content.photo ? [content.photo] : []);
   const caption = content.caption || '';
   const [isMobilePhoto, setIsMobilePhoto] = useState(false);
+  const [fullscreenPhotos, setFullscreenPhotos] = useState(null);
+  const [fullscreenIndex, setFullscreenIndex] = useState(0);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -1063,6 +1066,46 @@ function PhotoBlock({ block, onEdit }) {
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
+  // Handle photo click - open fullscreen viewer
+  const handlePhotoClick = (photosArray, index) => {
+    if (photosArray.length > 0) {
+      setFullscreenPhotos(photosArray);
+      setFullscreenIndex(index || 0);
+    }
+  };
+
+  // Swipe handlers for photo carousel
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && currentPhotoIndex < photos.length - 1) {
+      setCurrentPhotoIndex(currentPhotoIndex + 1);
+    }
+    if (isRightSwipe && currentPhotoIndex > 0) {
+      setCurrentPhotoIndex(currentPhotoIndex - 1);
+    }
+  };
+
+  const photoHeight = isMobilePhoto ? '190px' : '400px';
+  const currentPhoto = photos[currentPhotoIndex] || photos[0];
+
   return (
     <div style={{ 
       marginBottom: isMobilePhoto ? '10px' : '32px',
@@ -1071,18 +1114,67 @@ function PhotoBlock({ block, onEdit }) {
       <div style={{
         padding: '0'
       }}>
-        {photo ? (
+        {currentPhoto ? (
         <>
-          <img 
-            src={photo} 
-            alt="Content" 
-            style={{ 
-              width: '100%', 
-              height: 'auto', 
+          <div
+            style={{
+              width: '100%',
+              height: photoHeight,
               borderRadius: '8px',
+              overflow: 'hidden',
+              backgroundColor: '#e5e7eb',
+              position: 'relative',
+              cursor: 'pointer',
               marginBottom: caption ? '12px' : 0
-            }} 
-          />
+            }}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+            onClick={() => handlePhotoClick(photos, currentPhotoIndex)}
+          >
+            <img 
+              src={currentPhoto} 
+              alt="Content" 
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                objectFit: 'contain',
+                objectPosition: 'center',
+                userSelect: 'none',
+                pointerEvents: 'none'
+              }}
+              draggable={false}
+            />
+          </div>
+          
+          {/* Dots indicator */}
+          {photos.length > 1 && (
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '6px',
+              marginBottom: caption ? '12px' : 0
+            }}>
+              {photos.map((_, index) => (
+                <div
+                  key={index}
+                  style={{
+                    width: index === currentPhotoIndex ? '24px' : '8px',
+                    height: '8px',
+                    borderRadius: '4px',
+                    backgroundColor: index === currentPhotoIndex ? '#3b82f6' : '#d1d5db',
+                    transition: 'all 0.3s ease',
+                    cursor: 'pointer'
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentPhotoIndex(index);
+                  }}
+                />
+              ))}
+            </div>
+          )}
+          
           {caption && (
             <p style={{ 
               color: '#6b7280', 
@@ -1100,7 +1192,7 @@ function PhotoBlock({ block, onEdit }) {
       ) : (
         <div style={{
           width: '100%',
-          height: '400px',
+          height: photoHeight,
           backgroundColor: '#e5e7eb',
           borderRadius: '8px',
           display: 'flex',
@@ -1110,6 +1202,18 @@ function PhotoBlock({ block, onEdit }) {
         }}>
           No photo
         </div>
+      )}
+
+      {/* Fullscreen Photo Viewer */}
+      {fullscreenPhotos && (
+        <FullscreenPhotoViewer
+          photos={fullscreenPhotos}
+          initialIndex={fullscreenIndex}
+          onClose={() => {
+            setFullscreenPhotos(null);
+            setFullscreenIndex(0);
+          }}
+        />
       )}
       </div>
     </div>
