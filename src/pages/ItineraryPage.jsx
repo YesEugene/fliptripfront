@@ -695,9 +695,10 @@ export default function ItineraryPage() {
       
       // Convert tour data to itinerary format
       // CRITICAL: Include all days if full mode, or just first day if preview
+      const draftData = tour.draft_data || {};
       const itineraryData = {
-        title: tour.title || 'Tour',
-        subtitle: tour.description || `Explore ${cityName} with this curated tour`,
+        title: draftData.title || tour.title || 'Tour',
+        subtitle: draftData.description || tour.description || `Explore ${cityName} with this curated tour`,
         city: cityName,
         date: formData.date || new Date().toISOString().slice(0, 10),
         budget: finalBudget,
@@ -722,7 +723,7 @@ export default function ItineraryPage() {
         })),
         // Add tour metadata
         tourId: tourIdParam,
-        preview_media_url: tour.preview_media_url || tour.preview || null,
+        preview_media_url: draftData.preview || tour.preview_media_url || tour.preview || null,
         // Add tags for display
         tags: tags
       };
