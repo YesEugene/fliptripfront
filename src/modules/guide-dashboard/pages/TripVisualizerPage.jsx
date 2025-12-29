@@ -4290,6 +4290,13 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
     } else {
       setLocationCityInputValue('');
     }
+    
+    // Cleanup timeout on unmount or block change
+    return () => {
+      if (locationCitySearchTimeoutRef.current) {
+        clearTimeout(locationCitySearchTimeoutRef.current);
+      }
+    };
   }, [block.id, JSON.stringify(block.content)]);
   
   const [editingLocationIndex, setEditingLocationIndex] = useState(null); // null = main, number = alternative index
