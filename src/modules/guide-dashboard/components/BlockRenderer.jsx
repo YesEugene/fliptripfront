@@ -1021,7 +1021,8 @@ function SlideBlock({ block, onEdit }) {
     }
   };
 
-  // Square aspect ratio (1:1) for all screen sizes
+  // Fixed height: 400px (desktop) / 190px (mobile) - 750px × 400px on desktop
+  const photoHeight = isMobileSlide ? '190px' : '400px';
   const currentPhoto = photos[currentPhotoIndex] || photos[0];
 
   return (
@@ -1040,7 +1041,7 @@ function SlideBlock({ block, onEdit }) {
             <div
               style={{
                 width: '100%',
-                aspectRatio: '1',
+                height: photoHeight,
                 borderRadius: '8px',
                 overflow: 'hidden',
                 position: 'relative',
@@ -1098,7 +1099,7 @@ function SlideBlock({ block, onEdit }) {
         ) : (
           <div style={{
             width: '100%',
-            aspectRatio: '1',
+            height: photoHeight,
             borderRadius: '8px',
             marginBottom: '12px',
             display: 'flex',
@@ -1370,7 +1371,8 @@ function PhotoBlock({ block, onEdit }) {
     }
   };
 
-  // Square aspect ratio (1:1) for all screen sizes
+  // Fixed height: 400px (desktop) / 190px (mobile) - 750px × 400px on desktop
+  const photoHeight = isMobilePhoto ? '190px' : '400px';
   const currentPhoto = photos[currentPhotoIndex] || photos[0];
 
   return (
@@ -1386,7 +1388,7 @@ function PhotoBlock({ block, onEdit }) {
           <div
             style={{
               width: '100%',
-              aspectRatio: '1',
+              height: photoHeight,
               borderRadius: '8px',
               overflow: 'hidden',
               position: 'relative',
@@ -1458,7 +1460,7 @@ function PhotoBlock({ block, onEdit }) {
       ) : (
         <div style={{
           width: '100%',
-          aspectRatio: '1',
+          height: photoHeight,
           backgroundColor: '#e5e7eb',
           borderRadius: '8px',
           display: 'flex',
