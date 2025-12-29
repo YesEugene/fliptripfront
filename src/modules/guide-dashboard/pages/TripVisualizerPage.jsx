@@ -4420,9 +4420,11 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
           <>
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
-                Photo
+                Photos
                 <HintButton hintKey="photoText" />
               </label>
+              
+              {/* Photo preview carousel */}
               <div style={{
                 width: '100%',
                 height: '200px',
@@ -4432,22 +4434,77 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginBottom: '12px',
-                backgroundColor: '#f9fafb'
+                backgroundColor: '#f9fafb',
+                overflow: 'hidden',
+                position: 'relative'
               }}>
-                {content.photo ? (
-                  <img src={content.photo} alt="Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-                ) : (
-                  <span style={{ color: '#6b7280' }}>No photo selected</span>
-                )}
+                {(() => {
+                  const photos = content.photos || (content.photo ? [content.photo] : []);
+                  if (photos.length > 0) {
+                    const currentPhoto = photos[0];
+                    return (
+                      <>
+                        <img 
+                          src={currentPhoto} 
+                          alt="Preview" 
+                          style={{ 
+                            maxWidth: '100%', 
+                            maxHeight: '100%', 
+                            objectFit: 'contain' 
+                          }} 
+                        />
+                        {photos.length > 1 && (
+                          <div style={{
+                            position: 'absolute',
+                            bottom: '8px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            display: 'flex',
+                            gap: '4px'
+                          }}>
+                            {photos.map((_, index) => (
+                              <div
+                                key={index}
+                                style={{
+                                  width: index === 0 ? '20px' : '6px',
+                                  height: '6px',
+                                  borderRadius: '3px',
+                                  backgroundColor: index === 0 ? '#3b82f6' : '#d1d5db',
+                                  transition: 'all 0.3s ease'
+                                }}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    );
+                  }
+                  return <span style={{ color: '#6b7280' }}>No photos selected</span>;
+                })()}
               </div>
+              
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (file && onImageUpload) {
-                    onImageUpload(file, (base64) => {
-                      setContent({ ...content, photo: base64 });
+                multiple
+                onChange={async (e) => {
+                  const files = Array.from(e.target.files || []);
+                  if (files.length > 0 && onImageUpload) {
+                    // Upload all files
+                    const uploadPromises = files.map(file => 
+                      new Promise((resolve) => {
+                        onImageUpload(file, (base64) => {
+                          resolve(base64);
+                        });
+                      })
+                    );
+                    
+                    const uploadedPhotos = await Promise.all(uploadPromises);
+                    const existingPhotos = content.photos || (content.photo ? [content.photo] : []);
+                    setContent({ 
+                      ...content, 
+                      photos: [...existingPhotos, ...uploadedPhotos],
+                      photo: undefined // Remove old single photo field
                     });
                   }
                 }}
@@ -4465,11 +4522,51 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                   borderRadius: '8px',
                   cursor: 'pointer',
                   fontSize: '14px',
-                  fontWeight: '500'
+                  fontWeight: '500',
+                  marginBottom: '8px',
+                  marginRight: '8px'
                 }}
               >
-                Choose photo
+                Add photos
               </label>
+              
+              {/* Remove photos button */}
+              {(() => {
+                const photos = content.photos || (content.photo ? [content.photo] : []);
+                if (photos.length > 0) {
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setContent({ 
+                          ...content, 
+                          photos: [],
+                          photo: undefined
+                        });
+                      }}
+                      style={{
+                        display: 'inline-block',
+                        padding: '10px 20px',
+                        backgroundColor: '#ef4444',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        marginBottom: '8px'
+                      }}
+                    >
+                      Remove all photos
+                    </button>
+                  );
+                }
+                return null;
+              })()}
+              
+              <p style={{ fontSize: '12px', color: '#6b7280', margin: '4px 0 0 0' }}>
+                JPG, PNG or GIF. Max size 5MB per image. You can select multiple photos at once.
+              </p>
             </div>
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>

@@ -520,10 +520,13 @@ function TitleBlock({ block, onEdit }) {
 // Photo + Text Block
 function PhotoTextBlock({ block, onEdit }) {
   const content = block.content || {};
-  const photo = content.photo;
+  const photos = content.photos || (content.photo ? [content.photo] : []);
   const text = content.text || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
   const alignment = content.alignment || 'left';
   const [isMobile, setIsMobile] = useState(false);
+  const [fullscreenPhotos, setFullscreenPhotos] = useState(null);
+  const [fullscreenIndex, setFullscreenIndex] = useState(0);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -536,6 +539,49 @@ function PhotoTextBlock({ block, onEdit }) {
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
+  // Handle photo click - open fullscreen viewer
+  const handlePhotoClick = (photosArray, index) => {
+    if (photosArray.length > 0) {
+      setFullscreenPhotos(photosArray);
+      setFullscreenIndex(index || 0);
+    }
+  };
+
+  // Swipe handlers for photo carousel
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && currentPhotoIndex < photos.length - 1) {
+      setCurrentPhotoIndex(currentPhotoIndex + 1);
+    }
+    if (isRightSwipe && currentPhotoIndex > 0) {
+      setCurrentPhotoIndex(currentPhotoIndex - 1);
+    }
+  };
+
+  // Calculate photo height proportionally
+  // Photo block: 400px height for 750px width (ratio: 0.533)
+  // Photo+Text: half width (375px), so height should be ~400px (same aspect ratio maintained)
+  const photoHeight = isMobile ? '190px' : '400px';
+  const currentPhoto = photos[currentPhotoIndex] || photos[0];
+
   // Mobile: image first, then text below
   if (isMobile) {
     return (
@@ -547,55 +593,114 @@ function PhotoTextBlock({ block, onEdit }) {
           padding: '0'
         }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <div>
-          {photo ? (
-            <img 
-              src={photo} 
-              alt="Content" 
-              style={{ 
-                width: '100%', 
-                height: '200px', 
-                objectFit: 'cover', 
-                borderRadius: '8px' 
-              }} 
-            />
-          ) : (
-            <div style={{
-              width: '100%',
-              height: '200px',
-              backgroundColor: '#e5e7eb',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#9ca3af'
-            }}>
-              No photo
+            <div>
+              {currentPhoto ? (
+                <>
+                  <div
+                    style={{
+                      width: '100%',
+                      height: photoHeight,
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      position: 'relative',
+                      cursor: 'pointer'
+                    }}
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
+                    onClick={() => handlePhotoClick(photos, currentPhotoIndex)}
+                  >
+                    <img 
+                      src={currentPhoto} 
+                      alt="Content" 
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        objectFit: 'cover',
+                        objectPosition: 'center',
+                        userSelect: 'none',
+                        pointerEvents: 'none'
+                      }}
+                      draggable={false}
+                    />
+                  </div>
+                  
+                  {/* Dots indicator */}
+                  {photos.length > 1 && (
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      marginTop: '12px'
+                    }}>
+                      {photos.map((_, index) => (
+                        <div
+                          key={index}
+                          style={{
+                            width: index === currentPhotoIndex ? '24px' : '8px',
+                            height: '8px',
+                            borderRadius: '4px',
+                            backgroundColor: index === currentPhotoIndex ? '#3b82f6' : '#d1d5db',
+                            transition: 'all 0.3s ease',
+                            cursor: 'pointer'
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCurrentPhotoIndex(index);
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div style={{
+                  width: '100%',
+                  height: photoHeight,
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#9ca3af'
+                }}>
+                  No photo
+                </div>
+              )}
             </div>
-          )}
-        </div>
-        <div>
-          {text.split('\n\n').map((paragraph, index, array) => (
-            <p 
-              key={index}
-              style={{ 
-                color: '#111827', 
-                fontSize: '16px', 
-                lineHeight: '1.6',
-                margin: 0,
-                marginBottom: index < array.length - 1 ? '8px' : 0
-              }}>
-              {paragraph.trim()}
-            </p>
-          ))}
-        </div>
+            <div>
+              {text.split('\n\n').map((paragraph, index, array) => (
+                <p 
+                  key={index}
+                  style={{ 
+                    color: '#111827', 
+                    fontSize: '16px', 
+                    lineHeight: '1.6',
+                    margin: 0,
+                    marginBottom: index < array.length - 1 ? '8px' : 0
+                  }}>
+                  {paragraph.trim()}
+                </p>
+              ))}
+            </div>
           </div>
         </div>
+
+        {/* Fullscreen Photo Viewer */}
+        {fullscreenPhotos && (
+          <FullscreenPhotoViewer
+            photos={fullscreenPhotos}
+            initialIndex={fullscreenIndex}
+            onClose={() => {
+              setFullscreenPhotos(null);
+              setFullscreenIndex(0);
+            }}
+          />
+        )}
       </div>
     );
   }
 
-  // Desktop: side by side
+  // Desktop: Grid 4 columns (photo 2, text 2)
   return (
     <div style={{ 
       marginBottom: '32px',
@@ -605,55 +710,120 @@ function PhotoTextBlock({ block, onEdit }) {
         padding: '0'
       }}>
         <div style={{
-      display: 'flex',
-      gap: '24px',
-      flexDirection: alignment === 'right' ? 'row-reverse' : 'row',
-      alignItems: 'flex-start'
-    }}>
-      <div style={{ flex: '0 0 300px' }}>
-        {photo ? (
-          <img 
-            src={photo} 
-            alt="Content" 
-            style={{ 
-              width: '100%', 
-              height: '200px', 
-              objectFit: 'cover', 
-              borderRadius: '8px' 
-            }} 
-          />
-        ) : (
-          <div style={{
-            width: '100%',
-            height: '200px',
-            backgroundColor: '#e5e7eb',
-            borderRadius: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#9ca3af'
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: '24px',
+          alignItems: 'flex-start'
+        }}>
+          {/* Photo section - 2 columns */}
+          <div style={{ 
+            gridColumn: alignment === 'right' ? 'span 2' : 'span 2',
+            gridColumnStart: alignment === 'right' ? 3 : 1
           }}>
-            No photo
+            {currentPhoto ? (
+              <>
+                <div
+                  style={{
+                    width: '100%',
+                    height: photoHeight,
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    position: 'relative',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => handlePhotoClick(photos, currentPhotoIndex)}
+                >
+                  <img 
+                    src={currentPhoto} 
+                    alt="Content" 
+                    style={{ 
+                      width: '100%', 
+                      height: '100%', 
+                      objectFit: 'cover',
+                      objectPosition: 'center',
+                      userSelect: 'none',
+                      pointerEvents: 'none'
+                    }}
+                    draggable={false}
+                  />
+                </div>
+                
+                {/* Dots indicator */}
+                {photos.length > 1 && (
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    marginTop: '12px'
+                  }}>
+                    {photos.map((_, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          width: index === currentPhotoIndex ? '24px' : '8px',
+                          height: '8px',
+                          borderRadius: '4px',
+                          backgroundColor: index === currentPhotoIndex ? '#3b82f6' : '#d1d5db',
+                          transition: 'all 0.3s ease',
+                          cursor: 'pointer'
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentPhotoIndex(index);
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{
+                width: '100%',
+                height: photoHeight,
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#9ca3af'
+              }}>
+                No photo
+              </div>
+            )}
           </div>
-        )}
-      </div>
-      <div style={{ flex: 1 }}>
-        {text.split('\n\n').map((paragraph, index, array) => (
-          <p 
-            key={index}
-            style={{ 
-              color: '#111827', 
-              fontSize: '16px', 
-              lineHeight: '1.6',
-              margin: 0,
-              marginBottom: index < array.length - 1 ? '8px' : 0
-            }}>
-            {paragraph.trim()}
-          </p>
-        ))}
-      </div>
+          
+          {/* Text section - 2 columns */}
+          <div style={{ 
+            gridColumn: alignment === 'right' ? 'span 2' : 'span 2',
+            gridColumnStart: alignment === 'right' ? 1 : 3
+          }}>
+            {text.split('\n\n').map((paragraph, index, array) => (
+              <p 
+                key={index}
+                style={{ 
+                  color: '#111827', 
+                  fontSize: '16px', 
+                  lineHeight: '1.6',
+                  margin: 0,
+                  marginBottom: index < array.length - 1 ? '8px' : 0
+                }}>
+                {paragraph.trim()}
+              </p>
+            ))}
+          </div>
         </div>
       </div>
+
+      {/* Fullscreen Photo Viewer */}
+      {fullscreenPhotos && (
+        <FullscreenPhotoViewer
+          photos={fullscreenPhotos}
+          initialIndex={fullscreenIndex}
+          onClose={() => {
+            setFullscreenPhotos(null);
+            setFullscreenIndex(0);
+          }}
+        />
+      )}
     </div>
   );
 }
