@@ -1513,8 +1513,13 @@ export default function ItineraryPage() {
     dailyPlanLength: itinerary?.daily_plan?.length || 0
   });
 
-  // Get image for hero - use tour preview_media_url if available, otherwise city image
-  const tourPreviewImage = itinerary?.preview_media_url || tourData?.preview_media_url || tourData?.preview || null;
+  // Get image for hero - check draft_data first, then tourData, then itinerary
+  const draftData = tourData?.draft_data || {};
+  const tourPreviewImage = draftData.preview || 
+                           tourData?.preview_media_url || 
+                           tourData?.preview || 
+                           itinerary?.preview_media_url || 
+                           null;
   const cityName = itinerary?.tags?.city || formData.city || tourData?.city?.name || (typeof tourData?.city === 'string' ? tourData.city : null) || 'Barcelona';
   const cityImage = getCityImage(cityName);
   const heroImage = tourPreviewImage || cityImage; // Use tour preview if available, otherwise city image
@@ -1525,9 +1530,13 @@ export default function ItineraryPage() {
   const guideName = guideInfo?.name || null;
   const guideAvatar = guideInfo?.avatar_url || null;
   
-  // Get tour info for new format (from tourData or tourInfo state)
-  const tourTitle = useNewFormat ? (tourData?.title || '') : (itinerary?.title || generateFallbackTitle(formData));
-  const tourDescription = useNewFormat ? (tourData?.description || '') : (itinerary?.subtitle || generateFallbackSubtitle(formData));
+  // Get tour info for new format - check draft_data first, then tourData, then itinerary
+  const tourTitle = useNewFormat 
+    ? (draftData.title || tourData?.title || '') 
+    : (itinerary?.title || generateFallbackTitle(formData));
+  const tourDescription = useNewFormat 
+    ? (draftData.description || tourData?.description || '') 
+    : (itinerary?.subtitle || generateFallbackSubtitle(formData));
   
   // Debug logging for author display
   console.log('🔍 Author display check:', {
