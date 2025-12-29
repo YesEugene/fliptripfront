@@ -735,7 +735,7 @@ export default function ItineraryPage() {
           // Reset tour type selection based on tour data
           // CRITICAL: Check draft_data.tourSettings first for explicit saved values
           // If tourSettings exist, use ONLY those values (don't check other fields)
-          const draftData = tour.draft_data || {};
+          // Reuse draftData variable declared above (line 698)
           const tourSettings = draftData.tourSettings || {};
           
           // If tourSettings exist, use explicit values from there
