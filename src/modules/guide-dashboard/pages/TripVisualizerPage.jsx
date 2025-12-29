@@ -5397,7 +5397,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                         
                         if (value.length >= 2) {
                           try {
-                            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripbackend.vercel.app';
+                            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://fliptripbackend.vercel.app';
                             const response = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(value)}`);
                             const data = await response.json();
                             if (data.success && data.cities) {
@@ -5422,7 +5422,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                         const currentValue = locationCityInputValue || currentLocation?.city_name || '';
                         if (currentValue.length >= 2) {
                           try {
-                            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripbackend.vercel.app';
+                            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://fliptripbackend.vercel.app';
                             const response = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(currentValue)}`);
                             const data = await response.json();
                             if (data.success && data.cities) {
@@ -5435,7 +5435,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                         } else if (!currentLocation?.city_id && tourCity) {
                           // Load initial suggestions if city is not set
                           try {
-                            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripbackend.vercel.app';
+                            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://fliptripbackend.vercel.app';
                             const response = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(tourCity)}`);
                             const data = await response.json();
                             if (data.success && data.cities) {
