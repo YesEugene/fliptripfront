@@ -4283,12 +4283,12 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
     
     // Initialize city input value if location block has city_name
     if (block.block_type === 'location' && updatedContent.mainLocation?.city_name) {
-      setCityInputValue(updatedContent.mainLocation.city_name);
+      setLocationCityInputValue(updatedContent.mainLocation.city_name);
     } else if (block.block_type === 'location' && !updatedContent.mainLocation?.city_name && tourCity) {
       // If no city_name but tourCity exists, try to load it
-      setCityInputValue(tourCity);
+      setLocationCityInputValue(tourCity);
     } else {
-      setCityInputValue('');
+      setLocationCityInputValue('');
     }
   }, [block.id, JSON.stringify(block.content)]);
   
@@ -4298,9 +4298,9 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
   const [loadingInterests, setLoadingInterests] = useState(false);
   
   // City autocomplete state for location blocks
-  const [citySuggestions, setCitySuggestions] = useState([]);
-  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
-  const [cityInputValue, setCityInputValue] = useState('');
+  const [locationCitySuggestions, setLocationCitySuggestions] = useState([]);
+  const [showLocationCitySuggestions, setShowLocationCitySuggestions] = useState(false);
+  const [locationCityInputValue, setLocationCityInputValue] = useState('');
 
   // Initialize editingLocationIndex to null (main location) for location blocks
   useEffect(() => {
@@ -4309,7 +4309,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
     }
   }, [block.block_type]);
   
-  // Update cityInputValue when switching between locations
+  // Update locationCityInputValue when switching between locations
   useEffect(() => {
     if (block.block_type === 'location') {
       const currentLocation = editingLocationIndex === null 
@@ -4317,11 +4317,11 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
         : content.alternativeLocations[editingLocationIndex];
       
       if (currentLocation?.city_name) {
-        setCityInputValue(currentLocation.city_name);
+        setLocationCityInputValue(currentLocation.city_name);
       } else if (tourCity && !currentLocation?.city_id) {
-        setCityInputValue(tourCity);
+        setLocationCityInputValue(tourCity);
       } else {
-        setCityInputValue('');
+        setLocationCityInputValue('');
       }
     }
   }, [editingLocationIndex, block.block_type, content.mainLocation, content.alternativeLocations, tourCity]);
@@ -4346,7 +4346,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                 city_name: match.displayName || `${match.name}${match.country ? `, ${match.country}` : ''}`
               }
             });
-            setCityInputValue(match.displayName || `${match.name}${match.country ? `, ${match.country}` : ''}`);
+            setLocationCityInputValue(match.displayName || `${match.name}${match.country ? `, ${match.country}` : ''}`);
           }
         } catch (error) {
           console.error('Error loading default city:', error);
@@ -5390,10 +5390,10 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                   <div style={{ position: 'relative', marginBottom: '12px' }}>
                     <input
                       type="text"
-                      value={cityInputValue || (currentLocation?.city_name || '')}
+                      value={locationCityInputValue || (currentLocation?.city_name || '')}
                       onChange={async (e) => {
                         const value = e.target.value;
-                        setCityInputValue(value);
+                        setLocationCityInputValue(value);
                         
                         if (value.length >= 2) {
                           try {
@@ -5401,27 +5401,27 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                             const response = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(value)}`);
                             const data = await response.json();
                             if (data.success && data.cities) {
-                              setCitySuggestions(data.cities);
-                              setShowCitySuggestions(true);
+                              setLocationCitySuggestions(data.cities);
+                              setShowLocationCitySuggestions(true);
                             }
                           } catch (error) {
                             console.error('Error searching cities:', error);
                           }
                         } else {
-                          setCitySuggestions([]);
-                          setShowCitySuggestions(false);
+                          setLocationCitySuggestions([]);
+                          setShowLocationCitySuggestions(false);
                         }
                       }}
                       onFocus={async () => {
                         // Load initial suggestions if city is not set
-                        if (!currentLocation.city_id && tourCity) {
+                        if (!currentLocation?.city_id && tourCity) {
                           try {
                             const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fliptripbackend.vercel.app';
                             const response = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(tourCity)}`);
                             const data = await response.json();
                             if (data.success && data.cities) {
-                              setCitySuggestions(data.cities);
-                              setShowCitySuggestions(true);
+                              setLocationCitySuggestions(data.cities);
+                              setShowLocationCitySuggestions(true);
                             }
                           } catch (error) {
                             console.error('Error loading city suggestions:', error);
@@ -5430,7 +5430,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                       }}
                       onBlur={() => {
                         // Delay hiding suggestions to allow clicking on them
-                        setTimeout(() => setShowCitySuggestions(false), 200);
+                        setTimeout(() => setShowLocationCitySuggestions(false), 200);
                       }}
                       placeholder="City * (e.g., Barcelona, Spain)"
                       required
@@ -5443,7 +5443,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                         boxSizing: 'border-box'
                       }}
                     />
-                    {showCitySuggestions && citySuggestions.length > 0 && (
+                    {showLocationCitySuggestions && locationCitySuggestions.length > 0 && (
                       <div style={{
                         position: 'absolute',
                         top: '100%',
@@ -5458,7 +5458,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                         zIndex: 1000,
                         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
                       }}>
-                        {citySuggestions.map((city) => (
+                        {locationCitySuggestions.map((city) => (
                           <div
                             key={city.id}
                             onClick={() => {
@@ -5466,8 +5466,8 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                                 city_id: city.id,
                                 city_name: city.displayName || `${city.name}${city.country ? `, ${city.country}` : ''}`
                               });
-                              setCityInputValue(city.displayName || `${city.name}${city.country ? `, ${city.country}` : ''}`);
-                              setShowCitySuggestions(false);
+                              setLocationCityInputValue(city.displayName || `${city.name}${city.country ? `, ${city.country}` : ''}`);
+                              setShowLocationCitySuggestions(false);
                             }}
                             style={{
                               padding: '12px',
