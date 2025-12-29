@@ -517,12 +517,13 @@ export default function ItineraryPage() {
       if (!hasContentBlocks && !hasDailyPlan) {
         console.log('ℹ️ Tour has no content blocks or daily plan - showing empty state');
         // Create minimal itinerary data to show tour info even without content
+        const draftData = tour.draft_data || {};
         const itineraryData = {
-          title: tour.title || 'Tour',
-          subtitle: tour.description || `Explore ${cityName} with this curated tour`,
+          title: draftData.title || tour.title || 'Tour',
+          subtitle: draftData.description || tour.description || `Explore ${cityName} with this curated tour`,
           city: cityName,
           tourId: tourIdParam,
-          preview_media_url: tour.preview_media_url || tour.preview || null,
+          preview_media_url: draftData.preview || tour.preview_media_url || tour.preview || null,
           tags: calculateTourTags(tour),
           isEmpty: true // Flag to indicate empty tour
         };
@@ -543,15 +544,16 @@ export default function ItineraryPage() {
         const interestsFromUrl = searchParams.get('interests') ? searchParams.get('interests').split(',') : (formData.interests || []);
         
         // Create minimal itinerary data for new format
+        const draftData = tour.draft_data || {};
         const itineraryData = {
-          title: tour.title || 'Tour',
-          subtitle: tour.description || `Explore ${cityName} with this curated tour`,
+          title: draftData.title || tour.title || 'Tour',
+          subtitle: draftData.description || tour.description || `Explore ${cityName} with this curated tour`,
           city: cityName,
           date: dateFromUrl,
           budget: budgetFromUrl,
           daily_plan: [], // Empty for new format - content comes from contentBlocks
           tourId: tourIdParam,
-          preview_media_url: tour.preview_media_url || tour.preview || null,
+          preview_media_url: draftData.preview || tour.preview_media_url || tour.preview || null,
           tags: {
             city: cityName,
             date: dateFromUrl,
