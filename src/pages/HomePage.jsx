@@ -2278,11 +2278,6 @@ export default function HomePage() {
                 return travelerPhotos[photoIndex];
               })();
               
-              // Deterministically decide if it's a video (30% chance based on tour ID)
-              const tourIdWithoutDashes = tour.id.split('-').join('');
-              const tourIdHash = parseInt(tourIdWithoutDashes.substring(0, 8), 16);
-              const isVideo = (tourIdHash % 10) < 3; // 30% chance
-              
               return (
                 <div
                   key={tour.id}
@@ -2316,34 +2311,6 @@ export default function HomePage() {
                 }}
               />
                   
-                  {/* Video Play Button Overlay */}
-                  {isVideo && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      zIndex: 3,
-                      width: '50px',
-                      height: '50px',
-                      borderRadius: '50%',
-                      backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer'
-                    }}>
-                      <div style={{
-                        width: 0,
-                        height: 0,
-                        borderLeft: '15px solid white',
-                        borderTop: '10px solid transparent',
-                        borderBottom: '10px solid transparent',
-                        marginLeft: '3px'
-                      }} />
-                    </div>
-                  )}
-              
               {/* Dark overlay for text readability */}
               <div style={{
                 position: 'absolute',
