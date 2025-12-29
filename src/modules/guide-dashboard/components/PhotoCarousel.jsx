@@ -44,7 +44,7 @@ export function PhotoCarousel({ photos, onPhotoClick }) {
         width: '100%',
         aspectRatio: '1',
         backgroundColor: '#e5e7eb',
-        borderRadius: '12px',
+        borderRadius: '20px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -67,7 +67,7 @@ export function PhotoCarousel({ photos, onPhotoClick }) {
           width: '100%',
           aspectRatio: '1',
           position: 'relative',
-          borderRadius: '12px',
+          borderRadius: '20px',
           overflow: 'hidden',
           cursor: 'pointer'
         }}

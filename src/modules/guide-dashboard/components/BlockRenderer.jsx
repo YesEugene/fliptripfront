@@ -597,7 +597,7 @@ function PhotoTextBlock({ block, onEdit }) {
                     style={{
                       width: '100%',
                       aspectRatio: '1',
-                      borderRadius: '8px',
+                      borderRadius: '20px',
                       overflow: 'hidden',
                       position: 'relative',
                       cursor: 'pointer'
@@ -654,7 +654,7 @@ function PhotoTextBlock({ block, onEdit }) {
                 <div style={{
                   width: '100%',
                   aspectRatio: '1',
-                  borderRadius: '8px',
+                  borderRadius: '20px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -722,7 +722,7 @@ function PhotoTextBlock({ block, onEdit }) {
                   style={{
                     width: '100%',
                     aspectRatio: '1',
-                    borderRadius: '8px',
+                    borderRadius: '20px',
                     overflow: 'hidden',
                     position: 'relative',
                     cursor: 'pointer'
@@ -776,7 +776,7 @@ function PhotoTextBlock({ block, onEdit }) {
               <div style={{
                 width: '100%',
                 aspectRatio: '1',
-                borderRadius: '8px',
+                borderRadius: '20px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1042,7 +1042,7 @@ function SlideBlock({ block, onEdit }) {
               style={{
                 width: '100%',
                 height: photoHeight,
-                borderRadius: '8px',
+                borderRadius: '20px',
                 overflow: 'hidden',
                 position: 'relative',
                 cursor: 'pointer',
@@ -1100,7 +1100,7 @@ function SlideBlock({ block, onEdit }) {
           <div style={{
             width: '100%',
             height: photoHeight,
-            borderRadius: '8px',
+            borderRadius: '20px',
             marginBottom: '12px',
             display: 'flex',
             alignItems: 'center',
@@ -1214,7 +1214,7 @@ function ThreeColumnsBlock({ block, onEdit }) {
                     width: '100%', 
                     height: '200px', 
                     objectFit: 'cover', 
-                    borderRadius: '8px',
+                    borderRadius: '20px',
                     marginBottom: '12px'
                   }} 
                 />
@@ -1223,7 +1223,7 @@ function ThreeColumnsBlock({ block, onEdit }) {
                   width: '100%',
                   height: '200px',
                   backgroundColor: '#e5e7eb',
-                  borderRadius: '8px',
+                  borderRadius: '20px',
                   marginBottom: '12px',
                   display: 'flex',
                   alignItems: 'center',
@@ -1276,7 +1276,7 @@ function ThreeColumnsBlock({ block, onEdit }) {
                     width: '100%', 
                     height: '150px', 
                     objectFit: 'cover', 
-                    borderRadius: '8px',
+                    borderRadius: '20px',
                     marginBottom: '12px'
                   }} 
                 />
@@ -1285,7 +1285,7 @@ function ThreeColumnsBlock({ block, onEdit }) {
                   width: '100%',
                   height: '150px',
                   backgroundColor: '#e5e7eb',
-                  borderRadius: '8px',
+                  borderRadius: '20px',
                   marginBottom: '12px',
                   display: 'flex',
                   alignItems: 'center',
@@ -1389,7 +1389,7 @@ function PhotoBlock({ block, onEdit }) {
             style={{
               width: '100%',
               height: photoHeight,
-              borderRadius: '8px',
+              borderRadius: '20px',
               overflow: 'hidden',
               position: 'relative',
               cursor: 'pointer',
@@ -1462,7 +1462,7 @@ function PhotoBlock({ block, onEdit }) {
           width: '100%',
           height: photoHeight,
           backgroundColor: '#e5e7eb',
-          borderRadius: '8px',
+          borderRadius: '20px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
