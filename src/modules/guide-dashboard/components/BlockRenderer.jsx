@@ -576,10 +576,7 @@ function PhotoTextBlock({ block, onEdit }) {
     }
   };
 
-  // Calculate photo height proportionally
-  // Photo block: 400px height for 750px width (ratio: 0.533)
-  // Photo+Text: half width (375px), so height should be ~400px (same aspect ratio maintained)
-  const photoHeight = isMobile ? '190px' : '400px';
+  // Square aspect ratio (1:1) for all screen sizes
   const currentPhoto = photos[currentPhotoIndex] || photos[0];
 
   // Mobile: image first, then text below
@@ -599,7 +596,7 @@ function PhotoTextBlock({ block, onEdit }) {
                   <div
                     style={{
                       width: '100%',
-                      height: photoHeight,
+                      aspectRatio: '1',
                       borderRadius: '8px',
                       overflow: 'hidden',
                       position: 'relative',
@@ -656,7 +653,7 @@ function PhotoTextBlock({ block, onEdit }) {
               ) : (
                 <div style={{
                   width: '100%',
-                  height: photoHeight,
+                  aspectRatio: '1',
                   borderRadius: '8px',
                   display: 'flex',
                   alignItems: 'center',
@@ -724,7 +721,7 @@ function PhotoTextBlock({ block, onEdit }) {
                 <div
                   style={{
                     width: '100%',
-                    height: photoHeight,
+                    aspectRatio: '1',
                     borderRadius: '8px',
                     overflow: 'hidden',
                     position: 'relative',
@@ -778,7 +775,7 @@ function PhotoTextBlock({ block, onEdit }) {
             ) : (
               <div style={{
                 width: '100%',
-                height: photoHeight,
+                aspectRatio: '1',
                 borderRadius: '8px',
                 display: 'flex',
                 alignItems: 'center',
@@ -1024,7 +1021,7 @@ function SlideBlock({ block, onEdit }) {
     }
   };
 
-  const photoHeight = isMobileSlide ? '190px' : '400px';
+  // Square aspect ratio (1:1) for all screen sizes
   const currentPhoto = photos[currentPhotoIndex] || photos[0];
 
   return (
@@ -1043,7 +1040,7 @@ function SlideBlock({ block, onEdit }) {
             <div
               style={{
                 width: '100%',
-                height: photoHeight,
+                aspectRatio: '1',
                 borderRadius: '8px',
                 overflow: 'hidden',
                 position: 'relative',
@@ -1101,7 +1098,7 @@ function SlideBlock({ block, onEdit }) {
         ) : (
           <div style={{
             width: '100%',
-            height: photoHeight,
+            aspectRatio: '1',
             borderRadius: '8px',
             marginBottom: '12px',
             display: 'flex',
@@ -1373,7 +1370,7 @@ function PhotoBlock({ block, onEdit }) {
     }
   };
 
-  const photoHeight = isMobilePhoto ? '190px' : '400px';
+  // Square aspect ratio (1:1) for all screen sizes
   const currentPhoto = photos[currentPhotoIndex] || photos[0];
 
   return (
@@ -1389,7 +1386,7 @@ function PhotoBlock({ block, onEdit }) {
           <div
             style={{
               width: '100%',
-              height: photoHeight,
+              aspectRatio: '1',
               borderRadius: '8px',
               overflow: 'hidden',
               position: 'relative',
@@ -1461,7 +1458,7 @@ function PhotoBlock({ block, onEdit }) {
       ) : (
         <div style={{
           width: '100%',
-          height: photoHeight,
+          aspectRatio: '1',
           backgroundColor: '#e5e7eb',
           borderRadius: '8px',
           display: 'flex',
