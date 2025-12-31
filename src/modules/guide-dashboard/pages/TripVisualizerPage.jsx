@@ -2891,26 +2891,13 @@ export default function TripVisualizerPage() {
               const newPhotos = locationData.photos || (locationData.photo ? [locationData.photo] : []);
               const mergedPhotos = newPhotos.length > 0 ? newPhotos : existingPhotos;
               
-              // Map price_level from Google format (€, €€, etc.) to numeric (1-4)
-              let priceLevelNumeric = '';
-              if (locationData.price_level) {
-                const priceLevelMap = {
-                  '€': '1',
-                  '€€': '2',
-                  '€€€': '3',
-                  '€€€€': '4',
-                  'Free': '0'
-                };
-                priceLevelNumeric = priceLevelMap[locationData.price_level] || '';
-              }
-              
               const updatedContent = {
                 ...currentContent,
                 mainLocation: {
                   ...currentContent.mainLocation,
                   title: locationData.title || '',
                   address: locationData.address || '',
-                  price_level: priceLevelNumeric || locationData.price_level || '',
+                  price_level: locationData.price_level || '', // Already numeric from API (0-4)
                   approx_cost: locationData.approximate_cost || locationData.approx_cost || '',
                   photos: mergedPhotos, // Use photos array
                   photo: mergedPhotos[0] || null, // Keep single photo for backward compatibility
@@ -2928,24 +2915,11 @@ export default function TripVisualizerPage() {
               const newAltPhotos = locationData.photos || (locationData.photo ? [locationData.photo] : []);
               const mergedAltPhotos = newAltPhotos.length > 0 ? newAltPhotos : existingAltPhotos;
               
-              // Map price_level from Google format (€, €€, etc.) to numeric (1-4)
-              let priceLevelNumeric = '';
-              if (locationData.price_level) {
-                const priceLevelMap = {
-                  '€': '1',
-                  '€€': '2',
-                  '€€€': '3',
-                  '€€€€': '4',
-                  'Free': '0'
-                };
-                priceLevelNumeric = priceLevelMap[locationData.price_level] || '';
-              }
-              
               alternativeLocations[editingLocationIndex] = {
                 ...alternativeLocations[editingLocationIndex],
                 title: locationData.title || '',
                 address: locationData.address || '',
-                price_level: priceLevelNumeric || locationData.price_level || '',
+                price_level: locationData.price_level || '', // Already numeric from API (0-4)
                 approx_cost: locationData.approximate_cost || locationData.approx_cost || '',
                 photos: mergedAltPhotos, // Use photos array
                 photo: mergedAltPhotos[0] || null, // Keep single photo for backward compatibility
