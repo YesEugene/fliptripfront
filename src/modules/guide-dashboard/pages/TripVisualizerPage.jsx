@@ -2955,8 +2955,16 @@ export default function TripVisualizerPage() {
                 user_ratings_total: locationData.user_ratings_total,
                 photos: finalPhotos.length,
                 city_name: locationData.city_name,
-                full_updatedContent_mainLocation: updatedContent.mainLocation
+                full_updatedContent_mainLocation: updatedContent.mainLocation,
+                willUpdateForm: true
               });
+              
+              // Immediately update the form content state to reflect changes
+              // This ensures the form fields update right away
+              if (block.block_type === 'location') {
+                const normalized = normalizeContent(updatedContent);
+                setContent(normalized);
+              }
             } else {
               // Updating alternative location
               const alternativeLocations = [...(currentContent.alternativeLocations || [])];
@@ -2971,13 +2979,21 @@ export default function TripVisualizerPage() {
                 title: locationData.title || alternativeLocations[editingLocationIndex]?.title || '',
                 address: locationData.address || alternativeLocations[editingLocationIndex]?.address || '',
                 // Price level: use Google Maps value if it exists and is not empty
-                price_level: (locationData.price_level !== undefined && locationData.price_level !== null && locationData.price_level !== '') 
-                  ? String(locationData.price_level) 
-                  : (alternativeLocations[editingLocationIndex]?.price_level || ''),
+                price_level: (() => {
+                  const googlePriceLevel = locationData.price_level;
+                  if (googlePriceLevel !== undefined && googlePriceLevel !== null && googlePriceLevel !== '' && String(googlePriceLevel) !== 'null') {
+                    return String(googlePriceLevel);
+                  }
+                  return alternativeLocations[editingLocationIndex]?.price_level || '';
+                })(),
                 // Approximate cost: use Google Maps value if it exists and is not empty
-                approx_cost: (locationData.approximate_cost || locationData.approx_cost) 
-                  ? String(locationData.approximate_cost || locationData.approx_cost) 
-                  : (alternativeLocations[editingLocationIndex]?.approx_cost || ''),
+                approx_cost: (() => {
+                  const googleApproxCost = locationData.approximate_cost || locationData.approx_cost;
+                  if (googleApproxCost && googleApproxCost !== '' && String(googleApproxCost) !== 'null') {
+                    return String(googleApproxCost);
+                  }
+                  return alternativeLocations[editingLocationIndex]?.approx_cost || '';
+                })(),
                 photos: finalAltPhotos, // Use photos array from Google Maps
                 photo: finalAltPhotos[0] || null, // Keep single photo for backward compatibility
                 rating: locationData.rating || alternativeLocations[editingLocationIndex]?.rating || null,
