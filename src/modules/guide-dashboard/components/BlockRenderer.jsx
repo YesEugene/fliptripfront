@@ -96,10 +96,16 @@ function AlternativeLocationPhoto({ altLocation, onPhotoClick }) {
           draggable={false}
           onError={(e) => {
             console.error('❌ Error loading alternative location photo:', currentPhoto, 'for location:', altLocation.title || altLocation.name);
-            e.target.style.display = 'none';
+            // Try to load next photo if available
+            if (currentIndex < altPhotosArray.length - 1) {
+              setCurrentIndex(currentIndex + 1);
+            } else {
+              // If no more photos, show placeholder
+              e.target.style.display = 'none';
+            }
           }}
           onLoad={() => {
-            console.log('✅ Loaded alternative location photo:', currentPhoto, 'for location:', altLocation.title || altLocation.name);
+            console.log('✅ Loaded alternative location photo:', currentPhoto, 'for location:', altLocation.title || altLocation.name, 'index:', currentIndex);
           }}
         />
       </div>
