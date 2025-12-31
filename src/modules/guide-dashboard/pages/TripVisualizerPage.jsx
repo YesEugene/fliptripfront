@@ -2950,6 +2950,7 @@ export default function TripVisualizerPage() {
                 photos: finalAltPhotos, // Use photos array from Google Maps
                 photo: finalAltPhotos[0] || null, // Keep single photo for backward compatibility
                 rating: locationData.rating || alternativeLocations[editingLocationIndex]?.rating || null,
+                user_ratings_total: locationData.user_ratings_total || alternativeLocations[editingLocationIndex]?.user_ratings_total || null,
                 city_id: locationData.city_id || alternativeLocations[editingLocationIndex]?.city_id || null,
                 city_name: locationData.city_name || alternativeLocations[editingLocationIndex]?.city_name || null
               };
