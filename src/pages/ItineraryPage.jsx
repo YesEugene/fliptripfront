@@ -2616,13 +2616,15 @@ export default function ItineraryPage() {
                 : contentBlocks; // Show all blocks if paid or not preview
               
               return (
-                <div style={{ position: 'relative' }}>
+                <div style={{ position: 'relative', minHeight: shouldLimitBlocks && blocksToShow.length >= 5 ? '200px' : 'auto' }}>
                   {blocksToShow.map((block, index) => (
                     <div 
                       key={block.id} 
                       style={{ 
                         marginBottom: '30px',
-                        padding: '0'
+                        padding: '0',
+                        position: 'relative',
+                        zIndex: 0
                       }}
                     >
                       <div style={{
@@ -2644,8 +2646,8 @@ export default function ItineraryPage() {
                       bottom: '0',
                       left: '0',
                       right: '0',
-                      height: '200px', // Height of gradient fade
-                      background: 'linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.8) 30%, rgba(255, 255, 255, 0) 100%)',
+                      height: '250px', // Height of gradient fade
+                      background: 'linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.95) 20%, rgba(255, 255, 255, 0.8) 40%, rgba(255, 255, 255, 0.4) 70%, rgba(255, 255, 255, 0) 100%)',
                       pointerEvents: 'none', // Allow clicks to pass through
                       zIndex: 1
                     }} />
