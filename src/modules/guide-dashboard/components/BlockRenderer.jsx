@@ -1174,6 +1174,19 @@ function ThreeColumnsBlock({ block, onEdit }) {
     { photo: null, text: 'Column 2 text' },
     { photo: null, text: 'Column 3 text' }
   ];
+  
+  // Debug logging
+  console.log('📸 ThreeColumnsBlock - Content:', {
+    hasContent: !!content,
+    hasColumns: !!content.columns,
+    columnsCount: columns.length,
+    columns: columns.map((col, idx) => ({
+      index: idx,
+      hasPhoto: !!col.photo,
+      photo: col.photo || null,
+      text: col.text
+    }))
+  });
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -1344,6 +1357,16 @@ function PhotoBlock({ block, onEdit }) {
   const content = block.content || {};
   const photos = content.photos || (content.photo ? [content.photo] : []);
   const caption = content.caption || '';
+  
+  // Debug logging
+  console.log('📸 PhotoBlock - Content:', {
+    hasContent: !!content,
+    hasPhotos: !!content.photos,
+    hasPhoto: !!content.photo,
+    photosCount: photos.length,
+    photos: photos,
+    caption: caption
+  });
   const [isMobilePhoto, setIsMobilePhoto] = useState(false);
   const [fullscreenPhotos, setFullscreenPhotos] = useState(null);
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
