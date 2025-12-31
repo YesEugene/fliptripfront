@@ -5784,6 +5784,46 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                 </div>
 
 
+                {/* Rating */}
+                {currentLocation.rating && (
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '8px', 
+                      fontSize: '14px', 
+                      fontWeight: '500',
+                      color: '#6b7280'
+                    }}>
+                      Rating
+                    </label>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '12px',
+                      backgroundColor: '#f9fafb',
+                      borderRadius: '8px',
+                      border: '1px solid #e5e7eb'
+                    }}>
+                      <span style={{ 
+                        fontSize: '18px', 
+                        fontWeight: '600',
+                        color: '#f59e0b'
+                      }}>
+                        ⭐ {currentLocation.rating.toFixed(1)}
+                      </span>
+                      {currentLocation.user_ratings_total && (
+                        <span style={{ 
+                          fontSize: '14px', 
+                          color: '#6b7280'
+                        }}>
+                          ({currentLocation.user_ratings_total} reviews)
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Price Level and Approximate Cost */}
                 <div style={{ 
                   display: 'grid', 
@@ -5799,7 +5839,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                       fontWeight: '500',
                       color: '#6b7280'
                     }}>
-                      Price Level (1-4)
+                      Price Level (0-4)
                     </label>
                     <select
                       value={currentLocation.price_level || ''}
@@ -5815,6 +5855,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                       }}
                     >
                       <option value="">Not specified</option>
+                      <option value="0">0 - Free</option>
                       <option value="1">1 - Inexpensive</option>
                       <option value="2">2 - Moderate</option>
                       <option value="3">3 - Expensive</option>

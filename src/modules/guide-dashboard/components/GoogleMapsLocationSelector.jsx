@@ -195,6 +195,7 @@ const GoogleMapsLocationSelector = ({ isOpen, onClose, onSelectLocation, city })
         approximate_cost: placeDetails.approximate_cost || placeDetails.approx_cost || '',
         approx_cost: placeDetails.approximate_cost || placeDetails.approx_cost || '', // Support both field names
         rating: placeDetails.rating || null,
+        user_ratings_total: placeDetails.user_ratings_total || null,
         photos: placeDetails.photos || (placeDetails.photo_url ? [placeDetails.photo_url] : []), // Use photos array
         photo: placeDetails.photo_url || (placeDetails.photos && placeDetails.photos.length > 0 ? placeDetails.photos[0] : null), // Keep for backward compatibility
         location: placeDetails.location,
