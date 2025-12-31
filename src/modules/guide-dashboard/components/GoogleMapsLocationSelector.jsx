@@ -185,22 +185,26 @@ const GoogleMapsLocationSelector = ({ isOpen, onClose, onSelectLocation, city })
         }
       }
       
-      // Prepare price_level - use numeric value if available, otherwise empty string
-      const priceLevelValue = placeDetails.price_level_numeric !== null && placeDetails.price_level_numeric !== undefined 
-        ? String(placeDetails.price_level_numeric) 
-        : '';
+      // Prepare price_level - use numeric value if available
+      // Google Places API returns price_level as 0-4, or null/undefined if not available
+      let priceLevelValue = '';
+      if (placeDetails.price_level_numeric !== null && placeDetails.price_level_numeric !== undefined) {
+        priceLevelValue = String(placeDetails.price_level_numeric);
+      }
       
-      // Prepare approximate_cost
+      // Prepare approximate_cost - use from API if available
       const approximateCostValue = placeDetails.approximate_cost || placeDetails.approx_cost || '';
       
-      console.log('Google Places data being sent:', {
+      console.log('🔍 Google Places data being sent:', {
         name: placeDetails.name,
         price_level_numeric: placeDetails.price_level_numeric,
-        price_level: placeDetails.price_level,
+        price_level_display: placeDetails.price_level,
         priceLevelValue,
         approximate_cost: placeDetails.approximate_cost,
         approx_cost: placeDetails.approx_cost,
-        approximateCostValue
+        approximateCostValue,
+        hasPriceLevel: priceLevelValue !== '',
+        hasApproxCost: approximateCostValue !== ''
       });
       
       onSelectLocation({

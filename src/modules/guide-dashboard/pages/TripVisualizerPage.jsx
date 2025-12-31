@@ -2907,11 +2907,13 @@ export default function TripVisualizerPage() {
                   title: locationData.title || currentContent.mainLocation?.title || '',
                   address: locationData.address || currentContent.mainLocation?.address || '',
                   // Price level: use Google Maps value if it exists and is not empty
-                  price_level: (locationData.price_level !== undefined && locationData.price_level !== null && locationData.price_level !== '') 
+                  // Check both price_level and price_level_numeric
+                  price_level: (locationData.price_level && locationData.price_level !== '' && locationData.price_level !== 'null') 
                     ? String(locationData.price_level) 
                     : (currentContent.mainLocation?.price_level || ''),
                   // Approximate cost: use Google Maps value if it exists and is not empty
-                  approx_cost: (locationData.approximate_cost || locationData.approx_cost) 
+                  approx_cost: ((locationData.approximate_cost && locationData.approximate_cost !== '') || 
+                                (locationData.approx_cost && locationData.approx_cost !== '')) 
                     ? String(locationData.approximate_cost || locationData.approx_cost) 
                     : (currentContent.mainLocation?.approx_cost || ''),
                   photos: finalPhotos, // Use photos array from Google Maps
