@@ -2928,9 +2928,11 @@ export default function TripVisualizerPage() {
                 title: locationData.title,
                 address: locationData.address,
                 price_level: locationData.price_level,
+                price_level_raw: locationData,
                 approx_cost: locationData.approximate_cost || locationData.approx_cost,
                 photos: finalPhotos.length,
-                city_name: locationData.city_name
+                city_name: locationData.city_name,
+                updatedContent: updatedContent.mainLocation
               });
             } else {
               // Updating alternative location

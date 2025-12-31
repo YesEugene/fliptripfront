@@ -185,15 +185,31 @@ const GoogleMapsLocationSelector = ({ isOpen, onClose, onSelectLocation, city })
         }
       }
       
+      // Prepare price_level - use numeric value if available, otherwise empty string
+      const priceLevelValue = placeDetails.price_level_numeric !== null && placeDetails.price_level_numeric !== undefined 
+        ? String(placeDetails.price_level_numeric) 
+        : '';
+      
+      // Prepare approximate_cost
+      const approximateCostValue = placeDetails.approximate_cost || placeDetails.approx_cost || '';
+      
+      console.log('Google Places data being sent:', {
+        name: placeDetails.name,
+        price_level_numeric: placeDetails.price_level_numeric,
+        price_level: placeDetails.price_level,
+        priceLevelValue,
+        approximate_cost: placeDetails.approximate_cost,
+        approx_cost: placeDetails.approx_cost,
+        approximateCostValue
+      });
+      
       onSelectLocation({
         title: placeDetails.name || '',
         address: placeDetails.address || '',
-        price_level: placeDetails.price_level_numeric !== null && placeDetails.price_level_numeric !== undefined 
-          ? String(placeDetails.price_level_numeric) 
-          : (placeDetails.price_level || ''),
+        price_level: priceLevelValue,
         price_level_display: placeDetails.price_level || '', // Keep display format for reference
-        approximate_cost: placeDetails.approximate_cost || placeDetails.approx_cost || '',
-        approx_cost: placeDetails.approximate_cost || placeDetails.approx_cost || '', // Support both field names
+        approximate_cost: approximateCostValue,
+        approx_cost: approximateCostValue, // Support both field names
         rating: placeDetails.rating || null,
         user_ratings_total: placeDetails.user_ratings_total || null,
         photos: placeDetails.photos || (placeDetails.photo_url ? [placeDetails.photo_url] : []), // Use photos array
