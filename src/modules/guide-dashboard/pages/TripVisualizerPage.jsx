@@ -2910,6 +2910,7 @@ export default function TripVisualizerPage() {
                   photos: finalPhotos, // Use photos array from Google Maps
                   photo: finalPhotos[0] || null, // Keep single photo for backward compatibility
                   rating: locationData.rating || currentContent.mainLocation?.rating || null,
+                  user_ratings_total: locationData.user_ratings_total || currentContent.mainLocation?.user_ratings_total || null,
                   city_id: locationData.city_id || currentContent.mainLocation?.city_id || null,
                   city_name: locationData.city_name || currentContent.mainLocation?.city_name || null
                 }
