@@ -2852,7 +2852,13 @@ export default function TripVisualizerPage() {
           onSave={handleSaveBlock}
           onDelete={handleDeleteBlock}
           onImageUpload={handleImageUpload}
-          onOpenLocationSelector={() => setShowLocationSelector(true)}
+          onOpenLocationSelector={(locationIndex) => {
+            // Save current editingLocationIndex to editingBlock before opening selector
+            if (editingBlock) {
+              setEditingBlock({ ...editingBlock, editingLocationIndex: locationIndex });
+            }
+            setShowLocationSelector(true);
+          }}
           tourCity={tourInfo.city}
         />
       )}
