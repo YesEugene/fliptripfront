@@ -2905,8 +2905,12 @@ export default function TripVisualizerPage() {
                   ...(currentContent.mainLocation || {}),
                   title: locationData.title || currentContent.mainLocation?.title || '',
                   address: locationData.address || currentContent.mainLocation?.address || '',
-                  price_level: locationData.price_level || currentContent.mainLocation?.price_level || '',
-                  approx_cost: locationData.approximate_cost || locationData.approx_cost || currentContent.mainLocation?.approx_cost || '',
+                  price_level: locationData.price_level !== undefined && locationData.price_level !== null && locationData.price_level !== '' 
+                    ? locationData.price_level 
+                    : (currentContent.mainLocation?.price_level || ''),
+                  approx_cost: (locationData.approximate_cost || locationData.approx_cost) 
+                    ? (locationData.approximate_cost || locationData.approx_cost) 
+                    : (currentContent.mainLocation?.approx_cost || ''),
                   photos: finalPhotos, // Use photos array from Google Maps
                   photo: finalPhotos[0] || null, // Keep single photo for backward compatibility
                   rating: locationData.rating || currentContent.mainLocation?.rating || null,
