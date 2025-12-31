@@ -6,7 +6,8 @@ import { useState, useEffect, useRef } from 'react';
 import { PhotoCarousel, FullscreenPhotoViewer } from './PhotoCarousel';
 
 // Alternative Location Photo Component - handles photo display for alternative locations
-function AlternativeLocationPhoto({ altLocation, onPhotoClick }) {
+// NOTE: Clicking on photo should switch location, NOT open fullscreen
+function AlternativeLocationPhoto({ altLocation }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
@@ -75,12 +76,7 @@ function AlternativeLocationPhoto({ altLocation, onPhotoClick }) {
         onTouchStart={onTouchStartHandler}
         onTouchMove={onTouchMoveHandler}
         onTouchEnd={onTouchEndHandler}
-        onClick={(e) => {
-          e.stopPropagation();
-          if (onPhotoClick && altPhotosArray.length > 0) {
-            onPhotoClick(altPhotosArray, currentIndex);
-          }
-        }}
+        // NOTE: No onClick here - parent div handles location switching
       >
         <img 
           src={currentPhoto} 
@@ -90,7 +86,7 @@ function AlternativeLocationPhoto({ altLocation, onPhotoClick }) {
             height: '100%',
             objectFit: 'cover',
             objectPosition: 'center',
-            pointerEvents: 'none',
+            pointerEvents: 'none', // Prevent image click - let parent handle it
             userSelect: 'none'
           }}
           draggable={false}
@@ -119,7 +115,8 @@ function AlternativeLocationPhoto({ altLocation, onPhotoClick }) {
           transform: 'translateX(-50%)',
           display: 'flex',
           gap: '4px',
-          zIndex: 2
+          zIndex: 2,
+          pointerEvents: 'none' // Don't interfere with parent click
         }}>
           {altPhotosArray.map((_, index) => (
             <div
@@ -129,12 +126,7 @@ function AlternativeLocationPhoto({ altLocation, onPhotoClick }) {
                 height: '4px',
                 borderRadius: '2px',
                 backgroundColor: index === currentIndex ? '#ffffff' : 'rgba(255, 255, 255, 0.5)',
-                transition: 'all 0.3s ease',
-                cursor: 'pointer'
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                setCurrentIndex(index);
+                transition: 'all 0.3s ease'
               }}
             />
           ))}
@@ -413,10 +405,6 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                   >
                     <AlternativeLocationPhoto 
                       altLocation={altLocation}
-                      onPhotoClick={(photos, index) => {
-                        setFullscreenPhotos(photos);
-                        setFullscreenIndex(index);
-                      }}
                     />
                     <div style={{ padding: '5px' }}>
                       <h5 style={{ 
