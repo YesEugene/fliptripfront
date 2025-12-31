@@ -2678,7 +2678,9 @@ export default function ItineraryPage() {
                         marginRight: isMobile ? '0' : '0',
                         padding: '0',
                         paddingLeft: '0',
-                        paddingRight: '0'
+                        paddingRight: '0',
+                        position: 'relative',
+                        zIndex: 2 // Ensure payment block is above gradient
                       }}>
                         <div className="payment-cards-container" style={{
                           display: 'grid',
