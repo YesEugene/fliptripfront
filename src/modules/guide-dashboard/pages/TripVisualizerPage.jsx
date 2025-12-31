@@ -5396,7 +5396,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                   </label>
                   <button
                     type="button"
-                    onClick={() => onOpenLocationSelector && onOpenLocationSelector()}
+                    onClick={() => onOpenLocationSelector && onOpenLocationSelector(editingLocationIndex)}
                     style={{ 
                       color: '#3b82f6', 
                       textDecoration: 'underline',
