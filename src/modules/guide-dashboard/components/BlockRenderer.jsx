@@ -272,39 +272,13 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                       e.currentTarget.style.boxShadow = 'none';
                     }}
                   >
-                    {(() => {
-                      const altPhotos = altLocation.photos || altLocation.photo || [];
-                      const altPhotosArray = Array.isArray(altPhotos) ? altPhotos : [altPhotos];
-                      const firstPhoto = altPhotosArray[0];
-                      
-                      return firstPhoto ? (
-                        <img 
-                          src={firstPhoto} 
-                          alt={altLocation.title || 'Alternative location'} 
-                          style={{ 
-                            width: '100%', 
-                            height: '59px',
-                            objectFit: 'cover',
-                            objectPosition: 'center',
-                            cursor: 'pointer',
-                            pointerEvents: 'none' // Prevent image click, let parent div handle it
-                          }}
-                        />
-                      ) : (
-                        <div style={{
-                          width: '100%',
-                          height: '59px',
-                          backgroundColor: '#e5e7eb',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: '#9ca3af',
-                          fontSize: '9px'
-                        }}>
-                          No photo
-                        </div>
-                      );
-                    })()}
+                    <AlternativeLocationPhoto 
+                      altLocation={altLocation}
+                      onPhotoClick={(photos, index) => {
+                        setFullscreenPhotos(photos);
+                        setFullscreenIndex(index);
+                      }}
+                    />
                     <div style={{ padding: '5px' }}>
                       <h5 style={{ 
                         fontSize: '10px', 
