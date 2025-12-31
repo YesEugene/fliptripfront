@@ -2911,9 +2911,13 @@ export default function TripVisualizerPage() {
                     ? String(locationData.price_level) 
                     : (currentContent.mainLocation?.price_level || ''),
                   // Approximate cost: use Google Maps value if it exists and is not empty
-                  approx_cost: (locationData.approximate_cost || locationData.approx_cost) && (locationData.approximate_cost || locationData.approx_cost) !== ''
-                    ? String(locationData.approximate_cost || locationData.approx_cost) 
-                    : (currentContent.mainLocation?.approx_cost || ''),
+                  approx_cost: (() => {
+                    const googleApproxCost = locationData.approximate_cost || locationData.approx_cost;
+                    if (googleApproxCost && String(googleApproxCost).trim() !== '') {
+                      return String(googleApproxCost);
+                    }
+                    return currentContent.mainLocation?.approx_cost || '';
+                  })(),
                   photos: finalPhotos, // Use photos array from Google Maps
                   photo: finalPhotos[0] || null, // Keep single photo for backward compatibility
                   rating: locationData.rating !== null && locationData.rating !== undefined 
