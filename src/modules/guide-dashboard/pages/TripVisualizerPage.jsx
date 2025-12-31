@@ -2970,9 +2970,13 @@ export default function TripVisualizerPage() {
                   ? String(locationData.price_level) 
                   : (alternativeLocations[editingLocationIndex]?.price_level || ''),
                 // Approximate cost: use Google Maps value if it exists and is not empty
-                approx_cost: (locationData.approximate_cost || locationData.approx_cost) && (locationData.approximate_cost || locationData.approx_cost) !== ''
-                  ? String(locationData.approximate_cost || locationData.approx_cost) 
-                  : (alternativeLocations[editingLocationIndex]?.approx_cost || ''),
+                approx_cost: (() => {
+                  const googleApproxCost = locationData.approximate_cost || locationData.approx_cost;
+                  if (googleApproxCost && String(googleApproxCost).trim() !== '') {
+                    return String(googleApproxCost);
+                  }
+                  return alternativeLocations[editingLocationIndex]?.approx_cost || '';
+                })(),
                 photos: finalAltPhotos, // Use photos array from Google Maps
                 photo: finalAltPhotos[0] || null, // Keep single photo for backward compatibility
                 rating: locationData.rating || alternativeLocations[editingLocationIndex]?.rating || null,
