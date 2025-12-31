@@ -512,6 +512,14 @@ export default function ItineraryPage() {
       const hasContentBlocks = loadedContentBlocks.length > 0;
       const hasDailyPlan = tour.daily_plan && tour.daily_plan.length > 0;
       
+      console.log('🔍 Format detection:', {
+        hasContentBlocks,
+        contentBlocksCount: loadedContentBlocks.length,
+        hasDailyPlan,
+        dailyPlanLength: tour.daily_plan?.length || 0,
+        tourId: tourIdParam
+      });
+      
       // If tour has neither contentBlocks nor daily_plan, show empty state instead of error
       // This can happen for tours created in visualizer but not yet populated with blocks
       if (!hasContentBlocks && !hasDailyPlan) {
@@ -534,7 +542,9 @@ export default function ItineraryPage() {
         return; // Exit early - will show empty state in UI
       }
       
-      // If using new format (contentBlocks), skip daily_plan processing
+      // CRITICAL: Prioritize contentBlocks over daily_plan
+      // If contentBlocks exist, use new format even if daily_plan also exists
+      // This ensures generated tours use new format
       if (hasContentBlocks) {
         console.log('✅ Tour uses new format (contentBlocks), skipping daily_plan processing');
         // Get filters from URL params or formData
