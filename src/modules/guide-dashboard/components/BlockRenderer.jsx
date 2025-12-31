@@ -2,8 +2,141 @@
  * BlockRenderer - Component for rendering different types of content blocks
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { PhotoCarousel, FullscreenPhotoViewer } from './PhotoCarousel';
+
+// Alternative Location Photo Component - handles photo display for alternative locations
+function AlternativeLocationPhoto({ altLocation, onPhotoClick }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  
+  const altPhotos = altLocation.photos || altLocation.photo || [];
+  const altPhotosArray = Array.isArray(altPhotos) ? altPhotos : (altPhotos ? [altPhotos] : []);
+  const currentPhoto = altPhotosArray[currentIndex] || altPhotosArray[0];
+  
+  const minSwipeDistance = 50;
+  
+  const onTouchStartHandler = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+  
+  const onTouchMoveHandler = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+  
+  const onTouchEndHandler = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    if (isLeftSwipe && currentIndex < altPhotosArray.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
+    if (isRightSwipe && currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
+  
+  if (altPhotosArray.length === 0) {
+    return (
+      <div style={{
+        width: '100%',
+        height: '59px',
+        backgroundColor: '#e5e7eb',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#9ca3af',
+        fontSize: '9px'
+      }}>
+        No photo
+      </div>
+    );
+  }
+  
+  return (
+    <div style={{ 
+      width: '100%', 
+      height: '59px',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          position: 'relative',
+          cursor: 'pointer'
+        }}
+        onTouchStart={onTouchStartHandler}
+        onTouchMove={onTouchMoveHandler}
+        onTouchEnd={onTouchEndHandler}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (onPhotoClick && altPhotosArray.length > 0) {
+            onPhotoClick(altPhotosArray, currentIndex);
+          }
+        }}
+      >
+        <img 
+          src={currentPhoto} 
+          alt={altLocation.title || altLocation.name || 'Alternative location'} 
+          style={{ 
+            width: '100%', 
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+            pointerEvents: 'none',
+            userSelect: 'none'
+          }}
+          draggable={false}
+          onError={(e) => {
+            console.error('❌ Error loading alternative location photo:', currentPhoto, 'for location:', altLocation.title || altLocation.name);
+            e.target.style.display = 'none';
+          }}
+          onLoad={() => {
+            console.log('✅ Loaded alternative location photo:', currentPhoto, 'for location:', altLocation.title || altLocation.name);
+          }}
+        />
+      </div>
+      
+      {/* Dots indicator for multiple photos */}
+      {altPhotosArray.length > 1 && (
+        <div style={{
+          position: 'absolute',
+          bottom: '4px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          gap: '4px',
+          zIndex: 2
+        }}>
+          {altPhotosArray.map((_, index) => (
+            <div
+              key={index}
+              style={{
+                width: index === currentIndex ? '6px' : '4px',
+                height: '4px',
+                borderRadius: '2px',
+                backgroundColor: index === currentIndex ? '#ffffff' : 'rgba(255, 255, 255, 0.5)',
+                transition: 'all 0.3s ease',
+                cursor: 'pointer'
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentIndex(index);
+              }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function BlockRenderer({ block, onEdit, onSwitchLocation }) {
   if (!block) return null;
@@ -396,39 +529,13 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               >
-                {(() => {
-                  const altPhotos = altLocation.photos || altLocation.photo || [];
-                  const altPhotosArray = Array.isArray(altPhotos) ? altPhotos : [altPhotos];
-                  const firstPhoto = altPhotosArray[0];
-                  
-                  return firstPhoto ? (
-                    <img 
-                      src={firstPhoto} 
-                      alt={altLocation.title || 'Alternative location'} 
-                      style={{ 
-                        width: '100%', 
-                        height: '59px',
-                        objectFit: 'cover',
-                        objectPosition: 'center',
-                        cursor: 'pointer',
-                        pointerEvents: 'none' // Prevent image click, let parent div handle it
-                      }}
-                    />
-                  ) : (
-                    <div style={{
-                      width: '100%',
-                      height: '59px',
-                      backgroundColor: '#e5e7eb',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#9ca3af',
-                      fontSize: '9px'
-                    }}>
-                      No photo
-                    </div>
-                  );
-                })()}
+                <AlternativeLocationPhoto 
+                  altLocation={altLocation}
+                  onPhotoClick={(photos, index) => {
+                    setFullscreenPhotos(photos);
+                    setFullscreenIndex(index);
+                  }}
+                />
                 <div style={{ padding: '5px' }}>
                   <h5 style={{ 
                     fontSize: '10px', 
