@@ -2908,14 +2908,21 @@ export default function TripVisualizerPage() {
                   address: locationData.address || currentContent.mainLocation?.address || '',
                   // Price level: use Google Maps value if it exists and is not empty
                   // Check both price_level and price_level_numeric
-                  price_level: (locationData.price_level && locationData.price_level !== '' && locationData.price_level !== 'null') 
-                    ? String(locationData.price_level) 
-                    : (currentContent.mainLocation?.price_level || ''),
+                  price_level: (() => {
+                    const googlePriceLevel = locationData.price_level;
+                    if (googlePriceLevel !== undefined && googlePriceLevel !== null && googlePriceLevel !== '' && String(googlePriceLevel) !== 'null') {
+                      return String(googlePriceLevel);
+                    }
+                    return currentContent.mainLocation?.price_level || '';
+                  })(),
                   // Approximate cost: use Google Maps value if it exists and is not empty
-                  approx_cost: ((locationData.approximate_cost && locationData.approximate_cost !== '') || 
-                                (locationData.approx_cost && locationData.approx_cost !== '')) 
-                    ? String(locationData.approximate_cost || locationData.approx_cost) 
-                    : (currentContent.mainLocation?.approx_cost || ''),
+                  approx_cost: (() => {
+                    const googleApproxCost = locationData.approximate_cost || locationData.approx_cost;
+                    if (googleApproxCost && googleApproxCost !== '' && String(googleApproxCost) !== 'null') {
+                      return String(googleApproxCost);
+                    }
+                    return currentContent.mainLocation?.approx_cost || '';
+                  })(),
                   photos: finalPhotos, // Use photos array from Google Maps
                   photo: finalPhotos[0] || null, // Keep single photo for backward compatibility
                   rating: locationData.rating !== null && locationData.rating !== undefined 
@@ -2940,23 +2947,16 @@ export default function TripVisualizerPage() {
               console.log('🔍 Updated editingBlock with location data:', {
                 title: locationData.title,
                 address: locationData.address,
-                price_level: locationData.price_level,
-                price_level_type: typeof locationData.price_level,
-                approx_cost: locationData.approximate_cost || locationData.approx_cost,
+                price_level_from_locationData: locationData.price_level,
+                price_level_in_updatedContent: updatedContent.mainLocation.price_level,
+                approx_cost_from_locationData: locationData.approximate_cost || locationData.approx_cost,
+                approx_cost_in_updatedContent: updatedContent.mainLocation.approx_cost,
                 rating: locationData.rating,
                 user_ratings_total: locationData.user_ratings_total,
                 photos: finalPhotos.length,
                 city_name: locationData.city_name,
-                updatedContent_mainLocation: updatedContent.mainLocation
+                full_updatedContent_mainLocation: updatedContent.mainLocation
               });
-              
-              // Force immediate update of form fields
-              setTimeout(() => {
-                const block = editingBlock;
-                if (block && block.block_type === 'location') {
-                  setEditingBlock({ ...block, content: updatedContent, _updated: Date.now() });
-                }
-              }, 100);
             } else {
               // Updating alternative location
               const alternativeLocations = [...(currentContent.alternativeLocations || [])];
