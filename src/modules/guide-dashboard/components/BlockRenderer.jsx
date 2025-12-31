@@ -266,14 +266,8 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                             height: '59px',
                             objectFit: 'cover',
                             objectPosition: 'center',
-                            cursor: 'pointer'
-                          }}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            if (altPhotosArray.length > 0) {
-                              handlePhotoClick(altPhotosArray, 0);
-                            }
+                            cursor: 'pointer',
+                            pointerEvents: 'none' // Prevent image click, let parent div handle it
                           }}
                         />
                       ) : (
