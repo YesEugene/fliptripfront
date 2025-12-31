@@ -458,24 +458,39 @@ export default function ItineraryPage() {
       let loadedContentBlocks = [];
       try {
         const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
-        const blocksResponse = await fetch(`${API_BASE_URL}/api/tour-content-blocks?tourId=${tourIdParam}`).catch(() => null);
-        if (blocksResponse && blocksResponse.ok) {
-          const blocksData = await blocksResponse.json();
-          if (blocksData.success && blocksData.blocks) {
-            // Sort blocks by order_index
-            loadedContentBlocks = blocksData.blocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
-            setContentBlocks(loadedContentBlocks);
-            console.log('✅ Content blocks loaded:', loadedContentBlocks.length, 'blocks');
-            
-            // If we have content blocks, mark as using new format
-            if (loadedContentBlocks.length > 0) {
-              setUseNewFormat(true);
+        
+        // Try loading blocks with retry (for newly generated tours, blocks might not be saved yet)
+        const loadBlocks = async (retryCount = 0) => {
+          const blocksResponse = await fetch(`${API_BASE_URL}/api/tour-content-blocks?tourId=${tourIdParam}`).catch(() => null);
+          if (blocksResponse && blocksResponse.ok) {
+            const blocksData = await blocksResponse.json();
+            if (blocksData.success && blocksData.blocks) {
+              // Sort blocks by order_index
+              const sortedBlocks = blocksData.blocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+              return sortedBlocks;
             }
-          } else {
-            console.log('ℹ️ No content blocks found for this tour');
           }
+          return null;
+        };
+        
+        // Try loading blocks
+        loadedContentBlocks = await loadBlocks();
+        
+        // If no blocks found and this might be a newly generated tour, retry after a short delay
+        if (!loadedContentBlocks || loadedContentBlocks.length === 0) {
+          console.log('ℹ️ No content blocks found, retrying after 1 second (might be newly generated tour)...');
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          loadedContentBlocks = await loadBlocks() || [];
+        }
+        
+        if (loadedContentBlocks && loadedContentBlocks.length > 0) {
+          setContentBlocks(loadedContentBlocks);
+          console.log('✅ Content blocks loaded:', loadedContentBlocks.length, 'blocks');
+          
+          // If we have content blocks, mark as using new format
+          setUseNewFormat(true);
         } else {
-          console.log('ℹ️ Could not load content blocks (table might not exist for old tours)');
+          console.log('ℹ️ No content blocks found for this tour after retry');
         }
       } catch (blocksError) {
         console.warn('⚠️ Error loading content blocks (non-critical):', blocksError);
