@@ -2928,16 +2928,26 @@ export default function TripVisualizerPage() {
                 _updated: Date.now()
               });
               
-              console.log('Updated editingBlock with location data:', {
+              console.log('🔍 Updated editingBlock with location data:', {
                 title: locationData.title,
                 address: locationData.address,
                 price_level: locationData.price_level,
-                price_level_raw: locationData,
+                price_level_type: typeof locationData.price_level,
                 approx_cost: locationData.approximate_cost || locationData.approx_cost,
+                rating: locationData.rating,
+                user_ratings_total: locationData.user_ratings_total,
                 photos: finalPhotos.length,
                 city_name: locationData.city_name,
-                updatedContent: updatedContent.mainLocation
+                updatedContent_mainLocation: updatedContent.mainLocation
               });
+              
+              // Force immediate update of form fields
+              setTimeout(() => {
+                const block = editingBlock;
+                if (block && block.block_type === 'location') {
+                  setEditingBlock({ ...block, content: updatedContent, _updated: Date.now() });
+                }
+              }, 100);
             } else {
               // Updating alternative location
               const alternativeLocations = [...(currentContent.alternativeLocations || [])];

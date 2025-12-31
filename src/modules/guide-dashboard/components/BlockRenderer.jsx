@@ -170,20 +170,38 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: '16px', marginBottom: '12px', flexWrap: 'wrap' }}>
-              {mainLocation.approx_cost && (
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+              {mainLocation.rating && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ color: '#10b981', fontSize: '16px' }}>💰</span>
-                  <span style={{ fontSize: '14px', color: '#6b7280' }}>
-                    Avg. spend: {mainLocation.approx_cost}
+                  <span style={{ color: '#f59e0b', fontSize: '16px' }}>⭐</span>
+                  <span style={{ fontSize: '14px', color: '#6b7280', fontWeight: '500' }}>
+                    {mainLocation.rating.toFixed(1)}
                   </span>
+                  {mainLocation.user_ratings_total && (
+                    <span style={{ fontSize: '12px', color: '#9ca3af' }}>
+                      ({mainLocation.user_ratings_total})
+                    </span>
+                  )}
                 </div>
               )}
               {mainLocation.price_level && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ color: '#f59e0b', fontSize: '16px' }}>⭐</span>
+                  <span style={{ color: '#f59e0b', fontSize: '16px' }}>💵</span>
                   <span style={{ fontSize: '14px', color: '#6b7280' }}>
-                    Price level: {mainLocation.price_level}
+                    {(() => {
+                      const level = parseInt(mainLocation.price_level);
+                      if (isNaN(level)) return `Price level: ${mainLocation.price_level}`;
+                      const levels = ['Free', 'Inexpensive', 'Moderate', 'Expensive', 'Very Expensive'];
+                      return levels[level] || `Level ${level}`;
+                    })()}
+                  </span>
+                </div>
+              )}
+              {mainLocation.approx_cost && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ color: '#10b981', fontSize: '16px' }}>💰</span>
+                  <span style={{ fontSize: '14px', color: '#6b7280' }}>
+                    {mainLocation.approx_cost}
                   </span>
                 </div>
               )}
