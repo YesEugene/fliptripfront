@@ -2891,14 +2891,27 @@ export default function TripVisualizerPage() {
               const newPhotos = locationData.photos || (locationData.photo ? [locationData.photo] : []);
               const mergedPhotos = newPhotos.length > 0 ? newPhotos : existingPhotos;
               
+              // Map price_level from Google format (€, €€, etc.) to numeric (1-4)
+              let priceLevelNumeric = '';
+              if (locationData.price_level) {
+                const priceLevelMap = {
+                  '€': '1',
+                  '€€': '2',
+                  '€€€': '3',
+                  '€€€€': '4',
+                  'Free': '0'
+                };
+                priceLevelNumeric = priceLevelMap[locationData.price_level] || '';
+              }
+              
               const updatedContent = {
                 ...currentContent,
                 mainLocation: {
                   ...currentContent.mainLocation,
-                  title: locationData.title,
-                  address: locationData.address,
-                  price_level: locationData.price_level || '',
-                  approx_cost: locationData.approximate_cost || '',
+                  title: locationData.title || '',
+                  address: locationData.address || '',
+                  price_level: priceLevelNumeric || locationData.price_level || '',
+                  approx_cost: locationData.approximate_cost || locationData.approx_cost || '',
                   photos: mergedPhotos, // Use photos array
                   photo: mergedPhotos[0] || null, // Keep single photo for backward compatibility
                   rating: locationData.rating || null,
@@ -2907,11 +2920,6 @@ export default function TripVisualizerPage() {
                 }
               };
               setEditingBlock({ ...editingBlock, content: updatedContent });
-              
-              // Update city input value if city was found
-              if (locationData.city_name) {
-                // This will be handled by the BlockEditorModal's city input state
-              }
             } else {
               // Updating alternative location
               const alternativeLocations = [...(currentContent.alternativeLocations || [])];
@@ -2920,12 +2928,25 @@ export default function TripVisualizerPage() {
               const newAltPhotos = locationData.photos || (locationData.photo ? [locationData.photo] : []);
               const mergedAltPhotos = newAltPhotos.length > 0 ? newAltPhotos : existingAltPhotos;
               
+              // Map price_level from Google format (€, €€, etc.) to numeric (1-4)
+              let priceLevelNumeric = '';
+              if (locationData.price_level) {
+                const priceLevelMap = {
+                  '€': '1',
+                  '€€': '2',
+                  '€€€': '3',
+                  '€€€€': '4',
+                  'Free': '0'
+                };
+                priceLevelNumeric = priceLevelMap[locationData.price_level] || '';
+              }
+              
               alternativeLocations[editingLocationIndex] = {
                 ...alternativeLocations[editingLocationIndex],
-                title: locationData.title,
-                address: locationData.address,
-                price_level: locationData.price_level || '',
-                approx_cost: locationData.approximate_cost || '',
+                title: locationData.title || '',
+                address: locationData.address || '',
+                price_level: priceLevelNumeric || locationData.price_level || '',
+                approx_cost: locationData.approximate_cost || locationData.approx_cost || '',
                 photos: mergedAltPhotos, // Use photos array
                 photo: mergedAltPhotos[0] || null, // Keep single photo for backward compatibility
                 rating: locationData.rating || null,
@@ -4276,7 +4297,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
   const initialContent = block.content || {};
   const [content, setContent] = useState(() => normalizeContent(initialContent));
   
-  // Update content when block changes (e.g., after save and reload)
+  // Update content when block changes (e.g., after save and reload, or when Google Maps selection updates it)
   useEffect(() => {
     const updatedContent = normalizeContent(block.content || {});
     setContent(updatedContent);
@@ -4297,7 +4318,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
         clearTimeout(locationCitySearchTimeoutRef.current);
       }
     };
-  }, [block.id, JSON.stringify(block.content)]);
+  }, [block.id, block.content, tourCity]);
   
   const [editingLocationIndex, setEditingLocationIndex] = useState(null); // null = main, number = alternative index
   const [interestsStructure, setInterestsStructure] = useState(null);

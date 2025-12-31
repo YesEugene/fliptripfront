@@ -186,11 +186,12 @@ const GoogleMapsLocationSelector = ({ isOpen, onClose, onSelectLocation, city })
       }
       
       onSelectLocation({
-        title: placeDetails.name,
-        address: placeDetails.address,
-        price_level: placeDetails.price_level,
-        approx_cost: placeDetails.approximate_cost,
-        rating: placeDetails.rating,
+        title: placeDetails.name || '',
+        address: placeDetails.address || '',
+        price_level: placeDetails.price_level || '',
+        approximate_cost: placeDetails.approximate_cost || placeDetails.approx_cost || '',
+        approx_cost: placeDetails.approximate_cost || placeDetails.approx_cost || '', // Support both field names
+        rating: placeDetails.rating || null,
         photos: placeDetails.photos || (placeDetails.photo_url ? [placeDetails.photo_url] : []), // Use photos array
         photo: placeDetails.photo_url || (placeDetails.photos && placeDetails.photos.length > 0 ? placeDetails.photos[0] : null), // Keep for backward compatibility
         location: placeDetails.location,
