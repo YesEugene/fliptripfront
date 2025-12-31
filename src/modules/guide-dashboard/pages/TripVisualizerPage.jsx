@@ -2899,22 +2899,29 @@ export default function TripVisualizerPage() {
               // Use new photos if available, otherwise keep existing
               const finalPhotos = newPhotos.length > 0 ? newPhotos : existingPhotos;
               
+              // Ensure we use Google Maps data if available, otherwise keep existing
               const updatedContent = {
                 ...currentContent,
                 mainLocation: {
                   ...(currentContent.mainLocation || {}),
                   title: locationData.title || currentContent.mainLocation?.title || '',
                   address: locationData.address || currentContent.mainLocation?.address || '',
-                  price_level: locationData.price_level !== undefined && locationData.price_level !== null && locationData.price_level !== '' 
-                    ? locationData.price_level 
+                  // Price level: use Google Maps value if it exists and is not empty
+                  price_level: (locationData.price_level !== undefined && locationData.price_level !== null && locationData.price_level !== '') 
+                    ? String(locationData.price_level) 
                     : (currentContent.mainLocation?.price_level || ''),
+                  // Approximate cost: use Google Maps value if it exists and is not empty
                   approx_cost: (locationData.approximate_cost || locationData.approx_cost) 
-                    ? (locationData.approximate_cost || locationData.approx_cost) 
+                    ? String(locationData.approximate_cost || locationData.approx_cost) 
                     : (currentContent.mainLocation?.approx_cost || ''),
                   photos: finalPhotos, // Use photos array from Google Maps
                   photo: finalPhotos[0] || null, // Keep single photo for backward compatibility
-                  rating: locationData.rating || currentContent.mainLocation?.rating || null,
-                  user_ratings_total: locationData.user_ratings_total || currentContent.mainLocation?.user_ratings_total || null,
+                  rating: locationData.rating !== null && locationData.rating !== undefined 
+                    ? Number(locationData.rating) 
+                    : (currentContent.mainLocation?.rating || null),
+                  user_ratings_total: locationData.user_ratings_total !== null && locationData.user_ratings_total !== undefined 
+                    ? Number(locationData.user_ratings_total) 
+                    : (currentContent.mainLocation?.user_ratings_total || null),
                   city_id: locationData.city_id || currentContent.mainLocation?.city_id || null,
                   city_name: locationData.city_name || currentContent.mainLocation?.city_name || null
                 }
@@ -2961,11 +2968,13 @@ export default function TripVisualizerPage() {
                 ...(alternativeLocations[editingLocationIndex] || {}),
                 title: locationData.title || alternativeLocations[editingLocationIndex]?.title || '',
                 address: locationData.address || alternativeLocations[editingLocationIndex]?.address || '',
-                price_level: locationData.price_level !== undefined && locationData.price_level !== null && locationData.price_level !== '' 
-                  ? locationData.price_level 
+                // Price level: use Google Maps value if it exists and is not empty
+                price_level: (locationData.price_level !== undefined && locationData.price_level !== null && locationData.price_level !== '') 
+                  ? String(locationData.price_level) 
                   : (alternativeLocations[editingLocationIndex]?.price_level || ''),
+                // Approximate cost: use Google Maps value if it exists and is not empty
                 approx_cost: (locationData.approximate_cost || locationData.approx_cost) 
-                  ? (locationData.approximate_cost || locationData.approx_cost) 
+                  ? String(locationData.approximate_cost || locationData.approx_cost) 
                   : (alternativeLocations[editingLocationIndex]?.approx_cost || ''),
                 photos: finalAltPhotos, // Use photos array from Google Maps
                 photo: finalAltPhotos[0] || null, // Keep single photo for backward compatibility
