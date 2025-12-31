@@ -278,10 +278,41 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
       }}>
         {/* Photo - Left half */}
         <div>
-          <PhotoCarousel
-            photos={mainLocation.photos || mainLocation.photo || []}
-            onPhotoClick={handlePhotoClick}
-          />
+          {(() => {
+            // Normalize photos - support both array and single photo
+            const mainPhotos = mainLocation.photos || (mainLocation.photo ? [mainLocation.photo] : []);
+            const mainPhotosArray = Array.isArray(mainPhotos) ? mainPhotos : [mainPhotos];
+            
+            console.log('📍 Main location photos:', {
+              hasPhotos: mainLocation.photos ? 'array' : (mainLocation.photo ? 'single' : 'none'),
+              photosCount: mainPhotosArray.length,
+              photos: mainPhotosArray
+            });
+            
+            if (mainPhotosArray.length > 0) {
+              return (
+                <PhotoCarousel
+                  photos={mainPhotosArray}
+                  onPhotoClick={handlePhotoClick}
+                />
+              );
+            } else {
+              return (
+                <div style={{
+                  width: '100%',
+                  aspectRatio: '1',
+                  backgroundColor: '#e5e7eb',
+                  borderRadius: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#9ca3af'
+                }}>
+                  No photo
+                </div>
+              );
+            }
+          })()}
         </div>
 
         {/* Details - Right half */}
