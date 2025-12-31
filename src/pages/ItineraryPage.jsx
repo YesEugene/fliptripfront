@@ -2612,11 +2612,11 @@ export default function ItineraryPage() {
               
               const shouldLimitBlocks = previewOnly && !isPaid;
               const blocksToShow = shouldLimitBlocks 
-                ? contentBlocks.slice(0, 2) // Show only first 2 blocks in preview
+                ? contentBlocks.slice(0, 5) // Show only first 5 blocks in preview
                 : contentBlocks; // Show all blocks if paid or not preview
               
               return (
-                <>
+                <div style={{ position: 'relative' }}>
                   {blocksToShow.map((block, index) => (
                     <div 
                       key={block.id} 
@@ -2637,8 +2637,22 @@ export default function ItineraryPage() {
                     </div>
                   ))}
                   
-                  {/* Payment Block - Show after first 2 blocks in preview mode (new format) */}
-                  {shouldLimitBlocks && blocksToShow.length >= 2 && (() => {
+                  {/* White gradient overlay - creates fading effect before payment block */}
+                  {shouldLimitBlocks && blocksToShow.length >= 5 && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '0',
+                      left: '0',
+                      right: '0',
+                      height: '200px', // Height of gradient fade
+                      background: 'linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.8) 30%, rgba(255, 255, 255, 0) 100%)',
+                      pointerEvents: 'none', // Allow clicks to pass through
+                      zIndex: 1
+                    }} />
+                  )}
+                  
+                  {/* Payment Block - Show after first 5 blocks in preview mode (new format) */}
+                  {shouldLimitBlocks && blocksToShow.length >= 5 && (() => {
                     // Determine if tour supports guide option
                     const supportsGuide = tourData?.withGuide || 
                                           tourData?.default_format === 'with_guide' || 
