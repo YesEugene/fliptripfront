@@ -38,6 +38,26 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
   const mainLocation = content.mainLocation || content;
   const alternativeLocations = content.alternativeLocations || [];
   
+  // Debug logging
+  if (alternativeLocations.length > 0) {
+    console.log('📍 LocationBlock - Alternative locations found:', {
+      count: alternativeLocations.length,
+      locations: alternativeLocations.map(alt => ({
+        name: alt.name || alt.title,
+        hasPhotos: !!(alt.photos || alt.photo),
+        photosCount: (alt.photos || (alt.photo ? [alt.photo] : [])).length
+      }))
+    });
+  } else {
+    console.log('📍 LocationBlock - No alternative locations found in content:', {
+      hasContent: !!content,
+      hasMainLocation: !!content.mainLocation,
+      contentKeys: Object.keys(content),
+      alternativeLocations: content.alternativeLocations,
+      alternatives: content.alternatives
+    });
+  }
+  
   // Detect screen size for responsive layout
   const [isMobile, setIsMobile] = useState(false);
   const [fullscreenPhotos, setFullscreenPhotos] = useState(null);
