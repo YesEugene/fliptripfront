@@ -2886,52 +2886,85 @@ export default function TripVisualizerPage() {
             
             if (editingLocationIndex === null) {
               // Updating main location
+              // Always use new photos from Google Maps if available, otherwise keep existing
+              const newPhotos = locationData.photos || (locationData.photo ? [locationData.photo] : []);
               const existingPhotos = currentContent.mainLocation?.photos || 
                                     (currentContent.mainLocation?.photo ? [currentContent.mainLocation.photo] : []);
-              const newPhotos = locationData.photos || (locationData.photo ? [locationData.photo] : []);
-              const mergedPhotos = newPhotos.length > 0 ? newPhotos : existingPhotos;
+              // Use new photos if available, otherwise keep existing
+              const finalPhotos = newPhotos.length > 0 ? newPhotos : existingPhotos;
               
               const updatedContent = {
                 ...currentContent,
                 mainLocation: {
-                  ...currentContent.mainLocation,
-                  title: locationData.title || '',
-                  address: locationData.address || '',
-                  price_level: locationData.price_level || '', // Already numeric from API (0-4)
-                  approx_cost: locationData.approximate_cost || locationData.approx_cost || '',
-                  photos: mergedPhotos, // Use photos array
-                  photo: mergedPhotos[0] || null, // Keep single photo for backward compatibility
-                  rating: locationData.rating || null,
-                  city_id: locationData.city_id || null, // City ID from database (if found)
-                  city_name: locationData.city_name || null // City display name (if found)
+                  ...(currentContent.mainLocation || {}),
+                  title: locationData.title || currentContent.mainLocation?.title || '',
+                  address: locationData.address || currentContent.mainLocation?.address || '',
+                  price_level: locationData.price_level || currentContent.mainLocation?.price_level || '',
+                  approx_cost: locationData.approximate_cost || locationData.approx_cost || currentContent.mainLocation?.approx_cost || '',
+                  photos: finalPhotos, // Use photos array from Google Maps
+                  photo: finalPhotos[0] || null, // Keep single photo for backward compatibility
+                  rating: locationData.rating || currentContent.mainLocation?.rating || null,
+                  city_id: locationData.city_id || currentContent.mainLocation?.city_id || null,
+                  city_name: locationData.city_name || currentContent.mainLocation?.city_name || null
                 }
               };
-              setEditingBlock({ ...editingBlock, content: updatedContent });
+              
+              // Force update by creating new object reference
+              setEditingBlock({ 
+                ...editingBlock, 
+                content: updatedContent,
+                // Add timestamp to force re-render
+                _updated: Date.now()
+              });
+              
+              console.log('Updated editingBlock with location data:', {
+                title: locationData.title,
+                address: locationData.address,
+                price_level: locationData.price_level,
+                approx_cost: locationData.approximate_cost || locationData.approx_cost,
+                photos: finalPhotos.length,
+                city_name: locationData.city_name
+              });
             } else {
               // Updating alternative location
               const alternativeLocations = [...(currentContent.alternativeLocations || [])];
+              const newAltPhotos = locationData.photos || (locationData.photo ? [locationData.photo] : []);
               const existingAltPhotos = alternativeLocations[editingLocationIndex]?.photos || 
                                         (alternativeLocations[editingLocationIndex]?.photo ? [alternativeLocations[editingLocationIndex].photo] : []);
-              const newAltPhotos = locationData.photos || (locationData.photo ? [locationData.photo] : []);
-              const mergedAltPhotos = newAltPhotos.length > 0 ? newAltPhotos : existingAltPhotos;
+              // Use new photos if available, otherwise keep existing
+              const finalAltPhotos = newAltPhotos.length > 0 ? newAltPhotos : existingAltPhotos;
               
               alternativeLocations[editingLocationIndex] = {
-                ...alternativeLocations[editingLocationIndex],
-                title: locationData.title || '',
-                address: locationData.address || '',
-                price_level: locationData.price_level || '', // Already numeric from API (0-4)
-                approx_cost: locationData.approximate_cost || locationData.approx_cost || '',
-                photos: mergedAltPhotos, // Use photos array
-                photo: mergedAltPhotos[0] || null, // Keep single photo for backward compatibility
-                rating: locationData.rating || null,
-                city_id: locationData.city_id || null, // City ID from database (if found)
-                city_name: locationData.city_name || null // City display name (if found)
+                ...(alternativeLocations[editingLocationIndex] || {}),
+                title: locationData.title || alternativeLocations[editingLocationIndex]?.title || '',
+                address: locationData.address || alternativeLocations[editingLocationIndex]?.address || '',
+                price_level: locationData.price_level || alternativeLocations[editingLocationIndex]?.price_level || '',
+                approx_cost: locationData.approximate_cost || locationData.approx_cost || alternativeLocations[editingLocationIndex]?.approx_cost || '',
+                photos: finalAltPhotos, // Use photos array from Google Maps
+                photo: finalAltPhotos[0] || null, // Keep single photo for backward compatibility
+                rating: locationData.rating || alternativeLocations[editingLocationIndex]?.rating || null,
+                city_id: locationData.city_id || alternativeLocations[editingLocationIndex]?.city_id || null,
+                city_name: locationData.city_name || alternativeLocations[editingLocationIndex]?.city_name || null
               };
               const updatedContent = {
                 ...currentContent,
                 alternativeLocations
               };
-              setEditingBlock({ ...editingBlock, content: updatedContent });
+              
+              // Force update by creating new object reference
+              setEditingBlock({ 
+                ...editingBlock, 
+                content: updatedContent,
+                // Add timestamp to force re-render
+                _updated: Date.now()
+              });
+              
+              console.log('Updated alternative location with data:', {
+                index: editingLocationIndex,
+                title: locationData.title,
+                address: locationData.address,
+                photos: finalAltPhotos.length
+              });
             }
           }
         }}
@@ -4292,7 +4325,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
         clearTimeout(locationCitySearchTimeoutRef.current);
       }
     };
-  }, [block.id, block.content, tourCity]);
+  }, [block.id, block.content, block._updated, tourCity]); // Add _updated to dependencies to catch Google Maps updates
   
   const [editingLocationIndex, setEditingLocationIndex] = useState(null); // null = main, number = alternative index
   const [interestsStructure, setInterestsStructure] = useState(null);
