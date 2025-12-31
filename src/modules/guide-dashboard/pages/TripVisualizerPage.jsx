@@ -2955,16 +2955,8 @@ export default function TripVisualizerPage() {
                 user_ratings_total: locationData.user_ratings_total,
                 photos: finalPhotos.length,
                 city_name: locationData.city_name,
-                full_updatedContent_mainLocation: updatedContent.mainLocation,
-                willUpdateForm: true
+                full_updatedContent_mainLocation: updatedContent.mainLocation
               });
-              
-              // Immediately update the form content state to reflect changes
-              // This ensures the form fields update right away
-              if (block.block_type === 'location') {
-                const normalized = normalizeContent(updatedContent);
-                setContent(normalized);
-              }
             } else {
               // Updating alternative location
               const alternativeLocations = [...(currentContent.alternativeLocations || [])];
