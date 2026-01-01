@@ -306,13 +306,23 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
             console.log('📍 Main location photos:', {
               hasPhotos: mainLocation.photos ? 'array' : (mainLocation.photo ? 'single' : 'none'),
               photosCount: mainPhotosArray.length,
-              photos: mainPhotosArray
+              photos: mainPhotosArray.map(p => p?.substring(0, 100)) // Log first 100 chars of each URL
             });
             
-            if (mainPhotosArray.length > 0) {
+            // Verify photos are valid URLs
+            const validPhotos = mainPhotosArray.filter(p => p && typeof p === 'string' && p.startsWith('http'));
+            if (validPhotos.length !== mainPhotosArray.length) {
+              console.warn('⚠️ Some main location photos are invalid:', {
+                total: mainPhotosArray.length,
+                valid: validPhotos.length,
+                invalid: mainPhotosArray.filter(p => !p || typeof p !== 'string' || !p.startsWith('http'))
+              });
+            }
+            
+            if (mainPhotosArray.length > 0 && validPhotos.length > 0) {
               return (
                 <PhotoCarousel
-                  photos={mainPhotosArray}
+                  photos={validPhotos}
                   onPhotoClick={handlePhotoClick}
                 />
               );
