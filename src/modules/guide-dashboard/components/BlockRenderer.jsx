@@ -635,7 +635,37 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                     color: '#111827',
                     lineHeight: '1.2'
                   }}>
-                    {altLocation.title || 'Alternative location'}
+                    {altLocation.place_id ? (
+                      <a
+                        href={`https://www.google.com/maps/place/?q=place_id:${altLocation.place_id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          color: '#111827',
+                          textDecoration: 'none',
+                          cursor: 'pointer'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {altLocation.title || altLocation.name || 'Alternative location'}
+                      </a>
+                    ) : altLocation.address ? (
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(altLocation.address)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          color: '#111827',
+                          textDecoration: 'none',
+                          cursor: 'pointer'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {altLocation.title || altLocation.name || 'Alternative location'}
+                      </a>
+                    ) : (
+                      altLocation.title || altLocation.name || 'Alternative location'
+                    )}
                   </h5>
                 </div>
               </div>
