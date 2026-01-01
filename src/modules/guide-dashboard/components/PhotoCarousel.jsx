@@ -299,7 +299,8 @@ export function FullscreenPhotoViewer({ photos, initialIndex, onClose }) {
           {currentIndex + 1} / {photosArray.length}
         </div>
       )}
-    </div>
+    </div>,
+    document.body // Render to body to escape any z-index context
   );
 }
 
