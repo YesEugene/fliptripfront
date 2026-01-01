@@ -330,7 +330,51 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                 color: '#111827',
                 lineHeight: '1.2'
               }}>
-                {mainLocation.title}
+                {mainLocation.place_id ? (
+                  <a
+                    href={`https://www.google.com/maps/place/?q=place_id:${mainLocation.place_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color: '#111827',
+                      textDecoration: 'none',
+                      cursor: 'pointer',
+                      borderBottom: '1px solid transparent',
+                      transition: 'border-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderBottomColor = '#3b82f6';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderBottomColor = 'transparent';
+                    }}
+                  >
+                    {mainLocation.title}
+                  </a>
+                ) : mainLocation.address ? (
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mainLocation.address)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color: '#111827',
+                      textDecoration: 'none',
+                      cursor: 'pointer',
+                      borderBottom: '1px solid transparent',
+                      transition: 'border-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderBottomColor = '#3b82f6';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderBottomColor = 'transparent';
+                    }}
+                  >
+                    {mainLocation.title}
+                  </a>
+                ) : (
+                  mainLocation.title
+                )}
               </h3>
             )}
             
