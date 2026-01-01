@@ -489,23 +489,53 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                         color: '#111827',
                         lineHeight: '1.2'
                       }}>
-                        {altLocation.title || 'Alternative location'}
-                      </h5>
-                      {altLocation.price_level && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '2px', marginTop: '2px' }}>
-                          <span style={{ color: '#f59e0b', fontSize: '8px' }}>⭐</span>
-                          <span style={{ fontSize: '9px', color: '#6b7280' }}>
-                            {altLocation.price_level}
-                          </span>
-                        </div>
+                      {altLocation.place_id ? (
+                        <a
+                          href={`https://www.google.com/maps/place/?q=place_id:${altLocation.place_id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            color: '#111827',
+                            textDecoration: 'none',
+                            cursor: 'pointer'
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {altLocation.title || altLocation.name || 'Alternative location'}
+                        </a>
+                      ) : altLocation.address ? (
+                        <a
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(altLocation.address)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            color: '#111827',
+                            textDecoration: 'none',
+                            cursor: 'pointer'
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {altLocation.title || altLocation.name || 'Alternative location'}
+                        </a>
+                      ) : (
+                        altLocation.title || altLocation.name || 'Alternative location'
                       )}
-                    </div>
+                    </h5>
+                    {altLocation.price_level && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '2px', marginTop: '2px' }}>
+                        <span style={{ color: '#f59e0b', fontSize: '8px' }}>⭐</span>
+                        <span style={{ fontSize: '9px', color: '#6b7280' }}>
+                          {altLocation.price_level}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
+      </div>
       </div>
 
       {/* Description */}
