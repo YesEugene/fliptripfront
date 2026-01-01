@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 
 export function PhotoCarousel({ photos, onPhotoClick }) {
   const [currentIndex, setCurrentIndex] = useState(0);
