@@ -637,14 +637,6 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                   }}>
                     {altLocation.title || 'Alternative location'}
                   </h5>
-                  {altLocation.price_level && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '2px', marginTop: '2px' }}>
-                      <span style={{ color: '#f59e0b', fontSize: '8px' }}>⭐</span>
-                      <span style={{ fontSize: '9px', color: '#6b7280' }}>
-                        {altLocation.price_level}
-                      </span>
-                    </div>
-                  )}
                 </div>
               </div>
             ))}
