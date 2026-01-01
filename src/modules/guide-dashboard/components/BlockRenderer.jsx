@@ -14,7 +14,9 @@ function AlternativeLocationPhoto({ altLocation }) {
   
   const altPhotos = altLocation.photos || altLocation.photo || [];
   const altPhotosArray = Array.isArray(altPhotos) ? altPhotos : (altPhotos ? [altPhotos] : []);
-  const currentPhoto = altPhotosArray[currentIndex] || altPhotosArray[0];
+  // Filter out invalid photos (must be valid HTTP URLs)
+  const validAltPhotos = altPhotosArray.filter(p => p && typeof p === 'string' && p.startsWith('http'));
+  const currentPhoto = validAltPhotos[currentIndex] || validAltPhotos[0];
   
   // Debug logging
   useEffect(() => {
@@ -34,7 +36,7 @@ function AlternativeLocationPhoto({ altLocation }) {
         photo: altLocation.photo
       });
     }
-  }, [altLocation, altPhotosArray.length, currentIndex]);
+  }, [altLocation, validAltPhotos.length, currentIndex, currentPhoto]);
   
   const minSwipeDistance = 50;
   
@@ -54,7 +56,7 @@ function AlternativeLocationPhoto({ altLocation }) {
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
     
-    if (isLeftSwipe && currentIndex < altPhotosArray.length - 1) {
+    if (isLeftSwipe && currentIndex < validAltPhotos.length - 1) {
       setCurrentIndex(currentIndex + 1);
     }
     if (isRightSwipe && currentIndex > 0) {
@@ -113,7 +115,7 @@ function AlternativeLocationPhoto({ altLocation }) {
           onError={(e) => {
             console.error('❌ Error loading alternative location photo:', currentPhoto, 'for location:', altLocation.title || altLocation.name);
             // Try to load next photo if available
-            if (currentIndex < altPhotosArray.length - 1) {
+            if (currentIndex < validAltPhotos.length - 1) {
               setCurrentIndex(currentIndex + 1);
             } else {
               // If no more photos, show placeholder
@@ -127,7 +129,7 @@ function AlternativeLocationPhoto({ altLocation }) {
       </div>
       
       {/* Dots indicator for multiple photos */}
-      {altPhotosArray.length > 1 && (
+      {validAltPhotos.length > 1 && (
         <div style={{
           position: 'absolute',
           bottom: '4px',
@@ -138,7 +140,7 @@ function AlternativeLocationPhoto({ altLocation }) {
           zIndex: 2,
           pointerEvents: 'none' // Don't interfere with parent click
         }}>
-          {altPhotosArray.map((_, index) => (
+          {validAltPhotos.map((_, index) => (
             <div
               key={index}
               style={{
