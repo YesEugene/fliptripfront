@@ -16,6 +16,26 @@ function AlternativeLocationPhoto({ altLocation }) {
   const altPhotosArray = Array.isArray(altPhotos) ? altPhotos : (altPhotos ? [altPhotos] : []);
   const currentPhoto = altPhotosArray[currentIndex] || altPhotosArray[0];
   
+  // Debug logging
+  useEffect(() => {
+    if (altPhotosArray.length > 0) {
+      console.log('🖼️ AlternativeLocationPhoto - Photos loaded:', {
+        locationName: altLocation.title || altLocation.name,
+        photosCount: altPhotosArray.length,
+        currentIndex,
+        currentPhoto: currentPhoto?.substring(0, 100) // Log first 100 chars of URL
+      });
+    } else {
+      console.warn('⚠️ AlternativeLocationPhoto - No photos found:', {
+        locationName: altLocation.title || altLocation.name,
+        hasPhotos: !!altLocation.photos,
+        hasPhoto: !!altLocation.photo,
+        photos: altLocation.photos,
+        photo: altLocation.photo
+      });
+    }
+  }, [altLocation, altPhotosArray.length, currentIndex]);
+  
   const minSwipeDistance = 50;
   
   const onTouchStartHandler = (e) => {
