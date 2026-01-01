@@ -174,7 +174,8 @@ export function FullscreenPhotoViewer({ photos, initialIndex, onClose }) {
   const photosArray = Array.isArray(photos) ? photos : [photos];
   const currentPhoto = photosArray[currentIndex] || photosArray[0];
 
-  return (
+  // Use React Portal to render outside of any z-index context
+  return ReactDOM.createPortal(
     <div
       style={{
         position: 'fixed',
@@ -183,7 +184,7 @@ export function FullscreenPhotoViewer({ photos, initialIndex, onClose }) {
         right: 0,
         bottom: 0,
         backgroundColor: 'rgba(0, 0, 0, 0.95)',
-        zIndex: 10000,
+        zIndex: 99999, // Very high z-index to be above everything
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
