@@ -457,6 +457,8 @@ export default function TripVisualizerPage() {
                       sortedBlocks.push(mapData.block);
                       sortedBlocks = sortedBlocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
                       console.log('✅ Map block created successfully:', mapData.block);
+                      console.log('📍 Total blocks after map creation:', sortedBlocks.length);
+                      console.log('📍 Blocks by type:', sortedBlocks.map(b => b.block_type));
                     } else {
                       console.error('❌ Map block creation failed:', mapData);
                     }
@@ -464,11 +466,14 @@ export default function TripVisualizerPage() {
                     const errorText = await mapResponse.text().catch(() => '');
                     console.error('❌ Map block creation HTTP error:', mapResponse.status, errorText);
                   }
+                } else {
+                  console.warn('⚠️ No auth token for creating map block');
                 }
               } catch (mapError) {
                 console.error('Error creating map block:', mapError);
               }
             } else if (mapBlock) {
+              console.log('✅ Map block already exists:', mapBlock.id, 'locations:', mapBlock.content?.locations?.length || 0);
               // Update map block locations if addresses changed
               const addresses = extractAddressesFromBlocks(sortedBlocks.filter(b => b.block_type !== 'map'));
               const currentLocations = mapBlock.content?.locations || [];
