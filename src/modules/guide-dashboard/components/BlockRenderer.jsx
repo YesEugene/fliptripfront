@@ -114,8 +114,14 @@ function AlternativeLocationPhoto({ altLocation }) {
             userSelect: 'none'
           }}
           draggable={false}
+          loading="lazy"
           onError={(e) => {
-            console.error('❌ Error loading alternative location photo:', currentPhoto, 'for location:', altLocation.title || altLocation.name);
+            console.error('❌ Error loading alternative location photo:', {
+              url: currentPhoto?.substring(0, 100),
+              location: altLocation.title || altLocation.name,
+              index: currentIndex,
+              referer: document.referrer || window.location.href
+            });
             // Try to load next photo if available
             if (currentIndex < validAltPhotos.length - 1) {
               setCurrentIndex(currentIndex + 1);
@@ -125,7 +131,11 @@ function AlternativeLocationPhoto({ altLocation }) {
             }
           }}
           onLoad={() => {
-            console.log('✅ Loaded alternative location photo:', currentPhoto, 'for location:', altLocation.title || altLocation.name, 'index:', currentIndex);
+            console.log('✅ Loaded alternative location photo:', {
+              url: currentPhoto?.substring(0, 100),
+              location: altLocation.title || altLocation.name,
+              index: currentIndex
+            });
           }}
         />
       </div>
