@@ -107,6 +107,18 @@ export function PhotoCarousel({ photos, onPhotoClick }) {
           }}
           draggable={false}
           loading={currentIndex === 0 ? "eager" : "lazy"}
+          onError={(e) => {
+            // Hide broken image and show clean placeholder
+            e.target.style.display = 'none';
+            // Create placeholder if it doesn't exist
+            if (!e.target.nextElementSibling || !e.target.nextElementSibling.classList.contains('photo-placeholder')) {
+              const placeholder = document.createElement('div');
+              placeholder.className = 'photo-placeholder';
+              placeholder.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 14px; border-radius: 20px;';
+              placeholder.textContent = 'Photo unavailable';
+              e.target.parentElement.appendChild(placeholder);
+            }
+          }}
         />
       </div>
 

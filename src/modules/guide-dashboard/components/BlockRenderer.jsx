@@ -126,8 +126,13 @@ function AlternativeLocationPhoto({ altLocation }) {
             if (currentIndex < validAltPhotos.length - 1) {
               setCurrentIndex(currentIndex + 1);
             } else {
-              // If no more photos, show placeholder
+              // Hide broken image and show placeholder
               e.target.style.display = 'none';
+              // Show placeholder div instead
+              const placeholder = document.createElement('div');
+              placeholder.style.cssText = 'width: 100%; height: 100%; background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 12px;';
+              placeholder.textContent = 'No photo';
+              e.target.parentElement.appendChild(placeholder);
             }
           }}
           onLoad={() => {
