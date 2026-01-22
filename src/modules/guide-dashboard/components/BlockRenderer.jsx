@@ -1880,7 +1880,15 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
   }, [locations, allBlocks]);
 
   useEffect(() => {
-    if (isHidden || locations.length === 0) {
+    // Always show map in visualizer, even if hidden from users or no locations
+    // Only skip map initialization if hidden AND no locations
+    if (isHidden && locations.length === 0) {
+      setIsLoading(false);
+      return;
+    }
+    
+    // If no locations, still show map but don't initialize
+    if (locations.length === 0) {
       setIsLoading(false);
       return;
     }
@@ -2046,9 +2054,8 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
     };
   }, [locations, isHidden]);
 
-  if (isHidden) {
-    return null;
-  }
+  // Always show map block in visualizer (even if hidden from users)
+  // The hidden flag only affects public-facing pages
 
   if (error) {
     return (

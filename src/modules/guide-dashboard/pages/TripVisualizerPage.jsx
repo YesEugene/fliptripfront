@@ -456,7 +456,13 @@ export default function TripVisualizerPage() {
                     if (mapData.success && mapData.block) {
                       sortedBlocks.push(mapData.block);
                       sortedBlocks = sortedBlocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+                      console.log('✅ Map block created successfully:', mapData.block);
+                    } else {
+                      console.error('❌ Map block creation failed:', mapData);
                     }
+                  } else {
+                    const errorText = await mapResponse.text().catch(() => '');
+                    console.error('❌ Map block creation HTTP error:', mapResponse.status, errorText);
                   }
                 }
               } catch (mapError) {
