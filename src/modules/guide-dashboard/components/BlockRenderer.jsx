@@ -9,6 +9,7 @@ import { PhotoCarousel, FullscreenPhotoViewer } from './PhotoCarousel';
 // NOTE: Clicking on photo should switch location, NOT open fullscreen
 function AlternativeLocationPhoto({ altLocation }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [imageError, setImageError] = useState(false);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
   
@@ -82,8 +83,6 @@ function AlternativeLocationPhoto({ altLocation }) {
       </div>
     );
   }
-  
-  const [imageError, setImageError] = useState(false);
   
   return (
     <div style={{ 
