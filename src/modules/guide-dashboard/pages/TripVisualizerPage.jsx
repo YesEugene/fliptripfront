@@ -1537,6 +1537,101 @@ export default function TripVisualizerPage() {
     }
   };
 
+  const handleDuplicateBlock = async (blockId) => {
+    console.log('Duplicating block:', blockId);
+    
+    const currentIndex = blocks.findIndex(b => b.id === blockId);
+    if (currentIndex === -1) {
+      alert('Block not found');
+      return;
+    }
+
+    const blockToDuplicate = blocks[currentIndex];
+    const currentTourId = tourId || await ensureTourExists();
+    
+    if (!currentTourId) {
+      alert('Tour not found. Please create a tour first.');
+      return;
+    }
+
+    // Calculate order_index for the duplicate (insert right after current block)
+    // We need to shift all blocks after this one by 1
+    const currentOrder = blockToDuplicate.order_index || currentIndex;
+    const nextOrder = currentOrder + 1;
+
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      if (!token) {
+        alert('Please log in to duplicate blocks');
+        return;
+      }
+
+      // First, shift all blocks after current one by 1
+      const blocksToShift = blocks.filter(b => (b.order_index || 0) >= nextOrder);
+      if (blocksToShift.length > 0) {
+        await Promise.all(blocksToShift.map(block => 
+          fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              blockId: block.id,
+              content: block.content,
+              orderIndex: (block.order_index || 0) + 1
+            })
+          })
+        ));
+      }
+
+      // Create duplicate block with same content
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          tourId: currentTourId,
+          blockType: blockToDuplicate.block_type,
+          orderIndex: nextOrder,
+          content: JSON.parse(JSON.stringify(blockToDuplicate.content)) // Deep copy
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('❌ Duplicate block error:', errorData);
+        alert(errorData.error || `Failed to duplicate block (${response.status})`);
+        return;
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.block) {
+        // Reload blocks to get updated order_index values
+        if (currentTourId) {
+          const blocksResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks?tourId=${currentTourId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          const blocksData = await blocksResponse.json();
+          if (blocksData.success && blocksData.blocks) {
+            setBlocks(blocksData.blocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0)));
+          }
+        }
+        showNotificationMessage('Block duplicated successfully!');
+      } else {
+        alert(data.error || 'Failed to duplicate block');
+      }
+    } catch (error) {
+      console.error('Error duplicating block:', error);
+      alert('Error duplicating block. Please try again.');
+    }
+  };
+
   const handleMoveBlock = async (blockId, direction) => {
     console.log('Moving block:', blockId, direction);
     
@@ -2157,6 +2252,27 @@ export default function TripVisualizerPage() {
                 title="Move down"
               >
                 ↓
+              </button>
+              <button
+                onClick={() => handleDuplicateBlock(block.id)}
+                style={{
+                  width: '90px',
+                  height: '30px',
+                  backgroundColor: '#10b981',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 0
+                }}
+                title="Make a copy"
+              >
+                Make a copy
               </button>
               <button
                 onClick={() => handleEditBlock(block)}
