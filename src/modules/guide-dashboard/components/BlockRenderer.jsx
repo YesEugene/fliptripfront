@@ -250,15 +250,18 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
     const newAlternativeLocations = [...alternativeLocations];
     newAlternativeLocations[alternativeIndex] = mainLocation;
     
-    // Update block content
+    // Update block content - preserve enableTimeField
     const updatedContent = {
       mainLocation: newMainLocation,
-      alternativeLocations: newAlternativeLocations
+      alternativeLocations: newAlternativeLocations,
+      enableTimeField: content.enableTimeField // Preserve time field setting
     };
     
     console.log('Switching locations:', {
       oldMain: mainLocation.title,
       newMain: newMainLocation.title,
+      enableTimeField: content.enableTimeField,
+      newMainTime: newMainLocation.time,
       updatedContent
     });
     
