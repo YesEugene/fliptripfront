@@ -9,7 +9,7 @@ import { isAuthenticated, hasRole } from '../services/authService';
 /**
  * @param {Object} props
  * @param {React.ReactNode} props.children - Дочерние компоненты
- * @param {string} props.requiredRole - Требуемая роль (user/guide)
+ * @param {string|string[]} props.requiredRole - Требуемая роль (user/guide/admin) или массив ролей
  * @param {string} props.redirectTo - Путь для редиректа при отсутствии доступа
  */
 export default function ProtectedRoute({ 
@@ -23,8 +23,19 @@ export default function ProtectedRoute({
   }
 
   // Проверка роли, если требуется
-  if (requiredRole && !hasRole(requiredRole)) {
-    return <Navigate to="/" replace />;
+  if (requiredRole) {
+    // Если requiredRole - массив, проверяем, есть ли хотя бы одна роль
+    if (Array.isArray(requiredRole)) {
+      const hasAnyRole = requiredRole.some(role => hasRole(role));
+      if (!hasAnyRole) {
+        return <Navigate to="/" replace />;
+      }
+    } else {
+      // Если requiredRole - строка, проверяем как раньше
+      if (!hasRole(requiredRole)) {
+        return <Navigate to="/" replace />;
+      }
+    }
   }
 
   return children;

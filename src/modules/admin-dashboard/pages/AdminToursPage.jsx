@@ -761,7 +761,15 @@ export default function AdminToursPage() {
                         {tour.created_at ? new Date(tour.created_at).toLocaleDateString() : 
                          tour.createdAt ? new Date(tour.createdAt).toLocaleDateString() : 'N/A'}
                       </td>
-                      <td style={{ padding: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <td style={{ 
+                        padding: '12px', 
+                        display: 'flex', 
+                        gap: '8px', 
+                        flexWrap: 'nowrap',
+                        overflowX: 'auto',
+                        minWidth: '300px',
+                        maxWidth: '500px'
+                      }}>
                         <Link
                           to={`/itinerary?tourId=${tour.id}&full=true`}
                           target="_blank"

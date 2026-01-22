@@ -87,7 +87,7 @@ function App() {
           <Route 
             path="/guide/tours/visualizer/:tourId?" 
             element={
-              <ProtectedRoute requiredRole="guide">
+              <ProtectedRoute requiredRole={['guide', 'admin']}>
                 <TripVisualizerPage />
               </ProtectedRoute>
             } 
