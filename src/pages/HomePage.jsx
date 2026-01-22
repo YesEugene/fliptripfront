@@ -394,6 +394,18 @@ export default function HomePage() {
         console.log('📥 Tours API response:', result);
         if (result && result.success) {
           console.log(`✅ Loaded ${result.tours?.length || 0} tours`);
+          // Debug: Log preview_media_url for each tour
+          if (result.tours && result.tours.length > 0) {
+            result.tours.forEach((tour, idx) => {
+              console.log(`📸 Tour ${idx + 1} preview:`, {
+                id: tour.id,
+                title: tour.title?.substring(0, 50),
+                preview_media_url: tour.preview_media_url ? tour.preview_media_url.substring(0, 100) : 'MISSING',
+                preview: tour.preview ? tour.preview.substring(0, 100) : 'MISSING',
+                hasGuideAvatar: !!tour.guide?.avatar_url
+              });
+            });
+          }
           setTours(result.tours || []);
         } else {
           console.warn('⚠️ Tours API returned unsuccessful response:', result);
@@ -2273,7 +2285,8 @@ export default function HomePage() {
               const isVertical = index >= 2 && (index % 3) !== 2; // First 2 are horizontal, then pattern: vertical, vertical, horizontal
               
               // Get preview image - priority: tour header image > guide avatar > fallback traveler photo
-              const previewImage = tour.preview_media_url || creator.avatar || (() => {
+              // Support both preview_media_url and preview fields (backend may return either)
+              const previewImage = tour.preview_media_url || tour.preview || creator.avatar || (() => {
                 const photoIndex = parseInt(tour.id.split('-').join('').substring(0, 8), 16) % travelerPhotos.length;
                 return travelerPhotos[photoIndex];
               })();
@@ -2308,6 +2321,39 @@ export default function HomePage() {
                   top: 0,
                   left: 0,
                   zIndex: 1
+                }}
+                onError={(e) => {
+                  // If preview image fails to load, try fallback to guide avatar or traveler photo
+                  console.warn('⚠️ Preview image failed to load:', {
+                    tourId: tour.id,
+                    tourTitle: tour.title,
+                    previewImage: previewImage?.substring(0, 100),
+                    hasPreviewMediaUrl: !!tour.preview_media_url,
+                    hasPreview: !!tour.preview,
+                    hasCreatorAvatar: !!creator.avatar
+                  });
+                  
+                  // Try fallback: guide avatar
+                  if (previewImage !== creator.avatar && creator.avatar) {
+                    e.target.src = creator.avatar;
+                    return;
+                  }
+                  
+                  // Try fallback: traveler photo
+                  if (previewImage !== creator.avatar) {
+                    const photoIndex = parseInt(tour.id.split('-').join('').substring(0, 8), 16) % travelerPhotos.length;
+                    e.target.src = travelerPhotos[photoIndex];
+                  }
+                }}
+                onLoad={() => {
+                  // Log successful load for debugging
+                  if (tour.preview_media_url || tour.preview) {
+                    console.log('✅ Preview image loaded:', {
+                      tourId: tour.id,
+                      tourTitle: tour.title,
+                      source: tour.preview_media_url ? 'preview_media_url' : 'preview'
+                    });
+                  }
                 }}
               />
                   
