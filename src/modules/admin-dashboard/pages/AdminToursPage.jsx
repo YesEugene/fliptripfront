@@ -716,7 +716,7 @@ export default function AdminToursPage() {
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>City</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Status</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Created</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Actions</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
