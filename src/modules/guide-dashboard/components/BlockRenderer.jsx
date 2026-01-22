@@ -1923,25 +1923,33 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
 
       console.log('🗺️ Loading Google Maps API with key:', apiKey.substring(0, 10) + '...');
       
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => {
-        console.log('✅ Google Maps script loaded successfully');
-        initializeMap();
-      };
-      script.onerror = (error) => {
-        console.error('❌ Error loading Google Maps script:', error);
-        setError('Failed to load Google Maps API. Please check your API key configuration.');
-        setIsLoading(false);
-      };
-      
-      // Handle Google Maps API authentication errors
+      // Handle Google Maps API authentication errors (set before loading script)
       window.gm_authFailure = () => {
         console.error('❌ Google Maps API authentication failed. Invalid API key.');
         setError('Google Maps API key is invalid. Please check your VITE_GOOGLE_MAPS_KEY environment variable.');
         setIsLoading(false);
+      };
+      
+      const script = document.createElement('script');
+      // Remove loading=async to avoid conflicts, use callback instead
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleMap`;
+      script.async = true;
+      script.defer = true;
+      
+      // Create global callback function
+      window.initGoogleMap = () => {
+        console.log('✅ Google Maps script loaded successfully via callback');
+        // Wait a bit more to ensure all classes are initialized
+        setTimeout(() => {
+          initializeMap();
+        }, 300);
+      };
+      
+      script.onerror = (error) => {
+        console.error('❌ Error loading Google Maps script:', error);
+        setError('Failed to load Google Maps API. Please check your API key configuration.');
+        setIsLoading(false);
+        delete window.initGoogleMap;
       };
       
       document.head.appendChild(script);
