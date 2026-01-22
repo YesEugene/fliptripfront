@@ -2351,10 +2351,24 @@ export default function HomePage() {
                     previewImage: previewImage?.substring(0, 100),
                     hasPreviewMediaUrl: !!tour.preview_media_url,
                     hasPreview: !!tour.preview,
-                    hasCreatorAvatar: !!creator.avatar
+                    hasCreatorAvatar: !!creator.avatar,
+                    errorSrc: e.target.src?.substring(0, 100)
                   });
                   
-                  // Try fallback: guide avatar
+                  // CRITICAL: Don't fallback if we were trying to load preview_media_url
+                  // This prevents showing avatar when preview_media_url should be used
+                  if (previewImage === tour.preview_media_url || previewImage === tour.preview) {
+                    console.error('❌ CRITICAL: preview_media_url failed to load, but NOT falling back to avatar');
+                    // Try to reload the image once more
+                    setTimeout(() => {
+                      if (e.target.src !== previewImage) {
+                        e.target.src = previewImage;
+                      }
+                    }, 1000);
+                    return;
+                  }
+                  
+                  // Try fallback: guide avatar (only if we weren't using preview_media_url)
                   if (previewImage !== creator.avatar && creator.avatar) {
                     e.target.src = creator.avatar;
                     return;
