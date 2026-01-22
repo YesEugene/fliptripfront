@@ -1867,6 +1867,7 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
   const markersRef = useRef([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const content = block.content || {};
   const isHidden = content.hidden === true;
   const locations = content.locations || [];
@@ -2163,16 +2164,53 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
   // Always render map block in visualizer
   return (
     <div style={{ marginBottom: '40px' }}>
+      {/* Header with title and collapse button */}
       <div style={{
-        width: '100%',
-        height: '500px',
-        borderRadius: '12px',
-        overflow: 'hidden',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-        border: '1px solid #e5e7eb',
-        position: 'relative',
-        backgroundColor: '#f3f4f6'
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '12px'
       }}>
+        <h2 style={{
+          fontSize: '30px',
+          fontWeight: '600',
+          color: '#111827',
+          margin: 0
+        }}>
+          Карта локаций
+        </h2>
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#f3f4f6',
+            border: '1px solid #d1d5db',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: '500',
+            color: '#374151',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+          title={isCollapsed ? 'Развернуть карту' : 'Свернуть карту'}
+        >
+          {isCollapsed ? '▶ Развернуть' : '▼ Свернуть'}
+        </button>
+      </div>
+
+      {!isCollapsed && (
+        <div style={{
+          width: '100%',
+          height: '500px',
+          borderRadius: '12px',
+          overflow: 'hidden',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e5e7eb',
+          position: 'relative',
+          backgroundColor: '#f3f4f6'
+        }}>
         {isLoading && (
           <div style={{
             position: 'absolute',
