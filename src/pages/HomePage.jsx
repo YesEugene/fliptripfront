@@ -2286,23 +2286,31 @@ export default function HomePage() {
               
               // Get preview image - priority: tour header image > guide avatar > fallback traveler photo
               // Support both preview_media_url and preview fields (backend may return either)
-              const previewImage = tour.preview_media_url || tour.preview || creator.avatar || (() => {
-                const photoIndex = parseInt(tour.id.split('-').join('').substring(0, 8), 16) % travelerPhotos.length;
-                return travelerPhotos[photoIndex];
-              })();
+              // CRITICAL: Check for empty strings and null values
+              const hasPreviewMediaUrl = tour.preview_media_url && tour.preview_media_url.trim() !== '';
+              const hasPreview = tour.preview && tour.preview.trim() !== '';
+              const hasCreatorAvatar = creator.avatar && creator.avatar.trim() !== '';
               
-              // Debug logging for specific tour
-              if (tour.title && tour.title.includes('Fishing')) {
-                console.log('🐟 Fishing tour preview debug:', {
-                  tourId: tour.id,
-                  title: tour.title,
-                  preview_media_url: tour.preview_media_url,
-                  preview: tour.preview,
-                  creatorAvatar: creator.avatar,
-                  selectedPreviewImage: previewImage?.substring(0, 100),
-                  fullTour: tour
-                });
-              }
+              const previewImage = hasPreviewMediaUrl ? tour.preview_media_url 
+                : (hasPreview ? tour.preview 
+                : (hasCreatorAvatar ? creator.avatar 
+                : (() => {
+                    const photoIndex = parseInt(tour.id.split('-').join('').substring(0, 8), 16) % travelerPhotos.length;
+                    return travelerPhotos[photoIndex];
+                  })()));
+              
+              // Debug logging for all tours to see what's happening
+              console.log('📸 Tour preview selection:', {
+                tourId: tour.id,
+                title: tour.title?.substring(0, 50),
+                hasPreviewMediaUrl,
+                hasPreview,
+                hasCreatorAvatar,
+                preview_media_url: tour.preview_media_url?.substring(0, 100),
+                preview: tour.preview?.substring(0, 100),
+                creatorAvatar: creator.avatar?.substring(0, 100),
+                selectedPreviewImage: previewImage?.substring(0, 100)
+              });
               
               return (
                 <div
