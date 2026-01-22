@@ -686,9 +686,19 @@ export default function AdminToursPage() {
             backgroundColor: 'white',
             borderRadius: '12px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            width: '100%'
           }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div style={{
+              overflowX: 'auto',
+              width: '100%',
+              WebkitOverflowScrolling: 'touch'
+            }}>
+              <table style={{ 
+                width: '100%', 
+                borderCollapse: 'collapse',
+                minWidth: '800px' // Минимальная ширина для корректного отображения на мобильных
+              }}>
               <thead>
                 <tr style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
                   {activeTab === 'ai-tours' && (
@@ -766,9 +776,7 @@ export default function AdminToursPage() {
                         display: 'flex', 
                         gap: '8px', 
                         flexWrap: 'nowrap',
-                        overflowX: 'auto',
-                        minWidth: '300px',
-                        maxWidth: '500px'
+                        whiteSpace: 'nowrap'
                       }}>
                         <Link
                           to={`/itinerary?tourId=${tour.id}&full=true`}
@@ -862,6 +870,7 @@ export default function AdminToursPage() {
                 )}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </div>
