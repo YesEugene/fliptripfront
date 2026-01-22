@@ -2125,6 +2125,10 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
         marker.setMap(null);
       });
       markersRef.current = [];
+      // Cleanup global callback
+      if (window.initGoogleMap) {
+        delete window.initGoogleMap;
+      }
     };
   }, [locations, isHidden]);
 
