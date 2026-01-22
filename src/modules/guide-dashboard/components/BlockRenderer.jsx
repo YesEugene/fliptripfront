@@ -273,8 +273,8 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
       <div style={{
         padding: '0'
       }}>
-      {/* Time badge */}
-      {mainLocation.time && (
+      {/* Time badge - only show if time field is enabled */}
+      {content.enableTimeField && mainLocation.time && (
         <div style={{ marginBottom: '16px' }}>
           <span style={{
             display: 'inline-block',
