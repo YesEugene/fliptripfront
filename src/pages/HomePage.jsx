@@ -2291,6 +2291,19 @@ export default function HomePage() {
                 return travelerPhotos[photoIndex];
               })();
               
+              // Debug logging for specific tour
+              if (tour.title && tour.title.includes('Fishing')) {
+                console.log('🐟 Fishing tour preview debug:', {
+                  tourId: tour.id,
+                  title: tour.title,
+                  preview_media_url: tour.preview_media_url,
+                  preview: tour.preview,
+                  creatorAvatar: creator.avatar,
+                  selectedPreviewImage: previewImage?.substring(0, 100),
+                  fullTour: tour
+                });
+              }
+              
               return (
                 <div
                   key={tour.id}
