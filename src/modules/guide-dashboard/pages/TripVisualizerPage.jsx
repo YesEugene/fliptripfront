@@ -367,6 +367,26 @@ export default function TripVisualizerPage() {
           if (blocksData.success) {
             const loadedBlocks = blocksData.blocks || [];
             console.log(`✅ Loaded ${loadedBlocks.length} blocks for tour ${tourIdToLoad}:`, loadedBlocks.map(b => ({ id: b.id, type: b.block_type, order: b.order_index })));
+            
+            // Debug: Check for location blocks with photos
+            loadedBlocks.forEach(block => {
+              if (block.block_type === 'location' && block.content) {
+                const mainLocation = block.content.mainLocation || block.content;
+                const photos = mainLocation.photos || (mainLocation.photo ? [mainLocation.photo] : []);
+                if (photos.length > 0) {
+                  console.log(`📸 Location block ${block.id} has ${photos.length} photos:`, {
+                    photos: photos.map(p => {
+                      if (!p) return 'null';
+                      if (typeof p !== 'string') return `not string: ${typeof p}`;
+                      if (p.startsWith('data:image/')) return `Base64 (length: ${p.length})`;
+                      if (p.startsWith('http')) return `HTTP URL`;
+                      return `Unknown: ${p.substring(0, 50)}...`;
+                    })
+                  });
+                }
+              }
+            });
+            
             // Sort blocks by order_index to ensure correct display order
             const sortedBlocks = loadedBlocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
             setBlocks(sortedBlocks);

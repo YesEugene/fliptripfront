@@ -332,11 +332,28 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                 total: mainPhotosArray.length,
                 valid: validPhotos.length,
                 invalid: invalidPhotos.length,
-                invalidDetails: invalidPhotos.map(p => ({
-                  type: typeof p,
-                  value: p ? p.substring(0, 100) : 'null/undefined',
-                  startsWith: p ? (p.startsWith('http') ? 'http' : p.startsWith('data:') ? 'data:' : 'other') : 'N/A'
-                }))
+                invalidDetails: invalidPhotos.map(p => {
+                  if (!p) {
+                    return { reason: 'null/undefined', type: typeof p, value: null };
+                  }
+                  if (typeof p !== 'string') {
+                    return { reason: 'not a string', type: typeof p, value: String(p).substring(0, 100) };
+                  }
+                  // Check what it actually starts with
+                  const firstChars = p.substring(0, 50);
+                  if (p.startsWith('data:')) {
+                    // Check if it's data:image/ or something else
+                    if (!p.startsWith('data:image/')) {
+                      return { reason: 'data URI but not image', type: typeof p, firstChars, fullLength: p.length };
+                    }
+                    // If it starts with data:image/, it should be valid - this is unexpected
+                    return { reason: 'unexpected rejection (starts with data:image/)', type: typeof p, firstChars, fullLength: p.length };
+                  }
+                  if (p.startsWith('http')) {
+                    return { reason: 'unexpected rejection (starts with http)', type: typeof p, firstChars };
+                  }
+                  return { reason: 'unknown format', type: typeof p, firstChars, fullLength: p.length };
+                })
               });
             }
             
