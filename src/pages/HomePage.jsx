@@ -2272,8 +2272,8 @@ export default function HomePage() {
               // Red banner takes 2 columns x 2 rows, so first 2 tours should be horizontal (1 column x 1 row each)
               const isVertical = index >= 2 && (index % 3) !== 2; // First 2 are horizontal, then pattern: vertical, vertical, horizontal
               
-              // Get preview image - use guide avatar if available, otherwise fallback to traveler photo
-              const previewImage = creator.avatar || (() => {
+              // Get preview image - priority: tour header image > guide avatar > fallback traveler photo
+              const previewImage = tour.preview_media_url || creator.avatar || (() => {
                 const photoIndex = parseInt(tour.id.split('-').join('').substring(0, 8), 16) % travelerPhotos.length;
                 return travelerPhotos[photoIndex];
               })();
