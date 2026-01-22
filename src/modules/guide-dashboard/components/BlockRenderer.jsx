@@ -2118,20 +2118,6 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
   // Always render map block in visualizer
   return (
     <div style={{ marginBottom: '40px' }}>
-      {/* Debug indicator - remove after testing */}
-      <div style={{
-        padding: '8px 12px',
-        backgroundColor: '#dbeafe',
-        border: '2px solid #3b82f6',
-        borderRadius: '8px',
-        marginBottom: '12px',
-        fontSize: '14px',
-        fontWeight: '600',
-        color: '#1e40af'
-      }}>
-        🗺️ Map Block (ID: {block.id}, Locations: {locations.length}, Hidden: {isHidden ? 'Yes' : 'No'})
-      </div>
-      
       <div style={{
         width: '100%',
         height: '500px',
