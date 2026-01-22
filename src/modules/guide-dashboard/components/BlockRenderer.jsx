@@ -2164,11 +2164,8 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
   // Always render map block in visualizer
   return (
     <div style={{ marginBottom: '40px' }}>
-      {/* Header with title and collapse button */}
+      {/* Header with title */}
       <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
         marginBottom: '12px'
       }}>
         <h2 style={{
@@ -2177,27 +2174,8 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
           color: '#111827',
           margin: 0
         }}>
-          Карта локаций
+          Locations Map
         </h2>
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#f3f4f6',
-            border: '1px solid #d1d5db',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: '500',
-            color: '#374151',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-          title={isCollapsed ? 'Развернуть карту' : 'Свернуть карту'}
-        >
-          {isCollapsed ? '▶ Развернуть' : '▼ Свернуть'}
-        </button>
       </div>
 
       {!isCollapsed && (
@@ -2227,15 +2205,42 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
             <div>Loading map...</div>
           </div>
         )}
-        <div 
-          ref={mapRef} 
-          style={{ 
-            width: '100%', 
-            height: '100%' 
-          }} 
-        />
+          <div 
+            ref={mapRef} 
+            style={{ 
+              width: '100%', 
+              height: '100%' 
+            }} 
+          />
         </div>
       )}
+      
+      {/* Collapse button - placed below map to avoid overlap with edit controls */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        marginTop: '12px'
+      }}>
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#f3f4f6',
+            border: '1px solid #d1d5db',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: '500',
+            color: '#374151',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+          title={isCollapsed ? 'Expand map' : 'Collapse map'}
+        >
+          {isCollapsed ? '▶ Expand' : '▼ Collapse'}
+        </button>
+      </div>
       
       {isCollapsed && (
         <div style={{
@@ -2244,9 +2249,10 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
           color: '#6b7280',
           backgroundColor: '#f9fafb',
           borderRadius: '12px',
-          border: '1px solid #e5e7eb'
+          border: '1px solid #e5e7eb',
+          marginTop: '12px'
         }}>
-          Карта свернута. Нажмите "Развернуть" чтобы показать карту.
+          Map is collapsed. Click "Expand" to show the map.
         </div>
       )}
 

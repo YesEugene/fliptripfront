@@ -475,45 +475,51 @@ export default function TripVisualizerPage() {
               }
             } else if (mapBlock) {
               console.log('✅ Map block already exists:', mapBlock.id, 'locations:', mapBlock.content?.locations?.length || 0);
-              // Update map block locations if addresses changed
+              // Only auto-update map block locations if it hasn't been manually edited
+              // Check if map block has been manually edited (has manuallyEdited flag or locations don't match extracted)
               const addresses = extractAddressesFromBlocks(sortedBlocks.filter(b => b.block_type !== 'map'));
               const currentLocations = mapBlock.content?.locations || [];
+              const manuallyEdited = mapBlock.content?.manuallyEdited === true;
               
-              // Check if addresses changed
-              const addressesChanged = addresses.length !== currentLocations.length ||
-                addresses.some((addr, idx) => {
-                  const current = currentLocations[idx];
-                  return !current || addr.address !== current.address || addr.title !== current.title;
-                });
-              
-              if (addressesChanged && tourIdToLoad) {
-                try {
-                  const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-                  if (token) {
-                    await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
-                      method: 'PUT',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                      },
-                      body: JSON.stringify({
-                        blockId: mapBlock.id,
-                        content: {
-                          ...mapBlock.content,
-                          locations: addresses
-                        }
-                      })
-                    });
-                    
-                    // Update local state
-                    mapBlock.content = {
-                      ...mapBlock.content,
-                      locations: addresses
-                    };
+              // Only auto-update if NOT manually edited and addresses changed
+              if (!manuallyEdited) {
+                const addressesChanged = addresses.length !== currentLocations.length ||
+                  addresses.some((addr, idx) => {
+                    const current = currentLocations[idx];
+                    return !current || addr.address !== current.address || addr.title !== current.title;
+                  });
+                
+                if (addressesChanged && tourIdToLoad) {
+                  try {
+                    const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+                    if (token) {
+                      await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
+                        method: 'PUT',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                          blockId: mapBlock.id,
+                          content: {
+                            ...mapBlock.content,
+                            locations: addresses
+                          }
+                        })
+                      });
+                      
+                      // Update local state
+                      mapBlock.content = {
+                        ...mapBlock.content,
+                        locations: addresses
+                      };
+                    }
+                  } catch (updateError) {
+                    console.error('Error updating map block:', updateError);
                   }
-                } catch (updateError) {
-                  console.error('Error updating map block:', updateError);
                 }
+              } else {
+                console.log('📍 Map block has been manually edited, skipping auto-update');
               }
             }
             
@@ -6420,7 +6426,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                 <input
                   type="checkbox"
                   checked={!content.hidden}
-                  onChange={(e) => setContent({ ...content, hidden: !e.target.checked })}
+                  onChange={(e) => setContent({ ...content, hidden: !e.target.checked, manuallyEdited: true })}
                   style={{ marginRight: '8px', width: '18px', height: '18px' }}
                 />
                 Show map to users
@@ -6474,7 +6480,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                               newLocations.forEach((loc, idx) => {
                                 loc.number = idx + 1;
                               });
-                              setContent({ ...content, locations: newLocations });
+                              setContent({ ...content, locations: newLocations, manuallyEdited: true });
                             }}
                             style={{
                               padding: '6px 12px',
@@ -6498,7 +6504,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                               newLocations.forEach((loc, idx) => {
                                 loc.number = idx + 1;
                               });
-                              setContent({ ...content, locations: newLocations });
+                              setContent({ ...content, locations: newLocations, manuallyEdited: true });
                             }}
                             style={{
                               padding: '6px 12px',
@@ -6520,7 +6526,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                             newLocations.forEach((loc, idx) => {
                               loc.number = idx + 1;
                             });
-                            setContent({ ...content, locations: newLocations });
+                            setContent({ ...content, locations: newLocations, manuallyEdited: true });
                           }}
                           style={{
                             padding: '6px 12px',
