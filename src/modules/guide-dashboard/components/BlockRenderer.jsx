@@ -1906,22 +1906,44 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
 
     const loadGoogleMaps = () => {
       if (window.google && window.google.maps) {
+        console.log('✅ Google Maps already loaded');
         initializeMap();
         return;
       }
 
-      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY || 'YOUR_GOOGLE_MAPS_API_KEY';
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
+      
+      if (!apiKey || apiKey === 'YOUR_GOOGLE_MAPS_API_KEY') {
+        const errorMsg = 'Google Maps API key is not configured. Please set VITE_GOOGLE_MAPS_KEY environment variable.';
+        console.error('❌', errorMsg);
+        setError(errorMsg);
+        setIsLoading(false);
+        return;
+      }
+
+      console.log('🗺️ Loading Google Maps API with key:', apiKey.substring(0, 10) + '...');
+      
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async`;
       script.async = true;
       script.defer = true;
       script.onload = () => {
+        console.log('✅ Google Maps script loaded successfully');
         initializeMap();
       };
-      script.onerror = () => {
-        setError('Failed to load Google Maps API');
+      script.onerror = (error) => {
+        console.error('❌ Error loading Google Maps script:', error);
+        setError('Failed to load Google Maps API. Please check your API key configuration.');
         setIsLoading(false);
       };
+      
+      // Handle Google Maps API authentication errors
+      window.gm_authFailure = () => {
+        console.error('❌ Google Maps API authentication failed. Invalid API key.');
+        setError('Google Maps API key is invalid. Please check your VITE_GOOGLE_MAPS_KEY environment variable.');
+        setIsLoading(false);
+      };
+      
       document.head.appendChild(script);
     };
 
