@@ -378,10 +378,28 @@ export default function TripVisualizerPage() {
                     photos: photos.map(p => {
                       if (!p) return 'null';
                       if (typeof p !== 'string') return `not string: ${typeof p}`;
-                      if (p.startsWith('data:image/')) return `Base64 (length: ${p.length})`;
+                      if (p.startsWith('data:image/')) {
+                        // Check if base64 string is complete (should end with base64 characters or be very long)
+                        const isComplete = p.length > 100 && (p.endsWith('=') || p.endsWith('==') || p.length > 50000);
+                        return `Base64 (length: ${p.length}, complete: ${isComplete}, first 50: ${p.substring(0, 50)}...)`;
+                      }
                       if (p.startsWith('http')) return `HTTP URL`;
-                      return `Unknown: ${p.substring(0, 50)}...`;
+                      return `Unknown: ${p.substring(0, 50)}... (length: ${p.length})`;
                     })
+                  });
+                  
+                  // Check if any base64 photos are truncated
+                  photos.forEach((p, index) => {
+                    if (p && typeof p === 'string' && p.startsWith('data:image/')) {
+                      // Base64 strings should be quite long (at least several KB for a small image)
+                      if (p.length < 1000) {
+                        console.warn(`⚠️ Base64 photo ${index} seems too short (${p.length} chars) - might be truncated`);
+                      }
+                      // Check if it ends properly (base64 usually ends with = or ==)
+                      if (!p.endsWith('=') && !p.endsWith('==') && p.length < 10000) {
+                        console.warn(`⚠️ Base64 photo ${index} might be incomplete (doesn't end with = and is short)`);
+                      }
+                    }
                   });
                 }
               }
