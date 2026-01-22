@@ -1871,13 +1871,16 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
   const isHidden = content.hidden === true;
   const locations = content.locations || [];
   
-  console.log('🗺️ MapBlock rendering:', {
-    blockId: block.id,
-    blockType: block.block_type,
-    isHidden,
-    locationsCount: locations.length,
-    hasContent: !!content
-  });
+  useEffect(() => {
+    console.log('🗺️ MapBlock mounted/updated:', {
+      blockId: block.id,
+      blockType: block.block_type,
+      isHidden,
+      locationsCount: locations.length,
+      hasContent: !!content,
+      contentKeys: Object.keys(content)
+    });
+  }, [block.id, isHidden, locations.length, content]);
 
   // Extract addresses from all blocks if locations not set
   useEffect(() => {
