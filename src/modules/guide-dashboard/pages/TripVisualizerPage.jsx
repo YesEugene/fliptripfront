@@ -4312,6 +4312,13 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
       }
       
       // Ensure mainLocation structure exists
+      // Preserve enableTimeField from saved content or get from localStorage preference
+      const savedEnableTimeField = contentToNormalize.enableTimeField;
+      const localStoragePreference = localStorage.getItem('locationBlock_enableTimeField');
+      const defaultEnableTimeField = localStoragePreference !== null 
+        ? localStoragePreference === 'true' 
+        : false; // Default to false if no preference
+      
       return {
         mainLocation: contentToNormalize.mainLocation ? {
           ...contentToNormalize.mainLocation,
@@ -4331,7 +4338,8 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
           city_id: null,
           city_name: null
         },
-        alternativeLocations: contentToNormalize.alternativeLocations || []
+        alternativeLocations: contentToNormalize.alternativeLocations || [],
+        enableTimeField: savedEnableTimeField !== undefined ? savedEnableTimeField : defaultEnableTimeField
       };
     }
     
