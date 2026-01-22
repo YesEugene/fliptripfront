@@ -2080,6 +2080,7 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
     );
   }
 
+  // Always render map block in visualizer
   return (
     <div style={{ marginBottom: '40px' }}>
       <div style={{
@@ -2089,7 +2090,8 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
         overflow: 'hidden',
         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
         border: '1px solid #e5e7eb',
-        position: 'relative'
+        position: 'relative',
+        backgroundColor: '#f3f4f6'
       }}>
         {isLoading && (
           <div style={{
@@ -2125,6 +2127,19 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
           marginTop: '16px'
         }}>
           No locations found in tour. Add location blocks to see them on the map.
+        </div>
+      )}
+      {isHidden && (
+        <div style={{
+          padding: '12px',
+          textAlign: 'center',
+          color: '#f59e0b',
+          backgroundColor: '#fef3c7',
+          borderRadius: '8px',
+          marginTop: '12px',
+          fontSize: '14px'
+        }}>
+          ⚠️ This map is hidden from users but visible in the editor
         </div>
       )}
     </div>
