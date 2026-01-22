@@ -5264,8 +5264,13 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
         };
 
         const handleAddAlternativeLocation = () => {
+          // If time field is enabled, use main location time, otherwise empty
+          const defaultTime = content.enableTimeField && content.mainLocation?.time 
+            ? content.mainLocation.time 
+            : '';
+          
           const newAltLocation = {
-            time: '09:00 - 12:00',
+            time: defaultTime,
             title: '',
             address: '',
             description: '',
@@ -5398,26 +5403,84 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
             {/* Location Editor Form */}
             {currentLocation && (
               <>
-                {/* Time for location */}
+                {/* Time for location with On/Off toggle */}
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
-                    Time for location
-                    <HintButton hintKey="timeForLocation" />
-                  </label>
-                  <input
-                    type="text"
-                    value={currentLocation.time || ''}
-                    onChange={(e) => updateCurrentLocation({ time: e.target.value })}
-                    placeholder="09:00 - 12:00 or leave empty"
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '8px',
-                      fontSize: '16px',
-                      boxSizing: 'border-box'
-                    }}
-                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', fontWeight: '500' }}>
+                      Time for location
+                      <HintButton hintKey="timeForLocation" />
+                    </label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <label style={{ fontWeight: '500', fontSize: '14px' }}>On/Off</label>
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        <input
+                          type="checkbox"
+                          checked={content.enableTimeField || false}
+                          onChange={(e) => {
+                            const enableTime = e.target.checked;
+                            // If enabling time for main location, apply main location time to all alternatives
+                            if (enableTime && editingLocationIndex === null && content.mainLocation?.time) {
+                              const updatedAlternatives = content.alternativeLocations.map(alt => ({
+                                ...alt,
+                                time: alt.time || content.mainLocation.time
+                              }));
+                              setContent({ 
+                                ...content, 
+                                enableTimeField: enableTime,
+                                alternativeLocations: updatedAlternatives
+                              });
+                            } else {
+                              setContent({ ...content, enableTimeField: enableTime });
+                            }
+                          }}
+                          style={{
+                            width: '20px',
+                            height: '20px',
+                            cursor: 'pointer'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  {content.enableTimeField && (
+                    <input
+                      type="text"
+                      value={currentLocation.time || ''}
+                      onChange={(e) => {
+                        const newTime = e.target.value;
+                        // If updating main location time and time field is enabled, apply to alternatives that don't have custom time
+                        if (editingLocationIndex === null && content.enableTimeField) {
+                          const updatedAlternatives = content.alternativeLocations.map(alt => {
+                            // Only apply main location time if alternative doesn't have its own time
+                            // We check if time is empty or matches the old main location time (meaning it was synced)
+                            const oldMainTime = content.mainLocation?.time || '';
+                            const shouldSync = !alt.time || alt.time === oldMainTime;
+                            return {
+                              ...alt,
+                              time: shouldSync ? newTime : alt.time
+                            };
+                          });
+                          setContent({ 
+                            ...content, 
+                            mainLocation: { ...content.mainLocation, time: newTime },
+                            alternativeLocations: updatedAlternatives
+                          });
+                        } else {
+                          // For alternative locations, just update the current one
+                          updateCurrentLocation({ time: newTime });
+                        }
+                      }}
+                      placeholder="09:00 - 12:00 or leave empty"
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  )}
                 </div>
 
                 {/* Location Name and Address */}
