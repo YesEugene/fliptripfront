@@ -14,8 +14,10 @@ function AlternativeLocationPhoto({ altLocation }) {
   
   const altPhotos = altLocation.photos || altLocation.photo || [];
   const altPhotosArray = Array.isArray(altPhotos) ? altPhotos : (altPhotos ? [altPhotos] : []);
-  // Filter out invalid photos (must be valid HTTP URLs)
-  const validAltPhotos = altPhotosArray.filter(p => p && typeof p === 'string' && p.startsWith('http'));
+  // Filter out invalid photos (must be valid HTTP URLs or base64 data URIs)
+  const validAltPhotos = altPhotosArray.filter(p => 
+    p && typeof p === 'string' && (p.startsWith('http') || p.startsWith('data:image/'))
+  );
   const currentPhoto = validAltPhotos[currentIndex] || validAltPhotos[0];
   
   // Debug logging
@@ -314,13 +316,15 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
               photos: mainPhotosArray.map(p => p?.substring(0, 100)) // Log first 100 chars of each URL
             });
             
-            // Verify photos are valid URLs
-            const validPhotos = mainPhotosArray.filter(p => p && typeof p === 'string' && p.startsWith('http'));
+            // Verify photos are valid URLs or base64 data URIs
+            const validPhotos = mainPhotosArray.filter(p => 
+              p && typeof p === 'string' && (p.startsWith('http') || p.startsWith('data:image/'))
+            );
             if (validPhotos.length !== mainPhotosArray.length) {
               console.warn('⚠️ Some main location photos are invalid:', {
                 total: mainPhotosArray.length,
                 valid: validPhotos.length,
-                invalid: mainPhotosArray.filter(p => !p || typeof p !== 'string' || !p.startsWith('http'))
+                invalid: mainPhotosArray.filter(p => !p || typeof p !== 'string' || (!p.startsWith('http') && !p.startsWith('data:image/')))
               });
             }
             
