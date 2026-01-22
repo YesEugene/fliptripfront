@@ -129,34 +129,34 @@ export function PhotoCarousel({ photos, onPhotoClick }) {
         onTouchEnd={onTouchEnd}
         onClick={() => onPhotoClick && onPhotoClick(photosArray, currentIndex)}
       >
-        {isCurrentImageLoaded ? (
-          <img
-            src={currentPhoto}
-            alt={`Photo ${currentIndex + 1}`}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              objectPosition: 'center',
-              userSelect: 'none',
-              pointerEvents: 'none'
-            }}
-            draggable={false}
-            loading="lazy"
-          />
-        ) : (
-          <div style={{
+        <img
+          src={currentPhoto}
+          alt={`Photo ${currentIndex + 1}`}
+          style={{
             width: '100%',
             height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#9ca3af',
-            fontSize: '14px'
-          }}>
-            Loading...
-          </div>
-        )}
+            objectFit: 'cover',
+            objectPosition: 'center',
+            userSelect: 'none',
+            pointerEvents: 'none',
+            opacity: isCurrentImageLoaded ? 1 : 0.3,
+            transition: 'opacity 0.3s ease'
+          }}
+          draggable={false}
+          loading={currentIndex < 3 ? "eager" : "lazy"}
+          onLoad={() => {
+            if (!loadedImages.has(currentIndex)) {
+              setLoadedImages(prev => new Set([...prev, currentIndex]));
+            }
+          }}
+          onError={(e) => {
+            // If image fails to load, show placeholder but don't retry
+            e.target.style.opacity = '0.3';
+            if (!loadedImages.has(currentIndex)) {
+              setLoadedImages(prev => new Set([...prev, currentIndex]));
+            }
+          }}
+        />
       </div>
 
       {/* Dots indicator */}
