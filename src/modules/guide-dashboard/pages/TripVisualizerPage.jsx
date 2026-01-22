@@ -4274,6 +4274,12 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
     if (!contentToNormalize || Object.keys(contentToNormalize).length === 0) {
       // Return default content based on block type
       if (block.block_type === 'location') {
+        // Get default enableTimeField from localStorage preference
+        const localStoragePreference = localStorage.getItem('locationBlock_enableTimeField');
+        const defaultEnableTimeField = localStoragePreference !== null 
+          ? localStoragePreference === 'true' 
+          : false; // Default to false if no preference
+        
         return {
           mainLocation: {
             time: '09:00 - 12:00',
@@ -4289,7 +4295,8 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
             city_id: null,
             city_name: null
           },
-          alternativeLocations: []
+          alternativeLocations: [],
+          enableTimeField: defaultEnableTimeField
         };
       }
       return {};
@@ -4301,13 +4308,20 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
     if (block.block_type === 'location') {
       if (isOldFormat) {
         // Convert old format to new format
+        // Get default enableTimeField from localStorage preference
+        const localStoragePreference = localStorage.getItem('locationBlock_enableTimeField');
+        const defaultEnableTimeField = localStoragePreference !== null 
+          ? localStoragePreference === 'true' 
+          : false; // Default to false if no preference
+        
         return {
           mainLocation: {
             ...contentToNormalize,
             city_id: contentToNormalize.city_id || null,
             city_name: contentToNormalize.city_name || null
           },
-          alternativeLocations: []
+          alternativeLocations: [],
+          enableTimeField: defaultEnableTimeField
         };
       }
       
@@ -5426,6 +5440,9 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                           checked={content.enableTimeField || false}
                           onChange={(e) => {
                             const enableTime = e.target.checked;
+                            // Save preference to localStorage for future blocks
+                            localStorage.setItem('locationBlock_enableTimeField', enableTime.toString());
+                            
                             // If enabling time for main location, apply main location time to all alternatives
                             if (enableTime && editingLocationIndex === null && content.mainLocation?.time) {
                               const updatedAlternatives = content.alternativeLocations.map(alt => ({
