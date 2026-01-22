@@ -10,59 +10,26 @@ export function PhotoCarousel({ photos, onPhotoClick }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
-  const [loadedImages, setLoadedImages] = useState(new Set());
   const containerRef = useRef(null);
 
   // Minimum swipe distance (in pixels)
   const minSwipeDistance = 50;
   
-  // Preload images - load first 3 images immediately, then load others on demand
+  // Preload adjacent images for smoother navigation
   useEffect(() => {
     const photosArray = Array.isArray(photos) ? photos : [photos];
-    const indicesToLoad = new Set();
     
-    // Always load first 3 images immediately for better UX
-    const initialLoadCount = Math.min(3, photosArray.length);
-    for (let i = 0; i < initialLoadCount; i++) {
-      indicesToLoad.add(i);
+    // Preload previous and next images for smooth navigation
+    if (currentIndex > 0 && photosArray[currentIndex - 1]) {
+      const img = new Image();
+      img.src = photosArray[currentIndex - 1];
     }
     
-    // Load current image (if not in first 3)
-    if (currentIndex >= 0 && currentIndex < photosArray.length) {
-      indicesToLoad.add(currentIndex);
+    if (currentIndex < photosArray.length - 1 && photosArray[currentIndex + 1]) {
+      const img = new Image();
+      img.src = photosArray[currentIndex + 1];
     }
-    
-    // Load previous image (if exists and not already loaded)
-    if (currentIndex > 0) {
-      indicesToLoad.add(currentIndex - 1);
-    }
-    
-    // Load next image (if exists and not already loaded)
-    if (currentIndex < photosArray.length - 1) {
-      indicesToLoad.add(currentIndex + 1);
-    }
-    
-    // Preload images with priority
-    const loadPromises = [];
-    indicesToLoad.forEach(index => {
-      if (!loadedImages.has(index) && photosArray[index]) {
-        const img = new Image();
-        const loadPromise = new Promise((resolve) => {
-          img.onload = () => {
-            setLoadedImages(prev => new Set([...prev, index]));
-            resolve();
-          };
-          img.onerror = () => {
-            // Still mark as loaded to avoid retrying
-            setLoadedImages(prev => new Set([...prev, index]));
-            resolve();
-          };
-        });
-        img.src = photosArray[index];
-        loadPromises.push(loadPromise);
-      }
-    });
-  }, [currentIndex, photos, loadedImages]);
+  }, [currentIndex, photos]);
 
   const onTouchStart = (e) => {
     setTouchEnd(null);
@@ -108,8 +75,6 @@ export function PhotoCarousel({ photos, onPhotoClick }) {
   // Normalize photos array - support both single photo (string) and array
   const photosArray = Array.isArray(photos) ? photos : [photos];
   const currentPhoto = photosArray[currentIndex] || photosArray[0];
-  // Show image if it's loaded, or if it's in first 3 images (they load immediately), or if it's the first image
-  const isCurrentImageLoaded = loadedImages.has(currentIndex) || currentIndex < 3 || currentIndex === 0;
 
   return (
     <div style={{ position: 'relative', width: '100%' }}>
@@ -138,24 +103,10 @@ export function PhotoCarousel({ photos, onPhotoClick }) {
             objectFit: 'cover',
             objectPosition: 'center',
             userSelect: 'none',
-            pointerEvents: 'none',
-            opacity: isCurrentImageLoaded ? 1 : 0.3,
-            transition: 'opacity 0.3s ease'
+            pointerEvents: 'none'
           }}
           draggable={false}
-          loading={currentIndex < 3 ? "eager" : "lazy"}
-          onLoad={() => {
-            if (!loadedImages.has(currentIndex)) {
-              setLoadedImages(prev => new Set([...prev, currentIndex]));
-            }
-          }}
-          onError={(e) => {
-            // If image fails to load, show placeholder but don't retry
-            e.target.style.opacity = '0.3';
-            if (!loadedImages.has(currentIndex)) {
-              setLoadedImages(prev => new Set([...prev, currentIndex]));
-            }
-          }}
+          loading={currentIndex === 0 ? "eager" : "lazy"}
         />
       </div>
 
