@@ -65,6 +65,8 @@ export default function TripVisualizerPage() {
   const [guideProfile, setGuideProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tour, setTour] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isEditingOtherTour, setIsEditingOtherTour] = useState(false);
   const [blocks, setBlocks] = useState([]);
   const [showBlockSelector, setShowBlockSelector] = useState(false);
   const [editingBlock, setEditingBlock] = useState(null);
@@ -213,6 +215,9 @@ export default function TripVisualizerPage() {
       return;
     }
     setUser(currentUser);
+    // Check if user is admin
+    const userIsAdmin = currentUser.role === 'admin';
+    setIsAdmin(userIsAdmin);
     setLoading(false);
   };
 
@@ -246,6 +251,14 @@ export default function TripVisualizerPage() {
       const tourObj = tourData?.tour || tourData;
       if (tourObj) {
         setTour(tourObj);
+        
+        // Check if admin is editing someone else's tour
+        // This will be updated in useEffect when user loads
+        if (user && isAdmin) {
+          const tourOwnerId = tourObj.guide_id || tourObj.creator_id || tourObj.user_id || tourObj.created_by;
+          const isOwnTour = tourOwnerId === user.id;
+          setIsEditingOtherTour(!isOwnTour);
+        }
         
         // Check if draft_data exists and use it, otherwise use main tour data
         const draftData = tourObj.draft_data;
@@ -1601,6 +1614,20 @@ export default function TripVisualizerPage() {
     }
   };
 
+  // Reload tour when user or isAdmin changes to update isEditingOtherTour
+  useEffect(() => {
+    if (user && tour) {
+      // Re-check if admin is editing someone else's tour
+      if (isAdmin) {
+        const tourOwnerId = tour.guide_id || tour.creator_id || tour.user_id || tour.created_by;
+        const isOwnTour = tourOwnerId === user.id;
+        setIsEditingOtherTour(!isOwnTour);
+      } else {
+        setIsEditingOtherTour(false);
+      }
+    }
+  }, [user, isAdmin, tour]);
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -1665,6 +1692,31 @@ export default function TripVisualizerPage() {
 
       {/* Main Content */}
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
+        {/* Admin editing indicator */}
+        {isEditingOtherTour && (
+          <div style={{
+            backgroundColor: '#fef3c7',
+            border: '2px solid #fbbf24',
+            borderRadius: '12px',
+            padding: '16px 20px',
+            marginBottom: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+          }}>
+            <span style={{ fontSize: '20px' }}>👤</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: '600', color: '#92400e', marginBottom: '4px' }}>
+                Admin Edit Mode
+              </div>
+              <div style={{ fontSize: '14px', color: '#78350f' }}>
+                You are editing this tour as an administrator. The original author remains unchanged.
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Hero Block - Preview Image with Title */}
         <div style={{
           position: 'relative',
