@@ -2076,9 +2076,19 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
         color: '#ef4444',
         backgroundColor: '#fef2f2',
         borderRadius: '12px',
-        marginBottom: '40px'
+        marginBottom: '40px',
+        border: '2px solid #ef4444'
       }}>
-        Error loading map: {error}
+        <div style={{ fontSize: '24px', marginBottom: '12px' }}>⚠️</div>
+        <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>
+          Ошибка загрузки карты
+        </div>
+        <div style={{ fontSize: '14px', color: '#991b1b', marginBottom: '16px' }}>
+          {error}
+        </div>
+        <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '16px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '8px' }}>
+          <strong>Решение:</strong> Убедитесь, что переменная окружения <code>VITE_GOOGLE_MAPS_KEY</code> настроена в Vercel и содержит действительный ключ Google Maps API.
+        </div>
       </div>
     );
   }
