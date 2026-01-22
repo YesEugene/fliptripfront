@@ -2234,8 +2234,23 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
             height: '100%' 
           }} 
         />
-      </div>
-      {locations.length === 0 && (
+        </div>
+      )}
+      
+      {isCollapsed && (
+        <div style={{
+          padding: '20px',
+          textAlign: 'center',
+          color: '#6b7280',
+          backgroundColor: '#f9fafb',
+          borderRadius: '12px',
+          border: '1px solid #e5e7eb'
+        }}>
+          Карта свернута. Нажмите "Развернуть" чтобы показать карту.
+        </div>
+      )}
+
+      {!isCollapsed && locations.length === 0 && (
         <div style={{
           padding: '20px',
           textAlign: 'center',
@@ -2247,7 +2262,7 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
           No locations found in tour. Add location blocks to see them on the map.
         </div>
       )}
-      {isHidden && (
+      {!isCollapsed && isHidden && (
         <div style={{
           padding: '12px',
           textAlign: 'center',
