@@ -433,6 +433,7 @@ export default function TripVisualizerPage() {
                     : -1;
                   
                   const addresses = extractAddressesFromBlocks(sortedBlocks);
+                  console.log('🗺️ Creating map block with', addresses.length, 'addresses');
                   
                   const mapResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
                     method: 'POST',
@@ -516,6 +517,14 @@ export default function TripVisualizerPage() {
               }
             }
             
+            console.log('📍 Setting blocks state:', sortedBlocks.length, 'blocks');
+            console.log('📍 Block types:', sortedBlocks.map(b => b.block_type));
+            const mapBlockInState = sortedBlocks.find(b => b.block_type === 'map');
+            if (mapBlockInState) {
+              console.log('✅ Map block is in state:', mapBlockInState.id, 'hidden:', mapBlockInState.content?.hidden);
+            } else {
+              console.warn('⚠️ Map block NOT found in sortedBlocks!');
+            }
             setBlocks(sortedBlocks);
           } else {
             console.warn('⚠️ Blocks API returned success: false', blocksData);
