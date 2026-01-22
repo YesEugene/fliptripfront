@@ -313,7 +313,13 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
             console.log('📍 Main location photos:', {
               hasPhotos: mainLocation.photos ? 'array' : (mainLocation.photo ? 'single' : 'none'),
               photosCount: mainPhotosArray.length,
-              photos: mainPhotosArray.map(p => p?.substring(0, 100)) // Log first 100 chars of each URL
+              photos: mainPhotosArray.map(p => {
+                if (!p) return 'null/undefined';
+                if (typeof p !== 'string') return `not a string: ${typeof p}`;
+                if (p.startsWith('http')) return `HTTP URL: ${p.substring(0, 100)}...`;
+                if (p.startsWith('data:image/')) return `Base64: ${p.substring(0, 50)}... (length: ${p.length})`;
+                return `Unknown format: ${p.substring(0, 100)}...`;
+              })
             });
             
             // Verify photos are valid URLs or base64 data URIs
@@ -321,12 +327,23 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
               p && typeof p === 'string' && (p.startsWith('http') || p.startsWith('data:image/'))
             );
             if (validPhotos.length !== mainPhotosArray.length) {
+              const invalidPhotos = mainPhotosArray.filter(p => !p || typeof p !== 'string' || (!p.startsWith('http') && !p.startsWith('data:image/')));
               console.warn('⚠️ Some main location photos are invalid:', {
                 total: mainPhotosArray.length,
                 valid: validPhotos.length,
-                invalid: mainPhotosArray.filter(p => !p || typeof p !== 'string' || (!p.startsWith('http') && !p.startsWith('data:image/')))
+                invalid: invalidPhotos.length,
+                invalidDetails: invalidPhotos.map(p => ({
+                  type: typeof p,
+                  value: p ? p.substring(0, 100) : 'null/undefined',
+                  startsWith: p ? (p.startsWith('http') ? 'http' : p.startsWith('data:') ? 'data:' : 'other') : 'N/A'
+                }))
               });
             }
+            
+            console.log('✅ Valid photos to display:', {
+              count: validPhotos.length,
+              types: validPhotos.map(p => p.startsWith('http') ? 'HTTP' : 'Base64')
+            });
             
             if (mainPhotosArray.length > 0 && validPhotos.length > 0) {
               return (
