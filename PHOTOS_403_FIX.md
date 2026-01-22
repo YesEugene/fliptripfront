@@ -22,11 +22,16 @@ Google проверяет **HTTP referrer** при загрузке изобра
 3. В разделе **"Application restrictions"** → **"Website restrictions"**
 4. Нажмите **"+ Add"**
 5. Добавьте домен, который вы нашли в шаге 1
-6. **Важно:** Используйте правильный формат:
-   - `flip-trip.com/*` (для всех страниц домена)
-   - `*.fliptripfrontend.vercel.app/*` (для всех поддоменов)
-   - `fliptripfrontend.vercel.app/*` (для конкретного поддомена)
-7. Нажмите **"SAVE"**
+6. **КРИТИЧЕСКИ ВАЖНО:** Используйте правильный формат (БЕЗ `https://` и С `/*` в конце):
+   - ✅ `www.flip-trip.com/*` (правильно)
+   - ✅ `flip-trip.com/*` (правильно)
+   - ✅ `*.fliptripfrontend.vercel.app/*` (правильно)
+   - ❌ `https://www.flip-trip.com/` (НЕПРАВИЛЬНО - не должно быть `https://`)
+   - ❌ `www.flip-trip.com` (НЕПРАВИЛЬНО - должно быть `/*` в конце)
+7. **Добавьте ОБА варианта:**
+   - `flip-trip.com/*`
+   - `www.flip-trip.com/*`
+8. Нажмите **"SAVE"**
 
 ### 3. Проверить API restrictions
 
