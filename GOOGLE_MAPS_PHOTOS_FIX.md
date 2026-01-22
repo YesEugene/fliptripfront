@@ -32,11 +32,19 @@
 
 ### 3. Проверить Application Restrictions
 
-Убедитесь, что в разделе **"Application restrictions"** добавлены все нужные домены:
+**ВАЖНО:** При загрузке фотографий Google проверяет HTTP referrer (откуда идет запрос). Убедитесь, что в разделе **"Application restrictions"** добавлены ВСЕ домены, с которых могут загружаться изображения:
+
 - `flip-trip.com/*`
 - `www.flip-trip.com/*`
 - `*.fliptripfrontend.vercel.app/*`
 - `localhost:5173/*`
+- `*.vercel.app/*` (если используете preview deployments)
+
+**Проверка:**
+1. Откройте консоль браузера (F12)
+2. Найдите ошибку `403 Forbidden` для `/place/photo`
+3. Посмотрите в Network tab - какой домен делает запрос
+4. Убедитесь, что этот домен добавлен в Application Restrictions
 
 ## После изменений
 
