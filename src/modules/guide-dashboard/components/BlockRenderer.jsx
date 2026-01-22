@@ -83,12 +83,15 @@ function AlternativeLocationPhoto({ altLocation }) {
     );
   }
   
+  const [imageError, setImageError] = useState(false);
+  
   return (
     <div style={{ 
       width: '100%', 
       height: '59px',
       position: 'relative',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      backgroundColor: '#e5e7eb'
     }}>
       <div
         style={{
@@ -102,47 +105,56 @@ function AlternativeLocationPhoto({ altLocation }) {
         onTouchEnd={onTouchEndHandler}
         // NOTE: No onClick here - parent div handles location switching
       >
-        <img 
-          src={currentPhoto} 
-          alt={altLocation.title || altLocation.name || 'Alternative location'} 
-          style={{ 
-            width: '100%', 
+        {!imageError && currentPhoto ? (
+          <img 
+            src={currentPhoto} 
+            alt={altLocation.title || altLocation.name || 'Alternative location'} 
+            style={{ 
+              width: '100%', 
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
+              pointerEvents: 'none',
+              userSelect: 'none'
+            }}
+            draggable={false}
+            loading="lazy"
+            onError={(e) => {
+              console.error('❌ Error loading alternative location photo:', {
+                url: currentPhoto?.substring(0, 100),
+                location: altLocation.title || altLocation.name,
+                index: currentIndex
+              });
+              // Try to load next photo if available
+              if (currentIndex < validAltPhotos.length - 1) {
+                setCurrentIndex(currentIndex + 1);
+              } else {
+                // Hide broken image
+                setImageError(true);
+              }
+            }}
+            onLoad={() => {
+              console.log('✅ Loaded alternative location photo:', {
+                url: currentPhoto?.substring(0, 100),
+                location: altLocation.title || altLocation.name,
+                index: currentIndex
+              });
+            }}
+          />
+        ) : (
+          <div style={{
+            width: '100%',
             height: '100%',
-            objectFit: 'cover',
-            objectPosition: 'center',
-            pointerEvents: 'none', // Prevent image click - let parent handle it
-            userSelect: 'none'
-          }}
-          draggable={false}
-          loading="lazy"
-          onError={(e) => {
-            console.error('❌ Error loading alternative location photo:', {
-              url: currentPhoto?.substring(0, 100),
-              location: altLocation.title || altLocation.name,
-              index: currentIndex,
-              referer: document.referrer || window.location.href
-            });
-            // Try to load next photo if available
-            if (currentIndex < validAltPhotos.length - 1) {
-              setCurrentIndex(currentIndex + 1);
-            } else {
-              // Hide broken image and show placeholder
-              e.target.style.display = 'none';
-              // Show placeholder div instead
-              const placeholder = document.createElement('div');
-              placeholder.style.cssText = 'width: 100%; height: 100%; background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 12px;';
-              placeholder.textContent = 'No photo';
-              e.target.parentElement.appendChild(placeholder);
-            }
-          }}
-          onLoad={() => {
-            console.log('✅ Loaded alternative location photo:', {
-              url: currentPhoto?.substring(0, 100),
-              location: altLocation.title || altLocation.name,
-              index: currentIndex
-            });
-          }}
-        />
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#e5e7eb',
+            color: '#9ca3af',
+            fontSize: '10px'
+          }}>
+            No photo
+          </div>
+        )}
       </div>
       
       {/* Dots indicator for multiple photos */}
