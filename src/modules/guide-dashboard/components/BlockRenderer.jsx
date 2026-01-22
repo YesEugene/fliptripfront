@@ -1957,26 +1957,20 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
         markersRef.current = [];
 
         locations.forEach((location, index) => {
-          let markerPosition = null;
-
           if (location.lat && location.lng) {
-            markerPosition = new window.google.maps.LatLng(location.lat, location.lng);
+            const markerPosition = new window.google.maps.LatLng(location.lat, location.lng);
+            createMarker(markerPosition, location, index);
+            bounds.extend(markerPosition);
           } else if (location.address) {
             // Geocode address
             geocoder.geocode({ address: location.address }, (results, status) => {
               if (status === 'OK' && results[0]) {
-                markerPosition = results[0].geometry.location;
+                const markerPosition = results[0].geometry.location;
                 createMarker(markerPosition, location, index);
                 bounds.extend(markerPosition);
                 map.fitBounds(bounds);
               }
             });
-            continue; // Skip marker creation, will be created in geocode callback
-          }
-
-          if (markerPosition) {
-            createMarker(markerPosition, location, index);
-            bounds.extend(markerPosition);
           }
         });
 
