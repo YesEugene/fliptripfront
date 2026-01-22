@@ -1039,6 +1039,7 @@ export default function TripVisualizerPage() {
             body: JSON.stringify({
               city: tourInfo.city,
               title: tourInfo.title,
+              preview: tourInfo.preview, // Preserve preview_media_url
               tags: tourInfo.tags // Save interests immediately
             })
           });
