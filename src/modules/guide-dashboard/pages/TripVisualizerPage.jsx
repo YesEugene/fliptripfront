@@ -419,7 +419,92 @@ export default function TripVisualizerPage() {
             });
             
             // Sort blocks by order_index to ensure correct display order
-            const sortedBlocks = loadedBlocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+            let sortedBlocks = loadedBlocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+            
+            // Check if map block exists, if not create it
+            const mapBlock = sortedBlocks.find(b => b.block_type === 'map');
+            if (!mapBlock && tourIdToLoad) {
+              // Create map block automatically
+              try {
+                const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+                if (token) {
+                  const maxOrder = sortedBlocks.length > 0 
+                    ? Math.max(...sortedBlocks.map(b => b.order_index || 0))
+                    : -1;
+                  
+                  const addresses = extractAddressesFromBlocks(sortedBlocks);
+                  
+                  const mapResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                      tourId: tourIdToLoad,
+                      blockType: 'map',
+                      orderIndex: maxOrder + 1,
+                      content: {
+                        locations: addresses,
+                        hidden: false
+                      }
+                    })
+                  });
+
+                  if (mapResponse.ok) {
+                    const mapData = await mapResponse.json();
+                    if (mapData.success && mapData.block) {
+                      sortedBlocks.push(mapData.block);
+                      sortedBlocks = sortedBlocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+                    }
+                  }
+                }
+              } catch (mapError) {
+                console.error('Error creating map block:', mapError);
+              }
+            } else if (mapBlock) {
+              // Update map block locations if addresses changed
+              const addresses = extractAddressesFromBlocks(sortedBlocks.filter(b => b.block_type !== 'map'));
+              const currentLocations = mapBlock.content?.locations || [];
+              
+              // Check if addresses changed
+              const addressesChanged = addresses.length !== currentLocations.length ||
+                addresses.some((addr, idx) => {
+                  const current = currentLocations[idx];
+                  return !current || addr.address !== current.address || addr.title !== current.title;
+                });
+              
+              if (addressesChanged && tourIdToLoad) {
+                try {
+                  const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+                  if (token) {
+                    await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
+                      method: 'PUT',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                      },
+                      body: JSON.stringify({
+                        blockId: mapBlock.id,
+                        content: {
+                          ...mapBlock.content,
+                          locations: addresses
+                        }
+                      })
+                    });
+                    
+                    // Update local state
+                    mapBlock.content = {
+                      ...mapBlock.content,
+                      locations: addresses
+                    };
+                  }
+                } catch (updateError) {
+                  console.error('Error updating map block:', updateError);
+                }
+              }
+            }
+            
             setBlocks(sortedBlocks);
           } else {
             console.warn('⚠️ Blocks API returned success: false', blocksData);
@@ -1208,9 +1293,10 @@ export default function TripVisualizerPage() {
       return;
     }
 
-    // Get the next order_index (highest + 1)
-    const maxOrder = blocks.length > 0 
-      ? Math.max(...blocks.map(b => b.order_index || 0))
+    // Get the next order_index (highest + 1, but exclude map block)
+    const nonMapBlocks = blocks.filter(b => b.block_type !== 'map');
+    const maxOrder = nonMapBlocks.length > 0 
+      ? Math.max(...nonMapBlocks.map(b => b.order_index || 0))
       : -1;
 
     // Determine default content based on block type
@@ -1709,6 +1795,72 @@ export default function TripVisualizerPage() {
     }
   };
 
+  // Function to extract addresses from all blocks
+  const extractAddressesFromBlocks = (allBlocks) => {
+    const addresses = [];
+    let locationNumber = 1;
+
+    allBlocks.forEach((block) => {
+      if (block.block_type === 'location' && block.content) {
+        const mainLocation = block.content.mainLocation || block.content;
+        if (mainLocation.address) {
+          addresses.push({
+            number: locationNumber++,
+            title: mainLocation.title || mainLocation.name || 'Location',
+            address: mainLocation.address,
+            place_id: mainLocation.place_id || null,
+            lat: mainLocation.lat || null,
+            lng: mainLocation.lng || null
+          });
+        }
+
+        // Check alternative locations
+        const alternativeLocations = block.content.alternativeLocations || [];
+        alternativeLocations.forEach((altLoc) => {
+          if (altLoc.address) {
+            addresses.push({
+              number: locationNumber++,
+              title: altLoc.title || altLoc.name || 'Location',
+              address: altLoc.address,
+              place_id: altLoc.place_id || null,
+              lat: altLoc.lat || null,
+              lng: altLoc.lng || null
+            });
+          }
+        });
+      } else if (block.block_type === 'text' && block.content) {
+        // Parse text blocks for addresses
+        const text = block.content.text || block.content.column1 || block.content.column2 || '';
+        const addressPatterns = [
+          /Address:\s*([^\n]+)/i,
+          /Адрес:\s*([^\n]+)/i,
+          /(\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Lane|Ln|Drive|Dr|Way|Place|Pl|Square|Sq)[^,\n]*(?:,\s*[^,\n]+)*)/i,
+          /([A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Lane|Ln|Drive|Dr|Way|Place|Pl|Square|Sq)[^,\n]*(?:,\s*\d+[^,\n]*)?(?:,\s*[A-Za-z\s]+)*)/i
+        ];
+
+        addressPatterns.forEach((pattern) => {
+          const match = text.match(pattern);
+          if (match && match[1]) {
+            const address = match[1].trim();
+            // Avoid duplicates
+            if (!addresses.some(a => a.address === address)) {
+              addresses.push({
+                number: locationNumber++,
+                title: 'Location',
+                address: address,
+                place_id: null,
+                lat: null,
+                lng: null
+              });
+            }
+          }
+        });
+      }
+    });
+
+    return addresses;
+  };
+
   // Reload tour when user or isAdmin changes to update isEditingOtherTour
   useEffect(() => {
     if (user && tour) {
@@ -2186,6 +2338,7 @@ export default function TripVisualizerPage() {
               block={block} 
               onEdit={() => handleEditBlock(block)} 
               onSwitchLocation={handleSwitchLocation}
+              allBlocks={blocks}
             />
             
             {/* Block Controls - Only visible on hover, positioned at top right */}
@@ -6235,6 +6388,151 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
               </>
             )}
           </div>
+        );
+
+      case 'map':
+        const mapLocations = content.locations || [];
+        
+        return (
+          <>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
+                <input
+                  type="checkbox"
+                  checked={!content.hidden}
+                  onChange={(e) => setContent({ ...content, hidden: !e.target.checked })}
+                  style={{ marginRight: '8px', width: '18px', height: '18px' }}
+                />
+                Show map to users
+              </label>
+              <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                Uncheck to hide this map from users (it will still be visible in the editor)
+              </p>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Locations ({mapLocations.length})
+              </label>
+              <div style={{
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                maxHeight: '400px',
+                overflowY: 'auto'
+              }}>
+                {mapLocations.length === 0 ? (
+                  <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>
+                    No locations found. Add location blocks to see them here.
+                  </div>
+                ) : (
+                  mapLocations.map((location, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        padding: '12px',
+                        borderBottom: index < mapLocations.length - 1 ? '1px solid #e5e7eb' : 'none',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: '600', marginBottom: '4px' }}>
+                          {location.number}. {location.title || 'Location'}
+                        </div>
+                        <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                          {location.address}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        {index > 0 && (
+                          <button
+                            onClick={() => {
+                              const newLocations = [...mapLocations];
+                              [newLocations[index], newLocations[index - 1]] = [newLocations[index - 1], newLocations[index]];
+                              // Update numbers
+                              newLocations.forEach((loc, idx) => {
+                                loc.number = idx + 1;
+                              });
+                              setContent({ ...content, locations: newLocations });
+                            }}
+                            style={{
+                              padding: '6px 12px',
+                              backgroundColor: '#3b82f6',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '12px'
+                            }}
+                          >
+                            ↑
+                          </button>
+                        )}
+                        {index < mapLocations.length - 1 && (
+                          <button
+                            onClick={() => {
+                              const newLocations = [...mapLocations];
+                              [newLocations[index], newLocations[index + 1]] = [newLocations[index + 1], newLocations[index]];
+                              // Update numbers
+                              newLocations.forEach((loc, idx) => {
+                                loc.number = idx + 1;
+                              });
+                              setContent({ ...content, locations: newLocations });
+                            }}
+                            style={{
+                              padding: '6px 12px',
+                              backgroundColor: '#3b82f6',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '12px'
+                            }}
+                          >
+                            ↓
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            const newLocations = mapLocations.filter((_, idx) => idx !== index);
+                            // Update numbers
+                            newLocations.forEach((loc, idx) => {
+                              loc.number = idx + 1;
+                            });
+                            setContent({ ...content, locations: newLocations });
+                          }}
+                          style={{
+                            padding: '6px 12px',
+                            backgroundColor: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {mapLocations.length > 0 && (
+              <div style={{
+                padding: '12px',
+                backgroundColor: '#f0f9ff',
+                borderRadius: '8px',
+                fontSize: '14px',
+                color: '#0369a1'
+              }}>
+                💡 Tip: Locations are automatically extracted from your tour blocks. You can reorder or remove them here.
+              </div>
+            )}
+          </>
         );
 
       default:

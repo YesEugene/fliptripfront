@@ -160,7 +160,7 @@ function AlternativeLocationPhoto({ altLocation }) {
   );
 }
 
-export default function BlockRenderer({ block, onEdit, onSwitchLocation }) {
+export default function BlockRenderer({ block, onEdit, onSwitchLocation, allBlocks }) {
   if (!block) return null;
 
   switch (block.block_type) {
@@ -180,6 +180,8 @@ export default function BlockRenderer({ block, onEdit, onSwitchLocation }) {
       return <PhotoBlock block={block} onEdit={onEdit} />;
     case 'divider':
       return <DividerBlock block={block} onEdit={onEdit} />;
+    case 'map':
+      return <MapBlock block={block} onEdit={onEdit} allBlocks={allBlocks} />;
     default:
       return <div>Unknown block type: {block.block_type}</div>;
   }
@@ -1854,6 +1856,268 @@ function DividerBlock({ block, onEdit }) {
       }} />
         </div>
       </div>
+    </div>
+  );
+}
+
+// Map Block - displays all locations from tour on a map
+function MapBlock({ block, onEdit, allBlocks = [] }) {
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const markersRef = useRef([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const content = block.content || {};
+  const isHidden = content.hidden === true;
+  const locations = content.locations || [];
+
+  // Extract addresses from all blocks if locations not set
+  useEffect(() => {
+    if (locations.length === 0 && allBlocks.length > 0) {
+      // This will be handled by parent component
+      console.log('MapBlock: No locations in content, should extract from allBlocks');
+    }
+  }, [locations, allBlocks]);
+
+  useEffect(() => {
+    if (isHidden || locations.length === 0) {
+      setIsLoading(false);
+      return;
+    }
+
+    const loadGoogleMaps = () => {
+      if (window.google && window.google.maps) {
+        initializeMap();
+        return;
+      }
+
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY || 'YOUR_GOOGLE_MAPS_API_KEY';
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        initializeMap();
+      };
+      script.onerror = () => {
+        setError('Failed to load Google Maps API');
+        setIsLoading(false);
+      };
+      document.head.appendChild(script);
+    };
+
+    const initializeMap = () => {
+      setTimeout(() => {
+        if (!mapRef.current) {
+          setError('Map container not found');
+          setIsLoading(false);
+          return;
+        }
+        createMap();
+      }, 100);
+    };
+
+    const createMap = () => {
+      if (!window.google || !window.google.maps) {
+        setError('Google Maps not loaded');
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Calculate center from locations or use default
+        let center = { lat: 48.8566, lng: 2.3522 }; // Default: Paris
+        const bounds = new window.google.maps.LatLngBounds();
+        let hasValidCoords = false;
+
+        // Try to get coordinates from locations
+        locations.forEach(loc => {
+          if (loc.lat && loc.lng) {
+            bounds.extend(new window.google.maps.LatLng(loc.lat, loc.lng));
+            hasValidCoords = true;
+          }
+        });
+
+        if (hasValidCoords) {
+          center = bounds.getCenter();
+        }
+
+        const map = new window.google.maps.Map(mapRef.current, {
+          zoom: hasValidCoords ? 13 : 10,
+          center: center,
+          mapTypeControl: true,
+          streetViewControl: false,
+          fullscreenControl: true
+        });
+
+        mapInstanceRef.current = map;
+
+        // Add markers for each location
+        const geocoder = new window.google.maps.Geocoder();
+        markersRef.current = [];
+
+        locations.forEach((location, index) => {
+          let markerPosition = null;
+
+          if (location.lat && location.lng) {
+            markerPosition = new window.google.maps.LatLng(location.lat, location.lng);
+          } else if (location.address) {
+            // Geocode address
+            geocoder.geocode({ address: location.address }, (results, status) => {
+              if (status === 'OK' && results[0]) {
+                markerPosition = results[0].geometry.location;
+                createMarker(markerPosition, location, index);
+                bounds.extend(markerPosition);
+                map.fitBounds(bounds);
+              }
+            });
+            continue; // Skip marker creation, will be created in geocode callback
+          }
+
+          if (markerPosition) {
+            createMarker(markerPosition, location, index);
+            bounds.extend(markerPosition);
+          }
+        });
+
+        if (hasValidCoords || markersRef.current.length > 0) {
+          map.fitBounds(bounds);
+        }
+
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Error creating map:', err);
+        setError('Error creating map');
+        setIsLoading(false);
+      }
+    };
+
+    const createMarker = (position, location, index) => {
+      const marker = new window.google.maps.Marker({
+        position: position,
+        map: mapInstanceRef.current,
+        label: {
+          text: String(location.number || index + 1),
+          color: 'white',
+          fontSize: '14px',
+          fontWeight: 'bold'
+        },
+        title: location.title || location.address
+      });
+
+      const infoWindow = new window.google.maps.InfoWindow({
+        content: `
+          <div style="padding: 8px; max-width: 250px;">
+            <div style="font-weight: 600; margin-bottom: 4px;">${location.number || index + 1}. ${location.title || 'Location'}</div>
+            <div style="font-size: 12px; color: #666; margin-bottom: 8px;">${location.address || ''}</div>
+            <a href="${location.place_id ? `https://www.google.com/maps/place/?q=place_id:${location.place_id}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.address)}`}" 
+               target="_blank" 
+               rel="noopener noreferrer"
+               style="color: #3b82f6; text-decoration: none; font-size: 12px;">
+              Open in Google Maps →
+            </a>
+          </div>
+        `
+      });
+
+      marker.addListener('click', () => {
+        // Close all other info windows
+        markersRef.current.forEach(m => {
+          if (m.infoWindow) {
+            m.infoWindow.close();
+          }
+        });
+        infoWindow.open(mapInstanceRef.current, marker);
+      });
+
+      // Click on marker opens Google Maps
+      marker.addListener('click', () => {
+        const url = location.place_id 
+          ? `https://www.google.com/maps/place/?q=place_id:${location.place_id}`
+          : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.address)}`;
+        window.open(url, '_blank');
+      });
+
+      markersRef.current.push({ marker, infoWindow });
+    };
+
+    loadGoogleMaps();
+
+    return () => {
+      // Cleanup markers
+      markersRef.current.forEach(({ marker }) => {
+        marker.setMap(null);
+      });
+      markersRef.current = [];
+    };
+  }, [locations, isHidden]);
+
+  if (isHidden) {
+    return null;
+  }
+
+  if (error) {
+    return (
+      <div style={{
+        padding: '40px',
+        textAlign: 'center',
+        color: '#ef4444',
+        backgroundColor: '#fef2f2',
+        borderRadius: '12px',
+        marginBottom: '40px'
+      }}>
+        Error loading map: {error}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ marginBottom: '40px' }}>
+      <div style={{
+        width: '100%',
+        height: '500px',
+        borderRadius: '12px',
+        overflow: 'hidden',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+        border: '1px solid #e5e7eb',
+        position: 'relative'
+      }}>
+        {isLoading && (
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            zIndex: 1
+          }}>
+            <div>Loading map...</div>
+          </div>
+        )}
+        <div 
+          ref={mapRef} 
+          style={{ 
+            width: '100%', 
+            height: '100%' 
+          }} 
+        />
+      </div>
+      {locations.length === 0 && (
+        <div style={{
+          padding: '20px',
+          textAlign: 'center',
+          color: '#6b7280',
+          backgroundColor: '#f9fafb',
+          borderRadius: '12px',
+          marginTop: '16px'
+        }}>
+          No locations found in tour. Add location blocks to see them on the map.
+        </div>
+      )}
     </div>
   );
 }
