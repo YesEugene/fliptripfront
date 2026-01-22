@@ -16,38 +16,50 @@ export function PhotoCarousel({ photos, onPhotoClick }) {
   // Minimum swipe distance (in pixels)
   const minSwipeDistance = 50;
   
-  // Lazy load images - only load current, previous, and next
+  // Preload images - load first 3 images immediately, then load others on demand
   useEffect(() => {
     const photosArray = Array.isArray(photos) ? photos : [photos];
     const indicesToLoad = new Set();
     
-    // Load current image
+    // Always load first 3 images immediately for better UX
+    const initialLoadCount = Math.min(3, photosArray.length);
+    for (let i = 0; i < initialLoadCount; i++) {
+      indicesToLoad.add(i);
+    }
+    
+    // Load current image (if not in first 3)
     if (currentIndex >= 0 && currentIndex < photosArray.length) {
       indicesToLoad.add(currentIndex);
     }
     
-    // Load previous image (if exists)
+    // Load previous image (if exists and not already loaded)
     if (currentIndex > 0) {
       indicesToLoad.add(currentIndex - 1);
     }
     
-    // Load next image (if exists)
+    // Load next image (if exists and not already loaded)
     if (currentIndex < photosArray.length - 1) {
       indicesToLoad.add(currentIndex + 1);
     }
     
-    // Preload images
+    // Preload images with priority
+    const loadPromises = [];
     indicesToLoad.forEach(index => {
       if (!loadedImages.has(index) && photosArray[index]) {
         const img = new Image();
+        const loadPromise = new Promise((resolve) => {
+          img.onload = () => {
+            setLoadedImages(prev => new Set([...prev, index]));
+            resolve();
+          };
+          img.onerror = () => {
+            // Still mark as loaded to avoid retrying
+            setLoadedImages(prev => new Set([...prev, index]));
+            resolve();
+          };
+        });
         img.src = photosArray[index];
-        img.onload = () => {
-          setLoadedImages(prev => new Set([...prev, index]));
-        };
-        img.onerror = () => {
-          // Still mark as loaded to avoid retrying
-          setLoadedImages(prev => new Set([...prev, index]));
-        };
+        loadPromises.push(loadPromise);
       }
     });
   }, [currentIndex, photos, loadedImages]);
@@ -96,7 +108,8 @@ export function PhotoCarousel({ photos, onPhotoClick }) {
   // Normalize photos array - support both single photo (string) and array
   const photosArray = Array.isArray(photos) ? photos : [photos];
   const currentPhoto = photosArray[currentIndex] || photosArray[0];
-  const isCurrentImageLoaded = loadedImages.has(currentIndex) || currentIndex === 0; // Always show first image
+  // Show image if it's loaded, or if it's in first 3 images (they load immediately), or if it's the first image
+  const isCurrentImageLoaded = loadedImages.has(currentIndex) || currentIndex < 3 || currentIndex === 0;
 
   return (
     <div style={{ position: 'relative', width: '100%' }}>
