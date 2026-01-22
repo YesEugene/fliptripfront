@@ -1948,19 +1948,52 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
     };
 
     const initializeMap = () => {
-      setTimeout(() => {
+      // Wait for Google Maps API to be fully initialized
+      const checkGoogleMaps = () => {
+        if (!window.google || !window.google.maps) {
+          console.warn('⚠️ Google Maps not loaded yet, retrying...');
+          setTimeout(checkGoogleMaps, 200);
+          return;
+        }
+
+        // Check if required classes are available
+        if (!window.google.maps.LatLngBounds || !window.google.maps.Map || !window.google.maps.Marker) {
+          console.warn('⚠️ Google Maps API classes not ready, retrying...');
+          setTimeout(checkGoogleMaps, 200);
+          return;
+        }
+
         if (!mapRef.current) {
           setError('Map container not found');
           setIsLoading(false);
           return;
         }
+
         createMap();
-      }, 100);
+      };
+
+      // Start checking after a short delay
+      setTimeout(checkGoogleMaps, 100);
     };
 
     const createMap = () => {
       if (!window.google || !window.google.maps) {
         setError('Google Maps not loaded');
+        setIsLoading(false);
+        return;
+      }
+
+      // Verify all required classes are available
+      if (!window.google.maps.LatLngBounds || typeof window.google.maps.LatLngBounds !== 'function') {
+        console.error('❌ LatLngBounds is not available. Maps JavaScript API may not be enabled.');
+        setError('Maps JavaScript API is not enabled. Please enable it in Google Cloud Console.');
+        setIsLoading(false);
+        return;
+      }
+
+      if (!window.google.maps.Map || typeof window.google.maps.Map !== 'function') {
+        console.error('❌ Map constructor is not available.');
+        setError('Maps JavaScript API is not properly initialized.');
         setIsLoading(false);
         return;
       }
