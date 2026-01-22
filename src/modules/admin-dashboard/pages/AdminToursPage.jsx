@@ -779,6 +779,24 @@ export default function AdminToursPage() {
                         >
                           👁️ View
                         </Link>
+                        <Link
+                          to={`/guide/tours/visualizer/${tour.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            padding: '6px 12px',
+                            backgroundColor: '#fbbf24',
+                            color: '#111827',
+                            borderRadius: '6px',
+                            textDecoration: 'none',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            display: 'inline-block'
+                          }}
+                          title="Edit tour in Visualizer (full editor)"
+                        >
+                          ✏️ Visualizer
+                        </Link>
                         {tour.status === 'pending' && (
                           <>
                             <button
