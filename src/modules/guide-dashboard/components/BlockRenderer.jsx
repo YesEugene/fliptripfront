@@ -2030,7 +2030,14 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
           center: center,
           mapTypeControl: true,
           streetViewControl: false,
-          fullscreenControl: true
+          fullscreenControl: true,
+          gestureHandling: 'greedy', // Allow map dragging with mouse/one finger
+          disableDefaultUI: false,
+          zoomControl: true,
+          mapTypeControlOptions: {
+            style: window.google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+            position: window.google.maps.ControlPosition.TOP_RIGHT
+          }
         });
 
         mapInstanceRef.current = map;
@@ -2184,7 +2191,6 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
           height: '500px',
           borderRadius: '12px',
           overflow: 'hidden',
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
           border: '1px solid #e5e7eb',
           position: 'relative',
           backgroundColor: '#f3f4f6'

@@ -10,10 +10,47 @@ export function PhotoCarousel({ photos, onPhotoClick }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
+  const [loadedImages, setLoadedImages] = useState(new Set());
   const containerRef = useRef(null);
 
   // Minimum swipe distance (in pixels)
   const minSwipeDistance = 50;
+  
+  // Lazy load images - only load current, previous, and next
+  useEffect(() => {
+    const photosArray = Array.isArray(photos) ? photos : [photos];
+    const indicesToLoad = new Set();
+    
+    // Load current image
+    if (currentIndex >= 0 && currentIndex < photosArray.length) {
+      indicesToLoad.add(currentIndex);
+    }
+    
+    // Load previous image (if exists)
+    if (currentIndex > 0) {
+      indicesToLoad.add(currentIndex - 1);
+    }
+    
+    // Load next image (if exists)
+    if (currentIndex < photosArray.length - 1) {
+      indicesToLoad.add(currentIndex + 1);
+    }
+    
+    // Preload images
+    indicesToLoad.forEach(index => {
+      if (!loadedImages.has(index) && photosArray[index]) {
+        const img = new Image();
+        img.src = photosArray[index];
+        img.onload = () => {
+          setLoadedImages(prev => new Set([...prev, index]));
+        };
+        img.onerror = () => {
+          // Still mark as loaded to avoid retrying
+          setLoadedImages(prev => new Set([...prev, index]));
+        };
+      }
+    });
+  }, [currentIndex, photos, loadedImages]);
 
   const onTouchStart = (e) => {
     setTouchEnd(null);
@@ -59,6 +96,7 @@ export function PhotoCarousel({ photos, onPhotoClick }) {
   // Normalize photos array - support both single photo (string) and array
   const photosArray = Array.isArray(photos) ? photos : [photos];
   const currentPhoto = photosArray[currentIndex] || photosArray[0];
+  const isCurrentImageLoaded = loadedImages.has(currentIndex) || currentIndex === 0; // Always show first image
 
   return (
     <div style={{ position: 'relative', width: '100%' }}>
@@ -70,26 +108,42 @@ export function PhotoCarousel({ photos, onPhotoClick }) {
           position: 'relative',
           borderRadius: '20px',
           overflow: 'hidden',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          backgroundColor: '#e5e7eb'
         }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
         onClick={() => onPhotoClick && onPhotoClick(photosArray, currentIndex)}
       >
-        <img
-          src={currentPhoto}
-          alt={`Photo ${currentIndex + 1}`}
-          style={{
+        {isCurrentImageLoaded ? (
+          <img
+            src={currentPhoto}
+            alt={`Photo ${currentIndex + 1}`}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
+              userSelect: 'none',
+              pointerEvents: 'none'
+            }}
+            draggable={false}
+            loading="lazy"
+          />
+        ) : (
+          <div style={{
             width: '100%',
             height: '100%',
-            objectFit: 'cover',
-            objectPosition: 'center',
-            userSelect: 'none',
-            pointerEvents: 'none'
-          }}
-          draggable={false}
-        />
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#9ca3af',
+            fontSize: '14px'
+          }}>
+            Loading...
+          </div>
+        )}
       </div>
 
       {/* Dots indicator */}
