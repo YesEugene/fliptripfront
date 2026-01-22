@@ -1402,15 +1402,33 @@ export default function TripVisualizerPage() {
       const data = await response.json();
       
       if (data.success && data.block) {
+        // Debug: Check if photos are preserved after save
+        if (data.block.block_type === 'location' && data.block.content) {
+          const savedMainLocation = data.block.content.mainLocation || data.block.content;
+          const savedPhotos = savedMainLocation.photos || (savedMainLocation.photo ? [savedMainLocation.photo] : []);
+          const originalMainLocation = updatedBlock.content?.mainLocation || updatedBlock.content;
+          const originalPhotos = originalMainLocation?.photos || (originalMainLocation?.photo ? [originalMainLocation.photo] : []);
+          
+          console.log('💾 After save - Photo preservation check:', {
+            originalPhotosCount: originalPhotos.length,
+            savedPhotosCount: savedPhotos.length,
+            originalFirstPhoto: originalPhotos[0] ? (originalPhotos[0].startsWith('data:image/') ? `Base64 (length: ${originalPhotos[0].length})` : 'HTTP URL') : 'none',
+            savedFirstPhoto: savedPhotos[0] ? (savedPhotos[0].startsWith('data:image/') ? `Base64 (length: ${savedPhotos[0].length})` : 'HTTP URL') : 'none',
+            photosMatch: JSON.stringify(originalPhotos) === JSON.stringify(savedPhotos)
+          });
+        }
+        
         if (isNewBlock) {
           // Add new block to local state
           setBlocks(prev => [...prev, data.block].sort((a, b) => (a.order_index || 0) - (b.order_index || 0)));
         } else {
           // Update existing block in local state
-          // Use updatedBlock content if server response doesn't have the latest content
-          const finalBlock = data.block.content?.mainLocation 
-            ? data.block 
-            : { ...data.block, content: updatedBlock.content };
+          // CRITICAL: Always use updatedBlock.content to preserve base64 photos
+          // Server might truncate or modify large base64 strings
+          const finalBlock = { 
+            ...data.block, 
+            content: updatedBlock.content // Use the content we sent, not what server returned
+          };
           
           setBlocks(prev => 
             prev.map(b => b.id === updatedBlock.id ? finalBlock : b)
