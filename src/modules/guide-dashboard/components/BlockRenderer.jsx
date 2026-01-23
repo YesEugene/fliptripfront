@@ -1905,6 +1905,9 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
   const isHidden = content.hidden === true;
   const locations = content.locations || [];
   
+  // Check if we're in visualizer mode (onEdit is a real function, not empty)
+  const isVisualizer = onEdit && onEdit.toString() !== '() => {}';
+  
   useEffect(() => {
     console.log('🗺️ MapBlock mounted/updated:', {
       blockId: block.id,
@@ -2268,8 +2271,8 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
         </div>
       )}
       
-      {/* Collapse button - only show in visualizer (when onEdit is provided) */}
-      {onEdit && (
+      {/* Collapse button - only show in visualizer (not on user-facing page) */}
+      {isVisualizer && (
         <div style={{
           display: 'flex',
           justifyContent: 'center',
