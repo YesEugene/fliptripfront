@@ -1905,8 +1905,9 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
   const isHidden = content.hidden === true;
   const locations = content.locations || [];
   
-  // Check if we're in visualizer mode (onEdit is a real function, not empty)
-  const isVisualizer = onEdit && onEdit.toString() !== '() => {}';
+  // Check if we're in visualizer mode by checking URL path
+  // Visualizer is at /guide/tours/visualizer, user page is at /itinerary
+  const isVisualizer = typeof window !== 'undefined' && window.location.pathname.includes('/visualizer');
   
   useEffect(() => {
     console.log('🗺️ MapBlock mounted/updated:', {
