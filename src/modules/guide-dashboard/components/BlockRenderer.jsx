@@ -189,27 +189,34 @@ function AlternativeLocationPhoto({ altLocation }) {
 export default function BlockRenderer({ block, onEdit, onSwitchLocation, allBlocks }) {
   if (!block) return null;
 
+  // Wrap all blocks with data-block-id for map scrolling
+  const BlockWrapper = ({ children }) => (
+    <div data-block-id={block.id}>
+      {children}
+    </div>
+  );
+
   switch (block.block_type) {
     case 'location':
-      return <LocationBlock block={block} onEdit={onEdit} onSwitchLocation={onSwitchLocation} />;
+      return <BlockWrapper><LocationBlock block={block} onEdit={onEdit} onSwitchLocation={onSwitchLocation} /></BlockWrapper>;
     case 'title':
-      return <TitleBlock block={block} onEdit={onEdit} />;
+      return <BlockWrapper><TitleBlock block={block} onEdit={onEdit} /></BlockWrapper>;
     case 'photo_text':
-      return <PhotoTextBlock block={block} onEdit={onEdit} />;
+      return <BlockWrapper><PhotoTextBlock block={block} onEdit={onEdit} /></BlockWrapper>;
     case 'text':
-      return <TextBlock block={block} onEdit={onEdit} />;
+      return <BlockWrapper><TextBlock block={block} onEdit={onEdit} /></BlockWrapper>;
     case 'slide':
-      return <SlideBlock block={block} onEdit={onEdit} />;
+      return <BlockWrapper><SlideBlock block={block} onEdit={onEdit} /></BlockWrapper>;
     case '3columns':
-      return <ThreeColumnsBlock block={block} onEdit={onEdit} />;
+      return <BlockWrapper><ThreeColumnsBlock block={block} onEdit={onEdit} /></BlockWrapper>;
     case 'photo':
-      return <PhotoBlock block={block} onEdit={onEdit} />;
+      return <BlockWrapper><PhotoBlock block={block} onEdit={onEdit} /></BlockWrapper>;
     case 'divider':
-      return <DividerBlock block={block} onEdit={onEdit} />;
+      return <BlockWrapper><DividerBlock block={block} onEdit={onEdit} /></BlockWrapper>;
     case 'map':
-      return <MapBlock block={block} onEdit={onEdit} allBlocks={allBlocks} />;
+      return <BlockWrapper><MapBlock block={block} onEdit={onEdit} allBlocks={allBlocks} /></BlockWrapper>;
     default:
-      return <div>Unknown block type: {block.block_type}</div>;
+      return <BlockWrapper><div>Unknown block type: {block.block_type}</div></BlockWrapper>;
   }
 }
 
@@ -2138,14 +2145,23 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
           }
         });
         infoWindow.open(mapInstanceRef.current, marker);
-      });
-
-      // Click on marker opens Google Maps
-      marker.addListener('click', () => {
-        const url = location.place_id 
-          ? `https://www.google.com/maps/place/?q=place_id:${location.place_id}`
-          : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.address)}`;
-        window.open(url, '_blank');
+        
+        // Scroll to the block containing this location
+        if (location.blockId) {
+          const blockElement = document.querySelector(`[data-block-id="${location.blockId}"]`);
+          if (blockElement) {
+            blockElement.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            });
+            // Highlight the block briefly
+            blockElement.style.transition = 'box-shadow 0.3s ease';
+            blockElement.style.boxShadow = '0 0 0 4px rgba(59, 130, 246, 0.5)';
+            setTimeout(() => {
+              blockElement.style.boxShadow = '';
+            }, 2000);
+          }
+        }
       });
 
       markersRef.current.push({ marker, infoWindow });
@@ -2247,32 +2263,34 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
         </div>
       )}
       
-      {/* Collapse button - placed below map to avoid overlap with edit controls */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        marginTop: '12px'
-      }}>
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#f3f4f6',
-            border: '1px solid #d1d5db',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: '500',
-            color: '#374151',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-          title={isCollapsed ? 'Expand map' : 'Collapse map'}
-        >
-          {isCollapsed ? '▶ Expand' : '▼ Collapse'}
-        </button>
-      </div>
+      {/* Collapse button - only show in visualizer (when onEdit is provided) */}
+      {onEdit && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          marginTop: '12px'
+        }}>
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#f3f4f6',
+              border: '1px solid #d1d5db',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: '#374151',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+            title={isCollapsed ? 'Expand map' : 'Collapse map'}
+          >
+            {isCollapsed ? '▶ Expand' : '▼ Collapse'}
+          </button>
+        </div>
+      )}
       
       {isCollapsed && (
         <div style={{

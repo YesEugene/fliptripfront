@@ -1837,7 +1837,8 @@ export default function TripVisualizerPage() {
             address: mainLocation.address,
             place_id: mainLocation.place_id || null,
             lat: mainLocation.lat || null,
-            lng: mainLocation.lng || null
+            lng: mainLocation.lng || null,
+            blockId: block.id // Store block ID for scrolling
           });
         }
 
@@ -1851,7 +1852,8 @@ export default function TripVisualizerPage() {
               address: altLoc.address,
               place_id: altLoc.place_id || null,
               lat: altLoc.lat || null,
-              lng: altLoc.lng || null
+              lng: altLoc.lng || null,
+              blockId: block.id // Store block ID for scrolling
             });
           }
         });
@@ -1877,7 +1879,8 @@ export default function TripVisualizerPage() {
                 address: address,
                 place_id: null,
                 lat: null,
-                lng: null
+                lng: null,
+                blockId: block.id // Store block ID for scrolling
               });
             }
           }
