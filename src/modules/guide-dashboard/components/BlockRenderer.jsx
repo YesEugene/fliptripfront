@@ -2148,19 +2148,24 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
         
         // Scroll to the block containing this location
         if (location.blockId) {
-          const blockElement = document.querySelector(`[data-block-id="${location.blockId}"]`);
-          if (blockElement) {
-            blockElement.scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'center' 
-            });
-            // Highlight the block briefly
-            blockElement.style.transition = 'box-shadow 0.3s ease';
-            blockElement.style.boxShadow = '0 0 0 4px rgba(59, 130, 246, 0.5)';
-            setTimeout(() => {
-              blockElement.style.boxShadow = '';
-            }, 2000);
-          }
+          // Small delay to ensure DOM is ready
+          setTimeout(() => {
+            const blockElement = document.querySelector(`[data-block-id="${location.blockId}"]`);
+            if (blockElement) {
+              blockElement.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+              });
+              // Highlight the block briefly
+              blockElement.style.transition = 'box-shadow 0.3s ease';
+              blockElement.style.boxShadow = '0 0 0 4px rgba(59, 130, 246, 0.5)';
+              setTimeout(() => {
+                blockElement.style.boxShadow = '';
+              }, 2000);
+            } else {
+              console.warn('⚠️ Block element not found for blockId:', location.blockId);
+            }
+          }, 100);
         }
       });
 
