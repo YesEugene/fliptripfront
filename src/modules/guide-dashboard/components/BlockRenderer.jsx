@@ -313,74 +313,6 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
     alternativeLocations.length === 0
   );
 
-  // Show placeholder hint for empty location blocks
-  if (isEmptyLocation) {
-    return (
-      <div style={{ 
-        marginBottom: isMobile ? '10px' : '32px',
-        padding: '32px',
-        backgroundColor: '#f8fafc',
-        borderRadius: '20px',
-        border: '2px dashed #cbd5e1'
-      }}>
-        <div style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}>
-          <div style={{ 
-            fontSize: '48px', 
-            marginBottom: '16px',
-            opacity: 0.6
-          }}>
-            📍
-          </div>
-          <h3 style={{ 
-            fontSize: '20px', 
-            fontWeight: '600', 
-            color: '#334155',
-            marginBottom: '12px'
-          }}>
-            Location Block
-          </h3>
-          <p style={{ 
-            fontSize: '15px', 
-            color: '#64748b',
-            lineHeight: '1.6',
-            marginBottom: '20px'
-          }}>
-            Use this block to feature a specific place, attraction, restaurant, or any location you want to highlight in your tour. 
-            Click <strong>"Edit block"</strong> to add details.
-          </p>
-          <div style={{
-            backgroundColor: '#e2e8f0',
-            borderRadius: '12px',
-            padding: '16px',
-            textAlign: 'left'
-          }}>
-            <p style={{ 
-              fontSize: '13px', 
-              color: '#475569',
-              fontWeight: '500',
-              marginBottom: '8px'
-            }}>
-              💡 You can add:
-            </p>
-            <ul style={{ 
-              fontSize: '13px', 
-              color: '#64748b',
-              margin: 0,
-              paddingLeft: '20px',
-              lineHeight: '1.8'
-            }}>
-              <li>Location name and address</li>
-              <li>Photos (upload or search via Google Maps)</li>
-              <li>Description and your personal recommendations</li>
-              <li>Price range and approximate cost</li>
-              <li>Alternative locations for the same time slot</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div style={{ 
       marginBottom: isMobile ? '10px' : '32px',
@@ -488,11 +420,14 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                   backgroundColor: '#e5e7eb',
                   borderRadius: '20px',
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#9ca3af'
+                  color: '#9ca3af',
+                  gap: '8px'
                 }}>
-                  No photo
+                  <span style={{ fontSize: '48px', opacity: 0.5 }}>📷</span>
+                  <span style={{ fontSize: '14px' }}>Photo placeholder</span>
                 </div>
               );
             }
@@ -506,15 +441,16 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
           height: '100%'
         }}>
           <div>
-            {mainLocation.title && (
-              <h3 style={{ 
-                fontSize: '24px', 
-                fontWeight: 'bold', 
-                marginBottom: '12px',
-                color: '#111827',
-                lineHeight: '1.2'
-              }}>
-                {mainLocation.place_id ? (
+            {/* Title - show placeholder when empty */}
+            <h3 style={{ 
+              fontSize: '24px', 
+              fontWeight: 'bold', 
+              marginBottom: '12px',
+              color: isEmptyLocation ? '#9ca3af' : '#111827',
+              lineHeight: '1.2'
+            }}>
+              {mainLocation.title ? (
+                mainLocation.place_id ? (
                   <a
                     href={`https://www.google.com/maps/place/?q=place_id:${mainLocation.place_id}`}
                     target="_blank"
@@ -558,13 +494,16 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                   </a>
                 ) : (
                   mainLocation.title
-                )}
-              </h3>
-            )}
+                )
+              ) : (
+                'Location Block'
+              )}
+            </h3>
             
-            {mainLocation.address && (
-              <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ color: '#ef4444', fontSize: '16px' }}>📍</span>
+            {/* Address - show placeholder when empty */}
+            <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ color: isEmptyLocation ? '#9ca3af' : '#ef4444', fontSize: '16px' }}>📍</span>
+              {mainLocation.address ? (
                 <a 
                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mainLocation.address)}`}
                   target="_blank"
@@ -577,8 +516,10 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                 >
                   {mainLocation.address}
                 </a>
-              </div>
-            )}
+              ) : (
+                <span style={{ color: '#9ca3af', fontSize: '14px' }}>Address will appear here</span>
+              )}
+            </div>
 
             <div style={{ display: 'flex', gap: '16px', marginBottom: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
               {mainLocation.rating && (
@@ -714,22 +655,63 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
       </div>
       </div>
 
-      {/* Description */}
-      {mainLocation.description && (
+      {/* Description - show placeholder hint when empty */}
+      {(mainLocation.description || isEmptyLocation) && (
         <div style={{ marginBottom: '16px' }}>
-          {mainLocation.description.split('\n\n').map((paragraph, index, array) => (
-            <p 
-              key={index}
-              style={{ 
-                fontSize: '16px', 
+          {mainLocation.description ? (
+            mainLocation.description.split('\n\n').map((paragraph, index, array) => (
+              <p 
+                key={index}
+                style={{ 
+                  fontSize: '16px', 
+                  lineHeight: '1.6', 
+                  color: '#374151',
+                  margin: 0,
+                  marginBottom: index < array.length - 1 ? '8px' : 0
+                }}>
+                {paragraph.trim()}
+              </p>
+            ))
+          ) : (
+            <div style={{ color: '#64748b' }}>
+              <p style={{ 
+                fontSize: '15px', 
                 lineHeight: '1.6', 
-                color: '#374151',
-                margin: 0,
-                marginBottom: index < array.length - 1 ? '8px' : 0
+                marginBottom: '16px',
+                margin: 0
               }}>
-              {paragraph.trim()}
-            </p>
-          ))}
+                Use this block to feature a specific place, attraction, restaurant, or any location you want to highlight in your tour. Click <strong>"Edit block"</strong> to add details.
+              </p>
+              <div style={{
+                backgroundColor: '#f1f5f9',
+                borderRadius: '12px',
+                padding: '16px',
+                marginTop: '16px'
+              }}>
+                <p style={{ 
+                  fontSize: '14px', 
+                  fontWeight: '500',
+                  marginBottom: '8px',
+                  margin: 0,
+                  marginBottom: '8px'
+                }}>
+                  💡 You can add:
+                </p>
+                <ul style={{ 
+                  fontSize: '14px', 
+                  margin: 0,
+                  paddingLeft: '20px',
+                  lineHeight: '1.8'
+                }}>
+                  <li>Location name and address</li>
+                  <li>Photos (upload or search via Google Maps)</li>
+                  <li>Description and your personal recommendations</li>
+                  <li>Price range and approximate cost</li>
+                  <li>Alternative locations for the same time slot</li>
+                </ul>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
