@@ -69,3 +69,6 @@ https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=...
 - **400 Bad Request:** Неправильный формат URL или ключ
 - **401 Unauthorized:** Ключ недействителен или истек
 
+
+
+

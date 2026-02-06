@@ -305,6 +305,82 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
     onSwitchLocation({ ...block, content: updatedContent });
   };
   
+  // Check if this is a placeholder/empty location block
+  const isEmptyLocation = content.isPlaceholder || (
+    !mainLocation.title && 
+    !mainLocation.description && 
+    !mainLocation.address &&
+    alternativeLocations.length === 0
+  );
+
+  // Show placeholder hint for empty location blocks
+  if (isEmptyLocation) {
+    return (
+      <div style={{ 
+        marginBottom: isMobile ? '10px' : '32px',
+        padding: '32px',
+        backgroundColor: '#f8fafc',
+        borderRadius: '20px',
+        border: '2px dashed #cbd5e1'
+      }}>
+        <div style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}>
+          <div style={{ 
+            fontSize: '48px', 
+            marginBottom: '16px',
+            opacity: 0.6
+          }}>
+            📍
+          </div>
+          <h3 style={{ 
+            fontSize: '20px', 
+            fontWeight: '600', 
+            color: '#334155',
+            marginBottom: '12px'
+          }}>
+            Location Block
+          </h3>
+          <p style={{ 
+            fontSize: '15px', 
+            color: '#64748b',
+            lineHeight: '1.6',
+            marginBottom: '20px'
+          }}>
+            Use this block to feature a specific place, attraction, restaurant, or any location you want to highlight in your tour. 
+            Click <strong>"Edit block"</strong> to add details.
+          </p>
+          <div style={{
+            backgroundColor: '#e2e8f0',
+            borderRadius: '12px',
+            padding: '16px',
+            textAlign: 'left'
+          }}>
+            <p style={{ 
+              fontSize: '13px', 
+              color: '#475569',
+              fontWeight: '500',
+              marginBottom: '8px'
+            }}>
+              💡 You can add:
+            </p>
+            <ul style={{ 
+              fontSize: '13px', 
+              color: '#64748b',
+              margin: 0,
+              paddingLeft: '20px',
+              lineHeight: '1.8'
+            }}>
+              <li>Location name and address</li>
+              <li>Photos (upload or search via Google Maps)</li>
+              <li>Description and your personal recommendations</li>
+              <li>Price range and approximate cost</li>
+              <li>Alternative locations for the same time slot</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ 
       marginBottom: isMobile ? '10px' : '32px',

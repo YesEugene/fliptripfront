@@ -69,6 +69,7 @@ export default function TripVisualizerPage() {
   const [isEditingOtherTour, setIsEditingOtherTour] = useState(false);
   const [blocks, setBlocks] = useState([]);
   const [showBlockSelector, setShowBlockSelector] = useState(false);
+  const [insertAfterBlockId, setInsertAfterBlockId] = useState(null); // For adding block after specific block
   const [editingBlock, setEditingBlock] = useState(null);
   const [showTourEditor, setShowTourEditor] = useState(false);
   const [isAuthorTextExpanded, setIsAuthorTextExpanded] = useState(false);
@@ -1310,21 +1311,68 @@ export default function TripVisualizerPage() {
     }
   };
 
+  // Handle adding a new block after a specific block
+  const handleAddBlockAfter = (afterBlockId) => {
+    setInsertAfterBlockId(afterBlockId);
+    setShowBlockSelector(true);
+  };
+
   const handleAddBlock = async (blockType) => {
-    console.log('Adding block:', blockType);
+    console.log('Adding block:', blockType, 'insertAfterBlockId:', insertAfterBlockId);
     
     // Automatically create tour if it doesn't exist
     const currentTourId = tourId || await ensureTourExists();
     if (!currentTourId) {
       setShowBlockSelector(false);
+      setInsertAfterBlockId(null);
       return;
     }
 
-    // Get the next order_index (highest + 1, but exclude map block)
+    // Calculate the order_index for the new block
     const nonMapBlocks = blocks.filter(b => b.block_type !== 'map');
-    const maxOrder = nonMapBlocks.length > 0 
-      ? Math.max(...nonMapBlocks.map(b => b.order_index || 0))
-      : -1;
+    let newOrderIndex;
+    
+    if (insertAfterBlockId) {
+      // Find the block we're inserting after
+      const afterBlock = nonMapBlocks.find(b => b.id === insertAfterBlockId);
+      if (afterBlock) {
+        const afterOrderIndex = afterBlock.order_index || 0;
+        // Shift all blocks after this one
+        const blocksToShift = nonMapBlocks.filter(b => (b.order_index || 0) > afterOrderIndex);
+        
+        // Update order_index for blocks that need to be shifted
+        for (const block of blocksToShift) {
+          try {
+            const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+            await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks/${block.id}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                ...block,
+                order_index: (block.order_index || 0) + 1
+              })
+            });
+          } catch (err) {
+            console.warn('Failed to shift block order:', err);
+          }
+        }
+        
+        newOrderIndex = afterOrderIndex + 1;
+      } else {
+        // Fallback to end
+        newOrderIndex = nonMapBlocks.length > 0 
+          ? Math.max(...nonMapBlocks.map(b => b.order_index || 0)) + 1
+          : 0;
+      }
+    } else {
+      // Add at the end (default behavior)
+      newOrderIndex = nonMapBlocks.length > 0 
+        ? Math.max(...nonMapBlocks.map(b => b.order_index || 0)) + 1
+        : 0;
+    }
 
     // Determine default content based on block type
     let defaultContent = {};
@@ -1383,46 +1431,24 @@ export default function TripVisualizerPage() {
         defaultContent = { style: 'solid' };
         break;
       case 'location':
-        // Default location block with example data to inspire users
+        // Empty location block - user creates their own content
+        // The placeholder hint will be shown in BlockRenderer
         defaultContent = { 
           mainLocation: {
-            time: '09:30 – 11:00',
-            title: 'Sant Antoni Market & Surroundings',
-            address: 'Barcelona, Eixample',
-            description: 'Sant Antoni is where Barcelona starts its day quietly.\n\nLocals come here for groceries, quick coffees, and short conversations before work. The market itself is lively but not overwhelming, and the streets around it feel lived-in rather than curated.\n\nThis is a good place to begin the day without rushing — to observe how the city moves before it fully wakes up.',
-            photo: SantAntoniMarketImage,
-            recommendations: 'Walk around the market first, then step outside and choose a café nearby rather than inside. Sit facing the street. Order something simple and stay longer than planned — this is the moment to ease into the city.',
+            time: '',
+            title: '',
+            address: '',
+            description: '',
+            photo: null,
+            photos: [],
+            recommendations: '',
             category: null,
             interests: [],
             price_level: '',
             approx_cost: ''
           },
-          alternativeLocations: [
-            {
-              time: '12:00 – 14:30',
-              title: 'El Raval Backstreets',
-              address: 'Barcelona, El Raval',
-              description: 'El Raval is messy, layered, and impossible to summarize.\n\nIt\'s not a neighborhood you "visit" — it\'s one you move through slowly. Streets change character every few minutes, cafés sit next to bookstores and barber shops, and nothing feels designed for tourists.\n\nThis part of the city works best without a plan. Walk, get lost, and let the atmosphere guide your direction.',
-              photo: ElRavalImage,
-              recommendations: 'Avoid main streets. Turn into smaller ones even if they look less inviting. If you feel slightly unsure, you\'re probably in the right place. Stop when something catches your eye — not when a map tells you to.',
-              category: null,
-              interests: [],
-              price_level: '',
-              approx_cost: ''
-            },
-            {
-              time: '17:30 – Sunset',
-              title: 'Montjuïc Hill (Miradors & Paths)',
-              address: 'Barcelona',
-              description: 'Montjuïc offers space — something Barcelona rarely gives easily.\n\nUp here, the city feels quieter and more distant. Paths connect viewpoints, gardens, and unexpected corners where people sit alone or in silence.\n\nThis is a good place to slow down after a long day and let Barcelona settle rather than rush into the evening.',
-              photo: MontjuicImage,
-              recommendations: 'Skip the most obvious viewpoints and keep walking until there are fewer people. Bring water, sit on a wall, and watch the light change. This moment doesn\'t need a photo — it works better when you stay present.',
-              category: null,
-              interests: [],
-              price_level: '',
-              approx_cost: ''
-            }
-          ]
+          alternativeLocations: [],
+          isPlaceholder: true // Flag to show placeholder hint
         };
         break;
       default:
@@ -1435,6 +1461,7 @@ export default function TripVisualizerPage() {
       if (!token) {
         alert('Please log in to create blocks');
         setShowBlockSelector(false);
+        setInsertAfterBlockId(null);
         return;
       }
 
@@ -1447,7 +1474,7 @@ export default function TripVisualizerPage() {
         body: JSON.stringify({
           tourId: currentTourId,
           blockType: blockType,
-          orderIndex: maxOrder + 1,
+          orderIndex: newOrderIndex,
           content: defaultContent
         })
       });
@@ -1457,27 +1484,57 @@ export default function TripVisualizerPage() {
         console.error('❌ Create block error:', errorData, 'Status:', response.status);
         alert(errorData.error || `Failed to create block (${response.status})`);
         setShowBlockSelector(false);
+        setInsertAfterBlockId(null);
         return;
       }
 
       const data = await response.json();
       
       if (data.success && data.block) {
-        // Add new block to local state immediately
-        setBlocks(prev => [...prev, data.block].sort((a, b) => (a.order_index || 0) - (b.order_index || 0)));
+        const newBlockId = data.block.id;
         
-        // Close selector - block appears on frontend with default content
+        // Update local state with shifted order indices
+        setBlocks(prev => {
+          const updatedBlocks = prev.map(b => {
+            if (b.block_type !== 'map' && insertAfterBlockId) {
+              const afterBlock = prev.find(block => block.id === insertAfterBlockId);
+              const afterOrderIndex = afterBlock ? (afterBlock.order_index || 0) : -1;
+              if ((b.order_index || 0) > afterOrderIndex) {
+                return { ...b, order_index: (b.order_index || 0) + 1 };
+              }
+            }
+            return b;
+          });
+          return [...updatedBlocks, data.block].sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+        });
+        
+        // Close selector
         setShowBlockSelector(false);
+        setInsertAfterBlockId(null);
         
-        // Don't open editor - user can click "Edit" if they want to edit
+        // Smooth scroll to the new block after a short delay
+        setTimeout(() => {
+          const newBlockElement = document.querySelector(`[data-block-id="${newBlockId}"]`);
+          if (newBlockElement) {
+            newBlockElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Add highlight effect
+            newBlockElement.style.transition = 'box-shadow 0.3s ease';
+            newBlockElement.style.boxShadow = '0 0 0 3px #FFDD00';
+            setTimeout(() => {
+              newBlockElement.style.boxShadow = 'none';
+            }, 2000);
+          }
+        }, 100);
       } else {
         alert(data.error || 'Failed to create block');
         setShowBlockSelector(false);
+        setInsertAfterBlockId(null);
       }
     } catch (error) {
       console.error('Error creating block:', error);
       alert('Error creating block. Please try again.');
       setShowBlockSelector(false);
+      setInsertAfterBlockId(null);
     }
   };
 
@@ -2352,7 +2409,8 @@ export default function TripVisualizerPage() {
         {/* Content Blocks - Appear after author block */}
         {blocks.map((block, index) => (
           <div 
-            key={block.id} 
+            key={block.id}
+            data-block-id={block.id}
             style={{ marginBottom: '40px', position: 'relative' }}
             onMouseEnter={(e) => {
               const controls = e.currentTarget.querySelector('.block-controls');
@@ -2390,52 +2448,81 @@ export default function TripVisualizerPage() {
                 boxShadow: '0px 1px 19px 0px rgba(0, 0, 0, 0.21)'
               }}
             >
-              <button
-                onClick={() => handleMoveBlock(block.id, 'up')}
-                disabled={index === 0}
-                style={{
-                  width: '30px',
-                  height: '30px',
-                  backgroundColor: index === 0 ? '#e5e7eb' : '#3E85FC',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: index === 0 ? 'not-allowed' : 'pointer',
-                  fontSize: '16px',
-                  fontWeight: '500',
-                  opacity: index === 0 ? 0.5 : 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 0
-                }}
-                title="Move up"
-              >
-                ↑
-              </button>
-              <button
-                onClick={() => handleMoveBlock(block.id, 'down')}
-                disabled={index === blocks.length - 1}
-                style={{
-                  width: '30px',
-                  height: '30px',
-                  backgroundColor: index === blocks.length - 1 ? '#e5e7eb' : '#3E85FC',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: index === blocks.length - 1 ? 'not-allowed' : 'pointer',
-                  fontSize: '16px',
-                  fontWeight: '500',
-                  opacity: index === blocks.length - 1 ? 0.5 : 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 0
-                }}
-                title="Move down"
-              >
-                ↓
-              </button>
+              {/* Hide up/down buttons for map block - map always stays at the bottom */}
+              {block.block_type !== 'map' && (
+                <>
+                  <button
+                    onClick={() => handleMoveBlock(block.id, 'up')}
+                    disabled={index === 0}
+                    style={{
+                      width: '30px',
+                      height: '30px',
+                      backgroundColor: index === 0 ? '#e5e7eb' : '#3E85FC',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '5px',
+                      cursor: index === 0 ? 'not-allowed' : 'pointer',
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      opacity: index === 0 ? 0.5 : 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: 0
+                    }}
+                    title="Move up"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    onClick={() => handleMoveBlock(block.id, 'down')}
+                    disabled={index === blocks.length - 1}
+                    style={{
+                      width: '30px',
+                      height: '30px',
+                      backgroundColor: index === blocks.length - 1 ? '#e5e7eb' : '#3E85FC',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '5px',
+                      cursor: index === blocks.length - 1 ? 'not-allowed' : 'pointer',
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      opacity: index === blocks.length - 1 ? 0.5 : 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: 0
+                    }}
+                    title="Move down"
+                  >
+                    ↓
+                  </button>
+                </>
+              )}
+              {/* Add New Block button - only for non-map blocks */}
+              {block.block_type !== 'map' && (
+                <button
+                  onClick={() => handleAddBlockAfter(block.id)}
+                  style={{
+                    width: '30px',
+                    height: '30px',
+                    backgroundColor: '#FFDD00',
+                    color: '#111827',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 0
+                  }}
+                  title="Add new block below"
+                >
+                  +
+                </button>
+              )}
               <button
                 onClick={() => handleDuplicateBlock(block.id)}
                 style={{
