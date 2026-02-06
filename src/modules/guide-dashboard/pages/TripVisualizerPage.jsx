@@ -4862,89 +4862,19 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
   useEffect(() => {
     const updatedContent = normalizeContent(block.content || {});
     setContent(updatedContent);
-    
-    // Initialize city input value if location block has city_name
-    if (block.block_type === 'location' && updatedContent.mainLocation?.city_name) {
-      setLocationCityInputValue(updatedContent.mainLocation.city_name);
-    } else if (block.block_type === 'location' && !updatedContent.mainLocation?.city_name && tourCity) {
-      // If no city_name but tourCity exists, try to load it
-      setLocationCityInputValue(tourCity);
-    } else {
-      setLocationCityInputValue('');
-    }
-    
-    // Cleanup timeout on unmount or block change
-    return () => {
-      if (locationCitySearchTimeoutRef.current) {
-        clearTimeout(locationCitySearchTimeoutRef.current);
-      }
-    };
-  }, [block.id, block.content, block._updated, tourCity]); // Add _updated to dependencies to catch Google Maps updates
+  }, [block.id, block.content, block._updated]); // Add _updated to dependencies to catch Google Maps updates
   
   const [editingLocationIndex, setEditingLocationIndex] = useState(null); // null = main, number = alternative index
   const [interestsStructure, setInterestsStructure] = useState(null);
   const [availableInterests, setAvailableInterests] = useState([]);
   const [loadingInterests, setLoadingInterests] = useState(false);
   
-  // City autocomplete state for location blocks
-  const [locationCitySuggestions, setLocationCitySuggestions] = useState([]);
-  const [showLocationCitySuggestions, setShowLocationCitySuggestions] = useState(false);
-  const [locationCityInputValue, setLocationCityInputValue] = useState('');
-  const locationCitySearchTimeoutRef = useRef(null);
-
   // Initialize editingLocationIndex to null (main location) for location blocks
   useEffect(() => {
     if (block.block_type === 'location' && editingLocationIndex === null && content.mainLocation) {
       setEditingLocationIndex(null); // Start with main location
     }
   }, [block.block_type]);
-  
-  // Update locationCityInputValue when switching between locations
-  useEffect(() => {
-    if (block.block_type === 'location') {
-      const currentLocation = editingLocationIndex === null 
-        ? content.mainLocation 
-        : content.alternativeLocations[editingLocationIndex];
-      
-      if (currentLocation?.city_name) {
-        setLocationCityInputValue(currentLocation.city_name);
-      } else if (tourCity && !currentLocation?.city_id) {
-        setLocationCityInputValue(tourCity);
-      } else {
-        setLocationCityInputValue('');
-      }
-    }
-  }, [editingLocationIndex, block.block_type, content.mainLocation, content.alternativeLocations, tourCity]);
-  
-  // Initialize city_id from tourCity for location blocks if not set
-  useEffect(() => {
-    if (block.block_type === 'location' && tourCity && content.mainLocation && !content.mainLocation.city_id) {
-      const loadDefaultCity = async () => {
-        try {
-          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://fliptripbackend.vercel.app';
-          const response = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(tourCity)}`);
-          const data = await response.json();
-          if (data.success && data.cities && data.cities.length > 0) {
-            const match = data.cities.find(city => 
-              city.name.toLowerCase() === tourCity.toLowerCase()
-            ) || data.cities[0];
-            setContent({
-              ...content,
-              mainLocation: {
-                ...content.mainLocation,
-                city_id: match.id,
-                city_name: match.displayName || `${match.name}${match.country ? `, ${match.country}` : ''}`
-              }
-            });
-            setLocationCityInputValue(match.displayName || `${match.name}${match.country ? `, ${match.country}` : ''}`);
-          }
-        } catch (error) {
-          console.error('Error loading default city:', error);
-        }
-      };
-      loadDefaultCity();
-    }
-  }, [block.block_type, tourCity]);
 
   // Interests structure loading removed - interests are now edited in tour header only
 
@@ -6041,145 +5971,6 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                       boxSizing: 'border-box'
                     }}
                   />
-                  
-                  {/* City field with autocomplete */}
-                  <div style={{ position: 'relative', marginBottom: '12px' }}>
-                    <input
-                      type="text"
-                      value={locationCityInputValue !== '' ? locationCityInputValue : (currentLocation?.city_name || '')}
-                      onChange={async (e) => {
-                        const value = e.target.value;
-                        setLocationCityInputValue(value);
-                        
-                        // Clear previous timeout
-                        if (locationCitySearchTimeoutRef.current) {
-                          clearTimeout(locationCitySearchTimeoutRef.current);
-                        }
-                        
-                        // Clear suggestions immediately if value is too short
-                        if (value.length < 2) {
-                          setLocationCitySuggestions([]);
-                          setShowLocationCitySuggestions(false);
-                          return;
-                        }
-                        
-                        // Debounce search requests (wait 300ms after user stops typing)
-                        locationCitySearchTimeoutRef.current = setTimeout(async () => {
-                          try {
-                            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://fliptripbackend.vercel.app';
-                            const response = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(value)}`);
-                            
-                            if (!response.ok) {
-                              throw new Error(`HTTP error! status: ${response.status}`);
-                            }
-                            
-                            const data = await response.json();
-                            if (data.success && data.cities) {
-                              setLocationCitySuggestions(data.cities);
-                              setShowLocationCitySuggestions(true);
-                            } else {
-                              setLocationCitySuggestions([]);
-                              setShowLocationCitySuggestions(false);
-                            }
-                          } catch (error) {
-                            // Only log errors if value is still >= 2 (user might have cleared it)
-                            if (value.length >= 2) {
-                              console.error('Error searching cities:', error);
-                            }
-                            setLocationCitySuggestions([]);
-                            setShowLocationCitySuggestions(false);
-                          }
-                        }, 300);
-                      }}
-                      onFocus={async () => {
-                        // If user is typing, show suggestions for current input
-                        const currentValue = locationCityInputValue || currentLocation?.city_name || '';
-                        if (currentValue.length >= 2) {
-                          try {
-                            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://fliptripbackend.vercel.app';
-                            const response = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(currentValue)}`);
-                            const data = await response.json();
-                            if (data.success && data.cities) {
-                              setLocationCitySuggestions(data.cities);
-                              setShowLocationCitySuggestions(true);
-                            }
-                          } catch (error) {
-                            console.error('Error loading city suggestions:', error);
-                          }
-                        } else if (!currentLocation?.city_id && tourCity) {
-                          // Load initial suggestions if city is not set
-                          try {
-                            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://fliptripbackend.vercel.app';
-                            const response = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(tourCity)}`);
-                            const data = await response.json();
-                            if (data.success && data.cities) {
-                              setLocationCitySuggestions(data.cities);
-                              setShowLocationCitySuggestions(true);
-                            }
-                          } catch (error) {
-                            console.error('Error loading city suggestions:', error);
-                          }
-                        }
-                      }}
-                      onBlur={() => {
-                        // Delay hiding suggestions to allow clicking on them
-                        setTimeout(() => setShowLocationCitySuggestions(false), 200);
-                      }}
-                      placeholder="City * (e.g., Barcelona, Spain)"
-                      required
-                      style={{
-                        width: '100%',
-                        padding: '12px',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '8px',
-                        fontSize: '16px',
-                        boxSizing: 'border-box'
-                      }}
-                    />
-                    {showLocationCitySuggestions && locationCitySuggestions.length > 0 && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '100%',
-                        left: 0,
-                        right: 0,
-                        backgroundColor: 'white',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '8px',
-                        marginTop: '4px',
-                        maxHeight: '200px',
-                        overflowY: 'auto',
-                        zIndex: 1000,
-                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-                      }}>
-                        {locationCitySuggestions.map((city) => (
-                          <div
-                            key={city.id}
-                            onClick={() => {
-                              updateCurrentLocation({
-                                city_id: city.id,
-                                city_name: city.displayName || `${city.name}${city.country ? `, ${city.country}` : ''}`
-                              });
-                              setLocationCityInputValue(city.displayName || `${city.name}${city.country ? `, ${city.country}` : ''}`);
-                              setShowLocationCitySuggestions(false);
-                            }}
-                            style={{
-                              padding: '12px',
-                              cursor: 'pointer',
-                              borderBottom: '1px solid #f3f4f6'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.backgroundColor = '#f3f4f6';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.backgroundColor = 'white';
-                            }}
-                          >
-                            {city.displayName || `${city.name}${city.country ? `, ${city.country}` : ''}`}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
                   
                   <input
                     type="text"
