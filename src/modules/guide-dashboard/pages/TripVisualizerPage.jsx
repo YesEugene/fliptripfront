@@ -102,12 +102,12 @@ export default function TripVisualizerPage() {
   const [showImageCrop, setShowImageCrop] = useState(false);
   const [imageToCrop, setImageToCrop] = useState(null);
 
-  // Tour basic info state with default Barcelona content
+  // Tour basic info state - empty by default for new tours
   const [tourInfo, setTourInfo] = useState({
-    city: 'Barcelona',
-    title: 'Barcelona without the rush',
-    description: 'I return to Barcelona not for landmarks, but for its rhythm. The way the city lives between meals, walks, and pauses. I made this guide for moments when you don\'t want to impress yourself with how much you\'ve seen. When you want the city to feel human, readable, and calm.\n\nThese are the places and routes I choose when I want Barcelona to feel like a place I\'m living in — not passing through.',
-    preview: BarcelonaExampleImage,
+    city: '',
+    title: '',
+    description: '',
+    preview: null,
     tags: [] // Tags/interests for the tour
   });
 
@@ -270,10 +270,10 @@ export default function TripVisualizerPage() {
         console.log('📋 Tour tour_tags from API:', tourObj.tour_tags);
         
         setTourInfo({
-          city: sourceData.city || tourObj.city?.name || 'Barcelona',
-          title: sourceData.title || tourObj.title || 'Barcelona without the rush',
-          description: sourceData.description || tourObj.description || 'I return to Barcelona not for landmarks, but for its rhythm. The way the city lives between meals, walks, and pauses. I made this guide for moments when you don\'t want to impress yourself with how much you\'ve seen. When you want the city to feel human, readable, and calm.\n\nThese are the places and routes I choose when I want Barcelona to feel like a place I\'m living in — not passing through.',
-          preview: sourceData.preview || tourObj.preview_media_url || BarcelonaExampleImage,
+          city: sourceData.city || tourObj.city?.name || '',
+          title: sourceData.title || tourObj.title || '',
+          description: sourceData.description || tourObj.description || '',
+          preview: sourceData.preview || tourObj.preview_media_url || null,
           tags: [] // Will be set later from tour_tags
         });
 
@@ -1257,10 +1257,10 @@ export default function TripVisualizerPage() {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          city: tourInfo.city || 'Barcelona',
-          title: tourInfo.title || 'Barcelona without the rush',
-          description: tourInfo.description || 'I return to Barcelona not for landmarks, but for its rhythm. The way the city lives between meals, walks, and pauses. I made this guide for moments when you don\'t want to impress yourself with how much you\'ve seen. When you want the city to feel human, readable, and calm.\n\nThese are the places and routes I choose when I want Barcelona to feel like a place I\'m living in — not passing through.',
-          preview: tourInfo.preview || BarcelonaExampleImage,
+          city: tourInfo.city || '',
+          title: tourInfo.title || '',
+          description: tourInfo.description || '',
+          preview: tourInfo.preview || null,
           previewType: 'image',
           status: 'draft',
           daily_plan: [],
@@ -2094,7 +2094,7 @@ export default function TripVisualizerPage() {
           }} />
           {/* Title overlay - top left aligned */}
           <div style={{ 
-            color: 'white', 
+            color: tourInfo.title ? 'white' : 'rgba(255,255,255,0.7)', 
             fontSize: '35px', 
             fontWeight: '700',
             textAlign: 'left',
@@ -2105,7 +2105,7 @@ export default function TripVisualizerPage() {
             fontFamily: 'system-ui, -apple-system, sans-serif',
             position: 'relative'
           }}>
-            {tourInfo.title || 'Lorem ipsum dolor conta me more upsi colora'}
+            {tourInfo.title || 'Your Tour Title'}
           </div>
           
           {/* Edit block button */}
@@ -2335,31 +2335,33 @@ export default function TripVisualizerPage() {
               </h3>
               <div>
                 {(() => {
-                  const text = tourInfo.description || 'I return to Barcelona not for landmarks, but for its rhythm. The way the city lives between meals, walks, and pauses. I made this guide for moments when you don\'t want to impress yourself with how much you\'ve seen. When you want the city to feel human, readable, and calm.\n\nThese are the places and routes I choose when I want Barcelona to feel like a place I\'m living in — not passing through.';
+                  const isPlaceholder = !tourInfo.description;
+                  const text = tourInfo.description || 'This is where you introduce yourself and share why you created this tour.\n\nTell travelers what makes this experience special to you. What\'s your personal connection to this place? What kind of journey are you offering?\n\nClick "Edit block" above to add your story.';
                   
                   // Check if text is likely to be more than 5 lines
                   // Count lines by splitting on newlines and estimating chars per line
                   // With line-height 1.7 and font-size 15px, approximate 80-100 chars per line
                   // Account for newlines - each \n adds a line
                   const lineCount = text ? (text.split('\n').length + Math.ceil(text.replace(/\n/g, '').length / 90)) : 0;
-                  const shouldShowButton = lineCount > 5;
+                  const shouldShowButton = lineCount > 5 && !isPlaceholder;
                   
                   return (
                     <>
                       {isAuthorTextExpanded ? (
                         <p style={{ 
-                          color: '#4b5563', 
+                          color: isPlaceholder ? '#9ca3af' : '#4b5563', 
                           fontSize: '15px', 
                           lineHeight: isMobile ? '1.5' : '1.7', 
                           marginBottom: '16px',
                           marginTop: 0,
-                          whiteSpace: 'pre-line'
+                          whiteSpace: 'pre-line',
+                          fontStyle: isPlaceholder ? 'italic' : 'normal'
                         }}>
                           {text}
                         </p>
                       ) : (
                         <p style={{ 
-                          color: '#4b5563', 
+                          color: isPlaceholder ? '#9ca3af' : '#4b5563', 
                           fontSize: '15px', 
                           lineHeight: isMobile ? '1.5' : '1.7', 
                           marginBottom: shouldShowButton ? '12px' : '16px',
@@ -2368,7 +2370,8 @@ export default function TripVisualizerPage() {
                           WebkitLineClamp: 5,
                           WebkitBoxOrient: 'vertical',
                           overflow: 'hidden',
-                          whiteSpace: 'pre-line'
+                          whiteSpace: 'pre-line',
+                          fontStyle: isPlaceholder ? 'italic' : 'normal'
                         }}>
                           {text}
                         </p>
