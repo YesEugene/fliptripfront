@@ -857,7 +857,7 @@ export default function HomePage() {
                 {user ? (
                   <>
                     <Link
-                      to={user.role === 'guide' ? '/guide/dashboard' : '/user/dashboard'}
+                      to={user.role === 'admin' ? '/admin/dashboard' : (user.role === 'guide' ? '/guide/dashboard' : '/user/dashboard')}
                       style={{
                         color: 'white',
                         textDecoration: 'none',
@@ -866,7 +866,7 @@ export default function HomePage() {
                         textShadow: '0 2px 4px rgba(0,0,0,0.5)'
                       }}
                     >
-                      {user.name}
+                      {user.role === 'admin' ? 'Admin' : user.name}
                     </Link>
                     <button
                       onClick={() => {
