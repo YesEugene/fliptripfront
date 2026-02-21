@@ -109,7 +109,7 @@ export default function TripVisualizerPage() {
     description: '',
     preview: null,
     tags: [], // Tags/interests for the tour
-    highlights: [] // "What's Inside This Walk" items: [{icon, text}]
+    highlights: {} // "What's Inside This Walk" structured: {icon3, text3, icon4, text4, icon5, text5}
   });
 
   // City autocomplete state
@@ -276,7 +276,18 @@ export default function TripVisualizerPage() {
           description: sourceData.description || tourObj.description || '',
           preview: sourceData.preview || tourObj.preview_media_url || null,
           tags: [], // Will be set later from tour_tags
-          highlights: draftData?.highlights || [] // "What's Inside This Walk" items
+          highlights: (() => {
+            const h = draftData?.highlights;
+            // Migrate old array format to new object format
+            if (Array.isArray(h)) {
+              const obj = {};
+              if (h[2]) { obj.icon3 = h[2].icon || ''; obj.text3 = h[2].text || ''; }
+              if (h[3]) { obj.icon4 = h[3].icon || ''; obj.text4 = h[3].text || ''; }
+              if (h[4]) { obj.icon5 = h[4].icon || ''; obj.text5 = h[4].text || ''; }
+              return obj;
+            }
+            return h || {};
+          })() // "What's Inside This Walk" structured highlights
         });
 
         // Load tour settings
@@ -875,7 +886,7 @@ export default function TripVisualizerPage() {
             status: 'draft',
             daily_plan: [], // Empty daily_plan for visualizer tours
             tags: tourInfo.tags || [], // Tags/interests from tour header
-            highlights: tourInfo.highlights || [], // "What's Inside This Walk" items
+            highlights: tourInfo.highlights || {}, // "What's Inside This Walk" structured highlights
             meta: {
               interests: [],
               audience: 'him',
@@ -948,7 +959,7 @@ export default function TripVisualizerPage() {
               creatorOptions: tourSettings.additionalOptions.creatorOptions || {}
             },
             tags: tourInfo.tags || [], // Tags/interests from tour header
-            highlights: tourInfo.highlights || [] // "What's Inside This Walk" items
+            highlights: tourInfo.highlights || {} // "What's Inside This Walk" structured highlights
           })
         });
         
@@ -1190,7 +1201,7 @@ export default function TripVisualizerPage() {
               creatorOptions: tourSettings.additionalOptions.creatorOptions || {}
             },
             tags: tourInfo.tags || [], // Tags/interests from tour header
-            highlights: tourInfo.highlights || [] // "What's Inside This Walk" items
+            highlights: tourInfo.highlights || {} // "What's Inside This Walk" structured highlights
           })
         });
 
@@ -3290,6 +3301,7 @@ export default function TripVisualizerPage() {
         <TourEditorModal
           tourInfo={tourInfo}
           tourId={tourId}
+          locationCount={blocks.filter(b => b.block_type === 'location').length}
           onClose={async () => {
             // Auto-save interests when closing modal if tour exists
             if (tourId && tourInfo.tags && tourInfo.tags.length > 0) {
@@ -3927,7 +3939,7 @@ function HintButton({ hintKey }) {
     );
 }
 
-function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageUpload, cities = [], citySuggestions = [], showCitySuggestions = false, setCitySuggestions, setShowCitySuggestions }) {
+function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageUpload, locationCount = 0, cities = [], citySuggestions = [], showCitySuggestions = false, setCitySuggestions, setShowCitySuggestions }) {
   const [interestsStructure, setInterestsStructure] = useState(null);
   const [availableInterests, setAvailableInterests] = useState([]);
   const [loadingInterests, setLoadingInterests] = useState(false);
@@ -4481,126 +4493,162 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
           />
         </div>
 
-        {/* What's Inside This Walk - Highlights Editor */}
+        {/* What's Inside This Walk - 6 Structured Bullets */}
         <div style={{ marginBottom: '20px' }}>
           <label style={{ display: 'block', marginBottom: '4px', fontWeight: '500' }}>
             What's Inside This Walk
           </label>
-          <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '0', marginBottom: '12px' }}>
-            Add key features that make your tour special. These will appear as highlight cards on the preview page.
+          <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '0', marginBottom: '16px' }}>
+            These 6 highlight cards appear on the preview page. Fill in the 3 editable fields — the rest are generated automatically.
           </p>
 
-          {/* Existing highlights */}
-          {(tourInfo.highlights || []).map((highlight, index) => (
-            <div key={index} style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '8px',
-              marginBottom: '10px',
-              padding: '10px',
-              backgroundColor: '#f9fafb',
-              borderRadius: '8px',
-              border: '1px solid #e5e7eb'
-            }}>
-              <input
-                type="text"
-                value={highlight.icon || ''}
-                onChange={(e) => {
-                  const newHighlights = [...(tourInfo.highlights || [])];
-                  newHighlights[index] = { ...newHighlights[index], icon: e.target.value };
-                  onChange({ ...tourInfo, highlights: newHighlights });
-                }}
-                placeholder="📍"
-                style={{
-                  width: '44px',
-                  minWidth: '44px',
-                  padding: '8px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '18px',
-                  textAlign: 'center',
-                  boxSizing: 'border-box'
-                }}
-              />
-              <input
-                type="text"
-                value={highlight.text || ''}
-                onChange={(e) => {
-                  const newHighlights = [...(tourInfo.highlights || [])];
-                  newHighlights[index] = { ...newHighlights[index], text: e.target.value };
-                  onChange({ ...tourInfo, highlights: newHighlights });
-                }}
-                placeholder="e.g. 12 carefully selected locations across the city"
-                style={{
-                  flex: 1,
-                  padding: '8px 10px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  boxSizing: 'border-box'
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  const newHighlights = (tourInfo.highlights || []).filter((_, i) => i !== index);
-                  onChange({ ...tourInfo, highlights: newHighlights });
-                }}
-                style={{
-                  width: '32px',
-                  minWidth: '32px',
-                  height: '32px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: '#fee2e2',
-                  color: '#dc2626',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  lineHeight: '1',
-                  marginTop: '2px'
-                }}
-                title="Remove highlight"
-              >
-                ×
-              </button>
+          {/* Bullet 1 — Location count (auto-generated, shown as read-only) */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px',
+            padding: '12px', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0'
+          }}>
+            <span style={{ fontSize: '22px', width: '32px', textAlign: 'center', flexShrink: 0 }}>📍</span>
+            <div style={{ flex: 1 }}>
+              <span style={{ fontSize: '14px', color: '#111827' }}>
+                {locationCount > 0 
+                  ? `${locationCount} carefully selected location${locationCount !== 1 ? 's' : ''}${tourInfo.city ? ` across ${tourInfo.city}` : ''}`
+                  : 'Location count will appear here once you add location blocks'}
+              </span>
+              <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>🔒 Auto-generated from your location blocks</div>
             </div>
-          ))}
+          </div>
 
-          {/* Add new highlight button */}
-          <button
-            type="button"
-            onClick={() => {
-              const newHighlights = [...(tourInfo.highlights || []), { icon: '', text: '' }];
-              onChange({ ...tourInfo, highlights: newHighlights });
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 16px',
-              backgroundColor: '#eff6ff',
-              color: '#2563eb',
-              border: '1px dashed #93c5fd',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: '500',
-              width: '100%',
-              justifyContent: 'center'
-            }}
-          >
-            + Add highlight
-          </button>
+          {/* Bullet 2 — Fixed: A ready-to-follow route */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px',
+            padding: '12px', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0'
+          }}>
+            <span style={{ fontSize: '22px', width: '32px', textAlign: 'center', flexShrink: 0 }}>🗺</span>
+            <div style={{ flex: 1 }}>
+              <span style={{ fontSize: '14px', color: '#111827' }}>A ready-to-follow one-day route</span>
+              <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>🔒 Standard — shown for all tours</div>
+            </div>
+          </div>
 
-          {(tourInfo.highlights || []).length === 0 && (
-            <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '8px', marginBottom: '0', fontStyle: 'italic' }}>
-              Example: 📍 12 carefully selected locations · 🗺 A ready-to-follow route · ☕ Best cafés along the way
-            </p>
-          )}
+          {/* Bullet 3 — Creative description (editable) */}
+          <div style={{
+            marginBottom: '10px', padding: '12px',
+            backgroundColor: '#eff6ff', borderRadius: '8px', border: '1px solid #bfdbfe'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+              <span style={{ fontSize: '14px', color: '#2563eb', fontWeight: '500' }}>✏️ Creative tagline</span>
+              <span style={{ fontSize: '11px', color: '#6b7280' }}>— what makes this tour unique?</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input
+                type="text"
+                value={(tourInfo.highlights || {}).icon3 || ''}
+                onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), icon3: e.target.value } })}
+                placeholder="⚔️"
+                maxLength={2}
+                style={{
+                  width: '44px', minWidth: '44px', padding: '8px',
+                  border: '1px solid #93c5fd', borderRadius: '6px',
+                  fontSize: '18px', textAlign: 'center', boxSizing: 'border-box'
+                }}
+              />
+              <input
+                type="text"
+                value={(tourInfo.highlights || {}).text3 || ''}
+                onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), text3: e.target.value } })}
+                placeholder="e.g. The real Paris of Athos, Porthos, Aramis, and d'Artagnan"
+                style={{
+                  flex: 1, padding: '8px 10px',
+                  border: '1px solid #93c5fd', borderRadius: '6px',
+                  fontSize: '14px', boxSizing: 'border-box'
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Bullet 4 — Theme description (editable) */}
+          <div style={{
+            marginBottom: '10px', padding: '12px',
+            backgroundColor: '#eff6ff', borderRadius: '8px', border: '1px solid #bfdbfe'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+              <span style={{ fontSize: '14px', color: '#2563eb', fontWeight: '500' }}>✏️ Theme / vibe</span>
+              <span style={{ fontSize: '11px', color: '#6b7280' }}>— what kind of experience is it?</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input
+                type="text"
+                value={(tourInfo.highlights || {}).icon4 || ''}
+                onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), icon4: e.target.value } })}
+                placeholder="🏛"
+                maxLength={2}
+                style={{
+                  width: '44px', minWidth: '44px', padding: '8px',
+                  border: '1px solid #93c5fd', borderRadius: '6px',
+                  fontSize: '18px', textAlign: 'center', boxSizing: 'border-box'
+                }}
+              />
+              <input
+                type="text"
+                value={(tourInfo.highlights || {}).text4 || ''}
+                onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), text4: e.target.value } })}
+                placeholder="e.g. Historical context at every stop"
+                style={{
+                  flex: 1, padding: '8px 10px',
+                  border: '1px solid #93c5fd', borderRadius: '6px',
+                  fontSize: '14px', boxSizing: 'border-box'
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Bullet 5 — Specific details (editable) */}
+          <div style={{
+            marginBottom: '10px', padding: '12px',
+            backgroundColor: '#eff6ff', borderRadius: '8px', border: '1px solid #bfdbfe'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+              <span style={{ fontSize: '14px', color: '#2563eb', fontWeight: '500' }}>✏️ What's also inside</span>
+              <span style={{ fontSize: '11px', color: '#6b7280' }}>— add a specific detail</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input
+                type="text"
+                value={(tourInfo.highlights || {}).icon5 || ''}
+                onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), icon5: e.target.value } })}
+                placeholder="☕"
+                maxLength={2}
+                style={{
+                  width: '44px', minWidth: '44px', padding: '8px',
+                  border: '1px solid #93c5fd', borderRadius: '6px',
+                  fontSize: '18px', textAlign: 'center', boxSizing: 'border-box'
+                }}
+              />
+              <input
+                type="text"
+                value={(tourInfo.highlights || {}).text5 || ''}
+                onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), text5: e.target.value } })}
+                placeholder="e.g. Atmospheric cafés and bistros along the way"
+                style={{
+                  flex: 1, padding: '8px 10px',
+                  border: '1px solid #93c5fd', borderRadius: '6px',
+                  fontSize: '14px', boxSizing: 'border-box'
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Bullet 6 — Fixed: Map + PDF */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            padding: '12px', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0'
+          }}>
+            <span style={{ fontSize: '22px', width: '32px', textAlign: 'center', flexShrink: 0 }}>📄</span>
+            <div style={{ flex: 1 }}>
+              <span style={{ fontSize: '14px', color: '#111827' }}>An interactive map + downloadable PDF</span>
+              <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>🔒 Standard — shown for all tours</div>
+            </div>
+          </div>
         </div>
 
         {/* Tags/Interests Section */}

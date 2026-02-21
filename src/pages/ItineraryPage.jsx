@@ -1568,8 +1568,23 @@ export default function ItineraryPage() {
     ? (draftData.description || tourData?.description || '') 
     : (itinerary?.subtitle || generateFallbackSubtitle(formData));
   
-  // Get highlights from draft_data for preview page
-  const tourHighlights = draftData.highlights || [];
+  // Get highlights from draft_data for preview page (new object format)
+  const tourHighlightsRaw = draftData.highlights || {};
+  // Count location blocks for auto-generated bullet #1
+  const previewLocationCount = contentBlocks.filter(b => b.block_type === 'location').length;
+  // Build 6 structured highlights for preview
+  const tourHighlights = (() => {
+    // Handle old array format
+    if (Array.isArray(tourHighlightsRaw)) {
+      const h = tourHighlightsRaw;
+      return {
+        icon3: h[2]?.icon || '', text3: h[2]?.text || '',
+        icon4: h[3]?.icon || '', text4: h[3]?.text || '',
+        icon5: h[4]?.icon || '', text5: h[4]?.text || ''
+      };
+    }
+    return tourHighlightsRaw;
+  })();
   
   // Get price for preview  
   const previewPdfPrice = tourData?.price?.pdfPrice || tourData?.price_pdf || draftData?.tourSettings?.price?.pdfPrice || 16;
@@ -1957,40 +1972,88 @@ export default function ItineraryPage() {
             })()}
           </div>
 
-          {/* What's Inside This Walk */}
-          {tourHighlights.length > 0 && (
-            <div style={{ marginBottom: '32px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' }}>What's Inside This Walk</h2>
+          {/* What's Inside This Walk — 6 structured bullets */}
+          <div style={{ marginBottom: '32px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' }}>What's Inside This Walk</h2>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '12px'
+            }}>
+              {/* Bullet 1 — Location count (auto) */}
               <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '12px'
+                backgroundColor: '#ecf6ff', borderRadius: '12px', padding: '16px',
+                minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
               }}>
-                {tourHighlights.map((item, index) => (
-                  <div key={index} style={{
-                    backgroundColor: '#ecf6ff',
-                    borderRadius: '10px',
-                    padding: '16px',
-                    minHeight: '100px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '8px'
-                  }}>
-                    <span style={{ fontSize: '22px' }}>{item.emoji || '📌'}</span>
-                    <span style={{ fontSize: '12px', fontWeight: '600', color: '#111827', lineHeight: '1.3' }}>{item.text}</span>
-                  </div>
-                ))}
+                <span style={{ fontSize: '24px', marginBottom: '8px' }}>📍</span>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: '#111827', lineHeight: '1.3' }}>
+                  {previewLocationCount > 0 
+                    ? `${previewLocationCount} carefully selected location${previewLocationCount !== 1 ? 's' : ''}${cityName ? ` across ${cityName}` : ''}`
+                    : `Carefully selected locations${cityName ? ` across ${cityName}` : ''}`}
+                </span>
+              </div>
+              
+              {/* Bullet 2 — Fixed route */}
+              <div style={{
+                backgroundColor: '#ecf6ff', borderRadius: '12px', padding: '16px',
+                minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+              }}>
+                <span style={{ fontSize: '24px', marginBottom: '8px' }}>🗺</span>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: '#111827', lineHeight: '1.3' }}>A ready-to-follow one-day route</span>
+              </div>
+              
+              {/* Bullet 3 — Creative tagline (from author) */}
+              {tourHighlights.text3 && (
+                <div style={{
+                  backgroundColor: '#ecf6ff', borderRadius: '12px', padding: '16px',
+                  minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+                }}>
+                  <span style={{ fontSize: '24px', marginBottom: '8px' }}>{tourHighlights.icon3 || '⚔️'}</span>
+                  <span style={{ fontSize: '14px', fontWeight: '600', color: '#111827', lineHeight: '1.3' }}>{tourHighlights.text3}</span>
+                </div>
+              )}
+              
+              {/* Bullet 4 — Theme (from author) */}
+              {tourHighlights.text4 && (
+                <div style={{
+                  backgroundColor: '#ecf6ff', borderRadius: '12px', padding: '16px',
+                  minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+                }}>
+                  <span style={{ fontSize: '24px', marginBottom: '8px' }}>{tourHighlights.icon4 || '🏛'}</span>
+                  <span style={{ fontSize: '14px', fontWeight: '600', color: '#111827', lineHeight: '1.3' }}>{tourHighlights.text4}</span>
+                </div>
+              )}
+              
+              {/* Bullet 5 — Specific details (from author) */}
+              {tourHighlights.text5 && (
+                <div style={{
+                  backgroundColor: '#ecf6ff', borderRadius: '12px', padding: '16px',
+                  minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+                }}>
+                  <span style={{ fontSize: '24px', marginBottom: '8px' }}>{tourHighlights.icon5 || '☕'}</span>
+                  <span style={{ fontSize: '14px', fontWeight: '600', color: '#111827', lineHeight: '1.3' }}>{tourHighlights.text5}</span>
+                </div>
+              )}
+              
+              {/* Bullet 6 — Fixed map + PDF */}
+              <div style={{
+                backgroundColor: '#ecf6ff', borderRadius: '12px', padding: '16px',
+                minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+              }}>
+                <span style={{ fontSize: '24px', marginBottom: '8px' }}>📄</span>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: '#111827', lineHeight: '1.3' }}>An interactive map + downloadable PDF</span>
               </div>
             </div>
-          )}
+          </div>
 
-          {/* Preview Map */}
+          {/* Preview Map — non-clickable, shows tour density */}
           {previewMapUrl && (
             <div style={{ marginBottom: '32px' }}>
               <div style={{
                 borderRadius: '14px',
                 overflow: 'hidden',
-                position: 'relative'
+                position: 'relative',
+                pointerEvents: 'none'
               }}>
                 <img 
                   src={previewMapUrl} 
