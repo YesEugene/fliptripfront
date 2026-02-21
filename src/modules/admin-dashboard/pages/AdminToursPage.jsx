@@ -418,18 +418,18 @@ export default function AdminToursPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+    <div className="admin-full-width" style={{ minHeight: '100vh', backgroundColor: '#f9fafb', width: '100%', margin: 0, padding: 0, boxSizing: 'border-box' }}>
       {/* Header */}
       <div style={{
         backgroundColor: 'white',
-        padding: '20px',
+        padding: '20px 32px',
         borderBottom: '1px solid #e5e7eb',
-        marginBottom: '24px'
+        marginBottom: '24px',
+        width: '100%',
+        boxSizing: 'border-box'
       }}>
         <div style={{
           width: '100%',
-          padding: '0 20px',
-          boxSizing: 'border-box',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
@@ -455,7 +455,7 @@ export default function AdminToursPage() {
       </div>
 
       {/* Content */}
-      <div style={{ width: '100%', padding: '0 20px', boxSizing: 'border-box' }}>
+      <div style={{ width: '100%', padding: '0 32px', boxSizing: 'border-box' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h1 style={{ fontSize: '32px', fontWeight: 'bold' }}>
             Tours Management
@@ -596,8 +596,8 @@ export default function AdminToursPage() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{
-              width: '100%',
-              maxWidth: '500px',
+              flex: 1,
+              minWidth: '200px',
               padding: '12px',
               border: '1px solid #d1d5db',
               borderRadius: '8px',

@@ -63,19 +63,18 @@ export default function AdminDashboardPage() {
           }
         }
       `}</style>
-      <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', width: '100%', margin: 0, padding: 0 }}>
+      <div className="admin-full-width" style={{ minHeight: '100vh', backgroundColor: '#f9fafb', width: '100%', margin: 0, padding: 0, boxSizing: 'border-box' }}>
         {/* Header */}
       <div style={{
         backgroundColor: 'white',
-        padding: '20px',
+        padding: '20px 32px',
         borderBottom: '1px solid #e5e7eb',
         marginBottom: '10px',
-        width: '100%'
+        width: '100%',
+        boxSizing: 'border-box'
       }}>
         <div style={{
           width: '100%',
-          padding: '0 20px',
-          boxSizing: 'border-box',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
@@ -103,8 +102,8 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Content */}
-      <div style={{ width: '100%', backgroundColor: '#f9fafb', minHeight: 'calc(100vh - 100px)' }}>
-        <div style={{ width: '100%', padding: '20px', boxSizing: 'border-box' }}>
+      <div style={{ width: '100%', backgroundColor: '#f9fafb', minHeight: 'calc(100vh - 100px)', boxSizing: 'border-box' }}>
+        <div style={{ width: '100%', padding: '20px 32px', boxSizing: 'border-box' }}>
           <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '32px' }}>
             Admin Dashboard
           </h1>
