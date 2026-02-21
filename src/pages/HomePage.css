@@ -1,14 +1,8 @@
-/* Global reset for HomePage */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* Fixed max width for all screen sizes */
-body {
+/* Scoped max width for HomePage only */
+.home-page-wrapper {
   max-width: 750px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 /* Cards grid styles - Always 2 cards per row */
