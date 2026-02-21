@@ -3302,6 +3302,7 @@ export default function TripVisualizerPage() {
           tourInfo={tourInfo}
           tourId={tourId}
           locationCount={blocks.filter(b => b.block_type === 'location').length}
+          tourBlocks={blocks}
           onClose={async () => {
             // Auto-save interests when closing modal if tour exists
             if (tourId && tourInfo.tags && tourInfo.tags.length > 0) {
@@ -3939,7 +3940,7 @@ function HintButton({ hintKey }) {
     );
 }
 
-function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageUpload, locationCount = 0, cities = [], citySuggestions = [], showCitySuggestions = false, setCitySuggestions, setShowCitySuggestions }) {
+function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageUpload, locationCount = 0, tourBlocks = [], cities = [], citySuggestions = [], showCitySuggestions = false, setCitySuggestions, setShowCitySuggestions }) {
   const [interestsStructure, setInterestsStructure] = useState(null);
   const [availableInterests, setAvailableInterests] = useState([]);
   const [loadingInterests, setLoadingInterests] = useState(false);
@@ -3947,7 +3948,60 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
   const [newInterestInput, setNewInterestInput] = useState('');
   const [interestSuggestions, setInterestSuggestions] = useState([]);
   const [showInterestSuggestions, setShowInterestSuggestions] = useState(false);
-  
+  const [generatingHighlights, setGeneratingHighlights] = useState(false);
+
+  // Generate highlights with AI
+  const handleGenerateHighlights = async () => {
+    setGeneratingHighlights(true);
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_BASE_URL}/api/generate-highlights`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          tourId: tourId,
+          tourTitle: tourInfo.title,
+          tourDescription: tourInfo.description,
+          city: tourInfo.city,
+          blocks: tourBlocks.map(b => ({
+            block_type: b.block_type,
+            content: b.content,
+            sort_order: b.sort_order
+          }))
+        })
+      });
+
+      const data = await response.json();
+      if (data.success && data.highlights) {
+        onChange({
+          ...tourInfo,
+          highlights: {
+            ...(tourInfo.highlights || {}),
+            icon3: data.highlights.icon3 || (tourInfo.highlights || {}).icon3 || '',
+            text3: data.highlights.text3 || (tourInfo.highlights || {}).text3 || '',
+            icon4: data.highlights.icon4 || (tourInfo.highlights || {}).icon4 || '',
+            text4: data.highlights.text4 || (tourInfo.highlights || {}).text4 || '',
+            icon5: data.highlights.icon5 || (tourInfo.highlights || {}).icon5 || '',
+            text5: data.highlights.text5 || (tourInfo.highlights || {}).text5 || ''
+          }
+        });
+      } else {
+        console.error('Failed to generate highlights:', data.error);
+        alert('Failed to generate highlights. Please try again or fill in manually.');
+      }
+    } catch (error) {
+      console.error('Error generating highlights:', error);
+      alert('Failed to generate highlights. Please check your connection and try again.');
+    } finally {
+      setGeneratingHighlights(false);
+    }
+  };
+
   // Load interests structure
   useEffect(() => {
     const loadInterests = async () => {
@@ -4238,6 +4292,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
       justifyContent: 'center',
       zIndex: 1000
     }}>
+      <style>{`@keyframes highlightSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
       <div style={{
         backgroundColor: 'white',
         borderRadius: '12px',
@@ -4498,9 +4553,56 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
           <label style={{ display: 'block', marginBottom: '4px', fontWeight: '500' }}>
             What's Inside This Walk
           </label>
-          <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '0', marginBottom: '16px' }}>
+          <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '0', marginBottom: '12px' }}>
             These 6 highlight cards appear on the preview page. Fill in the 3 editable fields — the rest are generated automatically.
           </p>
+
+          {/* Generate with AI button */}
+          <button
+            type="button"
+            onClick={handleGenerateHighlights}
+            disabled={generatingHighlights || tourBlocks.length === 0}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              width: '100%',
+              padding: '10px 16px',
+              marginBottom: '16px',
+              border: 'none',
+              borderRadius: '8px',
+              background: generatingHighlights 
+                ? 'linear-gradient(135deg, #a78bfa, #818cf8)' 
+                : 'linear-gradient(135deg, #8b5cf6, #6366f1)',
+              color: 'white',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: generatingHighlights || tourBlocks.length === 0 ? 'not-allowed' : 'pointer',
+              opacity: tourBlocks.length === 0 ? 0.5 : 1,
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
+            }}
+            onMouseEnter={(e) => { if (!generatingHighlights && tourBlocks.length > 0) e.target.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.5)'; }}
+            onMouseLeave={(e) => { e.target.style.boxShadow = '0 2px 8px rgba(99, 102, 241, 0.3)'; }}
+          >
+            {generatingHighlights ? (
+              <>
+                <span style={{ display: 'inline-block', animation: 'highlightSpin 1s linear infinite', fontSize: '16px' }}>⏳</span>
+                Generating with AI...
+              </>
+            ) : (
+              <>
+                <span style={{ fontSize: '16px' }}>✨</span>
+                Generate all 3 bullets with AI
+              </>
+            )}
+          </button>
+          {tourBlocks.length === 0 && (
+            <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '-12px', marginBottom: '12px', textAlign: 'center' }}>
+              Add some content blocks first so AI can analyze your tour
+            </p>
+          )}
 
           {/* Bullet 1 — Location count (auto-generated, shown as read-only) */}
           <div style={{
