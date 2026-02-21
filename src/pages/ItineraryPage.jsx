@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail, checkPayment } from '../services/api';
 import { getTourById } from '../modules/tours-database';
@@ -11,6 +11,134 @@ import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import PDFIcon from '../assets/PDF.svg';
 // import SkateboardingGif from '../assets/Skateboarding.gif'; // File not found, commented out
 import './ItineraryPage.css';
+
+/**
+ * PreviewMap — Non-interactive Google Map for preview page
+ * Shows location markers without zoom, pan, or click interactions
+ */
+function PreviewMap({ locations }) {
+  const mapRef = useRef(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapError, setMapError] = useState(false);
+
+  useEffect(() => {
+    if (!locations || locations.length === 0) return;
+
+    const initMap = () => {
+      if (!mapRef.current || !window.google?.maps) return;
+
+      try {
+        // Calculate bounds
+        const bounds = new window.google.maps.LatLngBounds();
+        locations.forEach(loc => bounds.extend({ lat: loc.lat, lng: loc.lng }));
+
+        const map = new window.google.maps.Map(mapRef.current, {
+          center: bounds.getCenter(),
+          zoom: 13,
+          mapTypeId: 'roadmap',
+          disableDefaultUI: true,       // Remove all controls
+          gestureHandling: 'none',      // Disable all gestures (scroll, drag, pinch)
+          zoomControl: false,
+          mapTypeControl: false,
+          scaleControl: false,
+          streetViewControl: false,
+          rotateControl: false,
+          fullscreenControl: false,
+          clickableIcons: false,
+          styles: [
+            { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] }
+          ]
+        });
+
+        // Fit bounds with padding
+        if (locations.length > 1) {
+          map.fitBounds(bounds, { top: 40, right: 40, bottom: 40, left: 40 });
+        }
+
+        // Add numbered markers
+        locations.forEach((loc, i) => {
+          new window.google.maps.Marker({
+            position: { lat: loc.lat, lng: loc.lng },
+            map,
+            title: `${i + 1}. ${loc.title}`,
+            label: {
+              text: (i + 1).toString(),
+              color: 'white',
+              fontWeight: 'bold',
+              fontSize: '12px'
+            },
+            icon: {
+              path: window.google.maps.SymbolPath.CIRCLE,
+              fillColor: '#EA4335',
+              fillOpacity: 1,
+              strokeColor: '#B31412',
+              strokeWeight: 2,
+              scale: 14
+            },
+            clickable: false
+          });
+        });
+
+        setMapLoaded(true);
+      } catch (err) {
+        console.error('PreviewMap init error:', err);
+        setMapError(true);
+      }
+    };
+
+    // Load Google Maps if not already loaded
+    if (window.google?.maps) {
+      initMap();
+    } else {
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
+      if (!apiKey) {
+        setMapError(true);
+        return;
+      }
+      // Check if script is already being loaded
+      const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+      if (existingScript) {
+        existingScript.addEventListener('load', initMap);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      script.onload = initMap;
+      script.onerror = () => setMapError(true);
+      document.head.appendChild(script);
+    }
+  }, [locations]);
+
+  if (!locations || locations.length === 0) return null;
+  if (mapError) return null; // Silently fail
+
+  return (
+    <div style={{
+      borderRadius: '14px',
+      overflow: 'hidden',
+      position: 'relative'
+    }}>
+      <div
+        ref={mapRef}
+        style={{
+          width: '100%',
+          height: '250px',
+          borderRadius: '14px',
+          backgroundColor: '#f3f4f6'
+        }}
+      />
+      {/* Invisible overlay to block all interactions */}
+      <div style={{
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0,
+        zIndex: 1,
+        cursor: 'default'
+      }} />
+    </div>
+  );
+}
 
 export default function ItineraryPage() {
   const navigate = useNavigate();
@@ -57,6 +185,20 @@ export default function ItineraryPage() {
     
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
+
+  // Set dark theme-color for mobile preview to blend status bar with hero image
+  useEffect(() => {
+    if (previewOnly && isMobile) {
+      let meta = document.querySelector('meta[name="theme-color"]');
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.name = 'theme-color';
+        document.head.appendChild(meta);
+      }
+      meta.content = '#1a1a1a';
+      return () => { meta.content = '#ffffff'; };
+    }
+  }, [previewOnly, isMobile]);
 
   // City images mapping
   const cityImagesMap = {
@@ -1608,31 +1750,18 @@ export default function ItineraryPage() {
   // Get country for preview
   const tourCountry = draftData.country || tourData?.country || '';
   
-  // Build static map URL from location blocks for preview
-  const previewMapUrl = (() => {
-    if (!contentBlocks || contentBlocks.length === 0) return null;
+  // Extract location coordinates from content blocks for preview map
+  const previewMapLocations = (() => {
+    if (!contentBlocks || contentBlocks.length === 0) return [];
     const locationBlocks = contentBlocks.filter(b => b.block_type === 'location');
-    const coords = locationBlocks
+    return locationBlocks
       .map(b => {
         const content = b.content || {};
         const loc = content.mainLocation || content;
-        if (loc.lat && loc.lng) return { lat: loc.lat, lng: loc.lng, title: loc.title };
+        if (loc.lat && loc.lng) return { lat: Number(loc.lat), lng: Number(loc.lng), title: loc.title || loc.name || 'Location' };
         return null;
       })
       .filter(Boolean);
-    if (coords.length === 0) return null;
-    
-    const markers = coords.map((c, i) => `markers=color:red%7Clabel:${i+1}%7C${c.lat},${c.lng}`).join('&');
-    
-    // Try frontend key first, fall back to backend proxy
-    const googleMapsKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
-    if (googleMapsKey) {
-      return `https://maps.googleapis.com/maps/api/staticmap?size=700x300&maptype=roadmap&${markers}&key=${googleMapsKey}`;
-    }
-    
-    // Use backend proxy (which has the Google Maps key)
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
-    return `${API_BASE_URL}/api/static-map?size=700x300&${markers}`;
   })();
   
   // Debug logging for author display
@@ -1650,7 +1779,26 @@ export default function ItineraryPage() {
   });
 
   return (
-    <div className="itinerary-container">
+    <div 
+      className="itinerary-container"
+      style={(previewOnly && !isPaid && isMobile) ? {
+        paddingTop: '0',
+        marginTop: '0'
+      } : undefined}
+    >
+      {/* Safe area cover for mobile preview — fills status bar area with dark color */}
+      {previewOnly && !isPaid && isMobile && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 'env(safe-area-inset-top, 0px)',
+          backgroundColor: '#1a1a1a',
+          zIndex: 9999
+        }} />
+      )}
+
       {/* White Header with Logo and Auth Buttons — hidden on mobile in preview mode */}
       {!(previewOnly && !isPaid && isMobile) && (
       <div style={{
@@ -2153,22 +2301,10 @@ export default function ItineraryPage() {
             </div>
           </div>
 
-          {/* Preview Map — non-clickable, shows tour density */}
-          {previewMapUrl && (
+          {/* Preview Map — non-clickable, shows tour locations */}
+          {previewMapLocations.length > 0 && (
             <div style={{ marginBottom: '32px' }}>
-              <div style={{
-                borderRadius: '14px',
-                overflow: 'hidden',
-                position: 'relative',
-                pointerEvents: 'none'
-              }}>
-                <img 
-                  src={previewMapUrl} 
-                  alt="Tour map preview" 
-                  style={{ width: '100%', display: 'block', borderRadius: '14px' }}
-                  onError={(e) => e.target.style.display = 'none'}
-                />
-              </div>
+              <PreviewMap locations={previewMapLocations} />
             </div>
           )}
 
