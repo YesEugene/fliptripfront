@@ -43,6 +43,7 @@ export default function ItineraryPage() {
     );
   };
   const [isAuthorTextExpanded, setIsAuthorTextExpanded] = useState(false); // Author text expand/collapse state
+  const [currentSlide, setCurrentSlide] = useState(0); // Image carousel current slide index
   const [isMobile, setIsMobile] = useState(false); // Mobile detection
 
   // Detect mobile screen size
@@ -1568,6 +1569,11 @@ export default function ItineraryPage() {
     ? (draftData.description || tourData?.description || '') 
     : (itinerary?.subtitle || generateFallbackSubtitle(formData));
   
+  // Get gallery images from draft_data for preview carousel
+  const previewGalleryImages = draftData.previewImages || [];
+  // Build all carousel images: cover first, then gallery
+  const allPreviewImages = [heroImage, ...previewGalleryImages].filter(Boolean);
+  
   // Get highlights from draft_data for preview page (new object format)
   const tourHighlightsRaw = draftData.highlights || {};
   // Count location blocks for auto-generated bullet #1
@@ -1616,11 +1622,17 @@ export default function ItineraryPage() {
       .filter(Boolean);
     if (coords.length === 0) return null;
     
-    const googleMapsKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
-    if (!googleMapsKey) return null;
-    
     const markers = coords.map((c, i) => `markers=color:red%7Clabel:${i+1}%7C${c.lat},${c.lng}`).join('&');
-    return `https://maps.googleapis.com/maps/api/staticmap?size=700x300&maptype=roadmap&${markers}&key=${googleMapsKey}`;
+    
+    // Try frontend key first, fall back to backend proxy
+    const googleMapsKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
+    if (googleMapsKey) {
+      return `https://maps.googleapis.com/maps/api/staticmap?size=700x300&maptype=roadmap&${markers}&key=${googleMapsKey}`;
+    }
+    
+    // Use backend proxy (which has the Google Maps key)
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
+    return `${API_BASE_URL}/api/static-map?size=700x300&${markers}`;
   })();
   
   // Debug logging for author display
@@ -1749,7 +1761,7 @@ export default function ItineraryPage() {
       <div style={{
         width: (previewOnly && !isPaid && isMobile) ? '100%' : (isMobile ? '90%' : '100%'),
         boxSizing: 'border-box',
-        marginTop: '0',
+        marginTop: (previewOnly && !isPaid && isMobile) ? 'calc(-1 * env(safe-area-inset-top, 0px))' : '0',
         marginBottom: (previewOnly && !isPaid) ? '0' : '32px',
         marginLeft: (previewOnly && !isPaid && isMobile) ? '0' : (isMobile ? 'auto' : '0'),
         marginRight: (previewOnly && !isPaid && isMobile) ? '0' : (isMobile ? 'auto' : '0'),
@@ -1759,25 +1771,56 @@ export default function ItineraryPage() {
           style={{
             position: 'relative',
             width: '100%',
-            height: (previewOnly && !isPaid) ? (isMobile ? '350px' : '400px') : '300px',
-            backgroundImage: `url(${heroImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
+            height: (previewOnly && !isPaid) ? (isMobile ? 'calc(350px + env(safe-area-inset-top, 0px))' : '400px') : '300px',
             borderRadius: (previewOnly && !isPaid && isMobile) ? '0' : '16px',
             overflow: 'hidden',
             display: 'flex',
             alignItems: 'flex-start',
             justifyContent: 'flex-start',
-            padding: (previewOnly && !isPaid) ? '0' : '20px'
+            padding: (previewOnly && !isPaid) ? '0' : '20px',
+            ...((previewOnly && !isPaid) ? {} : {
+              backgroundImage: `url(${heroImage})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            })
+          }}
+          onTouchStart={(e) => {
+            if (previewOnly && !isPaid && allPreviewImages.length > 1) {
+              e.currentTarget._touchStartX = e.touches[0].clientX;
+            }
+          }}
+          onTouchEnd={(e) => {
+            if (previewOnly && !isPaid && allPreviewImages.length > 1 && e.currentTarget._touchStartX !== undefined) {
+              const diff = e.currentTarget._touchStartX - e.changedTouches[0].clientX;
+              if (Math.abs(diff) > 50) {
+                if (diff > 0 && currentSlide < allPreviewImages.length - 1) {
+                  setCurrentSlide(currentSlide + 1);
+                } else if (diff < 0 && currentSlide > 0) {
+                  setCurrentSlide(currentSlide - 1);
+                }
+              }
+              delete e.currentTarget._touchStartX;
+            }
           }}
         >
+          {/* Preview carousel background */}
+          {previewOnly && !isPaid && (
+            <div style={{
+              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+              backgroundImage: `url(${allPreviewImages[currentSlide] || heroImage})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              transition: 'background-image 0.3s ease'
+            }} />
+          )}
+
           {/* Back button for mobile preview */}
           {previewOnly && !isPaid && isMobile && (
             <button
               onClick={handleBack}
               style={{
                 position: 'absolute',
-                top: '16px',
+                top: 'calc(16px + env(safe-area-inset-top, 0px))',
                 left: '16px',
                 width: '40px',
                 height: '40px',
@@ -1797,8 +1840,8 @@ export default function ItineraryPage() {
             </button>
           )}
 
-          {/* Dot indicators for preview (like image carousel) */}
-          {previewOnly && !isPaid && (
+          {/* Dot indicators for preview carousel */}
+          {previewOnly && !isPaid && allPreviewImages.length > 1 && (
             <div style={{
               position: 'absolute',
               bottom: '16px',
@@ -1808,10 +1851,20 @@ export default function ItineraryPage() {
               gap: '6px',
               zIndex: 3
             }}>
-              <div style={{ width: '24px', height: '6px', borderRadius: '3px', backgroundColor: 'white' }} />
-              <div style={{ width: '6px', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(255,255,255,0.5)' }} />
-              <div style={{ width: '6px', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(255,255,255,0.5)' }} />
-              <div style={{ width: '6px', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(255,255,255,0.5)' }} />
+              {allPreviewImages.map((_, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => setCurrentSlide(idx)}
+                  style={{
+                    width: idx === currentSlide ? '24px' : '6px',
+                    height: '6px',
+                    borderRadius: '3px',
+                    backgroundColor: idx === currentSlide ? 'white' : 'rgba(255,255,255,0.5)',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                />
+              ))}
             </div>
           )}
 
@@ -1916,7 +1969,7 @@ export default function ItineraryPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: '16px'
+            marginBottom: '24px'
           }}>
             {/* Country */}
             {(tourCountry || cityName) && (
@@ -1937,7 +1990,7 @@ export default function ItineraryPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: '28px',
+            marginBottom: '43px',
             gap: '12px'
           }}>
             {/* Left: Author info */}

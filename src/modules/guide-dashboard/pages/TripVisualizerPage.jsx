@@ -108,6 +108,7 @@ export default function TripVisualizerPage() {
     title: '',
     description: '',
     preview: null,
+    previewImages: [], // Additional gallery images for preview carousel
     tags: [], // Tags/interests for the tour
     highlights: {} // "What's Inside This Walk" structured: {icon3, text3, icon4, text4, icon5, text5}
   });
@@ -275,6 +276,7 @@ export default function TripVisualizerPage() {
           title: sourceData.title || tourObj.title || '',
           description: sourceData.description || tourObj.description || '',
           preview: sourceData.preview || tourObj.preview_media_url || null,
+          previewImages: draftData?.previewImages || [], // Additional gallery images
           tags: [], // Will be set later from tour_tags
           highlights: (() => {
             const h = draftData?.highlights;
@@ -887,6 +889,7 @@ export default function TripVisualizerPage() {
             daily_plan: [], // Empty daily_plan for visualizer tours
             tags: tourInfo.tags || [], // Tags/interests from tour header
             highlights: tourInfo.highlights || {}, // "What's Inside This Walk" structured highlights
+            previewImages: tourInfo.previewImages || [], // Gallery images for preview carousel
             meta: {
               interests: [],
               audience: 'him',
@@ -959,7 +962,8 @@ export default function TripVisualizerPage() {
               creatorOptions: tourSettings.additionalOptions.creatorOptions || {}
             },
             tags: tourInfo.tags || [], // Tags/interests from tour header
-            highlights: tourInfo.highlights || {} // "What's Inside This Walk" structured highlights
+            highlights: tourInfo.highlights || {}, // "What's Inside This Walk" structured highlights
+            previewImages: tourInfo.previewImages || [] // Gallery images for preview carousel
           })
         });
         
@@ -1201,7 +1205,8 @@ export default function TripVisualizerPage() {
               creatorOptions: tourSettings.additionalOptions.creatorOptions || {}
             },
             tags: tourInfo.tags || [], // Tags/interests from tour header
-            highlights: tourInfo.highlights || {} // "What's Inside This Walk" structured highlights
+            highlights: tourInfo.highlights || {}, // "What's Inside This Walk" structured highlights
+            previewImages: tourInfo.previewImages || [] // Gallery images for preview carousel
           })
         });
 
@@ -4525,6 +4530,78 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
           <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px', margin: 0 }}>
             JPG, PNG or GIF. Max size 5MB
           </p>
+        </div>
+
+        {/* Additional Gallery Images */}
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', marginBottom: '4px', fontWeight: '500' }}>
+            Gallery images
+          </label>
+          <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '0', marginBottom: '12px' }}>
+            Add more photos — visitors can swipe through them on the preview page. The cover photo above is always shown first.
+          </p>
+          {/* Thumbnail grid */}
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
+            {(tourInfo.previewImages || []).map((img, idx) => (
+              <div key={idx} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+                <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newImages = tourInfo.previewImages.filter((_, i) => i !== idx);
+                    onChange({ ...tourInfo, previewImages: newImages });
+                  }}
+                  style={{
+                    position: 'absolute', top: '2px', right: '2px',
+                    width: '20px', height: '20px', borderRadius: '50%',
+                    backgroundColor: 'rgba(0,0,0,0.6)', color: 'white',
+                    border: 'none', cursor: 'pointer', fontSize: '12px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    lineHeight: '1', padding: '0'
+                  }}
+                >×</button>
+              </div>
+            ))}
+            {/* Add button */}
+            <label
+              htmlFor="tour-gallery-upload"
+              style={{
+                width: '80px', height: '80px', borderRadius: '8px',
+                border: '2px dashed #d1d5db', display: 'flex',
+                alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', color: '#9ca3af', fontSize: '24px',
+                transition: 'border-color 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.borderColor = '#3b82f6'}
+              onMouseLeave={(e) => e.currentTarget.style.borderColor = '#d1d5db'}
+            >
+              +
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => {
+                const files = Array.from(e.target.files);
+                if (files.length > 0 && onImageUpload) {
+                  // Process files sequentially to avoid stale closure
+                  let currentImages = [...(tourInfo.previewImages || [])];
+                  let processed = 0;
+                  files.forEach(file => {
+                    onImageUpload(file, (base64) => {
+                      currentImages = [...currentImages, base64];
+                      processed++;
+                      // Update after each image (or all at once if sync)
+                      onChange({ ...tourInfo, previewImages: currentImages });
+                    });
+                  });
+                }
+                e.target.value = '';
+              }}
+              style={{ display: 'none' }}
+              id="tour-gallery-upload"
+            />
+          </div>
         </div>
 
         <div style={{ marginBottom: '20px' }}>
