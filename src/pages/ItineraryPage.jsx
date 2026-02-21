@@ -3562,9 +3562,9 @@ export default function ItineraryPage() {
           </div>
         )}
       </div>
-      </div>
       </>
       )}
+      </div>
 
         {/* Footer */}
         <div className="footer-enhanced" style={{
