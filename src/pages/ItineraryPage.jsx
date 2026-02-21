@@ -186,20 +186,6 @@ export default function ItineraryPage() {
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  // Set dark theme-color for mobile preview to blend status bar with hero image
-  useEffect(() => {
-    if (previewOnly && isMobile) {
-      let meta = document.querySelector('meta[name="theme-color"]');
-      if (!meta) {
-        meta = document.createElement('meta');
-        meta.name = 'theme-color';
-        document.head.appendChild(meta);
-      }
-      meta.content = '#1a1a1a';
-      return () => { meta.content = '#ffffff'; };
-    }
-  }, [previewOnly, isMobile]);
-
   // City images mapping
   const cityImagesMap = {
     'Paris': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&h=600&fit=crop&q=80',
@@ -322,6 +308,20 @@ export default function ItineraryPage() {
   const tourId = tourIdState || tourIdFromUrl;
   const previewOnly = searchParams.get('previewOnly') === 'true';
   const isFullPlan = searchParams.get('full') === 'true';
+
+  // Set dark theme-color for mobile preview to blend status bar with hero image
+  useEffect(() => {
+    if (previewOnly && isMobile) {
+      let meta = document.querySelector('meta[name="theme-color"]');
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.name = 'theme-color';
+        document.head.appendChild(meta);
+      }
+      meta.content = '#1a1a1a';
+      return () => { meta.content = '#ffffff'; };
+    }
+  }, [previewOnly, isMobile]);
   
   // Update tourId state when URL changes
   useEffect(() => {
