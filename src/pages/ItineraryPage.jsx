@@ -309,20 +309,6 @@ export default function ItineraryPage() {
   const previewOnly = searchParams.get('previewOnly') === 'true';
   const isFullPlan = searchParams.get('full') === 'true';
 
-  // Set dark theme-color for mobile preview to blend status bar with hero image
-  useEffect(() => {
-    if (previewOnly && isMobile) {
-      let meta = document.querySelector('meta[name="theme-color"]');
-      if (!meta) {
-        meta = document.createElement('meta');
-        meta.name = 'theme-color';
-        document.head.appendChild(meta);
-      }
-      meta.content = '#1a1a1a';
-      return () => { meta.content = '#ffffff'; };
-    }
-  }, [previewOnly, isMobile]);
-  
   // Update tourId state when URL changes
   useEffect(() => {
     if (tourIdFromUrl && tourIdFromUrl !== tourIdState) {
@@ -1786,19 +1772,6 @@ export default function ItineraryPage() {
         marginTop: '0'
       } : undefined}
     >
-      {/* Safe area cover for mobile preview — fills status bar area with dark color */}
-      {previewOnly && !isPaid && isMobile && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 'env(safe-area-inset-top, 0px)',
-          backgroundColor: '#1a1a1a',
-          zIndex: 9999
-        }} />
-      )}
-
       {/* White Header with Logo and Auth Buttons — hidden on mobile in preview mode */}
       {!(previewOnly && !isPaid && isMobile) && (
       <div style={{
