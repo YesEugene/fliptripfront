@@ -73,8 +73,9 @@ export default function AdminDashboardPage() {
         width: '100%'
       }}>
         <div style={{
-          maxWidth: '1400px',
-          margin: '0 auto',
+          width: '100%',
+          padding: '0 20px',
+          boxSizing: 'border-box',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
@@ -103,7 +104,7 @@ export default function AdminDashboardPage() {
 
       {/* Content */}
       <div style={{ width: '100%', backgroundColor: '#f9fafb', minHeight: 'calc(100vh - 100px)' }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '20px' }}>
+        <div style={{ width: '100%', padding: '20px', boxSizing: 'border-box' }}>
           <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '32px' }}>
             Admin Dashboard
           </h1>

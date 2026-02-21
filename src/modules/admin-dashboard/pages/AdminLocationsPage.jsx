@@ -136,8 +136,9 @@ export default function AdminLocationsPage() {
         marginBottom: '24px'
       }}>
         <div style={{
-          maxWidth: '1400px',
-          margin: '0 auto',
+          width: '100%',
+          padding: '0 20px',
+          boxSizing: 'border-box',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
@@ -164,7 +165,7 @@ export default function AdminLocationsPage() {
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 20px' }}>
+      <div style={{ width: '100%', padding: '0 20px', boxSizing: 'border-box' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h1 style={{ fontSize: '32px', fontWeight: 'bold' }}>
             Locations Management
