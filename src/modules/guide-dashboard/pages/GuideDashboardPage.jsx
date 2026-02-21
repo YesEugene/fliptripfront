@@ -30,6 +30,8 @@ export default function GuideDashboardPage() {
     name: '',
     avatar: '',
     bio: '',
+    city: '',
+    interests: '',
     socialLinks: {
       instagram: '',
       facebook: '',
@@ -204,6 +206,8 @@ export default function GuideDashboardPage() {
           name: profile.name || '',
           avatar: profile.avatar || '',
           bio: profile.bio || '',
+          city: profile.city || '',
+          interests: profile.interests || '',
           socialLinks: profile.socialLinks || {
             instagram: '',
             facebook: '',
@@ -1003,6 +1007,62 @@ export default function GuideDashboardPage() {
                   />
                   <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px', margin: 0 }}>
                     This name will be displayed in tour previews and your profile
+                  </p>
+                </div>
+
+                <div style={{ marginTop: '20px' }}>
+                  <label style={{ 
+                    display: 'block', 
+                    marginBottom: '8px', 
+                    fontWeight: '500',
+                    color: '#111827'
+                  }}>
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    value={profileData.city}
+                    onChange={(e) => setProfileData({ ...profileData, city: e.target.value })}
+                    placeholder="e.g. Lisbon, Rome, Barcelona..."
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                  <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px', margin: 0 }}>
+                    The city where you're based or where you create tours
+                  </p>
+                </div>
+
+                <div style={{ marginTop: '20px' }}>
+                  <label style={{ 
+                    display: 'block', 
+                    marginBottom: '8px', 
+                    fontWeight: '500',
+                    color: '#111827'
+                  }}>
+                    Interests
+                  </label>
+                  <input
+                    type="text"
+                    value={profileData.interests}
+                    onChange={(e) => setProfileData({ ...profileData, interests: e.target.value })}
+                    placeholder="e.g. Architecture, Food, History, Street Art..."
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                  <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px', margin: 0 }}>
+                    Your interests and areas of expertise, separated by commas
                   </p>
                 </div>
               </div>

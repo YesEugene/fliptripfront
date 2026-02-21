@@ -1769,6 +1769,8 @@ export default function ItineraryPage() {
   const guideName = guideInfo?.name || null;
   const guideAvatar = guideInfo?.avatar_url || null;
   const guideBio = guideInfo?.bio || null;
+  const guideCity = guideInfo?.city || null;
+  const guideInterests = guideInfo?.interests || null;
   const authorOtherTours = tourData?.authorOtherTours || [];
   
   // Get tour info for new format - check draft_data first, then tourData, then itinerary
@@ -2506,16 +2508,16 @@ export default function ItineraryPage() {
                     <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '2px' }}>Trip author</div>
                     <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: '0' }}>{guideName}</h3>
                   </div>
-                  {/* Bottom: city & interests */}
+                  {/* Bottom: city & interests from guide profile */}
                   <div>
-                    {cityName && (
+                    {guideCity && (
                       <div style={{ fontSize: '13px', color: '#374151', marginBottom: '2px' }}>
-                        <span style={{ color: '#6b7280' }}>City:</span> {cityName}
+                        <span style={{ color: '#6b7280' }}>City:</span> {guideCity}
                       </div>
                     )}
-                    {previewInterests.length > 0 && (
+                    {guideInterests && (
                       <div style={{ fontSize: '13px', color: '#374151' }}>
-                        <span style={{ color: '#6b7280' }}>Interests:</span> {previewInterests.join(', ')}
+                        <span style={{ color: '#6b7280' }}>Interests:</span> {guideInterests}
                       </div>
                     )}
                   </div>

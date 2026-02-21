@@ -29,6 +29,8 @@ export default function ProfileSettingsPage() {
     name: '', // Guide name
     avatar: '', // URL or base64 string for avatar
     bio: '', // Biography/About me
+    city: '', // Guide's city
+    interests: '', // Guide's interests (comma-separated)
     socialLinks: {
       instagram: '',
       facebook: '',
@@ -49,6 +51,8 @@ export default function ProfileSettingsPage() {
             name: profile.name || '',
             avatar: profile.avatar || '',
             bio: profile.bio || '',
+            city: profile.city || '',
+            interests: profile.interests || '',
             socialLinks: profile.socialLinks || {
               instagram: '',
               facebook: '',
@@ -301,6 +305,50 @@ export default function ProfileSettingsPage() {
               />
               <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>
                 This name will be displayed in tour previews and your profile
+              </p>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                City
+              </label>
+              <input
+                type="text"
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                placeholder="e.g. Lisbon, Rome, Barcelona..."
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '16px'
+                }}
+              />
+              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>
+                The city where you're based or where you create tours
+              </p>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Interests
+              </label>
+              <input
+                type="text"
+                value={formData.interests}
+                onChange={(e) => setFormData({ ...formData, interests: e.target.value })}
+                placeholder="e.g. Architecture, Food, History, Street Art..."
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '16px'
+                }}
+              />
+              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>
+                Your interests and areas of expertise, separated by commas. These will be shown on your tour pages.
               </p>
             </div>
           </div>
