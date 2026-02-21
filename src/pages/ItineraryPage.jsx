@@ -1639,7 +1639,8 @@ export default function ItineraryPage() {
 
   return (
     <div className="itinerary-container">
-      {/* White Header with Logo and Auth Buttons */}
+      {/* White Header with Logo and Auth Buttons — hidden on mobile in preview mode */}
+      {!(previewOnly && !isPaid && isMobile) && (
       <div style={{
         backgroundColor: 'white',
         padding: '20px',
@@ -1734,6 +1735,7 @@ export default function ItineraryPage() {
           )}
         </div>
       </div>
+      )}
 
       {/* Content Wrapper - Centers all content blocks at 750px max width */}
       <div style={{
@@ -1743,104 +1745,149 @@ export default function ItineraryPage() {
         padding: '0',
         boxSizing: 'border-box'
       }}>
-      {/* Hero Image Section with Rounded Corners */}
+      {/* Hero Image Section */}
       <div style={{
-        width: isMobile ? '90%' : '100%',
+        width: (previewOnly && !isPaid && isMobile) ? '100%' : (isMobile ? '90%' : '100%'),
         boxSizing: 'border-box',
         marginTop: '0',
-        marginBottom: '32px',
-        marginLeft: isMobile ? 'auto' : '0',
-        marginRight: isMobile ? 'auto' : '0',
-        padding: '0',
-        paddingLeft: '0',
-        paddingRight: '0'
+        marginBottom: (previewOnly && !isPaid) ? '0' : '32px',
+        marginLeft: (previewOnly && !isPaid && isMobile) ? '0' : (isMobile ? 'auto' : '0'),
+        marginRight: (previewOnly && !isPaid && isMobile) ? '0' : (isMobile ? 'auto' : '0'),
+        padding: '0'
       }}>
         <div 
           style={{
             position: 'relative',
             width: '100%',
-            height: '300px',
+            height: (previewOnly && !isPaid) ? (isMobile ? '350px' : '400px') : '300px',
             backgroundImage: `url(${heroImage})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            borderRadius: '16px',
+            borderRadius: (previewOnly && !isPaid && isMobile) ? '0' : '16px',
             overflow: 'hidden',
             display: 'flex',
             alignItems: 'flex-start',
             justifyContent: 'flex-start',
-            padding: '20px'
+            padding: (previewOnly && !isPaid) ? '0' : '20px'
           }}
         >
-          {/* Black Gradient Overlay - from black to transparent (top to bottom) */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: heroImage 
-              ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3), transparent)'
-              : 'linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%)',
-            zIndex: 1
-          }} />
-
-          {/* Title overlay - top left aligned - Match visualizer exactly */}
-          <div style={{ 
-            color: 'white', 
-            fontSize: '35px', 
-            fontWeight: '700',
-            textAlign: 'left',
-            lineHeight: '1.2',
-            letterSpacing: '-0.3px',
-            zIndex: 2,
-            maxWidth: '80%',
-            fontFamily: 'system-ui, -apple-system, sans-serif',
-            position: 'relative'
-          }}>
-            {tourTitle}
-          </div>
-
-          {/* Download PDF Button at Bottom - Match visualizer exactly */}
-          {(!previewOnly || isPaid) && (
+          {/* Back button for mobile preview */}
+          {previewOnly && !isPaid && isMobile && (
             <button
-              onClick={handleDownloadPDF}
+              onClick={handleBack}
               style={{
                 position: 'absolute',
-                bottom: '20px',
-                left: '20px',
-                padding: '11.04px 22.08px',
+                top: '16px',
+                left: '16px',
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
                 backgroundColor: 'white',
-                color: '#111827',
                 border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '13.8px',
-                fontWeight: '600',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '9.2px',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                zIndex: 3,
                 boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                zIndex: 2,
-                transition: 'all 0.2s',
-                transform: 'scale(0.92)',
-                transformOrigin: 'left bottom'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(0.92) translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(0.92) translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+                fontSize: '18px'
               }}
             >
-              <img 
-                src={PDFIcon} 
-                alt="PDF" 
-                style={{ width: '18.4px', height: '18.4px' }}
-              />
-              Download PDF
+              ←
             </button>
+          )}
+
+          {/* Dot indicators for preview (like image carousel) */}
+          {previewOnly && !isPaid && (
+            <div style={{
+              position: 'absolute',
+              bottom: '16px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              display: 'flex',
+              gap: '6px',
+              zIndex: 3
+            }}>
+              <div style={{ width: '24px', height: '6px', borderRadius: '3px', backgroundColor: 'white' }} />
+              <div style={{ width: '6px', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(255,255,255,0.5)' }} />
+              <div style={{ width: '6px', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(255,255,255,0.5)' }} />
+              <div style={{ width: '6px', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(255,255,255,0.5)' }} />
+            </div>
+          )}
+
+          {/* Gradient & Title — only for full/paid mode */}
+          {(!previewOnly || isPaid) && (
+            <>
+              {/* Black Gradient Overlay */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: heroImage 
+                  ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3), transparent)'
+                  : 'linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%)',
+                zIndex: 1
+              }} />
+
+              {/* Title overlay */}
+              <div style={{ 
+                color: 'white', 
+                fontSize: '35px', 
+                fontWeight: '700',
+                textAlign: 'left',
+                lineHeight: '1.2',
+                letterSpacing: '-0.3px',
+                zIndex: 2,
+                maxWidth: '80%',
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                position: 'relative'
+              }}>
+                {tourTitle}
+              </div>
+
+              {/* Download PDF Button at Bottom */}
+              <button
+                onClick={handleDownloadPDF}
+                style={{
+                  position: 'absolute',
+                  bottom: '20px',
+                  left: '20px',
+                  padding: '11.04px 22.08px',
+                  backgroundColor: 'white',
+                  color: '#111827',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '13.8px',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '9.2px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                  zIndex: 2,
+                  transition: 'all 0.2s',
+                  transform: 'scale(0.92)',
+                  transformOrigin: 'left bottom'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(0.92) translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(0.92) translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+                }}
+              >
+                <img 
+                  src={PDFIcon} 
+                  alt="PDF" 
+                  style={{ width: '18.4px', height: '18.4px' }}
+                />
+                Download PDF
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -1850,69 +1897,74 @@ export default function ItineraryPage() {
         <div style={{ 
           width: isMobile ? '90%' : '100%',
           margin: isMobile ? '0 auto' : '0',
-          boxSizing: 'border-box'
+          boxSizing: 'border-box',
+          paddingTop: '24px'
         }}>
           {/* Title below image */}
           <h1 style={{
-            fontSize: isMobile ? '22px' : '24px',
+            fontSize: isMobile ? '24px' : '28px',
             fontWeight: '700',
             color: '#111827',
-            margin: '0 0 12px 0',
+            margin: '0 0 8px 0',
             lineHeight: '1.2'
           }}>
             {tourTitle}
           </h1>
 
-          {/* Country + Author + Price row */}
+          {/* Country + Price row */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: '12px',
-            flexWrap: 'wrap',
-            gap: '8px'
+            marginBottom: '16px'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-              {/* Country */}
-              {(tourCountry || cityName) && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#374151' }}>
-                  <span style={{ fontSize: '14px' }}>📍</span>
-                  {tourCountry ? `${tourCountry}` : cityName}
-                </div>
-              )}
-              {/* Author */}
-              {guideName && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    backgroundColor: '#e5e7eb',
-                    overflow: 'hidden',
-                    flexShrink: 0
-                  }}>
-                    {guideAvatar ? (
-                      <img src={guideAvatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: '#9ca3af' }}>👤</div>
-                    )}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#6b7280', lineHeight: '1.3' }}>
-                    <div>Trip created by</div>
-                    <div style={{ fontWeight: '600', color: '#111827', fontSize: '13px' }}>{guideName}</div>
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Country */}
+            {(tourCountry || cityName) && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: '#374151' }}>
+                <span style={{ color: '#3b82f6', fontSize: '15px' }}>📍</span>
+                {tourCountry ? `${tourCountry}` : cityName}
+              </div>
+            )}
             {/* Price */}
             <div style={{ textAlign: 'right' }}>
-              <span style={{ fontSize: '18px', fontWeight: '700', color: '#2059ff' }}>{currencySymbol}{previewPdfPrice}</span>
+              <span style={{ fontSize: '20px', fontWeight: '700', color: '#2059ff' }}>{currencySymbol}{previewPdfPrice}</span>
               <span style={{ fontSize: '13px', color: '#858586' }}>/trip</span>
             </div>
           </div>
 
-          {/* Proceed to payment button */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '28px' }}>
+          {/* Author row: avatar+info left, button right */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '28px',
+            gap: '12px'
+          }}>
+            {/* Left: Author info */}
+            {guideName && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  backgroundColor: '#e5e7eb',
+                  overflow: 'hidden',
+                  flexShrink: 0
+                }}>
+                  {guideAvatar ? (
+                    <img src={guideAvatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#9ca3af' }}>👤</div>
+                  )}
+                </div>
+                <div style={{ lineHeight: '1.3' }}>
+                  <div style={{ fontSize: '12px', color: '#6b7280' }}>Trip created by</div>
+                  <div style={{ fontWeight: '600', color: '#111827', fontSize: '15px' }}>{guideName}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Right: Proceed to payment button */}
             <button
               onClick={() => {
                 const unlockSection = document.getElementById('preview-unlock-section');
@@ -1923,11 +1975,13 @@ export default function ItineraryPage() {
                 color: '#ebf6fa',
                 border: 'none',
                 borderRadius: '24px',
-                padding: '10px 28px',
-                fontSize: '13px',
+                padding: '12px 28px',
+                fontSize: '14px',
                 fontWeight: '600',
                 cursor: 'pointer',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                flexShrink: 0,
+                whiteSpace: 'nowrap'
               }}
               onMouseEnter={(e) => e.target.style.backgroundColor = '#1a47cc'}
               onMouseLeave={(e) => e.target.style.backgroundColor = '#2059ff'}
@@ -2078,58 +2132,9 @@ export default function ItineraryPage() {
               Get access to all locations and detailed daily plan.
             </p>
 
-            <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
+            {/* Email input — on top */}
+            <div style={{ marginBottom: '16px' }}>
               <p style={{ fontSize: '14px', color: '#111827', margin: '0 0 8px 0' }}>Email for your itinerary</p>
-              <div style={{
-                display: 'flex',
-                gap: '12px',
-                alignItems: isMobile ? 'stretch' : 'center',
-                flexDirection: isMobile ? 'column' : 'row'
-              }}>
-                {/* Left: Price block */}
-                <div style={{
-                  backgroundColor: '#f5f5f6',
-                  borderRadius: '12px',
-                  padding: '16px 20px',
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column'
-                }}>
-                  <span style={{ fontSize: '28px', fontWeight: '500', color: '#1f59ff' }}>{currencySymbol}{previewPdfPrice}</span>
-                  <span style={{ fontSize: '12px', color: '#868686', marginTop: '4px' }}>One-time payment</span>
-                </div>
-                {/* Right: Payment button */}
-                <div style={{
-                  background: 'linear-gradient(to right, #1f59ff, #1641ba)',
-                  borderRadius: '12px',
-                  padding: '16px 24px',
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  transition: 'opacity 0.2s'
-                }}
-                onClick={() => {
-                  const emailInput = document.getElementById('preview-email-input');
-                  if (emailInput && emailInput.value) {
-                    setEmail(emailInput.value);
-                    // Trigger payment after setting email
-                    setTimeout(() => {
-                      const payBtn = document.getElementById('preview-hidden-pay-btn');
-                      if (payBtn) payBtn.click();
-                    }, 100);
-                  } else if (emailInput) {
-                    emailInput.focus();
-                  }
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                >
-                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#ebf6fa', lineHeight: '1.3' }}>Proceed<br/>to payment</span>
-                  <span style={{ fontSize: '16px', fontWeight: '700', color: '#ebf6fa', marginTop: '8px' }}>→</span>
-                </div>
-              </div>
               <input
                 id="preview-email-input"
                 type="email"
@@ -2138,78 +2143,135 @@ export default function ItineraryPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '12px 16px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
+                  padding: '14px 16px',
+                  border: 'none',
+                  borderBottom: '1px solid #d1d5db',
+                  borderRadius: '0',
                   fontSize: '14px',
-                  marginTop: '12px',
                   boxSizing: 'border-box',
-                  outline: 'none'
+                  outline: 'none',
+                  backgroundColor: 'transparent'
                 }}
-                onFocus={(e) => e.target.style.borderColor = '#2059ff'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-              {/* Hidden button to trigger actual payment */}
-              <button
-                id="preview-hidden-pay-btn"
-                onClick={handlePayment}
-                style={{ display: 'none' }}
+                onFocus={(e) => e.target.style.borderBottomColor = '#2059ff'}
+                onBlur={(e) => e.target.style.borderBottomColor = '#d1d5db'}
               />
             </div>
+
+            {/* Price left + Button right */}
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              alignItems: 'stretch'
+            }}>
+              {/* Left: Price block */}
+              <div style={{
+                backgroundColor: '#f5f5f6',
+                borderRadius: '12px',
+                padding: '16px 20px',
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center'
+              }}>
+                <span style={{ fontSize: '28px', fontWeight: '500', color: '#1f59ff' }}>{currencySymbol}{previewPdfPrice}</span>
+                <span style={{ fontSize: '12px', color: '#868686', marginTop: '4px' }}>One-time payment</span>
+              </div>
+              {/* Right: Payment button */}
+              <div style={{
+                background: 'linear-gradient(to right, #1f59ff, #1641ba)',
+                borderRadius: '12px',
+                padding: '16px 24px',
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'opacity 0.2s'
+              }}
+              onClick={() => {
+                const emailInput = document.getElementById('preview-email-input');
+                if (emailInput && emailInput.value) {
+                  setEmail(emailInput.value);
+                  setTimeout(() => {
+                    const payBtn = document.getElementById('preview-hidden-pay-btn');
+                    if (payBtn) payBtn.click();
+                  }, 100);
+                } else if (emailInput) {
+                  emailInput.focus();
+                }
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+              >
+                <span style={{ fontSize: '14px', fontWeight: '700', color: '#ebf6fa', lineHeight: '1.3' }}>Proceed<br/>to payment</span>
+                <span style={{ fontSize: '16px', fontWeight: '700', color: '#ebf6fa', marginTop: '8px' }}>→</span>
+              </div>
+            </div>
+            {/* Hidden button to trigger actual payment */}
+            <button
+              id="preview-hidden-pay-btn"
+              onClick={handlePayment}
+              style={{ display: 'none' }}
+            />
           </div>
 
           {/* Author section */}
           {guideName && (
-            <div style={{
-              marginBottom: '32px',
-              display: 'flex',
-              gap: '20px',
-              alignItems: 'flex-start',
-              flexDirection: isMobile ? 'column' : 'row'
-            }}>
-              {/* Author avatar */}
+            <div style={{ marginBottom: '32px' }}>
               <div style={{
-                width: '170px',
-                height: '170px',
-                borderRadius: '10px',
-                backgroundColor: '#e5e7eb',
-                overflow: 'hidden',
-                flexShrink: 0
+                display: 'flex',
+                gap: '16px',
+                alignItems: 'stretch'
               }}>
-                {guideAvatar ? (
-                  <img src={guideAvatar} alt={guideName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '60px', color: '#9ca3af' }}>👤</div>
-                )}
-              </div>
-              {/* Author info */}
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '12px', color: '#374151', marginBottom: '2px' }}>Trip author</div>
-                <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: '0 0 12px 0' }}>{guideName}</h3>
-                
-                {/* City & Interests */}
-                <div style={{ fontSize: '14px', color: '#374151', marginBottom: '4px' }}>
-                  <strong>City:</strong> {cityName}
+                {/* Author avatar — left */}
+                <div style={{
+                  width: isMobile ? '120px' : '170px',
+                  minHeight: isMobile ? '120px' : '170px',
+                  borderRadius: '10px',
+                  backgroundColor: '#e5e7eb',
+                  overflow: 'hidden',
+                  flexShrink: 0
+                }}>
+                  {guideAvatar ? (
+                    <img src={guideAvatar} alt={guideName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '60px', color: '#9ca3af' }}>👤</div>
+                  )}
                 </div>
-                {previewInterests.length > 0 && (
-                  <div style={{ fontSize: '14px', color: '#374151', marginBottom: '12px' }}>
-                    <strong>Interests:</strong> {previewInterests.join(', ')}
+                {/* Author info — right, name at top, city/interests at bottom */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  {/* Top: name */}
+                  <div>
+                    <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '2px' }}>Trip author</div>
+                    <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: '0' }}>{guideName}</h3>
                   </div>
-                )}
-
-                {/* Author bio */}
-                {guideBio && (
-                  <p style={{
-                    fontSize: '14px',
-                    color: '#374151',
-                    lineHeight: '1.5',
-                    margin: 0,
-                    whiteSpace: 'pre-line'
-                  }}>
-                    {guideBio}
-                  </p>
-                )}
+                  {/* Bottom: city & interests */}
+                  <div>
+                    {cityName && (
+                      <div style={{ fontSize: '13px', color: '#374151', marginBottom: '2px' }}>
+                        <span style={{ color: '#6b7280' }}>City:</span> {cityName}
+                      </div>
+                    )}
+                    {previewInterests.length > 0 && (
+                      <div style={{ fontSize: '13px', color: '#374151' }}>
+                        <span style={{ color: '#6b7280' }}>Interests:</span> {previewInterests.join(', ')}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
+              {/* Author bio — below, full width */}
+              {guideBio && (
+                <p style={{
+                  fontSize: '14px',
+                  color: '#374151',
+                  lineHeight: '1.6',
+                  margin: '16px 0 0 0',
+                  whiteSpace: 'pre-line'
+                }}>
+                  {guideBio}
+                </p>
+              )}
             </div>
           )}
 

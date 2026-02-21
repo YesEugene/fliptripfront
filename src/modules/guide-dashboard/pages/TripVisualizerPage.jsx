@@ -3955,7 +3955,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
     setGeneratingHighlights(true);
     try {
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       
       const response = await fetch(`${API_BASE_URL}/api/generate-highlights`, {
         method: 'POST',
