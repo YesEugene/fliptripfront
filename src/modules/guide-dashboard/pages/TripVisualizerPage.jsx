@@ -108,7 +108,8 @@ export default function TripVisualizerPage() {
     title: '',
     description: '',
     preview: null,
-    tags: [] // Tags/interests for the tour
+    tags: [], // Tags/interests for the tour
+    highlights: [] // "What's Inside This Walk" items: [{icon, text}]
   });
 
   // City autocomplete state
@@ -274,7 +275,8 @@ export default function TripVisualizerPage() {
           title: sourceData.title || tourObj.title || '',
           description: sourceData.description || tourObj.description || '',
           preview: sourceData.preview || tourObj.preview_media_url || null,
-          tags: [] // Will be set later from tour_tags
+          tags: [], // Will be set later from tour_tags
+          highlights: draftData?.highlights || [] // "What's Inside This Walk" items
         });
 
         // Load tour settings
@@ -873,6 +875,7 @@ export default function TripVisualizerPage() {
             status: 'draft',
             daily_plan: [], // Empty daily_plan for visualizer tours
             tags: tourInfo.tags || [], // Tags/interests from tour header
+            highlights: tourInfo.highlights || [], // "What's Inside This Walk" items
             meta: {
               interests: [],
               audience: 'him',
@@ -944,7 +947,8 @@ export default function TripVisualizerPage() {
               platformOptions: tourSettings.additionalOptions.platformOptions || ['insurance', 'accommodation'],
               creatorOptions: tourSettings.additionalOptions.creatorOptions || {}
             },
-            tags: tourInfo.tags || [] // Tags/interests from tour header
+            tags: tourInfo.tags || [], // Tags/interests from tour header
+            highlights: tourInfo.highlights || [] // "What's Inside This Walk" items
           })
         });
         
@@ -1185,7 +1189,8 @@ export default function TripVisualizerPage() {
               platformOptions: tourSettings.additionalOptions.platformOptions || ['insurance', 'accommodation'],
               creatorOptions: tourSettings.additionalOptions.creatorOptions || {}
             },
-            tags: tourInfo.tags || [] // Tags/interests from tour header
+            tags: tourInfo.tags || [], // Tags/interests from tour header
+            highlights: tourInfo.highlights || [] // "What's Inside This Walk" items
           })
         });
 
@@ -4474,6 +4479,128 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
               fontFamily: 'inherit'
             }}
           />
+        </div>
+
+        {/* What's Inside This Walk - Highlights Editor */}
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', marginBottom: '4px', fontWeight: '500' }}>
+            What's Inside This Walk
+          </label>
+          <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '0', marginBottom: '12px' }}>
+            Add key features that make your tour special. These will appear as highlight cards on the preview page.
+          </p>
+
+          {/* Existing highlights */}
+          {(tourInfo.highlights || []).map((highlight, index) => (
+            <div key={index} style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '8px',
+              marginBottom: '10px',
+              padding: '10px',
+              backgroundColor: '#f9fafb',
+              borderRadius: '8px',
+              border: '1px solid #e5e7eb'
+            }}>
+              <input
+                type="text"
+                value={highlight.icon || ''}
+                onChange={(e) => {
+                  const newHighlights = [...(tourInfo.highlights || [])];
+                  newHighlights[index] = { ...newHighlights[index], icon: e.target.value };
+                  onChange({ ...tourInfo, highlights: newHighlights });
+                }}
+                placeholder="📍"
+                style={{
+                  width: '44px',
+                  minWidth: '44px',
+                  padding: '8px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  fontSize: '18px',
+                  textAlign: 'center',
+                  boxSizing: 'border-box'
+                }}
+              />
+              <input
+                type="text"
+                value={highlight.text || ''}
+                onChange={(e) => {
+                  const newHighlights = [...(tourInfo.highlights || [])];
+                  newHighlights[index] = { ...newHighlights[index], text: e.target.value };
+                  onChange({ ...tourInfo, highlights: newHighlights });
+                }}
+                placeholder="e.g. 12 carefully selected locations across the city"
+                style={{
+                  flex: 1,
+                  padding: '8px 10px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box'
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const newHighlights = (tourInfo.highlights || []).filter((_, i) => i !== index);
+                  onChange({ ...tourInfo, highlights: newHighlights });
+                }}
+                style={{
+                  width: '32px',
+                  minWidth: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#fee2e2',
+                  color: '#dc2626',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  lineHeight: '1',
+                  marginTop: '2px'
+                }}
+                title="Remove highlight"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+
+          {/* Add new highlight button */}
+          <button
+            type="button"
+            onClick={() => {
+              const newHighlights = [...(tourInfo.highlights || []), { icon: '', text: '' }];
+              onChange({ ...tourInfo, highlights: newHighlights });
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              backgroundColor: '#eff6ff',
+              color: '#2563eb',
+              border: '1px dashed #93c5fd',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: '500',
+              width: '100%',
+              justifyContent: 'center'
+            }}
+          >
+            + Add highlight
+          </button>
+
+          {(tourInfo.highlights || []).length === 0 && (
+            <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '8px', marginBottom: '0', fontStyle: 'italic' }}>
+              Example: 📍 12 carefully selected locations · 🗺 A ready-to-follow route · ☕ Best cafés along the way
+            </p>
+          )}
         </div>
 
         {/* Tags/Interests Section */}

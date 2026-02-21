@@ -1557,6 +1557,8 @@ export default function ItineraryPage() {
   const guideInfo = !isGeneratedTour && tourData?.guide ? tourData.guide : null;
   const guideName = guideInfo?.name || null;
   const guideAvatar = guideInfo?.avatar_url || null;
+  const guideBio = guideInfo?.bio || null;
+  const authorOtherTours = tourData?.authorOtherTours || [];
   
   // Get tour info for new format - check draft_data first, then tourData, then itinerary
   const tourTitle = useNewFormat 
@@ -1565,6 +1567,46 @@ export default function ItineraryPage() {
   const tourDescription = useNewFormat 
     ? (draftData.description || tourData?.description || '') 
     : (itinerary?.subtitle || generateFallbackSubtitle(formData));
+  
+  // Get highlights from draft_data for preview page
+  const tourHighlights = draftData.highlights || [];
+  
+  // Get price for preview  
+  const previewPdfPrice = tourData?.price?.pdfPrice || tourData?.price_pdf || draftData?.tourSettings?.price?.pdfPrice || 16;
+  const previewCurrency = tourData?.price?.currency || draftData?.tourSettings?.price?.currency || 'USD';
+  const currencySymbol = previewCurrency === 'USD' ? '$' : previewCurrency === 'EUR' ? '€' : previewCurrency;
+  
+  // Get interests for preview display
+  const previewInterests = (() => {
+    if (tourData?.tour_tags && tourData.tour_tags.length > 0) {
+      return tourData.tour_tags.map(tt => tt.tag?.name || tt.interest?.name).filter(Boolean);
+    }
+    return [];
+  })();
+  
+  // Get country for preview
+  const tourCountry = draftData.country || tourData?.country || '';
+  
+  // Build static map URL from location blocks for preview
+  const previewMapUrl = (() => {
+    if (!contentBlocks || contentBlocks.length === 0) return null;
+    const locationBlocks = contentBlocks.filter(b => b.block_type === 'location');
+    const coords = locationBlocks
+      .map(b => {
+        const content = b.content || {};
+        const loc = content.mainLocation || content;
+        if (loc.lat && loc.lng) return { lat: loc.lat, lng: loc.lng, title: loc.title };
+        return null;
+      })
+      .filter(Boolean);
+    if (coords.length === 0) return null;
+    
+    const googleMapsKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
+    if (!googleMapsKey) return null;
+    
+    const markers = coords.map((c, i) => `markers=color:red%7Clabel:${i+1}%7C${c.lat},${c.lng}`).join('&');
+    return `https://maps.googleapis.com/maps/api/staticmap?size=700x300&maptype=roadmap&${markers}&key=${googleMapsKey}`;
+  })();
   
   // Debug logging for author display
   console.log('🔍 Author display check:', {
@@ -1787,7 +1829,382 @@ export default function ItineraryPage() {
           )}
         </div>
       </div>
-      
+
+      {/* ========== PREVIEW MODE ========== */}
+      {previewOnly && !isPaid ? (
+        <div style={{ 
+          width: isMobile ? '90%' : '100%',
+          margin: isMobile ? '0 auto' : '0',
+          boxSizing: 'border-box'
+        }}>
+          {/* Title below image */}
+          <h1 style={{
+            fontSize: isMobile ? '22px' : '24px',
+            fontWeight: '700',
+            color: '#111827',
+            margin: '0 0 12px 0',
+            lineHeight: '1.2'
+          }}>
+            {tourTitle}
+          </h1>
+
+          {/* Country + Author + Price row */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '12px',
+            flexWrap: 'wrap',
+            gap: '8px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+              {/* Country */}
+              {(tourCountry || cityName) && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#374151' }}>
+                  <span style={{ fontSize: '14px' }}>📍</span>
+                  {tourCountry ? `${tourCountry}` : cityName}
+                </div>
+              )}
+              {/* Author */}
+              {guideName && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    backgroundColor: '#e5e7eb',
+                    overflow: 'hidden',
+                    flexShrink: 0
+                  }}>
+                    {guideAvatar ? (
+                      <img src={guideAvatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: '#9ca3af' }}>👤</div>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#6b7280', lineHeight: '1.3' }}>
+                    <div>Trip created by</div>
+                    <div style={{ fontWeight: '600', color: '#111827', fontSize: '13px' }}>{guideName}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+            {/* Price */}
+            <div style={{ textAlign: 'right' }}>
+              <span style={{ fontSize: '18px', fontWeight: '700', color: '#2059ff' }}>{currencySymbol}{previewPdfPrice}</span>
+              <span style={{ fontSize: '13px', color: '#858586' }}>/trip</span>
+            </div>
+          </div>
+
+          {/* Proceed to payment button */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '28px' }}>
+            <button
+              onClick={() => {
+                const unlockSection = document.getElementById('preview-unlock-section');
+                if (unlockSection) unlockSection.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{
+                backgroundColor: '#2059ff',
+                color: '#ebf6fa',
+                border: 'none',
+                borderRadius: '24px',
+                padding: '10px 28px',
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#1a47cc'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#2059ff'}
+            >
+              Proceed to payment
+            </button>
+          </div>
+
+          {/* About trip */}
+          <div style={{ marginBottom: '32px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 12px 0' }}>About trip</h2>
+            {(() => {
+              const text = tourDescription || '';
+              const isLong = text.length > 400;
+              return (
+                <>
+                  <p style={{
+                    fontSize: '14px',
+                    color: '#374151',
+                    lineHeight: '1.5',
+                    margin: '0 0 8px 0',
+                    whiteSpace: 'pre-line',
+                    ...(isLong && !isAuthorTextExpanded ? {
+                      display: '-webkit-box',
+                      WebkitLineClamp: 6,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden'
+                    } : {})
+                  }}>
+                    {text}
+                  </p>
+                  {isLong && (
+                    <span
+                      onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
+                      style={{ fontSize: '14px', fontWeight: '600', color: '#2059ff', cursor: 'pointer' }}
+                    >
+                      {isAuthorTextExpanded ? 'Show less' : 'See More..'}
+                    </span>
+                  )}
+                </>
+              );
+            })()}
+          </div>
+
+          {/* What's Inside This Walk */}
+          {tourHighlights.length > 0 && (
+            <div style={{ marginBottom: '32px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' }}>What's Inside This Walk</h2>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '12px'
+              }}>
+                {tourHighlights.map((item, index) => (
+                  <div key={index} style={{
+                    backgroundColor: '#ecf6ff',
+                    borderRadius: '10px',
+                    padding: '16px',
+                    minHeight: '100px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px'
+                  }}>
+                    <span style={{ fontSize: '22px' }}>{item.emoji || '📌'}</span>
+                    <span style={{ fontSize: '12px', fontWeight: '600', color: '#111827', lineHeight: '1.3' }}>{item.text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Preview Map */}
+          {previewMapUrl && (
+            <div style={{ marginBottom: '32px' }}>
+              <div style={{
+                borderRadius: '14px',
+                overflow: 'hidden',
+                position: 'relative'
+              }}>
+                <img 
+                  src={previewMapUrl} 
+                  alt="Tour map preview" 
+                  style={{ width: '100%', display: 'block', borderRadius: '14px' }}
+                  onError={(e) => e.target.style.display = 'none'}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Unlock full trip section */}
+          <div id="preview-unlock-section" style={{
+            backgroundColor: 'white',
+            borderRadius: '14px',
+            border: '1px solid #d1d5db',
+            padding: '24px',
+            marginBottom: '32px'
+          }}>
+            <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: '0 0 4px 0' }}>Unlock full trip</h3>
+            <p style={{ fontSize: '12px', color: '#808080', margin: '0 0 20px 0' }}>
+              Get access to all locations and detailed daily plan.
+            </p>
+
+            <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
+              <p style={{ fontSize: '14px', color: '#111827', margin: '0 0 8px 0' }}>Email for your itinerary</p>
+              <div style={{
+                display: 'flex',
+                gap: '12px',
+                alignItems: isMobile ? 'stretch' : 'center',
+                flexDirection: isMobile ? 'column' : 'row'
+              }}>
+                {/* Left: Price block */}
+                <div style={{
+                  backgroundColor: '#f5f5f6',
+                  borderRadius: '12px',
+                  padding: '16px 20px',
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}>
+                  <span style={{ fontSize: '28px', fontWeight: '500', color: '#1f59ff' }}>{currencySymbol}{previewPdfPrice}</span>
+                  <span style={{ fontSize: '12px', color: '#868686', marginTop: '4px' }}>One-time payment</span>
+                </div>
+                {/* Right: Payment button */}
+                <div style={{
+                  background: 'linear-gradient(to right, #1f59ff, #1641ba)',
+                  borderRadius: '12px',
+                  padding: '16px 24px',
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'opacity 0.2s'
+                }}
+                onClick={() => {
+                  const emailInput = document.getElementById('preview-email-input');
+                  if (emailInput && emailInput.value) {
+                    setEmail(emailInput.value);
+                    // Trigger payment after setting email
+                    setTimeout(() => {
+                      const payBtn = document.getElementById('preview-hidden-pay-btn');
+                      if (payBtn) payBtn.click();
+                    }, 100);
+                  } else if (emailInput) {
+                    emailInput.focus();
+                  }
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                >
+                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#ebf6fa', lineHeight: '1.3' }}>Proceed<br/>to payment</span>
+                  <span style={{ fontSize: '16px', fontWeight: '700', color: '#ebf6fa', marginTop: '8px' }}>→</span>
+                </div>
+              </div>
+              <input
+                id="preview-email-input"
+                type="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  marginTop: '12px',
+                  boxSizing: 'border-box',
+                  outline: 'none'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#2059ff'}
+                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+              />
+              {/* Hidden button to trigger actual payment */}
+              <button
+                id="preview-hidden-pay-btn"
+                onClick={handlePayment}
+                style={{ display: 'none' }}
+              />
+            </div>
+          </div>
+
+          {/* Author section */}
+          {guideName && (
+            <div style={{
+              marginBottom: '32px',
+              display: 'flex',
+              gap: '20px',
+              alignItems: 'flex-start',
+              flexDirection: isMobile ? 'column' : 'row'
+            }}>
+              {/* Author avatar */}
+              <div style={{
+                width: '170px',
+                height: '170px',
+                borderRadius: '10px',
+                backgroundColor: '#e5e7eb',
+                overflow: 'hidden',
+                flexShrink: 0
+              }}>
+                {guideAvatar ? (
+                  <img src={guideAvatar} alt={guideName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '60px', color: '#9ca3af' }}>👤</div>
+                )}
+              </div>
+              {/* Author info */}
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '12px', color: '#374151', marginBottom: '2px' }}>Trip author</div>
+                <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: '0 0 12px 0' }}>{guideName}</h3>
+                
+                {/* City & Interests */}
+                <div style={{ fontSize: '14px', color: '#374151', marginBottom: '4px' }}>
+                  <strong>City:</strong> {cityName}
+                </div>
+                {previewInterests.length > 0 && (
+                  <div style={{ fontSize: '14px', color: '#374151', marginBottom: '12px' }}>
+                    <strong>Interests:</strong> {previewInterests.join(', ')}
+                  </div>
+                )}
+
+                {/* Author bio */}
+                {guideBio && (
+                  <p style={{
+                    fontSize: '14px',
+                    color: '#374151',
+                    lineHeight: '1.5',
+                    margin: 0,
+                    whiteSpace: 'pre-line'
+                  }}>
+                    {guideBio}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* All trips from this author */}
+          {authorOtherTours.length > 0 && (
+            <div style={{ marginBottom: '32px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' }}>All trips from this author</h2>
+              <div style={{
+                display: 'flex',
+                gap: '12px',
+                overflowX: 'auto',
+                paddingBottom: '8px',
+                scrollSnapType: 'x mandatory'
+              }}>
+                {authorOtherTours.map((tour) => (
+                  <div
+                    key={tour.id}
+                    onClick={() => navigate(`/itinerary?tourId=${tour.id}&previewOnly=true`)}
+                    style={{
+                      minWidth: '170px',
+                      maxWidth: '170px',
+                      cursor: 'pointer',
+                      scrollSnapAlign: 'start',
+                      flexShrink: 0
+                    }}
+                  >
+                    <div style={{
+                      width: '170px',
+                      height: '115px',
+                      borderRadius: '10px',
+                      overflow: 'hidden',
+                      backgroundColor: '#e5e7eb',
+                      marginBottom: '8px'
+                    }}>
+                      {tour.preview ? (
+                        <img src={tour.preview} alt={tour.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '30px', color: '#9ca3af' }}>🗺</div>
+                      )}
+                    </div>
+                    <p style={{
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#111827',
+                      lineHeight: '1.2',
+                      margin: 0
+                    }}>
+                      {tour.title}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+      <>
+      {/* ========== FULL / PAID MODE ========== */}
       {/* Tags Section - Match visualizer exactly */}
       <div style={{ 
         width: isMobile ? '90%' : '100%',
@@ -3146,6 +3563,8 @@ export default function ItineraryPage() {
         )}
       </div>
       </div>
+      </>
+      )}
 
         {/* Footer */}
         <div className="footer-enhanced" style={{
