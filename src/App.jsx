@@ -21,6 +21,7 @@ import { GuideDashboardPage, CreateTourPage, ProfileSettingsPage, TripVisualizer
 import { AdminDashboardPage, AdminLocationsPage, AdminToursPage, AdminUsersPage, AdminLoginPage } from './modules/admin-dashboard';
 
 import './index.css';
+import './App.css';
 
 function App() {
   return (
