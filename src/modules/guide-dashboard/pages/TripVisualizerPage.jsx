@@ -3426,6 +3426,9 @@ export default function TripVisualizerPage() {
                   ...(currentContent.mainLocation || {}),
                   title: locationData.title || currentContent.mainLocation?.title || '',
                   address: locationData.address || currentContent.mainLocation?.address || '',
+                  // Coordinates from Google Places
+                  lat: locationData.location?.lat || currentContent.mainLocation?.lat || null,
+                  lng: locationData.location?.lng || currentContent.mainLocation?.lng || null,
                   // Price level: use Google Maps value if it exists and is not empty
                   price_level: locationData.price_level && locationData.price_level !== '' 
                     ? String(locationData.price_level) 
@@ -3485,6 +3488,9 @@ export default function TripVisualizerPage() {
                 ...(alternativeLocations[editingLocationIndex] || {}),
                 title: locationData.title || alternativeLocations[editingLocationIndex]?.title || '',
                 address: locationData.address || alternativeLocations[editingLocationIndex]?.address || '',
+                // Coordinates from Google Places
+                lat: locationData.location?.lat || alternativeLocations[editingLocationIndex]?.lat || null,
+                lng: locationData.location?.lng || alternativeLocations[editingLocationIndex]?.lng || null,
                 // Price level: use Google Maps value if it exists and is not empty
                 price_level: locationData.price_level && locationData.price_level !== '' 
                   ? String(locationData.price_level) 

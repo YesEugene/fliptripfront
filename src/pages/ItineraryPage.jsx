@@ -18,26 +18,73 @@ import './ItineraryPage.css';
  */
 function PreviewMap({ locations }) {
   const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState(false);
+  const initCalledRef = useRef(false);
 
   useEffect(() => {
-    if (!locations || locations.length === 0) return;
+    if (!locations || locations.length === 0) {
+      console.log('🗺️ PreviewMap component: No locations, skipping');
+      return;
+    }
+    console.log('🗺️ PreviewMap component: Initializing with', locations.length, 'locations:', locations);
+    initCalledRef.current = false;
+
+    const addMarker = (map, position, loc, index, bounds) => {
+      new window.google.maps.Marker({
+        position,
+        map,
+        title: `${index + 1}. ${loc.title}`,
+        label: {
+          text: (index + 1).toString(),
+          color: 'white',
+          fontWeight: 'bold',
+          fontSize: '12px'
+        },
+        icon: {
+          path: window.google.maps.SymbolPath.CIRCLE,
+          fillColor: '#EA4335',
+          fillOpacity: 1,
+          strokeColor: '#B31412',
+          strokeWeight: 2,
+          scale: 14
+        },
+        clickable: false
+      });
+      bounds.extend(position);
+    };
 
     const initMap = () => {
-      if (!mapRef.current || !window.google?.maps) return;
+      if (initCalledRef.current) return;
+      console.log('🗺️ PreviewMap: initMap called, mapRef:', !!mapRef.current, 'google:', !!window.google?.maps);
+      if (!mapRef.current || !window.google?.maps) {
+        console.log('🗺️ PreviewMap: mapRef or google.maps not ready, retrying in 500ms');
+        setTimeout(initMap, 500);
+        return;
+      }
+      initCalledRef.current = true;
 
       try {
-        // Calculate bounds
         const bounds = new window.google.maps.LatLngBounds();
-        locations.forEach(loc => bounds.extend({ lat: loc.lat, lng: loc.lng }));
-
+        
+        // Separate locations with coords vs those needing geocoding
+        const withCoords = locations.filter(l => l.lat && l.lng);
+        const needsGeocoding = locations.filter(l => !l.lat && !l.lng && l.address);
+        
+        console.log('🗺️ PreviewMap: withCoords:', withCoords.length, 'needsGeocoding:', needsGeocoding.length);
+        
+        // Set initial center from first location with coords, or default
+        const initialCenter = withCoords.length > 0
+          ? { lat: withCoords[0].lat, lng: withCoords[0].lng }
+          : { lat: 41.3874, lng: 2.1686 }; // Default fallback
+        
         const map = new window.google.maps.Map(mapRef.current, {
-          center: bounds.getCenter(),
+          center: initialCenter,
           zoom: 13,
           mapTypeId: 'roadmap',
-          disableDefaultUI: true,       // Remove all controls
-          gestureHandling: 'none',      // Disable all gestures (scroll, drag, pinch)
+          disableDefaultUI: true,
+          gestureHandling: 'none',
           zoomControl: false,
           mapTypeControl: false,
           scaleControl: false,
@@ -49,64 +96,99 @@ function PreviewMap({ locations }) {
             { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] }
           ]
         });
+        mapInstanceRef.current = map;
 
-        // Fit bounds with padding
-        if (locations.length > 1) {
-          map.fitBounds(bounds, { top: 40, right: 40, bottom: 40, left: 40 });
-        }
-
-        // Add numbered markers
+        // Add markers for locations with coordinates
         locations.forEach((loc, i) => {
-          new window.google.maps.Marker({
-            position: { lat: loc.lat, lng: loc.lng },
-            map,
-            title: `${i + 1}. ${loc.title}`,
-            label: {
-              text: (i + 1).toString(),
-              color: 'white',
-              fontWeight: 'bold',
-              fontSize: '12px'
-            },
-            icon: {
-              path: window.google.maps.SymbolPath.CIRCLE,
-              fillColor: '#EA4335',
-              fillOpacity: 1,
-              strokeColor: '#B31412',
-              strokeWeight: 2,
-              scale: 14
-            },
-            clickable: false
-          });
+          if (loc.lat && loc.lng) {
+            const position = { lat: Number(loc.lat), lng: Number(loc.lng) };
+            addMarker(map, position, loc, i, bounds);
+          }
         });
 
+        // Geocode locations without coordinates
+        if (needsGeocoding.length > 0) {
+          const geocoder = new window.google.maps.Geocoder();
+          let geocodedCount = 0;
+          
+          needsGeocoding.forEach((loc) => {
+            const originalIndex = locations.indexOf(loc);
+            geocoder.geocode({ address: loc.address }, (results, status) => {
+              geocodedCount++;
+              if (status === 'OK' && results[0]) {
+                const position = results[0].geometry.location;
+                addMarker(map, position, loc, originalIndex, bounds);
+                console.log('🗺️ PreviewMap: Geocoded', loc.address, '->', position.lat(), position.lng());
+              } else {
+                console.warn('🗺️ PreviewMap: Geocoding failed for', loc.address, status);
+              }
+              // After all geocoding done, fit bounds
+              if (geocodedCount === needsGeocoding.length && !bounds.isEmpty()) {
+                if (locations.length > 1) {
+                  map.fitBounds(bounds, { top: 40, right: 40, bottom: 40, left: 40 });
+                } else {
+                  map.setCenter(bounds.getCenter());
+                  map.setZoom(15);
+                }
+              }
+            });
+          });
+        }
+
+        // Fit bounds for locations with coordinates
+        if (withCoords.length > 0 && !bounds.isEmpty()) {
+          if (withCoords.length > 1) {
+            map.fitBounds(bounds, { top: 40, right: 40, bottom: 40, left: 40 });
+          }
+        }
+
         setMapLoaded(true);
+        console.log('🗺️ PreviewMap: Map initialized successfully');
       } catch (err) {
-        console.error('PreviewMap init error:', err);
+        console.error('🗺️ PreviewMap init error:', err);
         setMapError(true);
       }
     };
 
     // Load Google Maps if not already loaded
     if (window.google?.maps) {
+      console.log('🗺️ PreviewMap: Google Maps already available');
       initMap();
     } else {
       const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
+      console.log('🗺️ PreviewMap: VITE_GOOGLE_MAPS_KEY available:', !!apiKey);
       if (!apiKey) {
+        console.error('🗺️ PreviewMap: No Google Maps API key!');
         setMapError(true);
         return;
       }
       // Check if script is already being loaded
       const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
       if (existingScript) {
-        existingScript.addEventListener('load', initMap);
+        console.log('🗺️ PreviewMap: Google Maps script tag found in DOM');
+        // Poll until google.maps is available (handles already-loaded and loading-in-progress)
+        const checkInterval = setInterval(() => {
+          if (window.google?.maps) {
+            clearInterval(checkInterval);
+            initMap();
+          }
+        }, 200);
+        setTimeout(() => clearInterval(checkInterval), 15000);
         return;
       }
+      console.log('🗺️ PreviewMap: Loading Google Maps script...');
       const script = document.createElement('script');
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
       script.async = true;
       script.defer = true;
-      script.onload = initMap;
-      script.onerror = () => setMapError(true);
+      script.onload = () => {
+        console.log('🗺️ PreviewMap: Google Maps script loaded');
+        initMap();
+      };
+      script.onerror = (err) => {
+        console.error('🗺️ PreviewMap: Failed to load Google Maps script', err);
+        setMapError(true);
+      };
       document.head.appendChild(script);
     }
   }, [locations]);
@@ -1738,16 +1820,30 @@ export default function ItineraryPage() {
   
   // Extract location coordinates from content blocks for preview map
   const previewMapLocations = (() => {
-    if (!contentBlocks || contentBlocks.length === 0) return [];
+    if (!contentBlocks || contentBlocks.length === 0) {
+      console.log('🗺️ PreviewMap: No content blocks available');
+      return [];
+    }
     const locationBlocks = contentBlocks.filter(b => b.block_type === 'location');
-    return locationBlocks
+    console.log('🗺️ PreviewMap: Found', locationBlocks.length, 'location blocks');
+    const locs = locationBlocks
       .map(b => {
         const content = b.content || {};
         const loc = content.mainLocation || content;
-        if (loc.lat && loc.lng) return { lat: Number(loc.lat), lng: Number(loc.lng), title: loc.title || loc.name || 'Location' };
+        const title = loc.title || loc.name || 'Location';
+        console.log('🗺️ PreviewMap: Block', b.id, 'content keys:', Object.keys(content), 'loc:', { lat: loc.lat, lng: loc.lng, address: loc.address, title });
+        if (loc.lat && loc.lng) {
+          return { lat: Number(loc.lat), lng: Number(loc.lng), title };
+        }
+        // Fallback: include address for geocoding if no coordinates
+        if (loc.address) {
+          return { address: loc.address, title };
+        }
         return null;
       })
       .filter(Boolean);
+    console.log('🗺️ PreviewMap: Final locations:', locs);
+    return locs;
   })();
   
   // Debug logging for author display
@@ -2277,6 +2373,9 @@ export default function ItineraryPage() {
           {/* Preview Map — non-clickable, shows tour locations */}
           {previewMapLocations.length > 0 && (
             <div style={{ marginBottom: '32px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' }}>
+                Route overview
+              </h3>
               <PreviewMap locations={previewMapLocations} />
             </div>
           )}
