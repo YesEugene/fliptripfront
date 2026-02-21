@@ -1060,7 +1060,9 @@ export default function TripVisualizerPage() {
               city: tourInfo.city,
               title: tourInfo.title,
               preview: tourInfo.preview, // Preserve preview_media_url
-              tags: tourInfo.tags // Save interests immediately
+              tags: tourInfo.tags, // Save interests immediately
+              highlights: tourInfo.highlights || {}, // Preserve highlights
+              previewImages: tourInfo.previewImages || [] // Preserve gallery images
             })
           });
           
@@ -1127,6 +1129,8 @@ export default function TripVisualizerPage() {
             status: 'pending',
             daily_plan: [], // Empty daily_plan for visualizer tours
             tags: tourInfo.tags || [], // Tags/interests from tour header
+            highlights: tourInfo.highlights || {}, // "What's Inside This Walk" structured highlights
+            previewImages: tourInfo.previewImages || [], // Gallery images for preview carousel
             meta: {
               interests: [],
               audience: 'him',
