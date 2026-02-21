@@ -1,8 +1,12 @@
 /* Scoped max width for HomePage only */
 .home-page-wrapper {
-  max-width: 750px;
-  margin: 0 auto;
+  max-width: 750px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  margin-top: 0;
+  margin-bottom: 0;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* Cards grid styles - Always 2 cards per row */

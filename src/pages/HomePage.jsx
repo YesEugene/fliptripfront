@@ -772,15 +772,11 @@ export default function HomePage() {
   };
 
               return (
-                <div style={{ 
+                <div className="home-page-wrapper" style={{ 
                   minHeight: '100vh', 
                   backgroundColor: 'white', 
-                  margin: 0, 
                   padding: 0, 
-                  position: 'relative',
-                  maxWidth: '750px',
-                  marginLeft: 'auto',
-                  marginRight: 'auto'
+                  position: 'relative'
                 }}>
                   {/* Header Section with random city image - always show */}
                     <div className="red-header-section" style={{
