@@ -2088,7 +2088,8 @@ export default function TripVisualizerPage() {
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'flex-start',
-          padding: '20px 30px'
+          padding: '20px 30px',
+          boxSizing: 'border-box'
         }}>
           {/* Background image with overlay */}
           {tourInfo.preview && (
@@ -3969,8 +3970,10 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
   const handleGenerateHighlights = async () => {
     setGeneratingHighlights(true);
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
+      const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'https://fliptripbackend.vercel.app';
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      
+      console.log('🤖 Generating highlights, API URL:', `${API_BASE_URL}/api/generate-highlights`);
       
       const response = await fetch(`${API_BASE_URL}/api/generate-highlights`, {
         method: 'POST',
@@ -3991,6 +3994,13 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
         })
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Generate highlights server error:', response.status, errorText);
+        alert(`Failed to generate highlights (${response.status}). The AI service may be temporarily unavailable. You can fill in the highlights manually.`);
+        return;
+      }
+
       const data = await response.json();
       if (data.success && data.highlights) {
         onChange({
@@ -4007,11 +4017,11 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
         });
       } else {
         console.error('Failed to generate highlights:', data.error);
-        alert('Failed to generate highlights. Please try again or fill in manually.');
+        alert(`Failed to generate highlights: ${data.error || 'Unknown error'}. You can fill in the highlights manually.`);
       }
     } catch (error) {
       console.error('Error generating highlights:', error);
-      alert('Failed to generate highlights. Please check your connection and try again.');
+      alert(`Failed to generate highlights: ${error.message}. Please check your connection and try again.`);
     } finally {
       setGeneratingHighlights(false);
     }
