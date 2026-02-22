@@ -2050,7 +2050,7 @@ export default function TripVisualizerPage() {
       </div>
 
       {/* Main Content */}
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
+      <div style={{ maxWidth: '750px', margin: '0 auto', padding: '40px 20px' }}>
         {/* Admin editing indicator */}
         {isEditingOtherTour && (
           <div style={{
