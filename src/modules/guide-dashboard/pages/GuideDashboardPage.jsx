@@ -91,7 +91,7 @@ export default function GuideDashboardPage() {
           try {
             const token = localStorage.getItem('authToken');
             if (token && tour.id) {
-              const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripbackend.vercel.app';
+              const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
               const response = await fetch(`${API_BASE_URL}/api/tour-content-blocks?tourId=${tour.id}`, {
                 headers: {
                   'Authorization': `Bearer ${token}`
@@ -311,7 +311,7 @@ export default function GuideDashboardPage() {
       const token = localStorage.getItem('authToken');
       if (!token || !tour.id) return 0;
       
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://fliptripbackend.vercel.app'}/api/tour-content-blocks?tourId=${tour.id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app'}/api/tour-content-blocks?tourId=${tour.id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

@@ -4119,7 +4119,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
   const handleGenerateHighlights = async () => {
     setGeneratingHighlights(true);
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'https://fliptripbackend.vercel.app';
+      const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       
       console.log('🤖 Generating highlights, API URL:', `${API_BASE_URL}/api/generate-highlights`);

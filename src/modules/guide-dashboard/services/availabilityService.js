@@ -2,7 +2,7 @@
  * Availability Service - API calls for managing tour availability
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripbackend.vercel.app';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
 
 // Get auth token from localStorage
 const getAuthToken = () => {

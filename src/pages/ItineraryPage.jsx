@@ -721,11 +721,10 @@ export default function ItineraryPage() {
             if (hasUnmigratedPhotos && tourIdParam) {
               console.log('🔄 ItineraryPage: Migrating Google photos to Supabase in background...');
               try {
-                const API_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
-                const migrateResponse = await fetch(`${API_URL}/api/migrate-all-photos`, {
+                const migrateResponse = await fetch(`${API_BASE_URL}/api/migrate-all-photos`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ tourId: tourIdParam })
+                  body: JSON.stringify({ tourId: tourIdParam, limit: 5 })
                 });
                 const migrateData = await migrateResponse.json();
                 console.log('📋 Photo migration result:', migrateData);
