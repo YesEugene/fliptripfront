@@ -617,9 +617,56 @@ export default function TripVisualizerPage() {
             }
             setBlocks(sortedBlocks);
             
-            // NOTE: Auto-refresh of Google Places photos was removed to reduce API costs.
-            // Photos are refreshed via the frontend refreshPhotoUrl() helper (replaces API key in URLs)
-            // and the manual "🔄 Refresh Photos" button in the bottom panel.
+            // One-time auto-refresh: only for locations that have NEVER been refreshed
+            // After first refresh, photos are cached in Supabase and won't need refreshing again
+            setTimeout(async () => {
+              const locationBlocks = sortedBlocks.filter(b => b.block_type === 'location');
+              const hasUnrefreshedGooglePhotos = locationBlocks.some(b => {
+                const content = b.content || {};
+                const checkNeedsRefresh = (loc) => {
+                  if (!loc) return false;
+                  // If already refreshed, skip — photos are cached in Supabase
+                  if (loc._photosRefreshedAt) return false;
+                  const photos = loc.photos || (loc.photo ? [loc.photo] : []);
+                  return photos.some(p => p && typeof p === 'string' && p.includes('maps.googleapis.com/maps/api/place/photo'));
+                };
+                return checkNeedsRefresh(content.mainLocation) || 
+                       (content.alternativeLocations || []).some(alt => checkNeedsRefresh(alt));
+              });
+              
+              if (hasUnrefreshedGooglePhotos && tourIdToLoad) {
+                console.log('🔄 One-time photo migration: caching Google photos to Supabase...');
+                try {
+                  const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+                  const refreshResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/refresh-tour-photos`, {
+                    method: 'POST',
+                    headers: { 
+                      'Content-Type': 'application/json',
+                      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    },
+                    body: JSON.stringify({ tourId: tourIdToLoad })
+                  });
+                  const refreshData = await refreshResponse.json();
+                  console.log('📋 Photo migration result:', refreshData);
+                  if (refreshData.success && refreshData.updated > 0) {
+                    // Reload blocks with fresh Supabase URLs
+                    const freshBlocksResponse = await fetch(blocksUrl);
+                    if (freshBlocksResponse.ok) {
+                      const freshBlocksData = await freshBlocksResponse.json();
+                      if (freshBlocksData.success && freshBlocksData.blocks) {
+                        const freshSorted = freshBlocksData.blocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+                        setBlocks(freshSorted);
+                        console.log('✅ Blocks reloaded with cached Supabase photos');
+                      }
+                    }
+                  }
+                } catch (refreshError) {
+                  console.warn('⚠️ Photo migration failed:', refreshError.message);
+                }
+              } else {
+                console.log('✅ All photos already cached — no refresh needed');
+              }
+            }, 500);
           } else {
             console.warn('⚠️ Blocks API returned success: false', blocksData);
             setBlocks([]);
