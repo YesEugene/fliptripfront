@@ -617,47 +617,9 @@ export default function TripVisualizerPage() {
             }
             setBlocks(sortedBlocks);
             
-            // Auto-refresh expired Google Places photos (runs in background after blocks load)
-            // Use setTimeout to not block the initial render
-            setTimeout(async () => {
-              const locationBlocks = sortedBlocks.filter(b => b.block_type === 'location');
-              const hasGooglePhotos = locationBlocks.some(b => {
-                const content = b.content || {};
-                const checkPhotos = (loc) => {
-                  if (!loc) return false;
-                  const photos = loc.photos || (loc.photo ? [loc.photo] : []);
-                  return photos.some(p => p && typeof p === 'string' && p.includes('maps.googleapis.com/maps/api/place/photo'));
-                };
-                return checkPhotos(content.mainLocation) || 
-                       (content.alternativeLocations || []).some(alt => checkPhotos(alt));
-              });
-              
-              if (hasGooglePhotos && tourIdToLoad) {
-                console.log('🔄 Auto-refreshing Google Places photos in background...');
-                try {
-                  const refreshResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/refresh-tour-photos`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ tourId: tourIdToLoad })
-                  });
-                  const refreshData = await refreshResponse.json();
-                  console.log('📋 Auto-refresh result:', refreshData);
-                  if (refreshData.success && refreshData.updated > 0) {
-                    const freshBlocksResponse = await fetch(blocksUrl);
-                    if (freshBlocksResponse.ok) {
-                      const freshBlocksData = await freshBlocksResponse.json();
-                      if (freshBlocksData.success && freshBlocksData.blocks) {
-                        const freshSorted = freshBlocksData.blocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
-                        setBlocks(freshSorted);
-                        console.log('✅ Blocks reloaded with fresh photos');
-                      }
-                    }
-                  }
-                } catch (refreshError) {
-                  console.warn('⚠️ Auto-refresh failed:', refreshError.message);
-                }
-              }
-            }, 500);
+            // NOTE: Auto-refresh of Google Places photos was removed to reduce API costs.
+            // Photos are refreshed via the frontend refreshPhotoUrl() helper (replaces API key in URLs)
+            // and the manual "🔄 Refresh Photos" button in the bottom panel.
           } else {
             console.warn('⚠️ Blocks API returned success: false', blocksData);
             setBlocks([]);
