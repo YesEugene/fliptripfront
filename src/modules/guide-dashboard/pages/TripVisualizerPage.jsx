@@ -89,6 +89,7 @@ export default function TripVisualizerPage() {
   const [showLocationSelector, setShowLocationSelector] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
   const [showNotification, setShowNotification] = useState(false);
+  const [isRefreshingPhotos, setIsRefreshingPhotos] = useState(false);
 
   // Show notification message for 2 seconds
   const showNotificationMessage = (message) => {
@@ -99,6 +100,61 @@ export default function TripVisualizerPage() {
       setNotificationMessage('');
     }, 2000);
   };
+
+  // Refresh location photos (manual or auto)
+  const handleRefreshPhotos = useCallback(async (force = false) => {
+    if (!tourId || isRefreshingPhotos) return;
+    
+    // Check if any location blocks exist with Google Places photos
+    const locationBlocks = blocks.filter(b => b.block_type === 'location');
+    if (locationBlocks.length === 0) return;
+    
+    const hasGooglePhotos = locationBlocks.some(b => {
+      const content = b.content || {};
+      const checkPhotos = (loc) => {
+        if (!loc) return false;
+        const photos = loc.photos || (loc.photo ? [loc.photo] : []);
+        return photos.some(p => p && typeof p === 'string' && p.includes('maps.googleapis.com/maps/api/place/photo'));
+      };
+      return checkPhotos(content.mainLocation) || 
+             (content.alternativeLocations || []).some(alt => checkPhotos(alt));
+    });
+    
+    if (!hasGooglePhotos && !force) return;
+    
+    setIsRefreshingPhotos(true);
+    try {
+      console.log('🔄 Refreshing location photos...');
+      const refreshResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/refresh-tour-photos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tourId, force })
+      });
+      const refreshData = await refreshResponse.json();
+      console.log('📋 Photo refresh result:', refreshData);
+      
+      if (refreshData.success && refreshData.updated > 0) {
+        // Reload blocks to get fresh photo URLs
+        const blocksUrl = `${import.meta.env.VITE_API_URL}/api/tour-content-blocks?tourId=${tourId}`;
+        const freshBlocksResponse = await fetch(blocksUrl);
+        if (freshBlocksResponse.ok) {
+          const freshBlocksData = await freshBlocksResponse.json();
+          if (freshBlocksData.success && freshBlocksData.blocks) {
+            const freshSorted = freshBlocksData.blocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+            setBlocks(freshSorted);
+            showNotificationMessage(`✅ Photos refreshed for ${refreshData.updated} block(s)`);
+          }
+        }
+      } else if (force) {
+        showNotificationMessage('No photos needed updating');
+      }
+    } catch (refreshError) {
+      console.warn('⚠️ Could not refresh photos:', refreshError.message);
+      if (force) showNotificationMessage('⚠️ Failed to refresh photos');
+    } finally {
+      setIsRefreshingPhotos(false);
+    }
+  }, [tourId, blocks, isRefreshingPhotos]);
 
   // Detect screen size for responsive layout
   useEffect(() => {
@@ -561,47 +617,47 @@ export default function TripVisualizerPage() {
             }
             setBlocks(sortedBlocks);
             
-            // Auto-refresh expired Google Places photos for location blocks
-            const locationBlocks = sortedBlocks.filter(b => b.block_type === 'location');
-            const hasStalePhotos = locationBlocks.some(b => {
-              const content = b.content || {};
-              const checkPhotos = (loc) => {
-                if (!loc) return false;
-                const photos = loc.photos || (loc.photo ? [loc.photo] : []);
-                return photos.some(p => p && typeof p === 'string' && p.includes('maps.googleapis.com/maps/api/place/photo'));
-              };
-              return checkPhotos(content.mainLocation) || 
-                     (content.alternativeLocations || []).some(alt => checkPhotos(alt));
-            });
-            
-            if (hasStalePhotos && tourIdToLoad) {
-              console.log('🔄 Found location blocks with Google Places photos, refreshing...');
-              try {
-                const refreshResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/refresh-tour-photos`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ tourId: tourIdToLoad })
-                });
-                const refreshData = await refreshResponse.json();
-                if (refreshData.success && refreshData.updated > 0) {
-                  console.log(`✅ Refreshed photos for ${refreshData.updated} block(s), reloading blocks...`);
-                  // Reload blocks to get fresh photo URLs
-                  const freshBlocksResponse = await fetch(blocksUrl);
-                  if (freshBlocksResponse.ok) {
-                    const freshBlocksData = await freshBlocksResponse.json();
-                    if (freshBlocksData.success && freshBlocksData.blocks) {
-                      const freshSorted = freshBlocksData.blocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
-                      setBlocks(freshSorted);
-                      console.log('✅ Blocks reloaded with fresh photos');
+            // Auto-refresh expired Google Places photos (runs in background after blocks load)
+            // Use setTimeout to not block the initial render
+            setTimeout(async () => {
+              const locationBlocks = sortedBlocks.filter(b => b.block_type === 'location');
+              const hasGooglePhotos = locationBlocks.some(b => {
+                const content = b.content || {};
+                const checkPhotos = (loc) => {
+                  if (!loc) return false;
+                  const photos = loc.photos || (loc.photo ? [loc.photo] : []);
+                  return photos.some(p => p && typeof p === 'string' && p.includes('maps.googleapis.com/maps/api/place/photo'));
+                };
+                return checkPhotos(content.mainLocation) || 
+                       (content.alternativeLocations || []).some(alt => checkPhotos(alt));
+              });
+              
+              if (hasGooglePhotos && tourIdToLoad) {
+                console.log('🔄 Auto-refreshing Google Places photos in background...');
+                try {
+                  const refreshResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/refresh-tour-photos`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tourId: tourIdToLoad })
+                  });
+                  const refreshData = await refreshResponse.json();
+                  console.log('📋 Auto-refresh result:', refreshData);
+                  if (refreshData.success && refreshData.updated > 0) {
+                    const freshBlocksResponse = await fetch(blocksUrl);
+                    if (freshBlocksResponse.ok) {
+                      const freshBlocksData = await freshBlocksResponse.json();
+                      if (freshBlocksData.success && freshBlocksData.blocks) {
+                        const freshSorted = freshBlocksData.blocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+                        setBlocks(freshSorted);
+                        console.log('✅ Blocks reloaded with fresh photos');
+                      }
                     }
                   }
-                } else {
-                  console.log('📷 No photo refresh needed or no changes made');
+                } catch (refreshError) {
+                  console.warn('⚠️ Auto-refresh failed:', refreshError.message);
                 }
-              } catch (refreshError) {
-                console.warn('⚠️ Could not auto-refresh photos:', refreshError.message);
               }
-            }
+            }, 500);
           } else {
             console.warn('⚠️ Blocks API returned success: false', blocksData);
             setBlocks([]);
@@ -2779,6 +2835,34 @@ export default function TripVisualizerPage() {
                 <span style={{ fontSize: '18px', fontWeight: 'bold', lineHeight: 1 }}>+</span>
                 Add New Block
               </button>
+
+              {/* Refresh Photos button - only show if there are location blocks */}
+              {blocks.some(b => b.block_type === 'location') && (
+                <button
+                  onClick={() => handleRefreshPhotos(true)}
+                  disabled={isRefreshingPhotos}
+                  style={{
+                    width: isMobile ? 'auto' : 'auto',
+                    height: '40px',
+                    backgroundColor: isRefreshingPhotos ? '#dbeafe' : '#eff6ff',
+                    color: '#2563eb',
+                    border: '1px solid #93c5fd',
+                    borderRadius: '10px',
+                    cursor: isRefreshingPhotos ? 'wait' : 'pointer',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    transition: 'all 0.2s',
+                    padding: '0 12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    whiteSpace: 'nowrap'
+                  }}
+                  title="Refresh expired Google Places photos for all locations"
+                >
+                  {isRefreshingPhotos ? '⏳' : '🔄'} {isRefreshingPhotos ? 'Refreshing...' : 'Refresh Photos'}
+                </button>
+              )}
 
               {/* Save as Draft button */}
               <button
