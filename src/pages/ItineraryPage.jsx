@@ -700,6 +700,50 @@ export default function ItineraryPage() {
           
           // If we have content blocks, mark as using new format
           setUseNewFormat(true);
+          
+          // One-time photo migration: cache Google Places photos to Supabase Storage
+          // This runs in the background so it doesn't slow down page load
+          setTimeout(async () => {
+            const isGooglePhotoUrl = (url) => url && typeof url === 'string' && url.includes('maps.googleapis.com/maps/api/place/photo');
+            const locationBlocks = loadedContentBlocks.filter(b => b.block_type === 'location');
+            const hasUnmigratedPhotos = locationBlocks.some(b => {
+              const content = b.content || {};
+              const checkLoc = (loc) => {
+                if (!loc) return false;
+                if (loc._photosRefreshedAt) return false; // Already migrated
+                const photos = loc.photos || (loc.photo ? [loc.photo] : []);
+                return photos.some(p => isGooglePhotoUrl(p));
+              };
+              return checkLoc(content.mainLocation) || 
+                     (content.alternativeLocations || []).some(alt => checkLoc(alt));
+            });
+            
+            if (hasUnmigratedPhotos && tourIdParam) {
+              console.log('🔄 ItineraryPage: Migrating Google photos to Supabase in background...');
+              try {
+                const API_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
+                const migrateResponse = await fetch(`${API_URL}/api/migrate-all-photos`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ tourId: tourIdParam })
+                });
+                const migrateData = await migrateResponse.json();
+                console.log('📋 Photo migration result:', migrateData);
+                if (migrateData.success && migrateData.stats?.migratedBlocks > 0) {
+                  // Reload blocks with Supabase URLs
+                  const freshBlocks = await loadBlocks();
+                  if (freshBlocks && freshBlocks.length > 0) {
+                    setContentBlocks(freshBlocks);
+                    console.log('✅ Blocks reloaded with cached Supabase photos');
+                  }
+                }
+              } catch (migrateErr) {
+                console.warn('⚠️ Photo migration failed (non-critical):', migrateErr.message);
+              }
+            } else {
+              console.log('✅ All photos already cached — no migration needed');
+            }
+          }, 1000); // Delay 1s to let the page render first
         } else {
           console.log('ℹ️ No content blocks found for this tour after retry');
         }
