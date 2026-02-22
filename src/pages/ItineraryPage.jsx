@@ -1865,13 +1865,13 @@ export default function ItineraryPage() {
   return (
     <div 
       className="itinerary-container"
-      style={(previewOnly && !isPaid && isMobile) ? {
+      style={isMobile ? {
         paddingTop: '0',
         marginTop: '0'
       } : undefined}
     >
-      {/* White Header with Logo and Auth Buttons — hidden on mobile in preview mode */}
-      {!(previewOnly && !isPaid && isMobile) && (
+      {/* White Header with Logo and Auth Buttons — hidden on mobile */}
+      {!isMobile && (
       <div style={{
         backgroundColor: 'white',
         padding: '20px',
@@ -1978,26 +1978,28 @@ export default function ItineraryPage() {
       }}>
       {/* Hero Image Section */}
       <div style={{
-        width: (previewOnly && !isPaid && isMobile) ? '100%' : (isMobile ? '90%' : '100%'),
+        width: isMobile ? '100%' : '100%',
         boxSizing: 'border-box',
-        marginTop: (previewOnly && !isPaid && isMobile) ? 'calc(-1 * env(safe-area-inset-top, 0px))' : '0',
-        marginBottom: (previewOnly && !isPaid) ? '0' : '32px',
-        marginLeft: (previewOnly && !isPaid && isMobile) ? '0' : (isMobile ? 'auto' : '0'),
-        marginRight: (previewOnly && !isPaid && isMobile) ? '0' : (isMobile ? 'auto' : '0'),
+        marginTop: isMobile ? 'calc(-1 * env(safe-area-inset-top, 0px))' : '0',
+        marginBottom: (previewOnly && !isPaid) ? '0' : (isMobile ? '0' : '32px'),
+        marginLeft: '0',
+        marginRight: '0',
         padding: '0'
       }}>
         <div 
           style={{
             position: 'relative',
             width: '100%',
-            height: (previewOnly && !isPaid) ? (isMobile ? 'calc(350px + env(safe-area-inset-top, 0px))' : '400px') : '300px',
-            borderRadius: (previewOnly && !isPaid && isMobile) ? '0' : '16px',
+            height: isMobile 
+              ? 'calc(350px + env(safe-area-inset-top, 0px))' 
+              : ((previewOnly && !isPaid) ? '400px' : '300px'),
+            borderRadius: isMobile ? '0' : '16px',
             overflow: 'hidden',
             display: 'flex',
             alignItems: 'flex-start',
             justifyContent: 'flex-start',
-            padding: (previewOnly && !isPaid) ? '0' : '20px',
-            ...((previewOnly && !isPaid) ? {} : {
+            padding: isMobile ? '0' : ((previewOnly && !isPaid) ? '0' : '20px'),
+            ...(isMobile ? {} : (previewOnly && !isPaid) ? {} : {
               backgroundImage: `url(${heroImage})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center'
@@ -2022,19 +2024,19 @@ export default function ItineraryPage() {
             }
           }}
         >
-          {/* Preview carousel background */}
-          {previewOnly && !isPaid && (
+          {/* Carousel/image background — for preview mode OR mobile full mode */}
+          {(previewOnly && !isPaid || isMobile) && (
             <div style={{
               position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-              backgroundImage: `url(${allPreviewImages[currentSlide] || heroImage})`,
+              backgroundImage: `url(${(previewOnly && !isPaid) ? (allPreviewImages[currentSlide] || heroImage) : heroImage})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               transition: 'background-image 0.3s ease'
             }} />
           )}
 
-          {/* Back button for mobile preview */}
-          {previewOnly && !isPaid && isMobile && (
+          {/* Back button for mobile */}
+          {isMobile && (
             <button
               onClick={handleBack}
               style={{
@@ -2087,8 +2089,8 @@ export default function ItineraryPage() {
             </div>
           )}
 
-          {/* Gradient & Title — only for full/paid mode */}
-          {(!previewOnly || isPaid) && (
+          {/* Gradient & Title — only for desktop full/paid mode (not mobile) */}
+          {(!previewOnly || isPaid) && !isMobile && (
             <>
               {/* Black Gradient Overlay */}
               <div style={{
@@ -2593,11 +2595,102 @@ export default function ItineraryPage() {
       ) : (
       <>
       {/* ========== FULL / PAID MODE ========== */}
+
+      {/* Mobile: Title below image + Author row (like preview page) */}
+      {isMobile && (
+        <div style={{ 
+          width: '90%', 
+          margin: '0 auto', 
+          boxSizing: 'border-box',
+          paddingTop: '20px'
+        }}>
+          {/* Tour title below image */}
+          <h1 style={{
+            fontSize: '24px',
+            fontWeight: '700',
+            color: '#111827',
+            margin: '0 0 8px 0',
+            lineHeight: '1.2'
+          }}>
+            {tourTitle}
+          </h1>
+
+          {/* Country + Price row */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '20px'
+          }}>
+            {(tourCountry || cityName) && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: '#374151' }}>
+                <span style={{ color: '#3b82f6', fontSize: '15px' }}>📍</span>
+                {tourCountry ? `${tourCountry}` : cityName}
+              </div>
+            )}
+          </div>
+
+          {/* Author row: avatar+info left, Download PDF right */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '24px',
+            gap: '12px'
+          }}>
+            {guideName && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  backgroundColor: '#e5e7eb',
+                  overflow: 'hidden',
+                  flexShrink: 0
+                }}>
+                  {guideAvatar ? (
+                    <img src={guideAvatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#9ca3af' }}>👤</div>
+                  )}
+                </div>
+                <div style={{ lineHeight: '1.3' }}>
+                  <div style={{ fontSize: '12px', color: '#6b7280' }}>Tour created by</div>
+                  <div style={{ fontWeight: '600', color: '#111827', fontSize: '15px' }}>{guideName}</div>
+                </div>
+              </div>
+            )}
+            <button
+              onClick={handleDownloadPDF}
+              style={{
+                backgroundColor: '#2059ff',
+                color: '#ebf6fa',
+                border: 'none',
+                borderRadius: '24px',
+                padding: '12px 20px',
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <img src={PDFIcon} alt="PDF" style={{ width: '16px', height: '16px', filter: 'brightness(0) invert(1)' }} />
+              Download PDF
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Tags Section - Match visualizer exactly */}
       <div style={{ 
         width: isMobile ? '90%' : '100%',
         boxSizing: 'border-box',
-        marginTop: '-10px',
+        marginTop: isMobile ? '0' : '-10px',
         marginBottom: '30px',
         marginLeft: isMobile ? 'auto' : '0',
         marginRight: isMobile ? 'auto' : '0',
@@ -2696,8 +2789,8 @@ export default function ItineraryPage() {
         </div>
       </div>
 
-      {/* From author block - Show only if using new format (contentBlocks) - Match visualizer exactly */}
-      {useNewFormat && guideName && (
+      {/* From author block - Show only on desktop in new format */}
+      {useNewFormat && guideName && !isMobile && (
         <div style={{
           width: isMobile ? '90%' : '100%',
           boxSizing: 'border-box',
