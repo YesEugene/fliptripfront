@@ -1059,19 +1059,13 @@ export default function HomePage() {
           </div>
         </div>
 
-      {/* Constrained content wrapper - max 750px centered */}
-      <div className="home-page-wrapper" style={{
-        maxWidth: '750px',
-        marginLeft: 'auto',
-        marginRight: 'auto',
-        overflow: 'hidden'
-      }}>
-
       {/* Quick Filter Bar - Horizontal filter strip below hero image */}
       <div 
         style={{
           backgroundColor: 'white',
           padding: '12px 20px',
+          maxWidth: '750px',
+          margin: '0 auto',
           borderBottom: '1px solid #e5e7eb',
           position: 'relative',
           zIndex: 100
@@ -1824,6 +1818,8 @@ export default function HomePage() {
       <div style={{ 
         backgroundColor: 'white', 
         padding: '15px 20px',
+        maxWidth: '750px',
+        margin: '0 auto',
         position: 'relative',
         zIndex: 1
       }}>
@@ -2443,8 +2439,6 @@ export default function HomePage() {
         </div>
         )}
       </div>
-
-      </div>{/* Close constrained content wrapper */}
 
       {/* Date Range Picker Modal - Quick Filter */}
       {showDatePicker && (
