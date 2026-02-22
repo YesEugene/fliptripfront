@@ -2033,6 +2033,7 @@ export default function ItineraryPage() {
           style={{
             position: 'relative',
             width: '100%',
+            boxSizing: 'border-box',
             height: isMobile 
               ? 'calc(350px + env(safe-area-inset-top, 0px))' 
               : ((previewOnly && !isPaid) ? '400px' : '300px'),
