@@ -3986,11 +3986,33 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
           tourTitle: tourInfo.title,
           tourDescription: tourInfo.description,
           city: tourInfo.city,
-          blocks: tourBlocks.map(b => ({
-            block_type: b.block_type,
-            content: b.content,
-            sort_order: b.sort_order
-          }))
+          // Strip photos/images from blocks to avoid 413 payload too large
+          blocks: tourBlocks.map(b => {
+            const content = b.content || {};
+            const stripped = {};
+            // Only keep text-related fields, skip photos/images/base64
+            for (const [key, value] of Object.entries(content)) {
+              if (key === 'photos' || key === 'photo' || key === 'image') continue;
+              if (typeof value === 'string' && value.startsWith('data:image/')) continue;
+              if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                // For nested objects like mainLocation, strip photos too
+                const nestedStripped = {};
+                for (const [nk, nv] of Object.entries(value)) {
+                  if (nk === 'photos' || nk === 'photo' || nk === 'image') continue;
+                  if (typeof nv === 'string' && nv.startsWith('data:image/')) continue;
+                  nestedStripped[nk] = nv;
+                }
+                stripped[key] = nestedStripped;
+              } else {
+                stripped[key] = value;
+              }
+            }
+            return {
+              block_type: b.block_type,
+              content: stripped,
+              sort_order: b.sort_order
+            };
+          })
         })
       });
 
