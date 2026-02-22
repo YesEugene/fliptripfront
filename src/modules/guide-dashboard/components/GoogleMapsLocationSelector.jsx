@@ -210,6 +210,7 @@ const GoogleMapsLocationSelector = ({ isOpen, onClose, onSelectLocation, city })
       onSelectLocation({
         title: placeDetails.name || '',
         address: placeDetails.address || '',
+        place_id: placeDetails.place_id || selectedPlace || null, // Save place_id for photo refresh
         price_level: priceLevelValue,
         price_level_display: placeDetails.price_level || '', // Keep display format for reference
         approximate_cost: approximateCostValue,

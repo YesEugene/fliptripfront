@@ -560,6 +560,48 @@ export default function TripVisualizerPage() {
               console.warn('⚠️ Map block NOT found in sortedBlocks!');
             }
             setBlocks(sortedBlocks);
+            
+            // Auto-refresh expired Google Places photos for location blocks
+            const locationBlocks = sortedBlocks.filter(b => b.block_type === 'location');
+            const hasStalePhotos = locationBlocks.some(b => {
+              const content = b.content || {};
+              const checkPhotos = (loc) => {
+                if (!loc) return false;
+                const photos = loc.photos || (loc.photo ? [loc.photo] : []);
+                return photos.some(p => p && typeof p === 'string' && p.includes('maps.googleapis.com/maps/api/place/photo'));
+              };
+              return checkPhotos(content.mainLocation) || 
+                     (content.alternativeLocations || []).some(alt => checkPhotos(alt));
+            });
+            
+            if (hasStalePhotos && tourIdToLoad) {
+              console.log('🔄 Found location blocks with Google Places photos, refreshing...');
+              try {
+                const refreshResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/refresh-tour-photos`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ tourId: tourIdToLoad })
+                });
+                const refreshData = await refreshResponse.json();
+                if (refreshData.success && refreshData.updated > 0) {
+                  console.log(`✅ Refreshed photos for ${refreshData.updated} block(s), reloading blocks...`);
+                  // Reload blocks to get fresh photo URLs
+                  const freshBlocksResponse = await fetch(blocksUrl);
+                  if (freshBlocksResponse.ok) {
+                    const freshBlocksData = await freshBlocksResponse.json();
+                    if (freshBlocksData.success && freshBlocksData.blocks) {
+                      const freshSorted = freshBlocksData.blocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+                      setBlocks(freshSorted);
+                      console.log('✅ Blocks reloaded with fresh photos');
+                    }
+                  }
+                } else {
+                  console.log('📷 No photo refresh needed or no changes made');
+                }
+              } catch (refreshError) {
+                console.warn('⚠️ Could not auto-refresh photos:', refreshError.message);
+              }
+            }
           } else {
             console.warn('⚠️ Blocks API returned success: false', blocksData);
             setBlocks([]);
@@ -3460,6 +3502,7 @@ export default function TripVisualizerPage() {
                   })(),
                   photos: finalPhotos, // Use photos array from Google Maps
                   photo: finalPhotos[0] || null, // Keep single photo for backward compatibility
+                  place_id: locationData.place_id || currentContent.mainLocation?.place_id || null, // Save place_id for photo refresh
                   rating: locationData.rating !== null && locationData.rating !== undefined 
                     ? Number(locationData.rating) 
                     : (currentContent.mainLocation?.rating || null),
@@ -3522,6 +3565,7 @@ export default function TripVisualizerPage() {
                 })(),
                 photos: finalAltPhotos, // Use photos array from Google Maps
                 photo: finalAltPhotos[0] || null, // Keep single photo for backward compatibility
+                place_id: locationData.place_id || alternativeLocations[editingLocationIndex]?.place_id || null, // Save place_id for photo refresh
                 rating: locationData.rating || alternativeLocations[editingLocationIndex]?.rating || null,
                 user_ratings_total: locationData.user_ratings_total || alternativeLocations[editingLocationIndex]?.user_ratings_total || null,
                 city_id: locationData.city_id || alternativeLocations[editingLocationIndex]?.city_id || null,
