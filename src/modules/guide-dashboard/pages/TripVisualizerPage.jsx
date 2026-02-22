@@ -6,6 +6,18 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getCurrentUser } from '../../auth/services/authService';
+
+/**
+ * Refresh Google Places photo URL with current frontend API key.
+ * Old photos may contain an expired/rotated backend key.
+ */
+function refreshPhotoUrl(url) {
+  if (!url || typeof url !== 'string') return url;
+  if (!url.includes('maps.googleapis.com/maps/api/place/photo')) return url;
+  const frontendKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
+  if (!frontendKey) return url;
+  return url.replace(/([?&])key=[^&]+/, `$1key=${frontendKey}`);
+}
 import { getGuideProfile } from '../../../modules/guide-profile';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
 import PDFIcon from '../../../assets/PDF.svg';
@@ -6412,7 +6424,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                     {(() => {
                       const photos = currentLocation.photos || (currentLocation.photo ? [currentLocation.photo] : []);
                       if (photos.length > 0) {
-                        const currentPhoto = photos[0];
+                        const currentPhoto = refreshPhotoUrl(photos[0]);
                         return (
                           <>
                             <img 

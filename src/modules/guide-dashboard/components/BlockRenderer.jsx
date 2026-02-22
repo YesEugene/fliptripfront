@@ -5,6 +5,27 @@
 import { useState, useEffect, useRef } from 'react';
 import { PhotoCarousel, FullscreenPhotoViewer } from './PhotoCarousel';
 
+/**
+ * Refresh Google Places photo URL with current frontend API key.
+ * Old photos may contain an expired/rotated backend key — this replaces it.
+ */
+function refreshPhotoUrl(url) {
+  if (!url || typeof url !== 'string') return url;
+  // Only process Google Maps photo URLs
+  if (!url.includes('maps.googleapis.com/maps/api/place/photo')) return url;
+  const frontendKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
+  if (!frontendKey) return url;
+  // Replace the key parameter with the current frontend key
+  return url.replace(/([?&])key=[^&]+/, `$1key=${frontendKey}`);
+}
+
+/** Apply refreshPhotoUrl to an array of photo URLs */
+function refreshPhotoUrls(photos) {
+  if (!photos) return photos;
+  if (Array.isArray(photos)) return photos.map(refreshPhotoUrl);
+  return refreshPhotoUrl(photos);
+}
+
 // Alternative Location Photo Component - handles photo display for alternative locations
 // NOTE: Clicking on photo should switch location, NOT open fullscreen
 function AlternativeLocationPhoto({ altLocation }) {
@@ -15,10 +36,10 @@ function AlternativeLocationPhoto({ altLocation }) {
   
   const altPhotos = altLocation.photos || altLocation.photo || [];
   const altPhotosArray = Array.isArray(altPhotos) ? altPhotos : (altPhotos ? [altPhotos] : []);
-  // Filter out invalid photos (must be valid HTTP URLs or base64 data URIs)
-  const validAltPhotos = altPhotosArray.filter(p => 
-    p && typeof p === 'string' && (p.startsWith('http') || p.startsWith('data:image/'))
-  );
+  // Filter out invalid photos (must be valid HTTP URLs or base64 data URIs) and refresh API keys
+  const validAltPhotos = altPhotosArray
+    .filter(p => p && typeof p === 'string' && (p.startsWith('http') || p.startsWith('data:image/')))
+    .map(refreshPhotoUrl);
   const currentPhoto = validAltPhotos[currentIndex] || validAltPhotos[0];
   
   // Debug logging
@@ -365,10 +386,10 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
               })
             });
             
-            // Verify photos are valid URLs or base64 data URIs
-            const validPhotos = mainPhotosArray.filter(p => 
-              p && typeof p === 'string' && (p.startsWith('http') || p.startsWith('data:image/'))
-            );
+            // Verify photos are valid URLs or base64 data URIs, and refresh API keys
+            const validPhotos = mainPhotosArray
+              .filter(p => p && typeof p === 'string' && (p.startsWith('http') || p.startsWith('data:image/')))
+              .map(refreshPhotoUrl);
             if (validPhotos.length !== mainPhotosArray.length) {
               const invalidPhotos = mainPhotosArray.filter(p => !p || typeof p !== 'string' || (!p.startsWith('http') && !p.startsWith('data:image/')));
               console.warn('⚠️ Some main location photos are invalid:', {

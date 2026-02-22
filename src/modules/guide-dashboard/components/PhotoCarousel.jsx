@@ -6,6 +6,18 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 
+/**
+ * Refresh Google Places photo URL with current frontend API key.
+ * Old photos may contain an expired/rotated backend key.
+ */
+function refreshPhotoUrl(url) {
+  if (!url || typeof url !== 'string') return url;
+  if (!url.includes('maps.googleapis.com/maps/api/place/photo')) return url;
+  const frontendKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
+  if (!frontendKey) return url;
+  return url.replace(/([?&])key=[^&]+/, `$1key=${frontendKey}`);
+}
+
 export function PhotoCarousel({ photos, onPhotoClick }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
@@ -73,7 +85,8 @@ export function PhotoCarousel({ photos, onPhotoClick }) {
   }
 
   // Normalize photos array - support both single photo (string) and array
-  const photosArray = Array.isArray(photos) ? photos : [photos];
+  // Refresh Google Places photo URLs with current API key
+  const photosArray = (Array.isArray(photos) ? photos : [photos]).map(refreshPhotoUrl);
   const currentPhoto = photosArray[currentIndex] || photosArray[0];
 
   return (
@@ -202,7 +215,7 @@ export function FullscreenPhotoViewer({ photos, initialIndex, onClose }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentIndex, photos.length, onClose]);
 
-  const photosArray = Array.isArray(photos) ? photos : [photos];
+  const photosArray = (Array.isArray(photos) ? photos : [photos]).map(refreshPhotoUrl);
   const currentPhoto = photosArray[currentIndex] || photosArray[0];
 
   // Use React Portal to render outside of any z-index context
