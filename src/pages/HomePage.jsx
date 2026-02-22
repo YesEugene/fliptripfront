@@ -825,14 +825,15 @@ export default function HomePage() {
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
-            alignItems: 'center',
+              alignItems: 'center',
               width: '100%',
-              paddingLeft: '20px', // Same padding as city form (left: '20px')
-              paddingRight: '20px', // Same padding as city form (right: '20px')
+              paddingLeft: '20px',
+              paddingRight: '20px',
               marginBottom: '20px',
-              maxWidth: '750px', // Match the main container width
+              maxWidth: '750px',
               marginLeft: 'auto',
-              marginRight: 'auto'
+              marginRight: 'auto',
+              boxSizing: 'border-box'
             }}>
               {/* Logo - Left aligned with same padding as city form */}
             <img 
@@ -846,9 +847,10 @@ export default function HomePage() {
               {/* Auth buttons - Right aligned, same height as logo */}
               <div style={{ 
                 display: 'flex', 
-                gap: '12px',
-                alignItems: 'center', // Ensure vertical alignment with logo
-                height: '60px' // Match logo height for perfect alignment
+                gap: '8px',
+                alignItems: 'center',
+                height: '60px',
+                flexShrink: 0
               }}>
                 {user ? (
                   <>
