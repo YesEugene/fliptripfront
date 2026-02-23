@@ -695,6 +695,12 @@ export default function ItineraryPage() {
         }
         
         if (loadedContentBlocks && loadedContentBlocks.length > 0) {
+          // Sort blocks ensuring map block is always last
+          loadedContentBlocks.sort((a, b) => {
+            if (a.block_type === 'map' && b.block_type !== 'map') return 1;
+            if (b.block_type === 'map' && a.block_type !== 'map') return -1;
+            return (a.order_index || 0) - (b.order_index || 0);
+          });
           setContentBlocks(loadedContentBlocks);
           console.log('✅ Content blocks loaded:', loadedContentBlocks.length, 'blocks');
           

@@ -503,7 +503,13 @@ export default function TripVisualizerPage() {
             });
             
             // Sort blocks by order_index to ensure correct display order
-            let sortedBlocks = loadedBlocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+            // IMPORTANT: Always keep map block last
+            let sortedBlocks = loadedBlocks.sort((a, b) => {
+              // Map block always goes to the end
+              if (a.block_type === 'map' && b.block_type !== 'map') return 1;
+              if (b.block_type === 'map' && a.block_type !== 'map') return -1;
+              return (a.order_index || 0) - (b.order_index || 0);
+            });
             
             // Check if map block exists, if not create it
             const mapBlock = sortedBlocks.find(b => b.block_type === 'map');
@@ -1137,7 +1143,11 @@ export default function TripVisualizerPage() {
                 const blocksData = await blocksResponse.json();
                 if (blocksData.success) {
                   const loadedBlocks = blocksData.blocks || [];
-                  const sortedBlocks = loadedBlocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+                  const sortedBlocks = loadedBlocks.sort((a, b) => {
+                    if (a.block_type === 'map' && b.block_type !== 'map') return 1;
+                    if (b.block_type === 'map' && a.block_type !== 'map') return -1;
+                    return (a.order_index || 0) - (b.order_index || 0);
+                  });
                   setBlocks(sortedBlocks);
                   console.log(`✅ Reloaded ${sortedBlocks.length} blocks after save`);
                 }
@@ -1637,7 +1647,36 @@ export default function TripVisualizerPage() {
       if (data.success && data.block) {
         const newBlockId = data.block.id;
         
-        // Update local state with shifted order indices
+        // Ensure map block stays last: update its order_index to be higher than the new block
+        const mapBlockInBlocks = blocks.find(b => b.block_type === 'map');
+        if (mapBlockInBlocks) {
+          const newBlockOrderIndex = data.block.order_index || 0;
+          const mapOrderIndex = mapBlockInBlocks.order_index || 0;
+          if (mapOrderIndex <= newBlockOrderIndex) {
+            const newMapOrder = newBlockOrderIndex + 1;
+            try {
+              const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+              if (token) {
+                await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                  },
+                  body: JSON.stringify({
+                    blockId: mapBlockInBlocks.id,
+                    content: mapBlockInBlocks.content,
+                    orderIndex: newMapOrder
+                  })
+                });
+              }
+            } catch (err) {
+              console.warn('Failed to update map block order:', err);
+            }
+          }
+        }
+        
+        // Update local state — always sort with map last
         setBlocks(prev => {
           const updatedBlocks = prev.map(b => {
             if (b.block_type !== 'map' && insertAfterBlockId) {
@@ -1647,9 +1686,22 @@ export default function TripVisualizerPage() {
                 return { ...b, order_index: (b.order_index || 0) + 1 };
               }
             }
+            // Update map block order to be after everything
+            if (b.block_type === 'map') {
+              const maxNonMapOrder = Math.max(
+                data.block.order_index || 0,
+                ...prev.filter(bl => bl.block_type !== 'map').map(bl => bl.order_index || 0)
+              );
+              return { ...b, order_index: maxNonMapOrder + 1 };
+            }
             return b;
           });
-          return [...updatedBlocks, data.block].sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+          // Sort with map always last
+          return [...updatedBlocks, data.block].sort((a, b) => {
+            if (a.block_type === 'map' && b.block_type !== 'map') return 1;
+            if (b.block_type === 'map' && a.block_type !== 'map') return -1;
+            return (a.order_index || 0) - (b.order_index || 0);
+          });
         });
         
         // Close selector
@@ -1765,7 +1817,11 @@ export default function TripVisualizerPage() {
         
         if (isNewBlock) {
           // Add new block to local state
-          setBlocks(prev => [...prev, data.block].sort((a, b) => (a.order_index || 0) - (b.order_index || 0)));
+          setBlocks(prev => [...prev, data.block].sort((a, b) => {
+            if (a.block_type === 'map' && b.block_type !== 'map') return 1;
+            if (b.block_type === 'map' && a.block_type !== 'map') return -1;
+            return (a.order_index || 0) - (b.order_index || 0);
+          }));
         } else {
           // Update existing block in local state
           // CRITICAL: Always use updatedBlock.content to preserve base64 photos
@@ -1933,7 +1989,11 @@ export default function TripVisualizerPage() {
           });
           const blocksData = await blocksResponse.json();
           if (blocksData.success && blocksData.blocks) {
-            setBlocks(blocksData.blocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0)));
+            setBlocks(blocksData.blocks.sort((a, b) => {
+              if (a.block_type === 'map' && b.block_type !== 'map') return 1;
+              if (b.block_type === 'map' && a.block_type !== 'map') return -1;
+              return (a.order_index || 0) - (b.order_index || 0);
+            }));
           }
         }
         showNotificationMessage('Block duplicated successfully!');
@@ -1952,6 +2012,9 @@ export default function TripVisualizerPage() {
     const currentIndex = blocks.findIndex(b => b.id === blockId);
     if (currentIndex === -1) return;
 
+    // Never move map blocks
+    if (blocks[currentIndex].block_type === 'map') return;
+
     let targetIndex;
     if (direction === 'up') {
       if (currentIndex === 0) return; // Already at top
@@ -1959,6 +2022,8 @@ export default function TripVisualizerPage() {
     } else {
       if (currentIndex === blocks.length - 1) return; // Already at bottom
       targetIndex = currentIndex + 1;
+      // Prevent moving below the map block
+      if (blocks[targetIndex].block_type === 'map') return;
     }
 
     const currentBlock = blocks[currentIndex];
@@ -2007,12 +2072,16 @@ export default function TripVisualizerPage() {
       const data2 = await response2.json();
 
       if (data1.success && data2.success && data1.block && data2.block) {
-        // Update local state with swapped blocks
+        // Update local state with swapped blocks — map always last
         setBlocks(prev => {
           const newBlocks = [...prev];
           newBlocks[currentIndex] = data1.block;
           newBlocks[targetIndex] = data2.block;
-          return newBlocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+          return newBlocks.sort((a, b) => {
+            if (a.block_type === 'map' && b.block_type !== 'map') return 1;
+            if (b.block_type === 'map' && a.block_type !== 'map') return -1;
+            return (a.order_index || 0) - (b.order_index || 0);
+          });
         });
       } else {
         alert('Failed to move block. Please try again.');
@@ -2624,18 +2693,18 @@ export default function TripVisualizerPage() {
                   </button>
                   <button
                     onClick={() => handleMoveBlock(block.id, 'down')}
-                    disabled={index === blocks.length - 1}
+                    disabled={index === blocks.length - 1 || (blocks[index + 1] && blocks[index + 1].block_type === 'map')}
                     style={{
                       width: '30px',
                       height: '30px',
-                      backgroundColor: index === blocks.length - 1 ? '#e5e7eb' : '#3E85FC',
+                      backgroundColor: (index === blocks.length - 1 || (blocks[index + 1] && blocks[index + 1].block_type === 'map')) ? '#e5e7eb' : '#3E85FC',
                       color: 'white',
                       border: 'none',
                       borderRadius: '5px',
-                      cursor: index === blocks.length - 1 ? 'not-allowed' : 'pointer',
+                      cursor: (index === blocks.length - 1 || (blocks[index + 1] && blocks[index + 1].block_type === 'map')) ? 'not-allowed' : 'pointer',
                       fontSize: '16px',
                       fontWeight: '500',
-                      opacity: index === blocks.length - 1 ? 0.5 : 1,
+                      opacity: (index === blocks.length - 1 || (blocks[index + 1] && blocks[index + 1].block_type === 'map')) ? 0.5 : 1,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
