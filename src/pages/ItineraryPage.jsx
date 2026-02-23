@@ -2030,7 +2030,7 @@ export default function ItineraryPage() {
         width: isMobile ? '100%' : '100%',
         boxSizing: 'border-box',
         marginTop: isMobile ? 'calc(-1 * env(safe-area-inset-top, 0px))' : '0',
-        marginBottom: (previewOnly && !isPaid) ? '0' : (isMobile ? '0' : '32px'),
+        marginBottom: '0',
         marginLeft: '0',
         marginRight: '0',
         padding: '0'
@@ -2042,18 +2042,13 @@ export default function ItineraryPage() {
             boxSizing: 'border-box',
             height: isMobile 
               ? 'calc(350px + env(safe-area-inset-top, 0px))' 
-              : ((previewOnly && !isPaid) ? '400px' : '300px'),
+              : '400px',
             borderRadius: isMobile ? '0' : '16px',
             overflow: 'hidden',
             display: 'flex',
             alignItems: 'flex-start',
             justifyContent: 'flex-start',
-            padding: isMobile ? '0' : ((previewOnly && !isPaid) ? '0' : '20px'),
-            ...(isMobile ? {} : (previewOnly && !isPaid) ? {} : {
-              backgroundImage: `url(${heroImage})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            })
+            padding: '0'
           }}
           onTouchStart={(e) => {
             if (previewOnly && !isPaid && allPreviewImages.length > 1) {
@@ -2139,79 +2134,14 @@ export default function ItineraryPage() {
             </div>
           )}
 
-          {/* Gradient & Title — only for desktop full/paid mode (not mobile) */}
+          {/* Desktop full/paid mode: just show the image, no overlay (like preview) */}
           {(!previewOnly || isPaid) && !isMobile && (
-            <>
-              {/* Black Gradient Overlay */}
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: heroImage 
-                  ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3), transparent)'
-                  : 'linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%)',
-                zIndex: 1
-              }} />
-
-              {/* Title overlay */}
-              <div style={{ 
-                color: 'white', 
-                fontSize: '35px', 
-                fontWeight: '700',
-                textAlign: 'left',
-                lineHeight: '1.2',
-                letterSpacing: '-0.3px',
-                zIndex: 2,
-                maxWidth: '80%',
-                fontFamily: 'system-ui, -apple-system, sans-serif',
-                position: 'relative'
-              }}>
-                {tourTitle}
-              </div>
-
-              {/* Download PDF Button at Bottom */}
-              <button
-                onClick={handleDownloadPDF}
-                style={{
-                  position: 'absolute',
-                  bottom: '20px',
-                  left: '20px',
-                  padding: '11.04px 22.08px',
-                  backgroundColor: 'white',
-                  color: '#111827',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '13.8px',
-                  fontWeight: '600',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '9.2px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                  zIndex: 2,
-                  transition: 'all 0.2s',
-                  transform: 'scale(0.92)',
-                  transformOrigin: 'left bottom'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(0.92) translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(0.92) translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-                }}
-              >
-                <img 
-                  src={PDFIcon} 
-                  alt="PDF" 
-                  style={{ width: '18.4px', height: '18.4px' }}
-                />
-                Download PDF
-              </button>
-            </>
+            <div style={{
+              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+              backgroundImage: `url(${heroImage})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }} />
           )}
         </div>
       </div>
@@ -2646,95 +2576,93 @@ export default function ItineraryPage() {
       <>
       {/* ========== FULL / PAID MODE ========== */}
 
-      {/* Mobile: Title below image + Author row (like preview page) */}
-      {isMobile && (
-        <div style={{ 
-          width: '90%', 
-          margin: '0 auto', 
-          boxSizing: 'border-box',
-          paddingTop: '20px'
+      {/* Title below image + Author row (like preview page) — both mobile & desktop */}
+      <div style={{ 
+        width: isMobile ? '90%' : '100%', 
+        margin: isMobile ? '0 auto' : '0', 
+        boxSizing: 'border-box',
+        paddingTop: isMobile ? '20px' : '24px'
+      }}>
+        {/* Tour title below image */}
+        <h1 style={{
+          fontSize: isMobile ? '24px' : '28px',
+          fontWeight: '700',
+          color: '#111827',
+          margin: '0 0 8px 0',
+          lineHeight: '1.2'
         }}>
-          {/* Tour title below image */}
-          <h1 style={{
-            fontSize: '24px',
-            fontWeight: '700',
-            color: '#111827',
-            margin: '0 0 8px 0',
-            lineHeight: '1.2'
-          }}>
-            {tourTitle}
-          </h1>
+          {tourTitle}
+        </h1>
 
-          {/* Country + Price row */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '20px'
-          }}>
-            {(tourCountry || cityName) && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: '#374151' }}>
-                <span style={{ color: '#3b82f6', fontSize: '15px' }}>📍</span>
-                {tourCountry ? `${tourCountry}` : cityName}
-              </div>
-            )}
-          </div>
-
-          {/* Author row: avatar+info left, Download PDF right */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '24px',
-            gap: '12px'
-          }}>
-            {guideName && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '50%',
-                  backgroundColor: '#e5e7eb',
-                  overflow: 'hidden',
-                  flexShrink: 0
-                }}>
-                  {guideAvatar ? (
-                    <img src={guideAvatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#9ca3af' }}>👤</div>
-                  )}
-                </div>
-                <div style={{ lineHeight: '1.3' }}>
-                  <div style={{ fontSize: '12px', color: '#6b7280' }}>Tour created by</div>
-                  <div style={{ fontWeight: '600', color: '#111827', fontSize: '15px' }}>{guideName}</div>
-                </div>
-              </div>
-            )}
-            <button
-              onClick={handleDownloadPDF}
-              style={{
-                backgroundColor: '#2059ff',
-                color: '#ebf6fa',
-                border: 'none',
-                borderRadius: '24px',
-                padding: '12px 20px',
-                fontSize: '13px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                flexShrink: 0,
-                whiteSpace: 'nowrap',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-            >
-              <img src={PDFIcon} alt="PDF" style={{ width: '16px', height: '16px', filter: 'brightness(0) invert(1)' }} />
-              Download PDF
-            </button>
-          </div>
+        {/* Country row */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '20px'
+        }}>
+          {(tourCountry || cityName) && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: '#374151' }}>
+              <span style={{ color: '#3b82f6', fontSize: '15px' }}>📍</span>
+              {tourCountry ? `${tourCountry}` : cityName}
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Author row: avatar+info left, Download PDF right */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '24px',
+          gap: '12px'
+        }}>
+          {guideName && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '50%',
+                backgroundColor: '#e5e7eb',
+                overflow: 'hidden',
+                flexShrink: 0
+              }}>
+                {guideAvatar ? (
+                  <img src={guideAvatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#9ca3af' }}>👤</div>
+                )}
+              </div>
+              <div style={{ lineHeight: '1.3' }}>
+                <div style={{ fontSize: '12px', color: '#6b7280' }}>Tour created by</div>
+                <div style={{ fontWeight: '600', color: '#111827', fontSize: '15px' }}>{guideName}</div>
+              </div>
+            </div>
+          )}
+          <button
+            onClick={handleDownloadPDF}
+            style={{
+              backgroundColor: '#2059ff',
+              color: '#ebf6fa',
+              border: 'none',
+              borderRadius: '24px',
+              padding: '12px 20px',
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            <img src={PDFIcon} alt="PDF" style={{ width: '16px', height: '16px', filter: 'brightness(0) invert(1)' }} />
+            Download PDF
+          </button>
+        </div>
+      </div>
 
       {/* Tags Section - Match visualizer exactly */}
       <div style={{ 
@@ -2839,155 +2767,45 @@ export default function ItineraryPage() {
         </div>
       </div>
 
-      {/* From author block - Show only on desktop in new format */}
-      {useNewFormat && guideName && !isMobile && (
+      {/* About trip — for desktop full/paid new format (like preview page) */}
+      {useNewFormat && !isMobile && tourDescription && (
         <div style={{
-          width: isMobile ? '90%' : '100%',
+          width: '100%',
           boxSizing: 'border-box',
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          padding: isMobile ? '20px' : '32px',
-          border: '1px solid #D0D0D0',
-          marginTop: '-10px',
-          marginBottom: '10px',
-          marginLeft: isMobile ? 'auto' : '0',
-          marginRight: isMobile ? 'auto' : '0'
+          marginBottom: '24px'
         }}>
-          <div style={{ 
-            display: 'flex', 
-            gap: '24px', 
-            alignItems: 'flex-start',
-            flexDirection: isMobile ? 'column' : 'row'
-          }}>
-            {/* Avatar section - left on desktop, top on mobile */}
-            <div style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center', 
-              flexShrink: 0, 
-              minWidth: isMobile ? '100%' : '120px',
-              width: isMobile ? '100%' : 'auto'
-            }}>
-              <div style={{
-                width: '100px',
-                height: '100px',
-                borderRadius: '50%',
-                backgroundColor: '#e5e7eb',
-                overflow: 'hidden',
-                marginBottom: '12px',
-                border: '3px solid #f3f4f6'
-              }}>
-                {guideAvatar ? (
-                  <img src={guideAvatar} alt="Author" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '40px' }}>
-                    👤
-                  </div>
+          <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 12px 0' }}>About trip</h2>
+          {(() => {
+            const text = tourDescription || '';
+            const isLong = text.length > 400;
+            return (
+              <>
+                <p style={{
+                  fontSize: '14px',
+                  color: '#374151',
+                  lineHeight: '1.5',
+                  margin: '0 0 8px 0',
+                  whiteSpace: 'pre-line',
+                  ...(isLong && !isAuthorTextExpanded ? {
+                    display: '-webkit-box',
+                    WebkitLineClamp: 6,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden'
+                  } : {})
+                }}>
+                  {text}
+                </p>
+                {isLong && (
+                  <span
+                    onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
+                    style={{ fontSize: '14px', fontWeight: '600', color: '#2059ff', cursor: 'pointer' }}
+                  >
+                    {isAuthorTextExpanded ? 'Show less' : 'See More..'}
+                  </span>
                 )}
-              </div>
-              <p style={{ 
-                margin: 0, 
-                fontSize: '14px', 
-                color: '#6b7280',
-                textAlign: 'center',
-                lineHeight: '1.5',
-                whiteSpace: 'pre-line'
-              }}>
-                Tour created{'\n'}by <strong style={{ color: '#111827', fontWeight: '600' }}>{guideName}</strong>
-              </p>
-            </div>
-            
-            {/* Title, text and button section - right on desktop, below avatar on mobile */}
-            <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
-              <h3 style={{ 
-                fontSize: '20px', 
-                fontWeight: '500', 
-                marginBottom: '16px', 
-                color: '#111827',
-                marginTop: 0,
-                textAlign: isMobile ? 'center' : 'left',
-                width: '100%'
-              }}>
-                A note from the author
-              </h3>
-              <div>
-                {(() => {
-                  const text = tourDescription || '';
-                  
-                  // Check if text is likely to be more than 5 lines
-                  const lineCount = text ? (text.split('\n').length + Math.ceil(text.replace(/\n/g, '').length / 90)) : 0;
-                  const shouldShowButton = lineCount > 5;
-                  
-                  return (
-                    <>
-                      {isAuthorTextExpanded ? (
-                        <p style={{ 
-                          color: '#4b5563', 
-                          fontSize: '15px', 
-                          lineHeight: isMobile ? '1.5' : '1.7', 
-                          marginBottom: '16px',
-                          marginTop: 0,
-                          whiteSpace: 'pre-line',
-                          textAlign: 'left',
-                          width: '100%'
-                        }}>
-                          {text}
-                        </p>
-                      ) : (
-                        <p style={{ 
-                          color: '#4b5563', 
-                          fontSize: '15px', 
-                          lineHeight: isMobile ? '1.5' : '1.7', 
-                          marginBottom: shouldShowButton ? '12px' : '16px',
-                          marginTop: 0,
-                          display: '-webkit-box',
-                          WebkitLineClamp: 5,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          whiteSpace: 'pre-line',
-                          textAlign: 'left',
-                          width: '100%'
-                        }}>
-                          {text}
-                        </p>
-                      )}
-                      {shouldShowButton && (
-                        <div style={{
-                          display: 'flex',
-                          justifyContent: isMobile ? 'center' : 'flex-start',
-                          width: '100%'
-                        }}>
-                          <button 
-                            onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
-                            style={{
-                              padding: '8px 16px',
-                              backgroundColor: '#EFEFEF',
-                              color: '#6b7280',
-                              border: 'none',
-                              borderRadius: '8px',
-                              cursor: 'pointer',
-                              fontSize: '13px',
-                              fontWeight: '500',
-                              transition: 'all 0.2s',
-                              marginTop: '4px'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.backgroundColor = '#e5e5e5';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.backgroundColor = '#EFEFEF';
-                            }}
-                          >
-                            {isAuthorTextExpanded ? 'Read less' : 'Read more'}
-                          </button>
-                        </div>
-                      )}
-                    </>
-                  );
-                })()}
-              </div>
-            </div>
-          </div>
+              </>
+            );
+          })()}
         </div>
       )}
 
