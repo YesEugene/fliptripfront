@@ -2287,12 +2287,15 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
       markersRef.current.push({ marker, index });
     };
     
-    // Helper: scroll carousel to a specific card
+    // Helper: scroll carousel to center a specific card
     const scrollCarouselToCard = (cardIndex) => {
       if (carouselRef.current) {
-        const cardWidth = 260 + 12; // card width + gap
+        const cardWidth = 260;
+        const gap = 12;
+        const containerWidth = carouselRef.current.offsetWidth;
+        const scrollTarget = cardIndex * (cardWidth + gap) - (containerWidth / 2) + (cardWidth / 2);
         carouselRef.current.scrollTo({
-          left: cardIndex * cardWidth,
+          left: Math.max(0, scrollTarget),
           behavior: 'smooth'
         });
       }
@@ -2325,16 +2328,19 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
     window.open(mapsUrl, '_blank', 'noopener,noreferrer');
   };
 
-  // Handle carousel scroll — detect which card is most visible
+  // Handle carousel scroll — detect which card is closest to center
   const handleCarouselScroll = () => {
     if (!carouselRef.current) return;
-    const scrollLeft = carouselRef.current.scrollLeft - 29; // account for left spacer
-    const cardWidth = 260 + 12;
-    const newIndex = Math.round(Math.max(0, scrollLeft) / cardWidth);
-    if (newIndex !== activeCardIndex && newIndex >= 0 && newIndex < enrichedLocations.length) {
-      setActiveCardIndex(newIndex);
+    const container = carouselRef.current;
+    const containerCenter = container.scrollLeft + container.offsetWidth / 2;
+    const cardWidth = 260;
+    const gap = 12;
+    const newIndex = Math.round((containerCenter - cardWidth / 2) / (cardWidth + gap));
+    const clampedIndex = Math.max(0, Math.min(newIndex, enrichedLocations.length - 1));
+    if (clampedIndex !== activeCardIndex) {
+      setActiveCardIndex(clampedIndex);
       // Pan map to this location
-      const loc = enrichedLocations[newIndex];
+      const loc = enrichedLocations[clampedIndex];
       if (mapInstanceRef.current && loc.lat && loc.lng) {
         mapInstanceRef.current.panTo({ lat: loc.lat, lng: loc.lng });
       }
@@ -2443,8 +2449,8 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
                 msOverflowStyle: 'none'
               }}
             >
-              {/* Left spacer to ensure padding is visible even when scrolled */}
-              <div style={{ flexShrink: 0, width: '29px', minWidth: '29px' }} />
+              {/* Left spacer to center first card */}
+              <div style={{ flexShrink: 0, width: 'calc(50% - 130px)', minWidth: '14px' }} />
               {enrichedLocations.map((loc, idx) => {
                 const isActive = idx === activeCardIndex;
                 return (
@@ -2461,7 +2467,7 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
                         ? '0 4px 20px rgba(0,0,0,0.25)'
                         : '0 2px 8px rgba(0,0,0,0.15)',
                       cursor: 'pointer',
-                      scrollSnapAlign: 'start',
+                      scrollSnapAlign: 'center',
                       transition: 'box-shadow 0.2s ease, transform 0.2s ease',
                       transform: isActive ? 'scale(1)' : 'scale(0.97)'
                     }}
@@ -2514,8 +2520,8 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
                   </div>
                 );
               })}
-              {/* Right spacer */}
-              <div style={{ flexShrink: 0, width: '14px', minWidth: '14px' }} />
+              {/* Right spacer to center last card */}
+              <div style={{ flexShrink: 0, width: 'calc(50% - 130px)', minWidth: '14px' }} />
             </div>
           )}
         </div>
