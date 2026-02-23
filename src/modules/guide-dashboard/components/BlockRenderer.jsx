@@ -2,7 +2,7 @@
  * BlockRenderer - Component for rendering different types of content blocks
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { PhotoCarousel, FullscreenPhotoViewer } from './PhotoCarousel';
 
 /**
@@ -1999,6 +1999,45 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
     });
   }, [block.id, isHidden, locations.length, content]);
 
+  // Enrich locations with photos from allBlocks (location blocks)
+  const enrichedLocations = useMemo(() => {
+    if (!allBlocks || allBlocks.length === 0) return locations;
+    
+    // Build a map of blockId+title -> photo from location blocks
+    const photoMap = {};
+    allBlocks.forEach(b => {
+      if (b.block_type === 'location' && b.content) {
+        const mainLoc = b.content.mainLocation || b.content;
+        if (mainLoc) {
+          const photos = mainLoc.photos || (mainLoc.photo ? [mainLoc.photo] : []);
+          const photoUrl = photos.find(p => p && typeof p === 'string' && !p.startsWith('data:')) || photos[0] || null;
+          const key = `${b.id}_${mainLoc.title || mainLoc.name || ''}`.toLowerCase();
+          if (photoUrl) photoMap[key] = photoUrl;
+          // Also index by title only for fallback matching
+          if (mainLoc.title) photoMap[mainLoc.title.toLowerCase()] = photoUrl;
+          if (mainLoc.name) photoMap[mainLoc.name.toLowerCase()] = photoUrl;
+        }
+        (b.content.alternativeLocations || []).forEach(alt => {
+          const photos = alt.photos || (alt.photo ? [alt.photo] : []);
+          const photoUrl = photos.find(p => p && typeof p === 'string' && !p.startsWith('data:')) || photos[0] || null;
+          const key = `${b.id}_${alt.title || alt.name || ''}`.toLowerCase();
+          if (photoUrl) photoMap[key] = photoUrl;
+          if (alt.title) photoMap[alt.title.toLowerCase()] = photoUrl;
+          if (alt.name) photoMap[alt.name.toLowerCase()] = photoUrl;
+        });
+      }
+    });
+    
+    return locations.map(loc => {
+      if (loc.photo) return loc; // Already has photo
+      // Try to find photo by blockId+title, then by title alone
+      const key1 = `${loc.blockId}_${loc.title || ''}`.toLowerCase();
+      const key2 = (loc.title || '').toLowerCase();
+      const foundPhoto = photoMap[key1] || photoMap[key2] || null;
+      return foundPhoto ? { ...loc, photo: foundPhoto } : loc;
+    });
+  }, [locations, allBlocks]);
+
   // Extract addresses from all blocks if locations not set
   useEffect(() => {
     if (locations.length === 0 && allBlocks.length > 0) {
@@ -2010,13 +2049,13 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
   useEffect(() => {
     // Always show map in visualizer, even if hidden from users or no locations
     // Only skip map initialization if hidden AND no locations
-    if (isHidden && locations.length === 0) {
+    if (isHidden && enrichedLocations.length === 0) {
       setIsLoading(false);
       return;
     }
     
     // If no locations, still show map but don't initialize
-    if (locations.length === 0) {
+    if (enrichedLocations.length === 0) {
       setIsLoading(false);
       return;
     }
@@ -2124,13 +2163,26 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
       }
 
       try {
+        // Inject CSS to clean up Google Maps InfoWindow default styling
+        if (!document.getElementById('gmap-infowindow-style')) {
+          const style = document.createElement('style');
+          style.id = 'gmap-infowindow-style';
+          style.textContent = `
+            .gm-style-iw-c { padding: 0 !important; border-radius: 12px !important; overflow: hidden !important; }
+            .gm-style-iw-d { overflow: hidden !important; padding: 0 !important; }
+            .gm-style-iw-d::-webkit-scrollbar { display: none; }
+            .gm-style-iw-tc { display: none !important; }
+          `;
+          document.head.appendChild(style);
+        }
+
         // Calculate center from locations or use default
         let center = { lat: 48.8566, lng: 2.3522 }; // Default: Paris
         const bounds = new window.google.maps.LatLngBounds();
         let hasValidCoords = false;
 
         // Try to get coordinates from locations
-        locations.forEach(loc => {
+        enrichedLocations.forEach(loc => {
           if (loc.lat && loc.lng) {
             bounds.extend(new window.google.maps.LatLng(loc.lat, loc.lng));
             hasValidCoords = true;
@@ -2158,11 +2210,11 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
 
         mapInstanceRef.current = map;
 
-        // Add markers for each location
+        // Add markers for each location (use enriched locations with photos)
         const geocoder = new window.google.maps.Geocoder();
         markersRef.current = [];
 
-        locations.forEach((location, index) => {
+        enrichedLocations.forEach((location, index) => {
           if (location.lat && location.lng) {
             const markerPosition = new window.google.maps.LatLng(location.lat, location.lng);
             createMarker(markerPosition, location, index);
@@ -2205,19 +2257,46 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
         title: location.title || location.address
       });
 
+      // Build rich InfoWindow content with photo card
+      const photoUrl = location.photo || null;
+      const locationTitle = location.title || 'Location';
+      const locationAddress = location.address || '';
+      const locationNumber = location.number || index + 1;
+      const mapsLink = location.place_id 
+        ? `https://www.google.com/maps/place/?q=place_id:${location.place_id}` 
+        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationAddress)}`;
+      
+      const photoHtml = photoUrl 
+        ? `<div style="width:100%;height:120px;border-radius:8px 8px 0 0;overflow:hidden;margin:0;">
+             <img src="${photoUrl}" alt="${locationTitle}" 
+               style="width:100%;height:100%;object-fit:cover;display:block;" 
+               onerror="this.parentElement.style.display='none'" />
+           </div>`
+        : '';
+      
       const infoWindow = new window.google.maps.InfoWindow({
         content: `
-          <div style="padding: 8px; max-width: 250px;">
-            <div style="font-weight: 600; margin-bottom: 4px;">${location.number || index + 1}. ${location.title || 'Location'}</div>
-            <div style="font-size: 12px; color: #666; margin-bottom: 8px;">${location.address || ''}</div>
-            <a href="${location.place_id ? `https://www.google.com/maps/place/?q=place_id:${location.place_id}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.address)}`}" 
-               target="_blank" 
-               rel="noopener noreferrer"
-               style="color: #3b82f6; text-decoration: none; font-size: 12px;">
-              Open in Google Maps →
-            </a>
+          <div style="min-width:220px;max-width:280px;overflow:hidden;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+            ${photoHtml}
+            <div style="padding:10px 12px 12px;">
+              <div style="font-weight:600;font-size:14px;color:#1a1a1a;margin-bottom:3px;line-height:1.3;">
+                ${locationTitle}
+              </div>
+              <div style="font-size:12px;color:#70757a;margin-bottom:8px;line-height:1.4;">
+                ${locationAddress}
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <a href="${mapsLink}" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   style="color:#1a73e8;text-decoration:none;font-size:12px;font-weight:500;">
+                  Open in Google Maps ↗
+                </a>
+              </div>
+            </div>
           </div>
-        `
+        `,
+        maxWidth: 300
       });
 
       marker.addListener('click', () => {
@@ -2268,7 +2347,7 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
         delete window.initGoogleMap;
       }
     };
-  }, [locations, isHidden]);
+  }, [enrichedLocations, isHidden]);
 
   // Always show map block in visualizer (even if hidden from users)
   // The hidden flag only affects public-facing pages

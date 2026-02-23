@@ -3607,6 +3607,7 @@ export default function ItineraryPage() {
                           block={block} 
                           onEdit={() => {}} // No edit on client page
                           onSwitchLocation={handleSwitchLocation} // Switch locations on client page
+                          allBlocks={contentBlocks} // Pass all blocks for map photo enrichment
                         />
                       </div>
                     </div>

@@ -2101,6 +2101,9 @@ export default function TripVisualizerPage() {
       if (block.block_type === 'location' && block.content) {
         const mainLocation = block.content.mainLocation || block.content;
         if (mainLocation.address) {
+          // Get first photo for the map card
+          const mainPhotos = mainLocation.photos || (mainLocation.photo ? [mainLocation.photo] : []);
+          const mainPhotoUrl = mainPhotos.find(p => p && typeof p === 'string' && !p.startsWith('data:')) || mainPhotos[0] || null;
           addresses.push({
             number: locationNumber++,
             title: mainLocation.title || mainLocation.name || 'Location',
@@ -2108,6 +2111,7 @@ export default function TripVisualizerPage() {
             place_id: mainLocation.place_id || null,
             lat: mainLocation.lat || null,
             lng: mainLocation.lng || null,
+            photo: mainPhotoUrl,
             blockId: block.id // Store block ID for scrolling
           });
         }
@@ -2116,6 +2120,8 @@ export default function TripVisualizerPage() {
         const alternativeLocations = block.content.alternativeLocations || [];
         alternativeLocations.forEach((altLoc) => {
           if (altLoc.address) {
+            const altPhotos = altLoc.photos || (altLoc.photo ? [altLoc.photo] : []);
+            const altPhotoUrl = altPhotos.find(p => p && typeof p === 'string' && !p.startsWith('data:')) || altPhotos[0] || null;
             addresses.push({
               number: locationNumber++,
               title: altLoc.title || altLoc.name || 'Location',
@@ -2123,6 +2129,7 @@ export default function TripVisualizerPage() {
               place_id: altLoc.place_id || null,
               lat: altLoc.lat || null,
               lng: altLoc.lng || null,
+              photo: altPhotoUrl,
               blockId: block.id // Store block ID for scrolling
             });
           }
