@@ -7,15 +7,14 @@ import { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 
 /**
- * Refresh Google Places photo URL with current frontend API key.
- * Old photos may contain an expired/rotated backend key.
+ * Block Google Places Photo API URLs to prevent billable API calls.
+ * Returns null for Google URLs (placeholder shown), passes through Supabase/other URLs.
  */
 function refreshPhotoUrl(url) {
   if (!url || typeof url !== 'string') return url;
-  if (!url.includes('maps.googleapis.com/maps/api/place/photo')) return url;
-  const frontendKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
-  if (!frontendKey) return url;
-  return url.replace(/([?&])key=[^&]+/, `$1key=${frontendKey}`);
+  // Google Places Photo API URLs cost ~$7/1000 loads — block them
+  if (url.includes('maps.googleapis.com/maps/api/place/photo')) return null;
+  return url;
 }
 
 export function PhotoCarousel({ photos, onPhotoClick }) {

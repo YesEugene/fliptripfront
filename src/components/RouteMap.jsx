@@ -133,39 +133,67 @@ const RouteMap = ({ places, city }) => {
       const placesWithCoords = [];
       let processedCount = 0;
 
+      // Use localStorage cache to avoid repeated geocoding API calls ($5/1000)
+      const GEOCODE_CACHE_KEY = 'fliptrip_geocode_cache';
+      let geocodeCache = {};
+      try { geocodeCache = JSON.parse(localStorage.getItem(GEOCODE_CACHE_KEY) || '{}'); } catch(e) {}
+
       places.forEach((place, index) => {
         if (place.lat && place.lng) {
-          // Используем существующие координаты
           const location = new window.google.maps.LatLng(place.lat, place.lng);
           placesWithCoords.push({
             ...place,
             position: location,
             order: index
           });
-          console.log(`Using existing coordinates for ${place.title}:`, place.lat, place.lng);
           processedCount++;
           if (processedCount === places.length) {
             drawRoute(map, placesWithCoords);
           }
-        } else {
-          // Fallback к геокодированию, если координат нет
-          geocoder.geocode({ address: place.address }, (results, status) => {
-            if (status === 'OK' && results[0]) {
-              const location = results[0].geometry.location;
-              placesWithCoords.push({
-                ...place,
-                position: location,
-                order: index
-              });
-              console.log(`Geocoded ${place.title}:`, location.lat(), location.lng());
-            } else {
-              console.warn(`Geocoding failed for ${place.title}:`, status);
-            }
+        } else if (place.address) {
+          const cacheKey = place.address.trim().toLowerCase();
+          const cached = geocodeCache[cacheKey];
+          
+          if (cached && cached.lat && cached.lng) {
+            // Use cached coordinates — no API call
+            const location = new window.google.maps.LatLng(cached.lat, cached.lng);
+            placesWithCoords.push({
+              ...place,
+              position: location,
+              order: index
+            });
             processedCount++;
             if (processedCount === places.length) {
               drawRoute(map, placesWithCoords);
             }
-          });
+          } else {
+            geocoder.geocode({ address: place.address }, (results, status) => {
+              if (status === 'OK' && results[0]) {
+                const location = results[0].geometry.location;
+                placesWithCoords.push({
+                  ...place,
+                  position: location,
+                  order: index
+                });
+                // Cache for future use
+                try {
+                  geocodeCache[cacheKey] = { lat: location.lat(), lng: location.lng() };
+                  localStorage.setItem(GEOCODE_CACHE_KEY, JSON.stringify(geocodeCache));
+                } catch(e) {}
+              } else {
+                console.warn(`Geocoding failed for ${place.title}:`, status);
+              }
+              processedCount++;
+              if (processedCount === places.length) {
+                drawRoute(map, placesWithCoords);
+              }
+            });
+          }
+        } else {
+          processedCount++;
+          if (processedCount === places.length) {
+            drawRoute(map, placesWithCoords);
+          }
         }
       });
     };

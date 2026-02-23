@@ -8,15 +8,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getCurrentUser } from '../../auth/services/authService';
 
 /**
- * Refresh Google Places photo URL with current frontend API key.
- * Old photos may contain an expired/rotated backend key.
+ * Block Google Places Photo API URLs to prevent billable API calls.
+ * Returns null for Google URLs — a placeholder will be shown instead.
+ * Photos should be cached in Supabase via the migration process.
  */
 function refreshPhotoUrl(url) {
   if (!url || typeof url !== 'string') return url;
-  if (!url.includes('maps.googleapis.com/maps/api/place/photo')) return url;
-  const frontendKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
-  if (!frontendKey) return url;
-  return url.replace(/([?&])key=[^&]+/, `$1key=${frontendKey}`);
+  // Google Places Photo API URLs cost ~$7/1000 loads — block them
+  if (url.includes('maps.googleapis.com/maps/api/place/photo')) return null;
+  return url;
 }
 import { getGuideProfile } from '../../../modules/guide-profile';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
@@ -119,17 +119,17 @@ export default function TripVisualizerPage() {
     
     setIsRefreshingPhotos(true);
     try {
-      console.log('🔄 Refreshing location photos...');
-      const refreshResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/refresh-tour-photos`, {
+      console.log('🔄 Migrating location photos to Supabase...');
+      const refreshResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/migrate-all-photos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tourId, force })
+        body: JSON.stringify({ tourId, limit: 50 })
       });
       const refreshData = await refreshResponse.json();
-      console.log('📋 Photo refresh result:', refreshData);
+      console.log('📋 Photo migration result:', refreshData);
       
-      if (refreshData.success && refreshData.updated > 0) {
-        // Reload blocks to get fresh photo URLs
+      if (refreshData.success && refreshData.stats?.migratedBlocks > 0) {
+        // Reload blocks to get cached Supabase URLs
         const blocksUrl = `${import.meta.env.VITE_API_URL}/api/tour-content-blocks?tourId=${tourId}`;
         const freshBlocksResponse = await fetch(blocksUrl);
         if (freshBlocksResponse.ok) {
@@ -137,7 +137,7 @@ export default function TripVisualizerPage() {
           if (freshBlocksData.success && freshBlocksData.blocks) {
             const freshSorted = freshBlocksData.blocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
             setBlocks(freshSorted);
-            showNotificationMessage(`✅ Photos refreshed for ${refreshData.updated} block(s)`);
+            showNotificationMessage(`✅ Photos cached for ${refreshData.stats.migratedBlocks} block(s)`);
           }
         }
       } else if (force) {
@@ -638,18 +638,14 @@ export default function TripVisualizerPage() {
               if (hasUnrefreshedGooglePhotos && tourIdToLoad) {
                 console.log('🔄 One-time photo migration: caching Google photos to Supabase...');
                 try {
-                  const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-                  const refreshResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/refresh-tour-photos`, {
+                  const refreshResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/migrate-all-photos`, {
                     method: 'POST',
-                    headers: { 
-                      'Content-Type': 'application/json',
-                      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-                    },
-                    body: JSON.stringify({ tourId: tourIdToLoad })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tourId: tourIdToLoad, limit: 50 })
                   });
                   const refreshData = await refreshResponse.json();
                   console.log('📋 Photo migration result:', refreshData);
-                  if (refreshData.success && refreshData.updated > 0) {
+                  if (refreshData.success && refreshData.stats?.migratedBlocks > 0) {
                     // Reload blocks with fresh Supabase URLs
                     const freshBlocksResponse = await fetch(blocksUrl);
                     if (freshBlocksResponse.ok) {

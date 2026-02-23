@@ -106,23 +106,26 @@ function PreviewMap({ locations }) {
           }
         });
 
-        // Geocode locations without coordinates
+        // Geocode locations without coordinates — use localStorage cache to avoid repeated $5/1000 calls
         if (needsGeocoding.length > 0) {
           const geocoder = new window.google.maps.Geocoder();
           let geocodedCount = 0;
           
+          const GEOCODE_CACHE_KEY = 'fliptrip_geocode_cache';
+          let geocodeCache = {};
+          try { geocodeCache = JSON.parse(localStorage.getItem(GEOCODE_CACHE_KEY) || '{}'); } catch(e) {}
+          
           needsGeocoding.forEach((loc) => {
             const originalIndex = locations.indexOf(loc);
-            geocoder.geocode({ address: loc.address }, (results, status) => {
+            const cacheKey = loc.address.trim().toLowerCase();
+            const cached = geocodeCache[cacheKey];
+            
+            if (cached && cached.lat && cached.lng) {
+              // Use cached coordinates — FREE, no API call
               geocodedCount++;
-              if (status === 'OK' && results[0]) {
-                const position = results[0].geometry.location;
-                addMarker(map, position, loc, originalIndex, bounds);
-                console.log('🗺️ PreviewMap: Geocoded', loc.address, '->', position.lat(), position.lng());
-              } else {
-                console.warn('🗺️ PreviewMap: Geocoding failed for', loc.address, status);
-              }
-              // After all geocoding done, fit bounds
+              const position = { lat: cached.lat, lng: cached.lng };
+              addMarker(map, position, loc, originalIndex, bounds);
+              console.log('🗺️ PreviewMap: Used cached geocode for', loc.address);
               if (geocodedCount === needsGeocoding.length && !bounds.isEmpty()) {
                 if (locations.length > 1) {
                   map.fitBounds(bounds, { top: 40, right: 40, bottom: 40, left: 40 });
@@ -131,7 +134,32 @@ function PreviewMap({ locations }) {
                   map.setZoom(15);
                 }
               }
-            });
+            } else {
+              // Geocode via API (billable) and cache result
+              geocoder.geocode({ address: loc.address }, (results, status) => {
+                geocodedCount++;
+                if (status === 'OK' && results[0]) {
+                  const position = results[0].geometry.location;
+                  addMarker(map, position, loc, originalIndex, bounds);
+                  console.log('🗺️ PreviewMap: Geocoded', loc.address, '->', position.lat(), position.lng());
+                  // Cache for future use
+                  try {
+                    geocodeCache[cacheKey] = { lat: position.lat(), lng: position.lng() };
+                    localStorage.setItem(GEOCODE_CACHE_KEY, JSON.stringify(geocodeCache));
+                  } catch(e) {}
+                } else {
+                  console.warn('🗺️ PreviewMap: Geocoding failed for', loc.address, status);
+                }
+                if (geocodedCount === needsGeocoding.length && !bounds.isEmpty()) {
+                  if (locations.length > 1) {
+                    map.fitBounds(bounds, { top: 40, right: 40, bottom: 40, left: 40 });
+                  } else {
+                    map.setCenter(bounds.getCenter());
+                    map.setZoom(15);
+                  }
+                }
+              });
+            }
           });
         }
 
@@ -709,6 +737,7 @@ export default function ItineraryPage() {
           
           // One-time photo migration: cache Google Places photos to Supabase Storage
           // This runs in the background so it doesn't slow down page load
+          // CRITICAL: Google Places Photo URLs cost $7/1000 loads — they MUST be migrated to Supabase
           setTimeout(async () => {
             const isGooglePhotoUrl = (url) => url && typeof url === 'string' && url.includes('maps.googleapis.com/maps/api/place/photo');
             const locationBlocks = loadedContentBlocks.filter(b => b.block_type === 'location');
@@ -716,7 +745,7 @@ export default function ItineraryPage() {
               const content = b.content || {};
               const checkLoc = (loc) => {
                 if (!loc) return false;
-                if (loc._photosRefreshedAt) return false; // Already migrated
+                // Check if any photo is still a Google URL (regardless of _photosRefreshedAt)
                 const photos = loc.photos || (loc.photo ? [loc.photo] : []);
                 return photos.some(p => isGooglePhotoUrl(p));
               };
@@ -730,7 +759,7 @@ export default function ItineraryPage() {
                 const migrateResponse = await fetch(`${API_BASE_URL}/api/migrate-all-photos`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ tourId: tourIdParam, limit: 5 })
+                  body: JSON.stringify({ tourId: tourIdParam, limit: 50 })
                 });
                 const migrateData = await migrateResponse.json();
                 console.log('📋 Photo migration result:', migrateData);
@@ -738,6 +767,11 @@ export default function ItineraryPage() {
                   // Reload blocks with Supabase URLs
                   const freshBlocks = await loadBlocks();
                   if (freshBlocks && freshBlocks.length > 0) {
+                    freshBlocks.sort((a, b) => {
+                      if (a.block_type === 'map' && b.block_type !== 'map') return 1;
+                      if (b.block_type === 'map' && a.block_type !== 'map') return -1;
+                      return (a.order_index || 0) - (b.order_index || 0);
+                    });
                     setContentBlocks(freshBlocks);
                     console.log('✅ Blocks reloaded with cached Supabase photos');
                   }

@@ -6,23 +6,26 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { PhotoCarousel, FullscreenPhotoViewer } from './PhotoCarousel';
 
 /**
- * Refresh Google Places photo URL with current frontend API key.
- * Old photos may contain an expired/rotated backend key — this replaces it.
+ * Check if URL is a Google Places Photo API URL (billable on every load!).
+ * If it is, return null so a placeholder is shown instead of incurring API costs.
+ * Supabase-cached URLs and other URLs are returned as-is.
  */
 function refreshPhotoUrl(url) {
   if (!url || typeof url !== 'string') return url;
-  // Only process Google Maps photo URLs
-  if (!url.includes('maps.googleapis.com/maps/api/place/photo')) return url;
-  const frontendKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
-  if (!frontendKey) return url;
-  // Replace the key parameter with the current frontend key
-  return url.replace(/([?&])key=[^&]+/, `$1key=${frontendKey}`);
+  // Google Places Photo API URLs cost ~$7/1000 loads — NEVER load them directly!
+  // They should be migrated to Supabase first via /api/migrate-all-photos
+  if (url.includes('maps.googleapis.com/maps/api/place/photo')) {
+    // Return null — the component will show a placeholder instead
+    // The migration process (triggered on page load) will replace these with Supabase URLs
+    return null;
+  }
+  return url;
 }
 
 /** Apply refreshPhotoUrl to an array of photo URLs */
 function refreshPhotoUrls(photos) {
   if (!photos) return photos;
-  if (Array.isArray(photos)) return photos.map(refreshPhotoUrl);
+  if (Array.isArray(photos)) return photos.map(refreshPhotoUrl).filter(Boolean);
   return refreshPhotoUrl(photos);
 }
 
@@ -2326,8 +2329,13 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
         mapInstanceRef.current = map;
 
         // Add markers for each location (use enriched locations with photos)
+        // Use localStorage cache to avoid repeated geocoding API calls ($5/1000)
         const geocoder = new window.google.maps.Geocoder();
         markersRef.current = [];
+
+        const GEOCODE_CACHE_KEY = 'fliptrip_geocode_cache';
+        let geocodeCache = {};
+        try { geocodeCache = JSON.parse(localStorage.getItem(GEOCODE_CACHE_KEY) || '{}'); } catch(e) {}
 
         enrichedLocations.forEach((location, index) => {
           if (location.lat && location.lng) {
@@ -2335,15 +2343,30 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
             createMarker(markerPosition, location, index);
             bounds.extend(markerPosition);
           } else if (location.address) {
-            // Geocode address
-            geocoder.geocode({ address: location.address }, (results, status) => {
-              if (status === 'OK' && results[0]) {
-                const markerPosition = results[0].geometry.location;
-                createMarker(markerPosition, location, index);
-                bounds.extend(markerPosition);
-                map.fitBounds(bounds);
-              }
-            });
+            // Check localStorage cache first to avoid billable geocoding calls
+            const cacheKey = location.address.trim().toLowerCase();
+            const cached = geocodeCache[cacheKey];
+            if (cached && cached.lat && cached.lng) {
+              const markerPosition = new window.google.maps.LatLng(cached.lat, cached.lng);
+              createMarker(markerPosition, location, index);
+              bounds.extend(markerPosition);
+              map.fitBounds(bounds);
+            } else {
+              // Geocode address (billable) and cache result
+              geocoder.geocode({ address: location.address }, (results, status) => {
+                if (status === 'OK' && results[0]) {
+                  const markerPosition = results[0].geometry.location;
+                  createMarker(markerPosition, location, index);
+                  bounds.extend(markerPosition);
+                  map.fitBounds(bounds);
+                  // Cache in localStorage to avoid future geocoding costs
+                  try {
+                    geocodeCache[cacheKey] = { lat: markerPosition.lat(), lng: markerPosition.lng() };
+                    localStorage.setItem(GEOCODE_CACHE_KEY, JSON.stringify(geocodeCache));
+                  } catch(e) {}
+                }
+              });
+            }
           }
         });
 
