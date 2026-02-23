@@ -1977,9 +1977,11 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
+  const carouselRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [activeCardIndex, setActiveCardIndex] = useState(0);
   const content = block.content || {};
   const isHidden = content.hidden === true;
   const locations = content.locations || [];
@@ -2163,15 +2165,13 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
       }
 
       try {
-        // Inject CSS to clean up Google Maps InfoWindow default styling
-        if (!document.getElementById('gmap-infowindow-style')) {
+        // Inject CSS for map carousel scrollbar hiding
+        if (!document.getElementById('gmap-carousel-style')) {
           const style = document.createElement('style');
-          style.id = 'gmap-infowindow-style';
+          style.id = 'gmap-carousel-style';
           style.textContent = `
-            .gm-style-iw-c { padding: 0 !important; border-radius: 12px !important; overflow: hidden !important; }
-            .gm-style-iw-d { overflow: hidden !important; padding: 0 !important; }
-            .gm-style-iw-d::-webkit-scrollbar { display: none; }
-            .gm-style-iw-tc { display: none !important; }
+            .map-location-carousel::-webkit-scrollbar { display: none; }
+            .map-location-carousel { scrollbar-width: none; -ms-overflow-style: none; }
           `;
           document.head.appendChild(style);
         }
@@ -2257,60 +2257,16 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
         title: location.title || location.address
       });
 
-      // Build rich InfoWindow content with photo card
-      const photoUrl = location.photo || null;
-      const locationTitle = location.title || 'Location';
-      const locationAddress = location.address || '';
-      const locationNumber = location.number || index + 1;
-      const mapsLink = location.place_id 
-        ? `https://www.google.com/maps/place/?q=place_id:${location.place_id}` 
-        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationAddress)}`;
-      
-      const photoHtml = photoUrl 
-        ? `<div style="width:100%;height:120px;border-radius:8px 8px 0 0;overflow:hidden;margin:0;">
-             <img src="${photoUrl}" alt="${locationTitle}" 
-               style="width:100%;height:100%;object-fit:cover;display:block;" 
-               onerror="this.parentElement.style.display='none'" />
-           </div>`
-        : '';
-      
-      const infoWindow = new window.google.maps.InfoWindow({
-        content: `
-          <div style="min-width:220px;max-width:280px;overflow:hidden;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-            ${photoHtml}
-            <div style="padding:10px 12px 12px;">
-              <div style="font-weight:600;font-size:14px;color:#1a1a1a;margin-bottom:3px;line-height:1.3;">
-                ${locationTitle}
-              </div>
-              <div style="font-size:12px;color:#70757a;margin-bottom:8px;line-height:1.4;">
-                ${locationAddress}
-              </div>
-              <div style="display:flex;align-items:center;gap:10px;">
-                <a href="${mapsLink}" 
-                   target="_blank" 
-                   rel="noopener noreferrer"
-                   style="color:#1a73e8;text-decoration:none;font-size:12px;font-weight:500;">
-                  Open in Google Maps ↗
-                </a>
-              </div>
-            </div>
-          </div>
-        `,
-        maxWidth: 300
-      });
-
       marker.addListener('click', () => {
-        // Close all other info windows
-        markersRef.current.forEach(m => {
-          if (m.infoWindow) {
-            m.infoWindow.close();
-          }
-        });
-        infoWindow.open(mapInstanceRef.current, marker);
+        // Pan map to this marker
+        mapInstanceRef.current.panTo(position);
         
-        // Scroll to the block containing this location
+        // Scroll carousel to this card
+        setActiveCardIndex(index);
+        scrollCarouselToCard(index);
+        
+        // Scroll page to the block containing this location
         if (location.blockId) {
-          // Small delay to ensure DOM is ready
           setTimeout(() => {
             const blockElement = document.querySelector(`[data-block-id="${location.blockId}"]`);
             if (blockElement) {
@@ -2318,20 +2274,28 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
                 behavior: 'smooth', 
                 block: 'center' 
               });
-              // Highlight the block briefly
               blockElement.style.transition = 'box-shadow 0.3s ease';
               blockElement.style.boxShadow = '0 0 0 4px rgba(59, 130, 246, 0.5)';
               setTimeout(() => {
                 blockElement.style.boxShadow = '';
               }, 2000);
-            } else {
-              console.warn('⚠️ Block element not found for blockId:', location.blockId);
             }
           }, 100);
         }
       });
 
-      markersRef.current.push({ marker, infoWindow });
+      markersRef.current.push({ marker, index });
+    };
+    
+    // Helper: scroll carousel to a specific card
+    const scrollCarouselToCard = (cardIndex) => {
+      if (carouselRef.current) {
+        const cardWidth = 260 + 12; // card width + gap
+        carouselRef.current.scrollTo({
+          left: cardIndex * cardWidth,
+          behavior: 'smooth'
+        });
+      }
     };
 
     loadGoogleMaps();
@@ -2348,6 +2312,46 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
       }
     };
   }, [enrichedLocations, isHidden]);
+
+  // Handle clicking a card in the carousel
+  const handleCardClick = (index) => {
+    setActiveCardIndex(index);
+    const loc = enrichedLocations[index];
+    
+    // Pan map to this location
+    if (mapInstanceRef.current && loc.lat && loc.lng) {
+      mapInstanceRef.current.panTo({ lat: loc.lat, lng: loc.lng });
+    }
+    
+    // Scroll page to the block
+    if (loc.blockId) {
+      setTimeout(() => {
+        const blockElement = document.querySelector(`[data-block-id="${loc.blockId}"]`);
+        if (blockElement) {
+          blockElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          blockElement.style.transition = 'box-shadow 0.3s ease';
+          blockElement.style.boxShadow = '0 0 0 4px rgba(59, 130, 246, 0.5)';
+          setTimeout(() => { blockElement.style.boxShadow = ''; }, 2000);
+        }
+      }, 100);
+    }
+  };
+
+  // Handle carousel scroll — detect which card is most visible
+  const handleCarouselScroll = () => {
+    if (!carouselRef.current) return;
+    const scrollLeft = carouselRef.current.scrollLeft;
+    const cardWidth = 260 + 12;
+    const newIndex = Math.round(scrollLeft / cardWidth);
+    if (newIndex !== activeCardIndex && newIndex >= 0 && newIndex < enrichedLocations.length) {
+      setActiveCardIndex(newIndex);
+      // Pan map to this location
+      const loc = enrichedLocations[newIndex];
+      if (mapInstanceRef.current && loc.lat && loc.lng) {
+        mapInstanceRef.current.panTo({ lat: loc.lat, lng: loc.lng });
+      }
+    }
+  };
 
   // Always show map block in visualizer (even if hidden from users)
   // The hidden flag only affects public-facing pages
@@ -2427,6 +2431,104 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
               height: '100%' 
             }} 
           />
+          
+          {/* Bottom carousel of location cards */}
+          {enrichedLocations.length > 0 && !isLoading && (
+            <div
+              ref={carouselRef}
+              className="map-location-carousel"
+              onScroll={handleCarouselScroll}
+              style={{
+                position: 'absolute',
+                bottom: '12px',
+                left: 0,
+                right: 0,
+                zIndex: 2,
+                display: 'flex',
+                gap: '12px',
+                overflowX: 'auto',
+                overflowY: 'hidden',
+                scrollSnapType: 'x mandatory',
+                WebkitOverflowScrolling: 'touch',
+                paddingLeft: '12px',
+                paddingRight: '12px',
+                paddingBottom: '4px',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none'
+              }}
+            >
+              {enrichedLocations.map((loc, idx) => {
+                const isActive = idx === activeCardIndex;
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => handleCardClick(idx)}
+                    style={{
+                      flexShrink: 0,
+                      width: '260px',
+                      backgroundColor: 'white',
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                      boxShadow: isActive
+                        ? '0 4px 20px rgba(0,0,0,0.25)'
+                        : '0 2px 8px rgba(0,0,0,0.15)',
+                      cursor: 'pointer',
+                      scrollSnapAlign: 'start',
+                      transition: 'box-shadow 0.2s ease, transform 0.2s ease',
+                      transform: isActive ? 'scale(1)' : 'scale(0.97)',
+                      border: isActive ? '2px solid #3b82f6' : '2px solid transparent'
+                    }}
+                  >
+                    {/* Photo */}
+                    {loc.photo && (
+                      <div style={{
+                        width: '100%',
+                        height: '100px',
+                        overflow: 'hidden'
+                      }}>
+                        <img 
+                          src={loc.photo}
+                          alt={loc.title || 'Location'}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            display: 'block'
+                          }}
+                          onError={(e) => { e.target.parentElement.style.display = 'none'; }}
+                        />
+                      </div>
+                    )}
+                    {/* Text content */}
+                    <div style={{ padding: '10px 12px' }}>
+                      <div style={{
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        color: '#1a1a1a',
+                        lineHeight: 1.3,
+                        marginBottom: '2px',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}>
+                        {loc.number || idx + 1}. {loc.title || 'Location'}
+                      </div>
+                      <div style={{
+                        fontSize: '12px',
+                        color: '#70757a',
+                        lineHeight: 1.3,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}>
+                        {loc.address || ''}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
       
