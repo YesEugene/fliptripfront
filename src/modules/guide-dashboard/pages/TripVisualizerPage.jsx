@@ -33,12 +33,7 @@ import BarcelonaExampleImage from '../../../assets/Barcelona-example.png';
 import SantAntoniMarketImage from '../../../assets/Sant Antoni Market.jpg';
 import ElRavalImage from '../../../assets/El Raval Backstreets.webp';
 import MontjuicImage from '../../../assets/Montjuïc Hill (Miradors & Paths).jpg';
-import PhotoTextImage from '../../../assets/Photo_text.png';
-import Photo1Image from '../../../assets/Photo-1.jpg';
-import Photo2Image from '../../../assets/Photo-2.jpg';
-import Photo3Image from '../../../assets/Photo-3.jpg';
-import PhotoImage from '../../../assets/Photo.jpg';
-import SlideImage from '../../../assets/Slide.jpg';
+// Default block images removed — blocks now use empty placeholders
 import { getTourById } from '../../../services/api';
 import { getTourAvailability, updateAvailabilitySlots } from '../services/availabilityService';
 import BlockRenderer from '../components/BlockRenderer';
@@ -1537,48 +1532,44 @@ export default function TripVisualizerPage() {
       case 'text':
         defaultContent = { 
           layout: 'two-columns',
-          column1: 'Barcelona works best when you stop trying to do it right.\n\nThis city doesn\'t need to be optimized. It doesn\'t want you to rush from one highlight to another or prove that you\'ve "seen enough." Some of its best moments happen when nothing special is planned.',
-          column2: 'Use this guide as a direction, not a schedule. Walk a little further than intended. Sit longer than planned. If a street, a café, or a view feels right — stay.\n\nBarcelona opens up in pauses: between meals, between neighborhoods, between decisions. And the more space you give it, the more generous it becomes.',
-          text: '', // For single column mode
-          formatted: false
+          column1: '',
+          column2: '',
+          text: '',
+          formatted: false,
+          isPlaceholder: true
         };
         break;
       case 'photo_text':
         defaultContent = { 
-          photo: PhotoTextImage, 
-          text: 'Barcelona reveals itself between places, not inside them.\n\nThe moments that stay with you usually happen while walking without a destination, sitting longer than planned, or choosing not to move on when you easily could.',
-          alignment: 'left' 
+          photo: null, 
+          text: '',
+          alignment: 'left',
+          isPlaceholder: true
         };
         break;
       case 'slide':
         defaultContent = { 
-          title: 'Neighborhoods Matter More Than Attractions', 
-          photo: SlideImage, 
-          text: 'In Barcelona, the real experience rarely happens at the main sights.\nIt happens inside neighborhoods — between daily routines, local cafés, and streets you didn\'t plan to walk down.' 
+          title: '', 
+          photo: null, 
+          text: '',
+          isPlaceholder: true
         };
         break;
       case '3columns':
         defaultContent = { 
           columns: [
-            { 
-              photo: Photo1Image, 
-              text: 'Mornings in Barcelona don\'t rush you.\nThey wait until you\'re ready.' 
-            },
-            { 
-              photo: Photo2Image, 
-              text: 'The city is best understood while walking without a destination.' 
-            },
-            { 
-              photo: Photo3Image, 
-              text: 'Stay when it feels right.\nLeaving can wait.' 
-            }
-          ]
+            { photo: null, text: '' },
+            { photo: null, text: '' },
+            { photo: null, text: '' }
+          ],
+          isPlaceholder: true
         };
         break;
       case 'photo':
         defaultContent = { 
-          photo: PhotoImage, 
-          caption: 'This is me here.\nAnd this is usually where the city starts to feel real.' 
+          photo: null, 
+          caption: '',
+          isPlaceholder: true
         };
         break;
       case 'divider':
@@ -2271,71 +2262,43 @@ export default function TripVisualizerPage() {
           </div>
         )}
         
-        {/* Hero Block - Preview Image with Title */}
+        {/* Hero Block - Preview Image (matches frontend tour page) */}
         <div style={{
           position: 'relative',
           width: '100%',
-          height: '300px',
+          height: '400px',
           borderRadius: '16px',
           overflow: 'hidden',
-          marginBottom: '32px',
-          backgroundColor: '#4b5563',
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'flex-start',
-          padding: '20px 30px',
+          marginBottom: '0',
+          backgroundColor: tourInfo.preview ? 'transparent' : '#e5e7eb',
           boxSizing: 'border-box'
         }}>
-          {/* Background image with overlay */}
-          {tourInfo.preview && (
+          {tourInfo.preview ? (
             <div style={{
               position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
+              top: 0, left: 0, right: 0, bottom: 0,
               backgroundImage: `url(${tourInfo.preview})`,
               backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              zIndex: 0
+              backgroundPosition: 'center'
             }} />
+          ) : (
+            <div style={{
+              width: '100%', height: '100%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexDirection: 'column', gap: '8px', color: '#9ca3af'
+            }}>
+              <span style={{ fontSize: '48px' }}>🖼</span>
+              <span style={{ fontSize: '14px' }}>Upload a cover image in "Edit block"</span>
+            </div>
           )}
-          {/* Gradient overlay - black at top, transparent in middle */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: tourInfo.preview 
-              ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3), transparent)'
-              : 'linear-gradient(to bottom, #4b5563, #d1d5db)',
-            zIndex: 1
-          }} />
-          {/* Title overlay - top left aligned */}
-          <div style={{ 
-            color: tourInfo.title ? 'white' : 'rgba(255,255,255,0.7)', 
-            fontSize: '35px', 
-            fontWeight: '700',
-            textAlign: 'left',
-            lineHeight: '1.2',
-            letterSpacing: '-0.3px',
-            zIndex: 2,
-            maxWidth: '80%',
-            fontFamily: 'system-ui, -apple-system, sans-serif',
-            position: 'relative'
-          }}>
-            {tourInfo.title || 'Your Tour Title'}
-          </div>
           
           {/* Edit block button */}
           <button
             onClick={() => setShowTourEditor(true)}
             style={{
               position: 'absolute',
-              top: '20px',
-              right: '20px',
+              top: '16px',
+              right: '16px',
               padding: '8px 14px',
               backgroundColor: '#fbbf24',
               color: '#111827',
@@ -2353,281 +2316,152 @@ export default function TripVisualizerPage() {
           >
             Edit block
           </button>
-
-          {/* Download PDF button - increased by 15% */}
-          <button
-            style={{
-              position: 'absolute',
-              bottom: '20px',
-              left: '20px',
-              padding: '11.04px 22.08px',
-              backgroundColor: 'white',
-              color: '#111827',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '13.8px',
-              fontWeight: '600',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '9.2px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-              zIndex: 2,
-              transition: 'all 0.2s',
-              transform: 'scale(0.92)',
-              transformOrigin: 'left bottom'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(0.92) translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(0.92) translateY(0)';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-            }}
-          >
-            <img 
-              src={PDFIcon} 
-              alt="PDF" 
-              style={{ width: '18.4px', height: '18.4px' }}
-            />
-            Download PDF
-          </button>
         </div>
 
-        {/* Tags placeholder */}
-        <div style={{ 
-          display: 'flex', 
-          gap: '10px', 
-          marginBottom: '30px',
-          marginTop: '-10px',
-          flexWrap: 'wrap'
-        }}>
-          <div style={{
-            height: '35px',
-            padding: '0 12px',
-            backgroundColor: '#FFE7CE',
-            color: '#111827',
-            borderRadius: '10px',
-            fontSize: '10px',
-            fontWeight: '500',
-            display: 'flex',
-            alignItems: 'center'
+        {/* Title below image */}
+        <div style={{ paddingTop: '24px' }}>
+          <h1 style={{
+            fontSize: '28px',
+            fontWeight: '700',
+            color: tourInfo.title ? '#111827' : '#9ca3af',
+            margin: '0 0 8px 0',
+            lineHeight: '1.2',
+            fontStyle: tourInfo.title ? 'normal' : 'italic'
           }}>
-            {tourInfo.city || 'City'}
-          </div>
-          <div style={{
-            height: '35px',
-            padding: '0 12px',
-            backgroundColor: '#CFF2FF',
-            color: '#111827',
-            borderRadius: '10px',
-            fontSize: '10px',
-            fontWeight: '500',
-            display: 'flex',
-            alignItems: 'center'
-          }}>
-            Dates
-          </div>
-          <div style={{
-            height: '35px',
-            padding: '0 12px',
-            backgroundColor: '#CFFFE1',
-            color: '#111827',
-            borderRadius: '10px',
-            fontSize: '10px',
-            fontWeight: '500',
-            display: 'flex',
-            alignItems: 'center'
-          }}>
-            Budget
-          </div>
-          {/* Display interests: show default "Interests" tag if no tags, or actual tags if they exist */}
-          {tourInfo.tags && tourInfo.tags.length > 0 ? (
-            // Show actual interest tags (white with border)
-            tourInfo.tags.map(tagId => {
-              // Convert both to strings for comparison (IDs can be numbers or UUIDs)
-              const tagIdString = String(tagId);
-              const interest = allInterestsForDisplay.find(i => String(i.id) === tagIdString);
-              if (!interest) {
-                console.warn('⚠️ Interest not found for tagId:', tagIdString, 'Available interests:', allInterestsForDisplay.map(i => ({ id: i.id, name: i.name })));
-                return null;
-              }
-              
-              return (
-                <div
-                  key={tagId}
-                  style={{
-                    height: '35px',
-                    padding: '0 12px',
-                    backgroundColor: 'white',
-                    color: '#111827',
-                    borderRadius: '10px',
-                    fontSize: '10px',
-                    fontWeight: '500',
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: '1px solid #DEDEDE'
-                  }}
-                >
-                  {interest.name}
-                </div>
-              );
-            })
-          ) : (
-            // Show default "Interests" tag (colored like others)
-            <div style={{
-              height: '35px',
-              padding: '0 12px',
-              backgroundColor: '#FFCFCF',
-              color: '#111827',
-              borderRadius: '10px',
-              fontSize: '10px',
-              fontWeight: '500',
-              display: 'flex',
-              alignItems: 'center'
-            }}>
-              Interests
-            </div>
-          )}
-        </div>
+            {tourInfo.title || 'Your Tour Title'}
+          </h1>
 
-        {/* From author block */}
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          padding: '32px',
-          border: '1px solid #D0D0D0',
-          marginBottom: '40px',
-          marginTop: '-10px'
-        }}>
-          <div style={{ 
-            display: 'flex', 
-            gap: '24px', 
-            alignItems: 'flex-start',
-            flexDirection: isMobile ? 'column' : 'row'
+          {/* City row */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            marginBottom: '20px'
           }}>
-            <div style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center', 
-              flexShrink: 0, 
-              minWidth: isMobile ? '100%' : '120px',
-              width: isMobile ? '100%' : 'auto'
-            }}>
+            {tourInfo.city ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: '#374151' }}>
+                <span style={{ fontSize: '15px' }}>📍</span>
+                {tourInfo.city}
+              </div>
+            ) : (
+              <div style={{ fontSize: '14px', color: '#9ca3af', fontStyle: 'italic' }}>📍 City</div>
+            )}
+          </div>
+
+          {/* Author row: avatar+info left, edit button right */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '24px',
+            gap: '12px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{
-                width: '100px',
-                height: '100px',
+                width: '44px',
+                height: '44px',
                 borderRadius: '50%',
                 backgroundColor: '#e5e7eb',
                 overflow: 'hidden',
-                marginBottom: '12px',
-                border: '3px solid #f3f4f6'
+                flexShrink: 0
               }}>
                 {(guideProfile?.avatar || user?.avatar) ? (
-                  <img src={guideProfile?.avatar || user?.avatar} alt="Author" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={guideProfile?.avatar || user?.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
-                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '40px' }}>
-                    👤
-                  </div>
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#9ca3af' }}>👤</div>
                 )}
               </div>
-              <p style={{ 
-                margin: 0, 
-                fontSize: '14px', 
-                color: '#6b7280',
-                textAlign: 'center',
-                lineHeight: '1.5',
-                whiteSpace: 'pre-line'
-              }}>
-                Tour created{'\n'}by <strong style={{ color: '#111827', fontWeight: '600' }}>{guideProfile?.name || user?.name || 'Author'}</strong>
-              </p>
-            </div>
-            <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
-              <h3 style={{ 
-                fontSize: '20px', 
-                fontWeight: '500', 
-                marginBottom: '16px', 
-                color: '#111827',
-                marginTop: 0,
-                textAlign: isMobile ? 'center' : 'left'
-              }}>
-                A note from the author
-              </h3>
-              <div>
-                {(() => {
-                  const isPlaceholder = !tourInfo.description;
-                  const text = tourInfo.description || 'This is where you introduce yourself and share why you created this tour.\n\nTell travelers what makes this experience special to you. What\'s your personal connection to this place? What kind of journey are you offering?\n\nClick "Edit block" above to add your story.';
-                  
-                  // Check if text is likely to be more than 5 lines
-                  // Count lines by splitting on newlines and estimating chars per line
-                  // With line-height 1.7 and font-size 15px, approximate 80-100 chars per line
-                  // Account for newlines - each \n adds a line
-                  const lineCount = text ? (text.split('\n').length + Math.ceil(text.replace(/\n/g, '').length / 90)) : 0;
-                  const shouldShowButton = lineCount > 5 && !isPlaceholder;
-                  
-                  return (
-                    <>
-                      {isAuthorTextExpanded ? (
-                        <p style={{ 
-                          color: isPlaceholder ? '#9ca3af' : '#4b5563', 
-                          fontSize: '15px', 
-                          lineHeight: isMobile ? '1.5' : '1.7', 
-                          marginBottom: '16px',
-                          marginTop: 0,
-                          whiteSpace: 'pre-line',
-                          fontStyle: isPlaceholder ? 'italic' : 'normal'
-                        }}>
-                          {text}
-                        </p>
-                      ) : (
-                        <p style={{ 
-                          color: isPlaceholder ? '#9ca3af' : '#4b5563', 
-                          fontSize: '15px', 
-                          lineHeight: isMobile ? '1.5' : '1.7', 
-                          marginBottom: shouldShowButton ? '12px' : '16px',
-                          marginTop: 0,
-                          display: '-webkit-box',
-                          WebkitLineClamp: 5,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          whiteSpace: 'pre-line',
-                          fontStyle: isPlaceholder ? 'italic' : 'normal'
-                        }}>
-                          {text}
-                        </p>
-                      )}
-                      {shouldShowButton && (
-                        <button 
-                          onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
-                          style={{
-                            padding: '8px 16px',
-                            backgroundColor: '#EFEFEF',
-                            color: '#6b7280',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '13px',
-                            fontWeight: '500',
-                            transition: 'all 0.2s',
-                            marginTop: '4px'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = '#e5e5e5';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = '#EFEFEF';
-                          }}
-                        >
-                          {isAuthorTextExpanded ? 'Read less' : 'Read more'}
-                        </button>
-                      )}
-                    </>
-                  );
-                })()}
+              <div style={{ lineHeight: '1.3' }}>
+                <div style={{ fontSize: '12px', color: '#6b7280' }}>Trip created by</div>
+                <div style={{ fontWeight: '600', color: '#111827', fontSize: '15px' }}>{guideProfile?.name || user?.name || 'Author'}</div>
               </div>
             </div>
+            <button
+              style={{
+                backgroundColor: '#2059ff',
+                color: '#ebf6fa',
+                border: 'none',
+                borderRadius: '24px',
+                padding: '12px 20px',
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: 'default',
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                opacity: 0.7
+              }}
+            >
+              <img src={PDFIcon} alt="PDF" style={{ width: '16px', height: '16px', filter: 'brightness(0) invert(1)' }} />
+              Download PDF
+            </button>
           </div>
+        </div>
+
+        {/* Interest tags — only author-defined tags */}
+        {tourInfo.tags && tourInfo.tags.length > 0 && (
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '24px' }}>
+            {tourInfo.tags.map(tagId => {
+              const tagIdString = String(tagId);
+              const interest = allInterestsForDisplay.find(i => String(i.id) === tagIdString);
+              if (!interest) return null;
+              return (
+                <div key={tagId} style={{
+                  height: '35px',
+                  padding: '0 12px',
+                  backgroundColor: 'white',
+                  color: '#111827',
+                  borderRadius: '10px',
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: '1px solid #DEDEDE'
+                }}>
+                  {interest.name}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* About trip */}
+        <div style={{ marginBottom: '32px' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 12px 0' }}>About trip</h2>
+          {(() => {
+            const isPlaceholder = !tourInfo.description;
+            const text = tourInfo.description || 'This is where you describe your tour. Tell travelers what they\'ll discover, what makes this route unique, and why they should follow it.\n\nClick "Edit block" above to add your description.';
+            const isLong = text.length > 400 && !isPlaceholder;
+            return (
+              <>
+                <p style={{
+                  fontSize: '14px',
+                  color: isPlaceholder ? '#9ca3af' : '#374151',
+                  lineHeight: '1.5',
+                  margin: '0 0 8px 0',
+                  whiteSpace: 'pre-line',
+                  fontStyle: isPlaceholder ? 'italic' : 'normal',
+                  ...(isLong && !isAuthorTextExpanded ? {
+                    display: '-webkit-box',
+                    WebkitLineClamp: 6,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden'
+                  } : {})
+                }}>
+                  {text}
+                </p>
+                {isLong && (
+                  <span
+                    onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
+                    style={{ fontSize: '14px', fontWeight: '600', color: '#2059ff', cursor: 'pointer' }}
+                  >
+                    {isAuthorTextExpanded ? 'Show less' : 'See More..'}
+                  </span>
+                )}
+              </>
+            );
+          })()}
         </div>
 
         {/* Content Blocks - Appear after author block */}

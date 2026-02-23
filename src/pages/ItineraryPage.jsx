@@ -2664,115 +2664,55 @@ export default function ItineraryPage() {
         </div>
       </div>
 
-      {/* Tags Section - Match visualizer exactly */}
-      <div style={{ 
-        width: isMobile ? '90%' : '100%',
-        boxSizing: 'border-box',
-        marginTop: isMobile ? '0' : '-10px',
-        marginBottom: '30px',
-        marginLeft: isMobile ? 'auto' : '0',
-        marginRight: isMobile ? 'auto' : '0',
-        padding: '0',
-        paddingLeft: '0',
-        paddingRight: '0'
-      }}>
-        <div style={{ 
-          display: 'flex', 
-          gap: '10px', 
-          flexWrap: 'wrap',
-          margin: '0'
-        }}>
-          {/* City tag */}
-          <div style={{
-            height: '35px',
-            padding: '0 12px',
-            backgroundColor: '#FFE7CE',
-            color: '#111827',
-            borderRadius: '10px',
-            fontSize: '10px',
-            fontWeight: '500',
-            display: 'flex',
-            alignItems: 'center'
+      {/* Interest Tags — only author-defined tags */}
+      {(() => {
+        let interestsToShow = [];
+        if (useNewFormat && tourData?.tour_tags && tourData.tour_tags.length > 0) {
+          interestsToShow = tourData.tour_tags.map(tt => tt.interest?.name).filter(Boolean);
+        }
+        if (interestsToShow.length === 0) {
+          const interestsFromItinerary = itinerary?.tags?.interests || [];
+          const interestsFromForm = formData.interests || [];
+          interestsToShow = interestsFromItinerary.length > 0 ? interestsFromItinerary : interestsFromForm;
+        }
+        if (interestsToShow.length === 0) return null;
+        return (
+          <div style={{ 
+            width: isMobile ? '90%' : '100%',
+            boxSizing: 'border-box',
+            marginBottom: '24px',
+            marginLeft: isMobile ? 'auto' : '0',
+            marginRight: isMobile ? 'auto' : '0'
           }}>
-            {itinerary?.tags?.city || formData.city || tourData?.city?.name || (typeof tourData?.city === 'string' ? tourData.city : 'City')}
-          </div>
-          
-          {/* Date tag */}
-          <div style={{
-            height: '35px',
-            padding: '0 12px',
-            backgroundColor: '#CFF2FF',
-            color: '#111827',
-            borderRadius: '10px',
-            fontSize: '10px',
-            fontWeight: '500',
-            display: 'flex',
-            alignItems: 'center'
-          }}>
-            {itinerary?.tags?.date || 'Dates'}
-          </div>
-          
-          {/* Budget tag */}
-          <div style={{
-            height: '35px',
-            padding: '0 12px',
-            backgroundColor: '#CFFFE1',
-            color: '#111827',
-            borderRadius: '10px',
-            fontSize: '10px',
-            fontWeight: '500',
-            display: 'flex',
-            alignItems: 'center'
-          }}>
-            {itinerary?.tags?.budget ? `${itinerary.tags.budget}€` : 'Budget'}
-          </div>
-          
-          {/* Interests tags - from tourData.tour_tags OR itinerary.tags.interests */}
-          {(() => {
-            // First try to get from tourData.tour_tags (for tours from DB)
-            let interestsToShow = [];
-            if (useNewFormat && tourData?.tour_tags && tourData.tour_tags.length > 0) {
-              interestsToShow = tourData.tour_tags
-                .map(tt => tt.interest?.name)
-                .filter(Boolean);
-            }
-            
-            // Fallback to itinerary.tags.interests or formData.interests
-            if (interestsToShow.length === 0) {
-              const interestsFromItinerary = itinerary?.tags?.interests || [];
-              const interestsFromForm = formData.interests || [];
-              interestsToShow = interestsFromItinerary.length > 0 ? interestsFromItinerary : interestsFromForm;
-            }
-            
-            return interestsToShow.map((interest, index) => (
-              <div
-                key={index}
-                style={{
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              {interestsToShow.map((interest, index) => (
+                <div key={index} style={{
                   height: '35px',
                   padding: '0 12px',
                   backgroundColor: 'white',
                   color: '#111827',
                   borderRadius: '10px',
-                  fontSize: '10px',
+                  fontSize: '12px',
                   fontWeight: '500',
                   display: 'flex',
                   alignItems: 'center',
                   border: '1px solid #DEDEDE'
-                }}
-              >
-                {interest}
-              </div>
-            ));
-          })()}
-        </div>
-      </div>
+                }}>
+                  {interest}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
-      {/* About trip — for desktop full/paid new format (like preview page) */}
-      {useNewFormat && !isMobile && tourDescription && (
+      {/* About trip — for full/paid new format (like preview page), mobile & desktop */}
+      {useNewFormat && tourDescription && (
         <div style={{
-          width: '100%',
+          width: isMobile ? '90%' : '100%',
+          margin: isMobile ? '0 auto' : '0',
           boxSizing: 'border-box',
-          marginBottom: '24px'
+          marginBottom: '32px'
         }}>
           <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 12px 0' }}>About trip</h2>
           {(() => {

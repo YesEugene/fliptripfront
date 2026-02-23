@@ -880,7 +880,7 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
 // Title Block
 function TitleBlock({ block, onEdit }) {
   const content = block.content || {};
-  const text = content.text || 'Lorem ipsum dolor conta me more upsi colora';
+  const text = content.text || 'Section Title';
   const size = content.size || 'large';
   
   const fontSizeMap = {
@@ -928,7 +928,8 @@ function TitleBlock({ block, onEdit }) {
 function PhotoTextBlock({ block, onEdit }) {
   const content = block.content || {};
   const photos = content.photos || (content.photo ? [content.photo] : []);
-  const text = content.text || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
+  const isPlaceholder = content.isPlaceholder || (!content.text && photos.length === 0);
+  const text = content.text || (isPlaceholder ? '' : '');
   const alignment = content.alignment || 'left';
   const [isMobile, setIsMobile] = useState(false);
   const [fullscreenPhotos, setFullscreenPhotos] = useState(null);
@@ -985,6 +986,23 @@ function PhotoTextBlock({ block, onEdit }) {
 
   // Square aspect ratio (1:1) for all screen sizes
   const currentPhoto = photos[currentPhotoIndex] || photos[0];
+
+  // Placeholder when block is empty
+  if (isPlaceholder && !currentPhoto && !text) {
+    return (
+      <div style={{ marginBottom: isMobile ? '10px' : '32px', padding: '0' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '16px' : '32px', alignItems: 'flex-start' }}>
+          <div style={{ width: '100%', aspectRatio: '1', backgroundColor: '#f3f4f6', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '14px' }}>
+            🖼 Photo
+          </div>
+          <div style={{ color: '#9ca3af', fontSize: '15px', lineHeight: '1.6', fontStyle: 'italic' }}>
+            <p style={{ margin: '0 0 8px 0' }}>Use this block to combine a photo with text side by side.</p>
+            <p style={{ margin: 0 }}>Click <strong>"Edit block"</strong> to upload a photo and write your text.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Mobile: image first, then text below
   if (isMobile) {
@@ -1235,6 +1253,7 @@ function TextBlock({ block, onEdit }) {
   const content = block.content || {};
   const layout = content.layout || 'single';
   const formatted = content.formatted || false;
+  const isPlaceholder = content.isPlaceholder || false;
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -1249,6 +1268,23 @@ function TextBlock({ block, onEdit }) {
     const column1 = content.column1 || '';
     const column2 = content.column2 || '';
     
+    // Placeholder when both columns are empty
+    if (isPlaceholder && !column1 && !column2) {
+      return (
+        <div style={{ marginBottom: isMobile ? '10px' : '32px', padding: isMobile ? '0 10px' : '0' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '24px' : '32px' }}>
+            <div style={{ color: '#9ca3af', fontSize: '15px', lineHeight: '1.6', fontStyle: 'italic', padding: '16px', backgroundColor: '#f9fafb', borderRadius: '12px' }}>
+              <p style={{ margin: 0 }}>Left column text. Share your story, tips, or insights here.</p>
+            </div>
+            <div style={{ color: '#9ca3af', fontSize: '15px', lineHeight: '1.6', fontStyle: 'italic', padding: '16px', backgroundColor: '#f9fafb', borderRadius: '12px' }}>
+              <p style={{ margin: 0 }}>Right column text. Continue your narrative or add complementary content.</p>
+            </div>
+          </div>
+          <p style={{ color: '#9ca3af', fontSize: '13px', fontStyle: 'italic', marginTop: '12px' }}>Click <strong>"Edit block"</strong> to add your text.</p>
+        </div>
+      );
+    }
+
     return (
       <div style={{ 
         marginBottom: isMobile ? '10px' : '32px',
@@ -1328,7 +1364,20 @@ function TextBlock({ block, onEdit }) {
   }
 
   // Single column layout
-  const text = content.text || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.';
+  const textIsEmpty = !content.text;
+  const text = content.text || '';
+
+  // Placeholder for empty single-column text
+  if ((isPlaceholder || textIsEmpty) && !text) {
+    return (
+      <div style={{ marginBottom: isMobile ? '10px' : '32px', padding: '0' }}>
+        <div style={{ color: '#9ca3af', fontSize: '15px', lineHeight: '1.6', fontStyle: 'italic', padding: '16px', backgroundColor: '#f9fafb', borderRadius: '12px' }}>
+          <p style={{ margin: '0 0 8px 0' }}>Use this block to add descriptive text to your tour.</p>
+          <p style={{ margin: 0 }}>Click <strong>"Edit block"</strong> to write your content.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ 
@@ -1372,9 +1421,10 @@ function TextBlock({ block, onEdit }) {
 // Slide Block
 function SlideBlock({ block, onEdit }) {
   const content = block.content || {};
-  const title = content.title || 'Slide Title';
+  const isPlaceholder = content.isPlaceholder || (!content.title && !content.text && !content.photo && (!content.photos || content.photos.length === 0));
+  const title = content.title || '';
   const photos = content.photos || (content.photo ? [content.photo] : []);
-  const text = content.text || 'Slide description text';
+  const text = content.text || '';
   const [isMobileSlide, setIsMobileSlide] = useState(false);
   const [fullscreenPhotos, setFullscreenPhotos] = useState(null);
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
@@ -1431,6 +1481,28 @@ function SlideBlock({ block, onEdit }) {
   // Fixed height: 400px (desktop) / 190px (mobile) - 750px × 400px on desktop
   const photoHeight = isMobileSlide ? '190px' : '400px';
   const currentPhoto = photos[currentPhotoIndex] || photos[0];
+
+  // Placeholder when block is empty
+  if (isPlaceholder && !currentPhoto && !title && !text) {
+    return (
+      <div style={{ marginBottom: isMobileSlide ? '10px' : '32px', padding: '0' }}>
+        <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '12px', color: '#9ca3af', fontStyle: 'italic' }}>
+          Slide Title
+        </h3>
+        <div style={{
+          width: '100%', height: photoHeight, backgroundColor: '#f3f4f6', borderRadius: '20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', marginBottom: '12px',
+          flexDirection: 'column', gap: '8px'
+        }}>
+          <span style={{ fontSize: '32px' }}>🖼</span>
+          <span style={{ fontSize: '14px' }}>Upload a photo</span>
+        </div>
+        <p style={{ color: '#9ca3af', fontSize: '15px', lineHeight: '1.6', fontStyle: 'italic', margin: 0 }}>
+          Use this block for a full-width photo with a title and description. Great for highlighting key moments or locations. Click <strong>"Edit block"</strong> to add content.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ 
@@ -1550,10 +1622,11 @@ function SlideBlock({ block, onEdit }) {
 // 3 Columns Block
 function ThreeColumnsBlock({ block, onEdit }) {
   const content = block.content || {};
+  const isPlaceholder = content.isPlaceholder || false;
   const columns = content.columns || [
-    { photo: null, text: 'Column 1 text' },
-    { photo: null, text: 'Column 2 text' },
-    { photo: null, text: 'Column 3 text' }
+    { photo: null, text: '' },
+    { photo: null, text: '' },
+    { photo: null, text: '' }
   ];
   
   // Debug logging
@@ -1580,6 +1653,28 @@ function ThreeColumnsBlock({ block, onEdit }) {
     
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
+
+  // Placeholder when all columns are empty
+  const allEmpty = isPlaceholder || columns.every(col => !col.photo && !col.text);
+  if (allEmpty) {
+    return (
+      <div style={{ marginBottom: isMobile ? '10px' : '32px', padding: '0' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '24px' }}>
+          {[1, 2, 3].map(n => (
+            <div key={n}>
+              <div style={{ width: '100%', height: '150px', backgroundColor: '#f3f4f6', borderRadius: '20px', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '14px' }}>
+                🖼 Photo {n}
+              </div>
+              <p style={{ color: '#9ca3af', fontSize: '14px', lineHeight: '1.6', margin: 0, fontStyle: 'italic' }}>Column {n} text</p>
+            </div>
+          ))}
+        </div>
+        <p style={{ color: '#9ca3af', fontSize: '13px', fontStyle: 'italic', marginTop: '12px' }}>
+          Use this block to display three items side by side — photos with captions or short texts. Click <strong>"Edit block"</strong> to add content.
+        </p>
+      </div>
+    );
+  }
 
   // Mobile: horizontal scroll with swipe
   if (isMobile) {
@@ -1736,6 +1831,7 @@ function ThreeColumnsBlock({ block, onEdit }) {
 // Photo Block
 function PhotoBlock({ block, onEdit }) {
   const content = block.content || {};
+  const isPlaceholder = content.isPlaceholder || false;
   const photos = content.photos || (content.photo ? [content.photo] : []);
   const caption = content.caption || '';
   
@@ -1804,6 +1900,25 @@ function PhotoBlock({ block, onEdit }) {
   // Fixed height: 400px (desktop) / 190px (mobile) - 750px × 400px on desktop
   const photoHeight = isMobilePhoto ? '190px' : '400px';
   const currentPhoto = photos[currentPhotoIndex] || photos[0];
+
+  // Placeholder when block is empty
+  if ((isPlaceholder || photos.length === 0) && !currentPhoto) {
+    return (
+      <div style={{ marginBottom: isMobilePhoto ? '10px' : '32px', padding: '0' }}>
+        <div style={{
+          width: '100%', height: photoHeight, backgroundColor: '#f3f4f6', borderRadius: '20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af',
+          flexDirection: 'column', gap: '8px', marginBottom: '12px'
+        }}>
+          <span style={{ fontSize: '32px' }}>🖼</span>
+          <span style={{ fontSize: '14px' }}>Upload a photo</span>
+        </div>
+        <p style={{ color: '#9ca3af', fontSize: '13px', fontStyle: 'italic', margin: 0 }}>
+          Use this block for a full-width photo with an optional caption. Click <strong>"Edit block"</strong> to upload.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ 
