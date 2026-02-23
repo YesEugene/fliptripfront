@@ -2313,28 +2313,16 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
     };
   }, [enrichedLocations, isHidden]);
 
-  // Handle clicking a card in the carousel
+  // Handle clicking a card in the carousel — open location in Google Maps
   const handleCardClick = (index) => {
     setActiveCardIndex(index);
     const loc = enrichedLocations[index];
     
-    // Pan map to this location
-    if (mapInstanceRef.current && loc.lat && loc.lng) {
-      mapInstanceRef.current.panTo({ lat: loc.lat, lng: loc.lng });
-    }
-    
-    // Scroll page to the block
-    if (loc.blockId) {
-      setTimeout(() => {
-        const blockElement = document.querySelector(`[data-block-id="${loc.blockId}"]`);
-        if (blockElement) {
-          blockElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          blockElement.style.transition = 'box-shadow 0.3s ease';
-          blockElement.style.boxShadow = '0 0 0 4px rgba(59, 130, 246, 0.5)';
-          setTimeout(() => { blockElement.style.boxShadow = ''; }, 2000);
-        }
-      }, 100);
-    }
+    // Open location in Google Maps
+    const mapsUrl = loc.place_id 
+      ? `https://www.google.com/maps/place/?q=place_id:${loc.place_id}` 
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc.address || loc.title || '')}`;
+    window.open(mapsUrl, '_blank', 'noopener,noreferrer');
   };
 
   // Handle carousel scroll — detect which card is most visible
@@ -2450,8 +2438,8 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
                 overflowY: 'hidden',
                 scrollSnapType: 'x mandatory',
                 WebkitOverflowScrolling: 'touch',
-                paddingLeft: '12px',
-                paddingRight: '12px',
+                paddingLeft: '14px',
+                paddingRight: '14px',
                 paddingBottom: '4px',
                 scrollbarWidth: 'none',
                 msOverflowStyle: 'none'
@@ -2475,8 +2463,7 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
                       cursor: 'pointer',
                       scrollSnapAlign: 'start',
                       transition: 'box-shadow 0.2s ease, transform 0.2s ease',
-                      transform: isActive ? 'scale(1)' : 'scale(0.97)',
-                      border: isActive ? '2px solid #3b82f6' : '2px solid transparent'
+                      transform: isActive ? 'scale(1)' : 'scale(0.97)'
                     }}
                   >
                     {/* Photo */}
