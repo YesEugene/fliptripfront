@@ -2328,7 +2328,7 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
   // Handle carousel scroll — detect which card is most visible
   const handleCarouselScroll = () => {
     if (!carouselRef.current) return;
-    const scrollLeft = carouselRef.current.scrollLeft - 14; // account for left spacer
+    const scrollLeft = carouselRef.current.scrollLeft - 29; // account for left spacer
     const cardWidth = 260 + 12;
     const newIndex = Math.round(Math.max(0, scrollLeft) / cardWidth);
     if (newIndex !== activeCardIndex && newIndex >= 0 && newIndex < enrichedLocations.length) {
@@ -2444,7 +2444,7 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
               }}
             >
               {/* Left spacer to ensure padding is visible even when scrolled */}
-              <div style={{ flexShrink: 0, width: '14px', minWidth: '14px' }} />
+              <div style={{ flexShrink: 0, width: '29px', minWidth: '29px' }} />
               {enrichedLocations.map((loc, idx) => {
                 const isActive = idx === activeCardIndex;
                 return (
