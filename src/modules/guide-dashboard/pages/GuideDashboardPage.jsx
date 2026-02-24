@@ -58,15 +58,8 @@ export default function GuideDashboardPage() {
     };
     window.addEventListener('resize', handleResize);
     
-    // Reload tours when window gains focus (user returns from editing)
-    const handleFocus = () => {
-      loadGuideTours();
-    };
-    window.addEventListener('focus', handleFocus);
-    
     return () => {
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('focus', handleFocus);
     };
   }, []);
 

@@ -49,7 +49,8 @@ function AlternativeLocationPhoto({ altLocation }) {
   // Filter out invalid photos (must be valid HTTP URLs or base64 data URIs) and refresh API keys
   const validAltPhotos = altPhotosArray
     .filter(p => p && typeof p === 'string' && (p.startsWith('http') || p.startsWith('data:image/')))
-    .map(refreshPhotoUrl);
+    .map(refreshPhotoUrl)
+    .filter(Boolean);
   const currentPhoto = validAltPhotos[currentIndex] || validAltPhotos[0];
   
   // Debug logging
@@ -401,7 +402,8 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
             // Verify photos are valid URLs or base64 data URIs, and refresh API keys
             const validPhotos = mainPhotosArray
               .filter(p => p && typeof p === 'string' && (p.startsWith('http') || p.startsWith('data:image/')))
-              .map(refreshPhotoUrl);
+              .map(refreshPhotoUrl)
+              .filter(Boolean);
             if (validPhotos.length !== mainPhotosArray.length) {
               const invalidPhotos = mainPhotosArray.filter(p => !p || typeof p !== 'string' || (!p.startsWith('http') && !p.startsWith('data:image/')));
               console.warn('⚠️ Some main location photos are invalid:', {
@@ -435,7 +437,7 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
             
             console.log('✅ Valid photos to display:', {
               count: validPhotos.length,
-              types: validPhotos.map(p => p.startsWith('http') ? 'HTTP' : 'Base64')
+              types: validPhotos.map(p => (typeof p === 'string' && p.startsWith('http')) ? 'HTTP' : 'Base64')
             });
             
             if (mainPhotosArray.length > 0 && validPhotos.length > 0) {
