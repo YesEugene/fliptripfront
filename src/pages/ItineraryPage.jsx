@@ -2382,7 +2382,11 @@ export default function ItineraryPage() {
                 backgroundColor: '#ecf6ff', borderRadius: '12px', padding: '16px',
                 minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
               }}>
-                <span style={{ fontSize: '24px', marginBottom: '8px' }}>📄</span>
+                <img
+                  src={PDFIcon}
+                  alt="PDF"
+                  style={{ width: '18px', height: '19px', marginBottom: '8px' }}
+                />
                 <span style={{ fontSize: '14px', fontWeight: '600', color: '#111827', lineHeight: '1.3' }}>An interactive map + downloadable PDF</span>
               </div>
             </div>
@@ -2692,7 +2696,7 @@ export default function ItineraryPage() {
               gap: '8px'
             }}
           >
-            <img src={PDFIcon} alt="PDF" style={{ width: '16px', height: '16px', filter: 'brightness(0) invert(1)' }} />
+            <img src={PDFIcon} alt="PDF" style={{ width: '18px', height: '19px' }} />
             Download PDF
           </button>
         </div>

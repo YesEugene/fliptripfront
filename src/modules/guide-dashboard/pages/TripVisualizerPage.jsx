@@ -2389,7 +2389,7 @@ export default function TripVisualizerPage() {
                 opacity: 0.7
               }}
             >
-              <img src={PDFIcon} alt="PDF" style={{ width: '16px', height: '16px', filter: 'brightness(0) invert(1)' }} />
+              <img src={PDFIcon} alt="PDF" style={{ width: '18px', height: '19px' }} />
               Download PDF
             </button>
           </div>
