@@ -29,6 +29,13 @@ function refreshPhotoUrls(photos) {
   return refreshPhotoUrl(photos);
 }
 
+/** Normalize legacy/malformed values to arrays to avoid runtime crashes. */
+function asArray(value) {
+  if (Array.isArray(value)) return value;
+  if (value === null || value === undefined) return [];
+  return [value];
+}
+
 // Alternative Location Photo Component - handles photo display for alternative locations
 // NOTE: Clicking on photo should switch location, NOT open fullscreen
 function AlternativeLocationPhoto({ altLocation }) {
@@ -250,7 +257,9 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
   
   // Support both old format (flat) and new format (mainLocation + alternativeLocations)
   const mainLocation = content.mainLocation || content;
-  const alternativeLocations = content.alternativeLocations || [];
+  const alternativeLocations = asArray(content.alternativeLocations).filter(
+    (loc) => loc && typeof loc === 'object'
+  );
   
   // Debug logging
   if (alternativeLocations.length > 0) {
@@ -930,7 +939,7 @@ function TitleBlock({ block, onEdit }) {
 // Photo + Text Block
 function PhotoTextBlock({ block, onEdit }) {
   const content = block.content || {};
-  const photos = content.photos || (content.photo ? [content.photo] : []);
+  const photos = asArray(content.photos || content.photo);
   const isPlaceholder = content.isPlaceholder || (!content.text && photos.length === 0);
   const text = content.text || (isPlaceholder ? '' : '');
   const alignment = content.alignment || 'left';
@@ -1426,7 +1435,7 @@ function SlideBlock({ block, onEdit }) {
   const content = block.content || {};
   const isPlaceholder = content.isPlaceholder || (!content.title && !content.text && !content.photo && (!content.photos || content.photos.length === 0));
   const title = content.title || '';
-  const photos = content.photos || (content.photo ? [content.photo] : []);
+  const photos = asArray(content.photos || content.photo);
   const text = content.text || '';
   const [isMobileSlide, setIsMobileSlide] = useState(false);
   const [fullscreenPhotos, setFullscreenPhotos] = useState(null);
@@ -1626,11 +1635,14 @@ function SlideBlock({ block, onEdit }) {
 function ThreeColumnsBlock({ block, onEdit }) {
   const content = block.content || {};
   const isPlaceholder = content.isPlaceholder || false;
-  const columns = content.columns || [
+  const fallbackColumns = [
     { photo: null, text: '' },
     { photo: null, text: '' },
     { photo: null, text: '' }
   ];
+  const columns = (Array.isArray(content.columns) ? content.columns : fallbackColumns).map((col) =>
+    col && typeof col === 'object' ? col : { photo: null, text: '' }
+  );
   
   // Debug logging
   console.log('📸 ThreeColumnsBlock - Content:', {
@@ -1835,7 +1847,7 @@ function ThreeColumnsBlock({ block, onEdit }) {
 function PhotoBlock({ block, onEdit }) {
   const content = block.content || {};
   const isPlaceholder = content.isPlaceholder || false;
-  const photos = content.photos || (content.photo ? [content.photo] : []);
+  const photos = asArray(content.photos || content.photo);
   const caption = content.caption || '';
   
   // Debug logging

@@ -176,6 +176,16 @@ export default function TripVisualizerPage() {
     highlights: {} // "What's Inside This Walk" structured: {icon3, text3, icon4, text4, icon5, text5}
   });
 
+  // Normalize legacy/malformed values coming from older tours to prevent runtime crashes.
+  const normalizeStringArray = (value) => {
+    if (Array.isArray(value)) return value.map(v => String(v)).filter(Boolean);
+    if (typeof value === 'string') return value.split(',').map(s => s.trim()).filter(Boolean);
+    return [];
+  };
+  const normalizeImageArray = (value) => Array.isArray(value)
+    ? value.filter(v => typeof v === 'string' && v.trim().length > 0)
+    : [];
+
   // City autocomplete state
   const [cities, setCities] = useState([]);
   const [citySuggestions, setCitySuggestions] = useState([]);
@@ -339,7 +349,7 @@ export default function TripVisualizerPage() {
           title: sourceData.title || tourObj.title || '',
           description: sourceData.description || tourObj.description || '',
           preview: sourceData.preview || tourObj.preview_media_url || null,
-          previewImages: draftData?.previewImages || [], // Additional gallery images
+          previewImages: normalizeImageArray(draftData?.previewImages), // Additional gallery images
           tags: [], // Will be set later from tour_tags
           highlights: (() => {
             const h = draftData?.highlights;
@@ -430,7 +440,9 @@ export default function TripVisualizerPage() {
             platformOptions: loadedSettings?.additionalOptions?.platformOptions ?? ['insurance', 'accommodation'],
             creatorOptions: loadedSettings?.additionalOptions?.creatorOptions ?? {}
           },
-          tags: loadedSettings?.tags ?? interestIds
+          tags: normalizeStringArray(loadedSettings?.tags).length > 0
+            ? normalizeStringArray(loadedSettings?.tags)
+            : interestIds
         });
         
         // CRITICAL: Set tourInfo.tags from loaded interests
@@ -440,7 +452,11 @@ export default function TripVisualizerPage() {
           title: tourObj.title || prev.title,
           description: tourObj.description || prev.description,
           preview: tourObj.preview || prev.preview,
-          tags: interestIds.length > 0 ? interestIds : (loadedSettings?.tags || prev.tags || [])
+          tags: interestIds.length > 0
+            ? interestIds
+            : (normalizeStringArray(loadedSettings?.tags).length > 0
+              ? normalizeStringArray(loadedSettings?.tags)
+              : normalizeStringArray(prev.tags))
         }));
       }
 
@@ -1083,7 +1099,12 @@ export default function TripVisualizerPage() {
           })
         });
         
-        console.log('💾 Saving tour (update) with tags:', tourInfo.tags, 'type:', tourInfo.tags?.map(t => typeof t));
+        console.log(
+          '💾 Saving tour (update) with tags:',
+          tourInfo.tags,
+          'type:',
+          Array.isArray(tourInfo.tags) ? tourInfo.tags.map(t => typeof t) : typeof tourInfo.tags
+        );
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
@@ -2396,7 +2417,7 @@ export default function TripVisualizerPage() {
         </div>
 
         {/* Interest tags — only author-defined tags */}
-        {tourInfo.tags && tourInfo.tags.length > 0 && (
+        {Array.isArray(tourInfo.tags) && tourInfo.tags.length > 0 && (
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '24px' }}>
             {tourInfo.tags.map(tagId => {
               const tagIdString = String(tagId);
@@ -4147,7 +4168,10 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
   }, []);
 
   // Get current tags (interests) from tourInfo - use useMemo to ensure reactivity
-  const currentTags = useMemo(() => tourInfo.tags || [], [tourInfo.tags]);
+  const currentTags = useMemo(
+    () => (Array.isArray(tourInfo.tags) ? tourInfo.tags : []),
+    [tourInfo.tags]
+  );
   
   // Get available interests for selected category
   const getAvailableInterestsForCategory = () => {
@@ -4639,13 +4663,13 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
           </p>
           {/* Thumbnail grid */}
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-            {(tourInfo.previewImages || []).map((img, idx) => (
+            {(Array.isArray(tourInfo.previewImages) ? tourInfo.previewImages : []).map((img, idx) => (
               <div key={idx} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
                 <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 <button
                   type="button"
                   onClick={() => {
-                    const newImages = tourInfo.previewImages.filter((_, i) => i !== idx);
+                    const newImages = (Array.isArray(tourInfo.previewImages) ? tourInfo.previewImages : []).filter((_, i) => i !== idx);
                     onChange({ ...tourInfo, previewImages: newImages });
                   }}
                   style={{
@@ -4682,7 +4706,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
                 const files = Array.from(e.target.files);
                 if (files.length > 0 && onImageUpload) {
                   // Process files sequentially to avoid stale closure
-                  let currentImages = [...(tourInfo.previewImages || [])];
+                  let currentImages = [...(Array.isArray(tourInfo.previewImages) ? tourInfo.previewImages : [])];
                   let processed = 0;
                   files.forEach(file => {
                     onImageUpload(file, (base64) => {
