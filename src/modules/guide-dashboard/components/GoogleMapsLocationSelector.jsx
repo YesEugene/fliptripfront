@@ -61,10 +61,10 @@ const GoogleMapsLocationSelector = ({ isOpen, onClose, onSelectLocation, city })
       return;
     }
 
-    // Debounce search (500ms to reduce API calls — each keystroke = billed request)
+    // Debounce search (300ms per optimization plan)
     searchTimeoutRef.current = setTimeout(async () => {
       await searchPlaces(searchQuery.trim());
-    }, 500);
+    }, 300);
 
     return () => {
       if (searchTimeoutRef.current) {
@@ -85,7 +85,7 @@ const GoogleMapsLocationSelector = ({ isOpen, onClose, onSelectLocation, city })
         },
         body: JSON.stringify({
           query: query,
-          ...(city && { location: city }) // Optional: bias search to city
+          ...(city && { city }) // Use city context for relevance in backend
         })
       });
 

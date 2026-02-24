@@ -100,7 +100,7 @@ export default function TripVisualizerPage() {
   const handleRefreshPhotos = useCallback(async (force = false) => {
     if (!tourId || isRefreshingPhotos) return;
     
-    // Check if any location blocks exist with Google Places photos
+    // Check if any location blocks exist before calling refresh endpoint
     const locationBlocks = blocks.filter(b => b.block_type === 'location');
     if (locationBlocks.length === 0) return;
     
@@ -119,17 +119,17 @@ export default function TripVisualizerPage() {
     
     setIsRefreshingPhotos(true);
     try {
-      console.log('🔄 Migrating location photos to Supabase...');
-      const refreshResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/migrate-all-photos`, {
+      console.log('🔄 Refreshing location photos...');
+      const refreshResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/refresh-tour-photos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tourId, limit: 50 })
+        body: JSON.stringify({ tourId, force: !!force })
       });
       const refreshData = await refreshResponse.json();
-      console.log('📋 Photo migration result:', refreshData);
+      console.log('📋 Photo refresh result:', refreshData);
       
-      if (refreshData.success && refreshData.stats?.migratedBlocks > 0) {
-        // Reload blocks to get cached Supabase URLs
+      if (refreshData.success) {
+        // Reload blocks to get updated/cached Supabase URLs
         const blocksUrl = `${import.meta.env.VITE_API_URL}/api/tour-content-blocks?tourId=${tourId}`;
         const freshBlocksResponse = await fetch(blocksUrl);
         if (freshBlocksResponse.ok) {
@@ -137,7 +137,12 @@ export default function TripVisualizerPage() {
           if (freshBlocksData.success && freshBlocksData.blocks) {
             const freshSorted = freshBlocksData.blocks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
             setBlocks(freshSorted);
-            showNotificationMessage(`✅ Photos cached for ${refreshData.stats.migratedBlocks} block(s)`);
+            const updated = refreshData.updated || 0;
+            if (updated > 0) {
+              showNotificationMessage(`✅ Photos refreshed in ${updated} block(s)`);
+            } else {
+              showNotificationMessage('✅ Photo refresh finished');
+            }
           }
         }
       } else if (force) {
