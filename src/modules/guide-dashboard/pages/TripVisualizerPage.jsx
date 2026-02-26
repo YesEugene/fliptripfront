@@ -629,6 +629,60 @@ export default function TripVisualizerPage() {
               }
             }
             
+            // Normalize order_index values to a clean contiguous sequence.
+            // This prevents legacy duplicate/null indices from causing stuck moves
+            // (e.g. divider/title pair cannot swap).
+            let nonMapOrderCounter = 0;
+            const normalizedBlocks = sortedBlocks.map((block) => {
+              if (block.block_type === 'map') return block;
+              const normalized = { ...block, order_index: nonMapOrderCounter };
+              nonMapOrderCounter += 1;
+              return normalized;
+            }).map((block) => {
+              if (block.block_type === 'map') {
+                return { ...block, order_index: nonMapOrderCounter };
+              }
+              return block;
+            });
+
+            const needsNormalization = sortedBlocks.some((block, idx) => {
+              const prevOrder = block.order_index ?? null;
+              const nextOrder = normalizedBlocks[idx]?.order_index ?? null;
+              return prevOrder !== nextOrder;
+            });
+
+            if (needsNormalization && tourIdToLoad) {
+              setTimeout(async () => {
+                try {
+                  const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+                  if (!token) return;
+
+                  const previousById = new Map(sortedBlocks.map(b => [b.id, b]));
+                  const updates = normalizedBlocks.filter(b => {
+                    const prev = previousById.get(b.id);
+                    return (prev?.order_index ?? null) !== (b.order_index ?? null);
+                  });
+
+                  await Promise.all(updates.map(b => fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
+                    method: 'PUT',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                      blockId: b.id,
+                      content: b.content,
+                      orderIndex: b.order_index
+                    })
+                  })));
+                } catch (normalizeError) {
+                  console.warn('⚠️ Failed to normalize block order indexes:', normalizeError);
+                }
+              }, 0);
+            }
+
+            sortedBlocks = normalizedBlocks;
+
             console.log('📍 Setting blocks state:', sortedBlocks.length, 'blocks');
             console.log('📍 Block types:', sortedBlocks.map(b => b.block_type));
             const mapBlockInState = sortedBlocks.find(b => b.block_type === 'map');
@@ -1509,7 +1563,9 @@ export default function TripVisualizerPage() {
       if (afterBlock) {
         const afterOrderIndex = afterBlock.order_index || 0;
         // Shift all blocks after this one
-        const blocksToShift = nonMapBlocks.filter(b => (b.order_index || 0) > afterOrderIndex);
+        const blocksToShift = nonMapBlocks.filter(
+          b => b.id !== afterBlock.id && (b.order_index || 0) >= afterOrderIndex + 1
+        );
         
         // Update order_index for blocks that need to be shifted
         for (const block of blocksToShift) {
@@ -2021,30 +2077,35 @@ export default function TripVisualizerPage() {
 
   const handleMoveBlock = async (blockId, direction) => {
     console.log('Moving block:', blockId, direction);
-    
-    const currentIndex = blocks.findIndex(b => b.id === blockId);
-    if (currentIndex === -1) return;
 
-    // Never move map blocks
-    if (blocks[currentIndex].block_type === 'map') return;
+    const nonMapBlocks = blocks.filter(b => b.block_type !== 'map');
+    const mapBlock = blocks.find(b => b.block_type === 'map') || null;
+    const currentIndex = nonMapBlocks.findIndex(b => b.id === blockId);
+    if (currentIndex === -1) return;
 
     let targetIndex;
     if (direction === 'up') {
-      if (currentIndex === 0) return; // Already at top
+      if (currentIndex === 0) return;
       targetIndex = currentIndex - 1;
     } else {
-      if (currentIndex === blocks.length - 1) return; // Already at bottom
+      if (currentIndex === nonMapBlocks.length - 1) return;
       targetIndex = currentIndex + 1;
-      // Prevent moving below the map block
-      if (blocks[targetIndex].block_type === 'map') return;
     }
 
-    const currentBlock = blocks[currentIndex];
-    const targetBlock = blocks[targetIndex];
+    // Reorder based on visual position, then fully normalize order_index values.
+    // This fixes legacy tours with duplicated/invalid order_index.
+    const reordered = [...nonMapBlocks];
+    const [moved] = reordered.splice(currentIndex, 1);
+    reordered.splice(targetIndex, 0, moved);
 
-    // Swap order_index values
-    const currentOrder = currentBlock.order_index;
-    const targetOrder = targetBlock.order_index;
+    const normalizedNonMap = reordered.map((block, idx) => ({
+      ...block,
+      order_index: idx
+    }));
+
+    const normalizedAll = mapBlock
+      ? [...normalizedNonMap, { ...mapBlock, order_index: normalizedNonMap.length }]
+      : normalizedNonMap;
 
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
@@ -2053,52 +2114,45 @@ export default function TripVisualizerPage() {
         return;
       }
 
-      // Update both blocks via API
-      const [response1, response2] = await Promise.all([
-        fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            blockId: currentBlock.id,
-            content: currentBlock.content,
-            orderIndex: targetOrder
-          })
-        }),
-        fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            blockId: targetBlock.id,
-            content: targetBlock.content,
-            orderIndex: currentOrder
-          })
-        })
-      ]);
+      // Persist only changed blocks
+      const previousById = new Map(blocks.map(b => [b.id, b]));
+      const blocksToUpdate = normalizedAll.filter(b => {
+        const prev = previousById.get(b.id);
+        return (prev?.order_index ?? null) !== (b.order_index ?? null);
+      });
 
-      const data1 = await response1.json();
-      const data2 = await response2.json();
+      const responses = await Promise.all(
+        blocksToUpdate.map(b =>
+          fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              blockId: b.id,
+              content: b.content,
+              orderIndex: b.order_index
+            })
+          })
+        )
+      );
 
-      if (data1.success && data2.success && data1.block && data2.block) {
-        // Update local state with swapped blocks — map always last
-        setBlocks(prev => {
-          const newBlocks = [...prev];
-          newBlocks[currentIndex] = data1.block;
-          newBlocks[targetIndex] = data2.block;
-          return newBlocks.sort((a, b) => {
-            if (a.block_type === 'map' && b.block_type !== 'map') return 1;
-            if (b.block_type === 'map' && a.block_type !== 'map') return -1;
-            return (a.order_index || 0) - (b.order_index || 0);
-          });
-        });
-      } else {
+      const payloads = await Promise.all(responses.map(r => r.json().catch(() => ({ success: false }))));
+      const allGood = payloads.every(p => p.success);
+
+      if (!allGood) {
         alert('Failed to move block. Please try again.');
+        return;
       }
+
+      setBlocks(
+        normalizedAll.sort((a, b) => {
+          if (a.block_type === 'map' && b.block_type !== 'map') return 1;
+          if (b.block_type === 'map' && a.block_type !== 'map') return -1;
+          return (a.order_index || 0) - (b.order_index || 0);
+        })
+      );
     } catch (error) {
       console.error('Error moving block:', error);
       alert('Error moving block. Please try again.');
