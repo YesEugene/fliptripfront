@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   getLocations,
+  syncLocationsFromContentBlocks,
   createLocation,
   updateLocation,
   deleteLocation,
@@ -34,8 +35,18 @@ export default function AdminLocationsPage() {
   useEffect(() => {
     const currentUser = getCurrentUser();
     setUser(currentUser);
-    loadLocations();
-    loadTags();
+    const initialize = async () => {
+      try {
+        // One-time backfill: sync location blocks from visualizer tours into locations DB
+        await syncLocationsFromContentBlocks({ limit: 1000 });
+      } catch (syncError) {
+        console.warn('Location sync skipped:', syncError?.message || syncError);
+      } finally {
+        loadLocations();
+        loadTags();
+      }
+    };
+    initialize();
   }, []);
 
   const loadTags = async () => {

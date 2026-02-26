@@ -84,6 +84,33 @@ export async function getLocations(filters = {}) {
 }
 
 /**
+ * Sync locations from visualizer content blocks into locations table
+ */
+export async function syncLocationsFromContentBlocks(payload = {}) {
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/api/sync-locations-from-content-blocks`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || data.error || 'Error syncing locations from content blocks');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Sync locations from content blocks error:', error);
+    throw error;
+  }
+}
+
+/**
  * Get location by ID
  */
 export async function getLocationById(locationId) {
