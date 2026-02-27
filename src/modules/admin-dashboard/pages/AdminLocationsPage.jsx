@@ -30,6 +30,8 @@ export default function AdminLocationsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingLocation, setEditingLocation] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [selectedLocationIds, setSelectedLocationIds] = useState([]);
+  const [isDeletingSelected, setIsDeletingSelected] = useState(false);
   const [availableTags, setAvailableTags] = useState([]);
 
   useEffect(() => {
@@ -77,6 +79,7 @@ export default function AdminLocationsPage() {
       }
       const data = await getLocations(filters);
       setLocations(data.locations || []);
+      setSelectedLocationIds([]);
     } catch (err) {
       console.error('Error loading locations:', err);
       setError(err.message);
@@ -119,6 +122,54 @@ export default function AdminLocationsPage() {
       });
       alert('Error deleting location: ' + (err.message || 'Unknown error. Check console for details.'));
       setDeletingId(null);
+    }
+  };
+
+  const handleToggleLocation = (locationId) => {
+    setSelectedLocationIds(prev =>
+      prev.includes(locationId)
+        ? prev.filter(id => id !== locationId)
+        : [...prev, locationId]
+    );
+  };
+
+  const handleToggleSelectAll = () => {
+    if (locations.length === 0) return;
+    const allIds = locations.map(loc => loc.id).filter(Boolean);
+    if (selectedLocationIds.length === allIds.length) {
+      setSelectedLocationIds([]);
+    } else {
+      setSelectedLocationIds(allIds);
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedLocationIds.length === 0) return;
+
+    if (!window.confirm(`Delete ${selectedLocationIds.length} selected location(s)?`)) {
+      return;
+    }
+
+    setIsDeletingSelected(true);
+    try {
+      const selectedNames = new Set(
+        locations
+          .filter(loc => selectedLocationIds.includes(loc.id))
+          .map(loc => loc.name || '')
+      );
+
+      await Promise.allSettled(
+        selectedLocationIds.map((locationId) => deleteLocation(locationId))
+      );
+
+      setSelectedLocationIds([]);
+      await loadLocations();
+      alert(`Deleted selected locations (${selectedNames.size})`);
+    } catch (err) {
+      console.error('Bulk delete error:', err);
+      alert('Error deleting selected locations: ' + (err.message || 'Unknown error'));
+    } finally {
+      setIsDeletingSelected(false);
     }
   };
 
@@ -182,6 +233,21 @@ export default function AdminLocationsPage() {
             Locations Management
           </h1>
           <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              onClick={handleDeleteSelected}
+              disabled={selectedLocationIds.length === 0 || isDeletingSelected}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: selectedLocationIds.length === 0 || isDeletingSelected ? '#9ca3af' : '#ef4444',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: selectedLocationIds.length === 0 || isDeletingSelected ? 'not-allowed' : 'pointer',
+                fontWeight: '600'
+              }}
+            >
+              {isDeletingSelected ? 'Deleting...' : `Delete Selected (${selectedLocationIds.length})`}
+            </button>
             <button
               onClick={handleExport}
               style={{
@@ -350,8 +416,16 @@ export default function AdminLocationsPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', width: '44px' }}>
+                    <input
+                      type="checkbox"
+                      checked={locations.length > 0 && selectedLocationIds.length === locations.length}
+                      onChange={handleToggleSelectAll}
+                    />
+                  </th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Name</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>City</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Tour</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Verified</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Actions</th>
                 </tr>
@@ -359,16 +433,48 @@ export default function AdminLocationsPage() {
               <tbody>
                 {locations.length === 0 ? (
                   <tr>
-                    <td colSpan="4" style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+                    <td colSpan="6" style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
                       No locations found
                     </td>
                   </tr>
                 ) : (
                   locations.map((location) => (
                     <tr key={location.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                      <td style={{ padding: '12px' }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedLocationIds.includes(location.id)}
+                          onChange={() => handleToggleLocation(location.id)}
+                        />
+                      </td>
                       <td style={{ padding: '12px' }}>{location.name || 'N/A'}</td>
                       <td style={{ padding: '12px' }}>
-                        {location.city?.name || 'N/A'}
+                        {location.city || 'N/A'}
+                      </td>
+                      <td style={{ padding: '12px' }}>
+                        {location.source_tour_id ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span style={{ color: '#1f2937' }}>{location.source_tour_title || 'Untitled tour'}</span>
+                            <a
+                              href={`/guide/tours/visualizer/${location.source_tour_id}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{
+                                padding: '4px 10px',
+                                borderRadius: '6px',
+                                backgroundColor: '#10b981',
+                                color: 'white',
+                                textDecoration: 'none',
+                                fontSize: '12px',
+                                fontWeight: '600'
+                              }}
+                            >
+                              View Tour
+                            </a>
+                          </div>
+                        ) : (
+                          <span style={{ color: '#9ca3af' }}>N/A</span>
+                        )}
                       </td>
                       <td style={{ padding: '12px' }}>
                         <span style={{
