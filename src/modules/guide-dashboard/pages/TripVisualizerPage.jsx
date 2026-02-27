@@ -585,51 +585,44 @@ export default function TripVisualizerPage() {
               }
             } else if (mapBlock) {
               console.log('✅ Map block already exists:', mapBlock.id, 'locations:', mapBlock.content?.locations?.length || 0);
-              // Only auto-update map block locations if it hasn't been manually edited
-              // Check if map block has been manually edited (has manuallyEdited flag or locations don't match extracted)
+              // Always keep map locations synced with location blocks.
+              // Manual map edits should not block newly added locations.
               const addresses = extractAddressesFromBlocks(sortedBlocks.filter(b => b.block_type !== 'map'));
               const currentLocations = mapBlock.content?.locations || [];
-              const manuallyEdited = mapBlock.content?.manuallyEdited === true;
-              
-              // Only auto-update if NOT manually edited and addresses changed
-              if (!manuallyEdited) {
-                const addressesChanged = addresses.length !== currentLocations.length ||
-                  addresses.some((addr, idx) => {
-                    const current = currentLocations[idx];
-                    return !current || addr.address !== current.address || addr.title !== current.title;
-                  });
-                
-                if (addressesChanged && tourIdToLoad) {
-                  try {
-                    const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-                    if (token) {
-                      await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
-                        method: 'PUT',
-                        headers: {
-                          'Content-Type': 'application/json',
-                          'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({
-                          blockId: mapBlock.id,
-                          content: {
-                            ...mapBlock.content,
-                            locations: addresses
-                          }
-                        })
-                      });
-                      
-                      // Update local state
-                      mapBlock.content = {
-                        ...mapBlock.content,
-                        locations: addresses
-                      };
-                    }
-                  } catch (updateError) {
-                    console.error('Error updating map block:', updateError);
+              const addressesChanged = addresses.length !== currentLocations.length ||
+                addresses.some((addr, idx) => {
+                  const current = currentLocations[idx];
+                  return !current || addr.address !== current.address || addr.title !== current.title;
+                });
+
+              if (addressesChanged && tourIdToLoad) {
+                try {
+                  const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+                  if (token) {
+                    await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
+                      method: 'PUT',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                      },
+                      body: JSON.stringify({
+                        blockId: mapBlock.id,
+                        content: {
+                          ...mapBlock.content,
+                          locations: addresses
+                        }
+                      })
+                    });
+
+                    // Update local state
+                    mapBlock.content = {
+                      ...mapBlock.content,
+                      locations: addresses
+                    };
                   }
+                } catch (updateError) {
+                  console.error('Error updating map block:', updateError);
                 }
-              } else {
-                console.log('📍 Map block has been manually edited, skipping auto-update');
               }
             }
             
@@ -1693,6 +1686,7 @@ export default function TripVisualizerPage() {
       
       if (data.success && data.block) {
         const newBlockId = data.block.id;
+        setLastDraftSavedAt(null);
         
         const mapBlockInBlocks = blocks.find(b => b.block_type === 'map') || null;
         const updatedNonMap = [...nonMapBlocks];
@@ -1828,6 +1822,7 @@ export default function TripVisualizerPage() {
       const data = await response.json();
       
       if (data.success && data.block) {
+        setLastDraftSavedAt(null);
         // Debug: Check if photos are preserved after save
         if (data.block.block_type === 'location' && data.block.content) {
           const savedMainLocation = data.block.content.mainLocation || data.block.content;
@@ -1844,27 +1839,68 @@ export default function TripVisualizerPage() {
           });
         }
         
-        if (isNewBlock) {
-          // Add new block to local state
-          setBlocks(prev => [...prev, data.block].sort((a, b) => {
-            if (a.block_type === 'map' && b.block_type !== 'map') return 1;
-            if (b.block_type === 'map' && a.block_type !== 'map') return -1;
-            return (a.order_index || 0) - (b.order_index || 0);
-          }));
-        } else {
-          // Update existing block in local state
-          // CRITICAL: Always use updatedBlock.content to preserve base64 photos
-          // Server might truncate or modify large base64 strings
-          const finalBlock = { 
-            ...data.block, 
-            content: updatedBlock.content // Use the content we sent, not what server returned
+        // Build next local state first
+        const finalBlock = isNewBlock
+          ? data.block
+          : {
+            ...data.block,
+            content: updatedBlock.content // Keep content we sent (important for base64 photos)
           };
-          
-          setBlocks(prev => 
-            prev.map(b => b.id === updatedBlock.id ? finalBlock : b)
-              .sort((a, b) => (a.order_index || 0) - (b.order_index || 0))
-          );
+
+        let nextBlocks = isNewBlock
+          ? [...blocks, finalBlock]
+          : blocks.map(b => b.id === updatedBlock.id ? finalBlock : b);
+
+        nextBlocks = nextBlocks.sort((a, b) => {
+          if (a.block_type === 'map' && b.block_type !== 'map') return 1;
+          if (b.block_type === 'map' && a.block_type !== 'map') return -1;
+          return (a.order_index || 0) - (b.order_index || 0);
+        });
+
+        // If a location block changed, sync map markers immediately
+        if (finalBlock.block_type === 'location') {
+          const mapBlock = nextBlocks.find(b => b.block_type === 'map');
+          if (mapBlock) {
+            const nonMapBlocks = nextBlocks.filter(b => b.block_type !== 'map');
+            const addresses = extractAddressesFromBlocks(nonMapBlocks);
+            const currentLocations = mapBlock.content?.locations || [];
+            const addressesChanged = addresses.length !== currentLocations.length ||
+              addresses.some((addr, idx) => {
+                const current = currentLocations[idx];
+                return !current || addr.address !== current.address || addr.title !== current.title;
+              });
+
+            if (addressesChanged) {
+              const updatedMapBlock = {
+                ...mapBlock,
+                content: {
+                  ...mapBlock.content,
+                  locations: addresses
+                }
+              };
+              nextBlocks = nextBlocks.map(b => b.id === mapBlock.id ? updatedMapBlock : b);
+
+              try {
+                await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                  },
+                  body: JSON.stringify({
+                    blockId: mapBlock.id,
+                    content: updatedMapBlock.content,
+                    orderIndex: updatedMapBlock.order_index
+                  })
+                });
+              } catch (mapSyncError) {
+                console.warn('⚠️ Failed to sync map block locations after location save:', mapSyncError);
+              }
+            }
+          }
         }
+
+        setBlocks(nextBlocks);
         setEditingBlock(null);
       } else {
         alert(data.error || 'Failed to save block');
@@ -1894,6 +1930,7 @@ export default function TripVisualizerPage() {
       const data = await response.json();
       
       if (data.success) {
+        setLastDraftSavedAt(null);
         // Remove block from local state
         setBlocks(prev => prev.filter(b => b.id !== blockId));
         setEditingBlock(null);
@@ -2113,6 +2150,7 @@ export default function TripVisualizerPage() {
           return (a.order_index || 0) - (b.order_index || 0);
         })
       );
+      setLastDraftSavedAt(null);
     } catch (error) {
       console.error('Error moving block:', error);
       alert('Error moving block. Please try again.');
@@ -2887,7 +2925,7 @@ export default function TripVisualizerPage() {
               {/* Save as Draft button */}
               <button
                 onClick={handleSaveAsDraft}
-                disabled={!isHeaderValid() || isSavingDraft || isSubmittingForModeration}
+                disabled={isSavingDraft || isSubmittingForModeration}
                 style={{
                   width: isMobile ? '50%' : '105px',
                   height: '40px',
@@ -2897,24 +2935,24 @@ export default function TripVisualizerPage() {
                   color: '#111827',
                   border: 'none',
                   borderRadius: '10px',
-                  cursor: (isHeaderValid() && !isSavingDraft && !isSubmittingForModeration) ? 'pointer' : 'not-allowed',
+                  cursor: (!isSavingDraft && !isSubmittingForModeration) ? 'pointer' : 'not-allowed',
                   fontSize: '14px',
                   fontWeight: '600',
                   transition: 'all 0.2s',
-                  opacity: (isHeaderValid() && !isSavingDraft && !isSubmittingForModeration) ? 1 : 0.6,
+                  opacity: (!isSavingDraft && !isSubmittingForModeration) ? 1 : 0.6,
                   flex: isMobile ? '1' : '0 0 auto'
                 }}
                 onMouseEnter={(e) => {
-                  if (isHeaderValid() && !e.target.disabled) {
+                  if (!e.target.disabled) {
                     e.target.style.backgroundColor = '#d1d5db';
                   }
                 }}
                 onMouseLeave={(e) => {
-                  if (isHeaderValid() && !e.target.disabled) {
+                  if (!e.target.disabled) {
                     e.target.style.backgroundColor = '#E9EBEF';
                   }
                 }}
-                title={!isHeaderValid() ? 'Please fill in City, Title, Description, and Preview Photo' : ''}
+                title=""
               >
                 {isSavingDraft ? 'Saving...' : (lastDraftSavedAt ? 'Saved' : 'Save as Draft')}
               </button>
