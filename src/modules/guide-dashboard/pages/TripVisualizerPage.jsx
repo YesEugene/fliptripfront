@@ -85,6 +85,10 @@ export default function TripVisualizerPage() {
   const [notificationMessage, setNotificationMessage] = useState('');
   const [showNotification, setShowNotification] = useState(false);
   const [isRefreshingPhotos, setIsRefreshingPhotos] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isSubmittingForModeration, setIsSubmittingForModeration] = useState(false);
+  const [lastDraftSavedAt, setLastDraftSavedAt] = useState(null);
+  const [lastSubmittedAt, setLastSubmittedAt] = useState(null);
 
   // Show notification message for 2 seconds
   const showNotificationMessage = (message) => {
@@ -1049,6 +1053,8 @@ export default function TripVisualizerPage() {
   };
 
   const handleSaveAsDraft = async () => {
+    if (isSavingDraft || isSubmittingForModeration) return;
+    setIsSavingDraft(true);
     try {
       // Validate required fields
       if (!tourInfo.city || !tourInfo.title) {
@@ -1119,6 +1125,7 @@ export default function TripVisualizerPage() {
           // Update tourId in state by reloading tour
           await loadTour(newTourId);
           showNotificationMessage('Tour saved as draft!');
+          setLastDraftSavedAt(Date.now());
         } else {
           alert(data.error || 'Failed to save tour');
         }
@@ -1226,6 +1233,7 @@ export default function TripVisualizerPage() {
             }
           }
           showNotificationMessage('Tour saved as draft!');
+          setLastDraftSavedAt(Date.now());
         } else {
           alert(data.error || 'Failed to save tour');
         }
@@ -1233,6 +1241,8 @@ export default function TripVisualizerPage() {
     } catch (error) {
       console.error('Error saving tour:', error);
       alert('Failed to save tour');
+    } finally {
+      setIsSavingDraft(false);
     }
   };
 
@@ -1293,6 +1303,8 @@ export default function TripVisualizerPage() {
   };
 
   const handleSubmitForModeration = async () => {
+    if (isSavingDraft || isSubmittingForModeration) return;
+    setIsSubmittingForModeration(true);
     try {
       // Validate required fields
       if (!tourInfo.city || !tourInfo.title) {
@@ -1373,6 +1385,7 @@ export default function TripVisualizerPage() {
           const newTourId = data.tour.id;
           navigate(`/guide/tours/visualizer/${newTourId}`, { replace: true });
           setTour(data.tour);
+          setLastSubmittedAt(Date.now());
           // Reload page to update tourId from URL params
           window.location.reload();
         } else {
@@ -1426,6 +1439,7 @@ export default function TripVisualizerPage() {
           // Reload tour to get updated preview image
           await loadTour();
           showNotificationMessage('Tour submitted for moderation!');
+          setLastSubmittedAt(Date.now());
         } else {
           alert(data.error || 'Failed to submit tour');
         }
@@ -1433,6 +1447,8 @@ export default function TripVisualizerPage() {
     } catch (error) {
       console.error('Error submitting tour:', error);
       alert('Failed to submit tour');
+    } finally {
+      setIsSubmittingForModeration(false);
     }
   };
 
@@ -1553,53 +1569,15 @@ export default function TripVisualizerPage() {
       return;
     }
 
-    // Calculate the order_index for the new block
+    // Calculate insertion by visual position, not by dirty order_index.
+    // This prevents blocks from "jumping" after reload.
     const nonMapBlocks = blocks.filter(b => b.block_type !== 'map');
-    let newOrderIndex;
-    
-    if (insertAfterBlockId) {
-      // Find the block we're inserting after
-      const afterBlock = nonMapBlocks.find(b => b.id === insertAfterBlockId);
-      if (afterBlock) {
-        const afterOrderIndex = afterBlock.order_index || 0;
-        // Shift all blocks after this one
-        const blocksToShift = nonMapBlocks.filter(
-          b => b.id !== afterBlock.id && (b.order_index || 0) >= afterOrderIndex + 1
-        );
-        
-        // Update order_index for blocks that need to be shifted
-        for (const block of blocksToShift) {
-          try {
-            const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-            await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks/${block.id}`, {
-              method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-              },
-              body: JSON.stringify({
-                ...block,
-                order_index: (block.order_index || 0) + 1
-              })
-            });
-          } catch (err) {
-            console.warn('Failed to shift block order:', err);
-          }
-        }
-        
-        newOrderIndex = afterOrderIndex + 1;
-      } else {
-        // Fallback to end
-        newOrderIndex = nonMapBlocks.length > 0 
-          ? Math.max(...nonMapBlocks.map(b => b.order_index || 0)) + 1
-          : 0;
-      }
-    } else {
-      // Add at the end (default behavior)
-      newOrderIndex = nonMapBlocks.length > 0 
-        ? Math.max(...nonMapBlocks.map(b => b.order_index || 0)) + 1
-        : 0;
-    }
+    const insertPosition = (() => {
+      if (!insertAfterBlockId) return nonMapBlocks.length;
+      const afterIndex = nonMapBlocks.findIndex(b => b.id === insertAfterBlockId);
+      return afterIndex >= 0 ? afterIndex + 1 : nonMapBlocks.length;
+    })();
+    const newOrderIndex = insertPosition;
 
     // Determine default content based on block type
     let defaultContent = {};
@@ -1716,62 +1694,44 @@ export default function TripVisualizerPage() {
       if (data.success && data.block) {
         const newBlockId = data.block.id;
         
-        // Ensure map block stays last: update its order_index to be higher than the new block
-        const mapBlockInBlocks = blocks.find(b => b.block_type === 'map');
-        if (mapBlockInBlocks) {
-          const newBlockOrderIndex = data.block.order_index || 0;
-          const mapOrderIndex = mapBlockInBlocks.order_index || 0;
-          if (mapOrderIndex <= newBlockOrderIndex) {
-            const newMapOrder = newBlockOrderIndex + 1;
-            try {
-              const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-              if (token) {
-                await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
-                  method: 'PUT',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                  },
-                  body: JSON.stringify({
-                    blockId: mapBlockInBlocks.id,
-                    content: mapBlockInBlocks.content,
-                    orderIndex: newMapOrder
-                  })
-                });
-              }
-            } catch (err) {
-              console.warn('Failed to update map block order:', err);
-            }
+        const mapBlockInBlocks = blocks.find(b => b.block_type === 'map') || null;
+        const updatedNonMap = [...nonMapBlocks];
+        updatedNonMap.splice(insertPosition, 0, { ...data.block, order_index: insertPosition });
+        const normalizedNonMap = updatedNonMap.map((b, idx) => ({ ...b, order_index: idx }));
+        const normalizedAll = mapBlockInBlocks
+          ? [...normalizedNonMap, { ...mapBlockInBlocks, order_index: normalizedNonMap.length }]
+          : normalizedNonMap;
+
+        // Persist normalized order for all changed blocks to keep stable positions after reload
+        try {
+          const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+          if (token) {
+            const previousById = new Map(blocks.map(b => [b.id, b]));
+            const changedBlocks = normalizedAll.filter((b) => {
+              const prev = previousById.get(b.id);
+              return !prev || (prev.order_index ?? null) !== (b.order_index ?? null);
+            });
+
+            await Promise.all(changedBlocks.map((b) =>
+              fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                  blockId: b.id,
+                  content: b.content,
+                  orderIndex: b.order_index
+                })
+              })
+            ));
           }
+        } catch (err) {
+          console.warn('Failed to persist normalized block order:', err);
         }
-        
-        // Update local state — always sort with map last
-        setBlocks(prev => {
-          const updatedBlocks = prev.map(b => {
-            if (b.block_type !== 'map' && insertAfterBlockId) {
-              const afterBlock = prev.find(block => block.id === insertAfterBlockId);
-              const afterOrderIndex = afterBlock ? (afterBlock.order_index || 0) : -1;
-              if ((b.order_index || 0) > afterOrderIndex) {
-                return { ...b, order_index: (b.order_index || 0) + 1 };
-              }
-            }
-            // Update map block order to be after everything
-            if (b.block_type === 'map') {
-              const maxNonMapOrder = Math.max(
-                data.block.order_index || 0,
-                ...prev.filter(bl => bl.block_type !== 'map').map(bl => bl.order_index || 0)
-              );
-              return { ...b, order_index: maxNonMapOrder + 1 };
-            }
-            return b;
-          });
-          // Sort with map always last
-          return [...updatedBlocks, data.block].sort((a, b) => {
-            if (a.block_type === 'map' && b.block_type !== 'map') return 1;
-            if (b.block_type === 'map' && a.block_type !== 'map') return -1;
-            return (a.order_index || 0) - (b.order_index || 0);
-          });
-        });
+
+        setBlocks(normalizedAll);
         
         // Close selector
         setShowBlockSelector(false);
@@ -2249,12 +2209,77 @@ export default function TripVisualizerPage() {
     }
   }, [user, isAdmin, tour]);
 
+  useEffect(() => {
+    if ((tour?.status || '').toLowerCase() === 'pending' && !lastSubmittedAt) {
+      setLastSubmittedAt(Date.now());
+    }
+  }, [tour?.status, lastSubmittedAt]);
+
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        gap: '10px',
+        backgroundColor: '#ffffff'
+      }}>
+        <div style={{
+          width: '28px',
+          height: '28px',
+          border: '3px solid #e5e7eb',
+          borderTop: '3px solid #2563eb',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }} />
+        <div style={{ color: '#374151', fontWeight: '500' }}>Loading tour...</div>
+      </div>
+    );
   }
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#ffffff' }}>
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
+      {(isSavingDraft || isSubmittingForModeration) && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(17,24,39,0.25)',
+          zIndex: 3000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '16px 20px',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}>
+            <div style={{
+              width: '18px',
+              height: '18px',
+              border: '2px solid #d1d5db',
+              borderTop: '2px solid #2563eb',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }} />
+            <span style={{ color: '#111827', fontWeight: '600', fontSize: '14px' }}>
+              {isSubmittingForModeration ? 'Submitting tour for moderation...' : 'Saving draft...'}
+            </span>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div style={{
         backgroundColor: 'white',
@@ -2862,19 +2887,21 @@ export default function TripVisualizerPage() {
               {/* Save as Draft button */}
               <button
                 onClick={handleSaveAsDraft}
-                disabled={!isHeaderValid()}
+                disabled={!isHeaderValid() || isSavingDraft || isSubmittingForModeration}
                 style={{
                   width: isMobile ? '50%' : '105px',
                   height: '40px',
-                  backgroundColor: '#E9EBEF',
+                  backgroundColor: isSavingDraft
+                    ? '#bfdbfe'
+                    : (lastDraftSavedAt ? '#d1fae5' : '#E9EBEF'),
                   color: '#111827',
                   border: 'none',
                   borderRadius: '10px',
-                  cursor: isHeaderValid() ? 'pointer' : 'not-allowed',
+                  cursor: (isHeaderValid() && !isSavingDraft && !isSubmittingForModeration) ? 'pointer' : 'not-allowed',
                   fontSize: '14px',
                   fontWeight: '600',
                   transition: 'all 0.2s',
-                  opacity: isHeaderValid() ? 1 : 0.6,
+                  opacity: (isHeaderValid() && !isSavingDraft && !isSubmittingForModeration) ? 1 : 0.6,
                   flex: isMobile ? '1' : '0 0 auto'
                 }}
                 onMouseEnter={(e) => {
@@ -2889,7 +2916,7 @@ export default function TripVisualizerPage() {
                 }}
                 title={!isHeaderValid() ? 'Please fill in City, Title, Description, and Preview Photo' : ''}
               >
-                Save as Draft
+                {isSavingDraft ? 'Saving...' : (lastDraftSavedAt ? 'Saved' : 'Save as Draft')}
               </button>
             </div>
 
@@ -3397,19 +3424,31 @@ export default function TripVisualizerPage() {
               <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #e5e7eb' }}>
                 <button
                   onClick={handleSubmitForModeration}
-                  disabled={!isHeaderValid() || !isTourSettingsValid()}
+                  disabled={
+                    !isHeaderValid() ||
+                    !isTourSettingsValid() ||
+                    isSavingDraft ||
+                    isSubmittingForModeration ||
+                    (tour?.status || '').toLowerCase() === 'pending'
+                  }
                   style={{
                     width: '100%',
                     padding: '14px 28px',
-                    backgroundColor: (isHeaderValid() && isTourSettingsValid()) ? '#4ade80' : '#d1d5db',
+                    backgroundColor: isSubmittingForModeration
+                      ? '#bbf7d0'
+                      : ((tour?.status || '').toLowerCase() === 'pending'
+                        ? '#d1fae5'
+                        : ((isHeaderValid() && isTourSettingsValid()) ? '#4ade80' : '#d1d5db')),
                     color: (isHeaderValid() && isTourSettingsValid()) ? '#111827' : '#9ca3af',
                     border: 'none',
                     borderRadius: '10px',
-                    cursor: (isHeaderValid() && isTourSettingsValid()) ? 'pointer' : 'not-allowed',
+                    cursor: (isHeaderValid() && isTourSettingsValid() && !isSavingDraft && !isSubmittingForModeration && (tour?.status || '').toLowerCase() !== 'pending')
+                      ? 'pointer'
+                      : 'not-allowed',
                     fontSize: '16px',
                     fontWeight: '600',
                     transition: 'all 0.2s',
-                    opacity: (isHeaderValid() && isTourSettingsValid()) ? 1 : 0.6
+                    opacity: (isHeaderValid() && isTourSettingsValid() && !isSavingDraft && !isSubmittingForModeration) ? 1 : 0.6
                   }}
                   onMouseEnter={(e) => {
                     if (isHeaderValid() && isTourSettingsValid() && !e.target.disabled) {
@@ -3421,9 +3460,16 @@ export default function TripVisualizerPage() {
                       e.target.style.backgroundColor = '#4ade80';
                     }
                   }}
-                  title={!isHeaderValid() ? 'Please fill in City, Title, Description, and Preview Photo' : (!isTourSettingsValid() ? 'Please select at least one tour format (Self-guided or With Guide)' : '')}
+                  title={!isHeaderValid()
+                    ? 'Please fill in City, Title, Description, and Preview Photo'
+                    : (!isTourSettingsValid()
+                      ? 'Please select at least one tour format (Self-guided or With Guide)'
+                      : ((tour?.status || '').toLowerCase() === 'pending' ? 'Already submitted for moderation' : '')
+                    )}
                 >
-                  Submit for Moderation
+                  {isSubmittingForModeration
+                    ? 'Submitting...'
+                    : (((tour?.status || '').toLowerCase() === 'pending' || lastSubmittedAt) ? 'Submitted' : 'Submit for Moderation')}
                 </button>
               </div>
             </div>
