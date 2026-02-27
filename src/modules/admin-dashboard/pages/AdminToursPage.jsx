@@ -565,7 +565,24 @@ export default function AdminToursPage() {
                           />
                         </td>
                       )}
-                      <td style={{ padding: '12px' }}>{tour.title || 'N/A'}</td>
+                      <td style={{ padding: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span>{tour.title || 'N/A'}</span>
+                          {tour.source === 'user_generated' && (
+                            <span style={{
+                              padding: '2px 8px',
+                              borderRadius: '999px',
+                              backgroundColor: '#ede9fe',
+                              color: '#6d28d9',
+                              fontSize: '11px',
+                              fontWeight: '700',
+                              letterSpacing: '0.2px'
+                            }}>
+                              AI
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td style={{ padding: '12px' }}>
                         {tour.guide?.name || tour.guide || 'N/A'}
                       </td>
