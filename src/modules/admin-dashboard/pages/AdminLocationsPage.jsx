@@ -40,7 +40,7 @@ export default function AdminLocationsPage() {
     const initialize = async () => {
       try {
         // One-time backfill: sync location blocks from visualizer tours into locations DB
-        await syncLocationsFromContentBlocks({ limit: 1000 });
+        await syncLocationsFromContentBlocks({ limit: 1000, pruneUnused: true });
       } catch (syncError) {
         console.warn('Location sync skipped:', syncError?.message || syncError);
       } finally {
