@@ -922,7 +922,6 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
           }}
         />
       )}
-      </div>
     </div>
   );
 }
