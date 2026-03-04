@@ -283,6 +283,7 @@ export default function ItineraryPage() {
   const [isAuthorTextExpanded, setIsAuthorTextExpanded] = useState(false); // Author text expand/collapse state
   const [currentSlide, setCurrentSlide] = useState(0); // Image carousel current slide index
   const [isMobile, setIsMobile] = useState(false); // Mobile detection
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -1568,7 +1569,45 @@ export default function ItineraryPage() {
   };
 
   const handleDownloadPDF = async () => {
+    if (isDownloadingPdf) return;
+    setIsDownloadingPdf(true);
     try {
+      const uploadedTourPdfUrl = (tourData?.draft_data?.tourPdfUrl || tourData?.tourPdfUrl || '').toString().trim();
+
+      // If author uploaded a prepared PDF, download it directly.
+      if (uploadedTourPdfUrl) {
+        const fileNameBase = `${itinerary?.title || tourData?.title || 'FlipTrip-Tour'}`
+          .replace(/[^\w\- ]+/g, '')
+          .trim()
+          .replace(/\s+/g, '-');
+        const fileName = `${fileNameBase || 'FlipTrip-Tour'}.pdf`;
+
+        try {
+          const response = await fetch(uploadedTourPdfUrl);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const blob = await response.blob();
+          const objectUrl = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = objectUrl;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.URL.revokeObjectURL(objectUrl);
+          return;
+        } catch (downloadErr) {
+          console.warn('Could not fetch uploaded PDF as blob, opening direct URL instead:', downloadErr);
+          const link = document.createElement('a');
+          link.href = uploadedTourPdfUrl;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          return;
+        }
+      }
+
       // Находим элемент для конвертации в PDF
       const element = document.querySelector('.itinerary-container');
       if (!element) {
@@ -1594,33 +1633,14 @@ export default function ItineraryPage() {
         }
       };
 
-      // Показываем индикатор загрузки
-      const originalButtonText = 'Download PDF';
-      const button = document.querySelector('.download-button');
-      if (button) {
-        button.textContent = '📄 Generating PDF...';
-        button.disabled = true;
-      }
-
       // Генерируем и скачиваем PDF
       await html2pdf().set(options).from(element).save();
-
-      // Восстанавливаем кнопку
-      if (button) {
-        button.textContent = '📱 Download PDF';
-        button.disabled = false;
-      }
 
     } catch (error) {
       console.error('PDF generation error:', error);
       alert('Error generating PDF. Please try again.');
-      
-      // Восстанавливаем кнопку при ошибке
-      const button = document.querySelector('.download-button');
-      if (button) {
-        button.textContent = '📱 Download PDF';
-        button.disabled = false;
-      }
+    } finally {
+      setIsDownloadingPdf(false);
     }
   };
 
@@ -2679,6 +2699,7 @@ export default function ItineraryPage() {
           )}
           <button
             onClick={handleDownloadPDF}
+            disabled={isDownloadingPdf}
             style={{
               backgroundColor: '#2059ff',
               color: '#ebf6fa',
@@ -2687,17 +2708,18 @@ export default function ItineraryPage() {
               padding: '12px 20px',
               fontSize: '13px',
               fontWeight: '600',
-              cursor: 'pointer',
+              cursor: isDownloadingPdf ? 'not-allowed' : 'pointer',
               transition: 'all 0.2s',
               flexShrink: 0,
               whiteSpace: 'nowrap',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px'
+              gap: '8px',
+              opacity: isDownloadingPdf ? 0.7 : 1
             }}
           >
             <img src={PDFIcon} alt="PDF" style={{ width: '18px', height: '19px' }} />
-            Download PDF
+            {isDownloadingPdf ? 'Downloading...' : 'Download PDF'}
           </button>
         </div>
       </div>
