@@ -286,6 +286,9 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
   const [isMobile, setIsMobile] = useState(false);
   const [fullscreenPhotos, setFullscreenPhotos] = useState(null);
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [desktopPhotoIndex, setDesktopPhotoIndex] = useState(0);
+  const desktopRibbonRef = useRef(null);
   
   useEffect(() => {
     const checkScreenSize = () => {
@@ -304,6 +307,11 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
     setFullscreenPhotos(photosArray);
     setFullscreenIndex(index || 0);
   };
+
+  useEffect(() => {
+    setIsDescriptionExpanded(false);
+    setDesktopPhotoIndex(0);
+  }, [mainLocation.title, mainLocation.description]);
   
   // Handle switching between main and alternative locations
   const handleSwitchLocation = (alternativeIndex) => {
@@ -372,7 +380,7 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
         </div>
       )}
 
-      {/* Main content: Photo and Details - 4-column grid (50/50 split) */}
+      {/* Main content */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: '1fr',
@@ -443,45 +451,97 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
             if (mainPhotosArray.length > 0 && validPhotos.length > 0) {
               if (!isMobile) {
                 // Desktop layout: horizontal ribbon where one slide takes 3/4 width (3 of 4 columns)
+                const slideWidth = 0.75;
+                const gapPx = 8;
                 return (
-                  <div
-                    style={{
-                      width: '100%',
-                      overflowX: 'auto',
-                      overflowY: 'hidden',
-                      display: 'flex',
-                      gap: '8px',
-                      WebkitOverflowScrolling: 'touch',
-                      scrollSnapType: 'x mandatory'
-                    }}
-                  >
-                    {validPhotos.map((photo, index) => (
-                      <div
-                        key={index}
-                        onClick={() => handlePhotoClick(validPhotos, index)}
-                        style={{
-                          flex: '0 0 75%',
-                          height: '360px',
-                          scrollSnapAlign: 'start',
-                          cursor: 'pointer',
-                          backgroundColor: '#e5e7eb',
-                          overflow: 'hidden'
-                        }}
-                      >
-                        <img
-                          src={photo}
-                          alt={`${mainLocation.title || 'Location'} photo ${index + 1}`}
+                  <div style={{ position: 'relative' }}>
+                    <div
+                      ref={desktopRibbonRef}
+                      onScroll={(e) => {
+                        const containerWidth = e.currentTarget.clientWidth;
+                        const itemWidth = containerWidth * slideWidth + gapPx;
+                        const nextIndex = Math.round(e.currentTarget.scrollLeft / itemWidth);
+                        const clamped = Math.max(0, Math.min(nextIndex, validPhotos.length - 1));
+                        if (clamped !== desktopPhotoIndex) setDesktopPhotoIndex(clamped);
+                      }}
+                      style={{
+                        width: '100%',
+                        overflowX: 'auto',
+                        overflowY: 'hidden',
+                        display: 'flex',
+                        gap: `${gapPx}px`,
+                        WebkitOverflowScrolling: 'touch',
+                        scrollSnapType: 'x mandatory'
+                      }}
+                    >
+                      {validPhotos.map((photo, index) => (
+                        <div
+                          key={index}
+                          onClick={() => handlePhotoClick(validPhotos, index)}
                           style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            objectPosition: 'center',
-                            display: 'block'
+                            flex: `0 0 ${slideWidth * 100}%`,
+                            height: '360px',
+                            scrollSnapAlign: 'start',
+                            cursor: 'pointer',
+                            backgroundColor: '#e5e7eb',
+                            overflow: 'hidden'
                           }}
-                          loading={index === 0 ? 'eager' : 'lazy'}
-                        />
+                        >
+                          <img
+                            src={photo}
+                            alt={`${mainLocation.title || 'Location'} photo ${index + 1}`}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              objectPosition: 'center',
+                              display: 'block'
+                            }}
+                            loading={index === 0 ? 'eager' : 'lazy'}
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    {validPhotos.length > 1 && (
+                      <div style={{
+                        position: 'absolute',
+                        left: '12px',
+                        bottom: '12px',
+                        display: 'flex',
+                        gap: '10px',
+                        zIndex: 2
+                      }}>
+                        {validPhotos.map((_, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDesktopPhotoIndex(index);
+                              if (!desktopRibbonRef.current) return;
+                              const containerWidth = desktopRibbonRef.current.clientWidth;
+                              const itemWidth = containerWidth * slideWidth + gapPx;
+                              desktopRibbonRef.current.scrollTo({
+                                left: index * itemWidth,
+                                behavior: 'smooth'
+                              });
+                            }}
+                            style={{
+                              width: index === desktopPhotoIndex ? '44px' : '12px',
+                              height: '12px',
+                              borderRadius: index === desktopPhotoIndex ? '9999px' : '50%',
+                              border: 'none',
+                              backgroundColor: '#ffffff',
+                              opacity: index === desktopPhotoIndex ? 1 : 0.9,
+                              cursor: 'pointer',
+                              padding: 0
+                            }}
+                            aria-label={`Go to photo ${index + 1}`}
+                          />
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
                 );
               }
@@ -642,8 +702,8 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
           {/* Alternative Locations - aligned to bottom on desktop, hidden on mobile (will show after description) */}
           {!isMobile && alternativeLocations.length > 0 && (
             <div style={{ 
-              marginTop: '24px',
-              paddingTop: '24px'
+              marginTop: mainLocation.description ? '24px' : '12px',
+              paddingTop: mainLocation.description ? '24px' : '12px'
             }}>
               <h4 style={{ 
                 fontSize: '16px', 
@@ -739,19 +799,43 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
       {(mainLocation.description || isEmptyLocation) && (
         <div style={{ marginBottom: '16px' }}>
           {mainLocation.description ? (
-            mainLocation.description.split('\n\n').map((paragraph, index, array) => (
-              <p 
-                key={index}
-                style={{ 
-                  fontSize: '16px', 
-                  lineHeight: '1.6', 
+            <div style={{ position: 'relative' }}>
+              <p
+                style={{
+                  fontSize: '16px',
+                  lineHeight: '1.6',
                   color: '#374151',
                   margin: 0,
-                  marginBottom: index < array.length - 1 ? '8px' : 0
-                }}>
-                {paragraph.trim()}
+                  display: isDescriptionExpanded ? 'block' : '-webkit-box',
+                  WebkitLineClamp: isDescriptionExpanded ? 'unset' : 5,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: isDescriptionExpanded ? 'visible' : 'hidden',
+                  paddingRight: !isDescriptionExpanded ? '90px' : 0
+                }}
+              >
+                {mainLocation.description}
               </p>
-            ))
+              <button
+                type="button"
+                onClick={() => setIsDescriptionExpanded(prev => !prev)}
+                style={{
+                  position: isDescriptionExpanded ? 'static' : 'absolute',
+                  right: isDescriptionExpanded ? 'auto' : 0,
+                  bottom: isDescriptionExpanded ? 'auto' : 0,
+                  marginTop: isDescriptionExpanded ? '8px' : 0,
+                  border: 'none',
+                  background: 'none',
+                  color: '#6b7280',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  lineHeight: '1.6',
+                  padding: 0
+                }}
+              >
+                {isDescriptionExpanded ? 'Read less' : 'Read more'}
+              </button>
+            </div>
           ) : (
             <div style={{ color: '#64748b' }}>
               <p style={{ 
@@ -1051,7 +1135,7 @@ function PhotoTextBlock({ block, onEdit }) {
     return (
       <div style={{ marginBottom: isMobile ? '10px' : '32px', padding: '0' }}>
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '16px' : '32px', alignItems: 'flex-start' }}>
-          <div style={{ width: '100%', aspectRatio: '1', backgroundColor: '#f3f4f6', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '14px' }}>
+          <div style={{ width: '100%', aspectRatio: '1', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '14px' }}>
             🖼 Photo
           </div>
           <div style={{ color: '#9ca3af', fontSize: '15px', lineHeight: '1.6', fontStyle: 'italic' }}>
@@ -1081,7 +1165,6 @@ function PhotoTextBlock({ block, onEdit }) {
                     style={{
                       width: '100%',
                       aspectRatio: '1',
-                      borderRadius: '20px',
                       overflow: 'hidden',
                       position: 'relative',
                       cursor: 'pointer'
@@ -1138,7 +1221,6 @@ function PhotoTextBlock({ block, onEdit }) {
                 <div style={{
                   width: '100%',
                   aspectRatio: '1',
-                  borderRadius: '20px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -1206,7 +1288,6 @@ function PhotoTextBlock({ block, onEdit }) {
                   style={{
                     width: '100%',
                     aspectRatio: '1',
-                    borderRadius: '20px',
                     overflow: 'hidden',
                     position: 'relative',
                     cursor: 'pointer'
@@ -1260,7 +1341,6 @@ function PhotoTextBlock({ block, onEdit }) {
               <div style={{
                 width: '100%',
                 aspectRatio: '1',
-                borderRadius: '20px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1549,7 +1629,7 @@ function SlideBlock({ block, onEdit }) {
           Slide Title
         </h3>
         <div style={{
-          width: '100%', height: photoHeight, backgroundColor: '#f3f4f6', borderRadius: '20px',
+          width: '100%', height: photoHeight, backgroundColor: '#f3f4f6',
           display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', marginBottom: '12px',
           flexDirection: 'column', gap: '8px'
         }}>
@@ -1580,7 +1660,6 @@ function SlideBlock({ block, onEdit }) {
               style={{
                 width: '100%',
                 height: photoHeight,
-                borderRadius: '20px',
                 overflow: 'hidden',
                 position: 'relative',
                 cursor: 'pointer',
@@ -1638,7 +1717,6 @@ function SlideBlock({ block, onEdit }) {
           <div style={{
             width: '100%',
             height: photoHeight,
-            borderRadius: '20px',
             marginBottom: '12px',
             display: 'flex',
             alignItems: 'center',
@@ -1724,7 +1802,7 @@ function ThreeColumnsBlock({ block, onEdit }) {
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '24px' }}>
           {[1, 2, 3].map(n => (
             <div key={n}>
-              <div style={{ width: '100%', height: '150px', backgroundColor: '#f3f4f6', borderRadius: '20px', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '14px' }}>
+              <div style={{ width: '100%', height: '150px', backgroundColor: '#f3f4f6', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '14px' }}>
                 🖼 Photo {n}
               </div>
               <p style={{ color: '#9ca3af', fontSize: '14px', lineHeight: '1.6', margin: 0, fontStyle: 'italic' }}>Column {n} text</p>
@@ -1791,7 +1869,6 @@ function ThreeColumnsBlock({ block, onEdit }) {
                     width: '100%', 
                     height: '200px', 
                     objectFit: 'cover', 
-                    borderRadius: '20px',
                     marginBottom: '12px'
                   }} 
                 />
@@ -1800,7 +1877,6 @@ function ThreeColumnsBlock({ block, onEdit }) {
                   width: '100%',
                   height: '200px',
                   backgroundColor: '#e5e7eb',
-                  borderRadius: '20px',
                   marginBottom: '12px',
                   display: 'flex',
                   alignItems: 'center',
@@ -1853,7 +1929,6 @@ function ThreeColumnsBlock({ block, onEdit }) {
                     width: '100%', 
                     height: '150px', 
                     objectFit: 'cover', 
-                    borderRadius: '20px',
                     marginBottom: '12px'
                   }} 
                 />
@@ -1862,7 +1937,6 @@ function ThreeColumnsBlock({ block, onEdit }) {
                   width: '100%',
                   height: '150px',
                   backgroundColor: '#e5e7eb',
-                  borderRadius: '20px',
                   marginBottom: '12px',
                   display: 'flex',
                   alignItems: 'center',
@@ -1968,7 +2042,7 @@ function PhotoBlock({ block, onEdit }) {
     return (
       <div style={{ marginBottom: isMobilePhoto ? '10px' : '32px', padding: '0' }}>
         <div style={{
-          width: '100%', height: photoHeight, backgroundColor: '#f3f4f6', borderRadius: '20px',
+          width: '100%', height: photoHeight, backgroundColor: '#f3f4f6',
           display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af',
           flexDirection: 'column', gap: '8px', marginBottom: '12px'
         }}>
@@ -1996,7 +2070,6 @@ function PhotoBlock({ block, onEdit }) {
             style={{
               width: '100%',
               height: photoHeight,
-              borderRadius: '20px',
               overflow: 'hidden',
               position: 'relative',
               cursor: 'pointer',
@@ -2069,7 +2142,6 @@ function PhotoBlock({ block, onEdit }) {
           width: '100%',
           height: photoHeight,
           backgroundColor: '#e5e7eb',
-          borderRadius: '20px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

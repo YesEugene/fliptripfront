@@ -17,7 +17,7 @@ function refreshPhotoUrl(url) {
   return url;
 }
 
-export function PhotoCarousel({ photos, onPhotoClick, borderRadius = '20px' }) {
+export function PhotoCarousel({ photos, onPhotoClick, borderRadius = '0px' }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
