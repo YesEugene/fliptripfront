@@ -464,6 +464,37 @@ export default function ItineraryPage() {
     date_to: dateTo,
     budget: searchParams.get('budget') || null // null if not specified, not default to '500'
   };
+
+  // Source text for "About trip" collapse/expand logic.
+  // Keep this above early returns so hooks order stays stable across renders.
+  const aboutDraftData = tourData?.draft_data || {};
+  const aboutTripSourceText = useNewFormat
+    ? (aboutDraftData.description || tourData?.description || '')
+    : (itinerary?.subtitle || generateFallbackSubtitle(formData));
+
+  useEffect(() => {
+    setIsAuthorTextExpanded(false);
+  }, [aboutTripSourceText]);
+
+  useEffect(() => {
+    const measure = () => {
+      // Keep the toggle visible while expanded so user can collapse back
+      if (isAuthorTextExpanded) return;
+      const el = aboutTripTextRef.current;
+      if (!el) {
+        setShowAboutTripToggle(false);
+        return;
+      }
+      setShowAboutTripToggle(el.scrollHeight > el.clientHeight + 1);
+    };
+
+    const rafId = window.requestAnimationFrame(measure);
+    window.addEventListener('resize', measure);
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', measure);
+    };
+  }, [aboutTripSourceText, useNewFormat, previewOnly, isPaid, isAuthorTextExpanded, isMobile]);
   
   console.log('🔍 Extracted formData from URL:', {
     city: formData.city,
@@ -1891,30 +1922,6 @@ export default function ItineraryPage() {
   // Build all carousel images: cover first, then gallery
   const allPreviewImages = [heroImage, ...previewGalleryImages].filter(Boolean);
 
-  useEffect(() => {
-    setIsAuthorTextExpanded(false);
-  }, [tourDescription]);
-
-  useEffect(() => {
-    const measure = () => {
-      // Keep the toggle visible while expanded so user can collapse back
-      if (isAuthorTextExpanded) return;
-      const el = aboutTripTextRef.current;
-      if (!el) {
-        setShowAboutTripToggle(false);
-        return;
-      }
-      setShowAboutTripToggle(el.scrollHeight > el.clientHeight + 1);
-    };
-
-    const rafId = window.requestAnimationFrame(measure);
-    window.addEventListener('resize', measure);
-    return () => {
-      window.cancelAnimationFrame(rafId);
-      window.removeEventListener('resize', measure);
-    };
-  }, [tourDescription, useNewFormat, previewOnly, isPaid, isAuthorTextExpanded, isMobile]);
-  
   // Get highlights from draft_data for preview page (new object format)
   const tourHighlightsRaw = draftData.highlights || {};
   // Count location blocks for auto-generated bullet #1
