@@ -2120,7 +2120,8 @@ export default function TripVisualizerPage() {
     }
   };
 
-  // Function to extract addresses from all blocks
+  // Build map markers strictly from Location blocks only.
+  // Never parse text blocks: mentions inside descriptions can create false positives in other countries.
   const extractAddressesFromBlocks = (allBlocks) => {
     const addresses = [];
     let locationNumber = 1;
@@ -2160,34 +2161,6 @@ export default function TripVisualizerPage() {
               photo: altPhotoUrl,
               blockId: block.id // Store block ID for scrolling
             });
-          }
-        });
-      } else if (block.block_type === 'text' && block.content) {
-        // Parse text blocks for addresses
-        const text = block.content.text || block.content.column1 || block.content.column2 || '';
-        const addressPatterns = [
-          /Address:\s*([^\n]+)/i,
-          /Адрес:\s*([^\n]+)/i,
-          /(\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Lane|Ln|Drive|Dr|Way|Place|Pl|Square|Sq)[^,\n]*(?:,\s*[^,\n]+)*)/i,
-          /([A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Lane|Ln|Drive|Dr|Way|Place|Pl|Square|Sq)[^,\n]*(?:,\s*\d+[^,\n]*)?(?:,\s*[A-Za-z\s]+)*)/i
-        ];
-
-        addressPatterns.forEach((pattern) => {
-          const match = text.match(pattern);
-          if (match && match[1]) {
-            const address = match[1].trim();
-            // Avoid duplicates
-            if (!addresses.some(a => a.address === address)) {
-              addresses.push({
-                number: locationNumber++,
-                title: 'Location',
-                address: address,
-                place_id: null,
-                lat: null,
-                lng: null,
-                blockId: block.id // Store block ID for scrolling
-              });
-            }
           }
         });
       }
