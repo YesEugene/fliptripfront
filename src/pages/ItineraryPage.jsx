@@ -281,6 +281,8 @@ export default function ItineraryPage() {
     );
   };
   const [isAuthorTextExpanded, setIsAuthorTextExpanded] = useState(false); // Author text expand/collapse state
+  const [showAboutTripToggle, setShowAboutTripToggle] = useState(false);
+  const aboutTripTextRef = useRef(null);
   const [currentSlide, setCurrentSlide] = useState(0); // Image carousel current slide index
   const [isMobile, setIsMobile] = useState(false); // Mobile detection
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
@@ -1888,6 +1890,30 @@ export default function ItineraryPage() {
   const previewGalleryImages = draftData.previewImages || [];
   // Build all carousel images: cover first, then gallery
   const allPreviewImages = [heroImage, ...previewGalleryImages].filter(Boolean);
+
+  useEffect(() => {
+    setIsAuthorTextExpanded(false);
+  }, [tourDescription]);
+
+  useEffect(() => {
+    const measure = () => {
+      // Keep the toggle visible while expanded so user can collapse back
+      if (isAuthorTextExpanded) return;
+      const el = aboutTripTextRef.current;
+      if (!el) {
+        setShowAboutTripToggle(false);
+        return;
+      }
+      setShowAboutTripToggle(el.scrollHeight > el.clientHeight + 1);
+    };
+
+    const rafId = window.requestAnimationFrame(measure);
+    window.addEventListener('resize', measure);
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', measure);
+    };
+  }, [tourDescription, useNewFormat, previewOnly, isPaid, isAuthorTextExpanded, isMobile]);
   
   // Get highlights from draft_data for preview page (new object format)
   const tourHighlightsRaw = draftData.highlights || {};
@@ -2303,25 +2329,27 @@ export default function ItineraryPage() {
             <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 12px 0' }}>About trip</h2>
             {(() => {
               const text = tourDescription || '';
-              const isLong = text.length > 400;
               return (
                 <>
-                  <p style={{
+                  <p
+                    ref={aboutTripTextRef}
+                    style={{
                     fontSize: '14px',
                     color: '#374151',
                     lineHeight: '1.5',
                     margin: '0 0 8px 0',
                     whiteSpace: 'pre-line',
-                    ...(isLong && !isAuthorTextExpanded ? {
+                    ...(!isAuthorTextExpanded ? {
                       display: '-webkit-box',
                       WebkitLineClamp: 6,
                       WebkitBoxOrient: 'vertical',
                       overflow: 'hidden'
                     } : {})
-                  }}>
+                  }}
+                  >
                     {text}
                   </p>
-                  {isLong && (
+                  {(showAboutTripToggle || isAuthorTextExpanded) && (
                     <span
                       onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
                       style={{ fontSize: '14px', fontWeight: '600', color: '#2059ff', cursor: 'pointer' }}
@@ -2777,25 +2805,27 @@ export default function ItineraryPage() {
           <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 12px 0' }}>About trip</h2>
           {(() => {
             const text = tourDescription || '';
-            const isLong = text.length > 400;
             return (
               <>
-                <p style={{
+                <p
+                  ref={aboutTripTextRef}
+                  style={{
                   fontSize: '14px',
                   color: '#374151',
                   lineHeight: '1.5',
                   margin: '0 0 8px 0',
                   whiteSpace: 'pre-line',
-                  ...(isLong && !isAuthorTextExpanded ? {
+                  ...(!isAuthorTextExpanded ? {
                     display: '-webkit-box',
                     WebkitLineClamp: 6,
                     WebkitBoxOrient: 'vertical',
                     overflow: 'hidden'
                   } : {})
-                }}>
+                }}
+                >
                   {text}
                 </p>
-                {isLong && (
+                {(showAboutTripToggle || isAuthorTextExpanded) && (
                   <span
                     onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
                     style={{ fontSize: '14px', fontWeight: '600', color: '#2059ff', cursor: 'pointer' }}

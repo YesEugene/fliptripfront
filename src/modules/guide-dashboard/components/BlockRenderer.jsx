@@ -390,7 +390,7 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
         display: 'grid',
         gridTemplateColumns: '1fr',
         gap: '24px',
-        marginBottom: '24px',
+        marginBottom: '14px',
         alignItems: 'start'
       }}>
         {/* Main photos */}
@@ -704,105 +704,13 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
             </div>
           </div>
 
-          {/* Alternative Locations - aligned to bottom on desktop, hidden on mobile (will show after description) */}
-          {!isMobile && alternativeLocations.length > 0 && (
-            <div style={{ 
-              marginTop: mainLocation.description ? '24px' : '12px',
-              paddingTop: mainLocation.description ? '24px' : '12px'
-            }}>
-              <h4 style={{ 
-                fontSize: '16px', 
-                fontWeight: '600', 
-                marginBottom: '12px',
-                color: '#111827'
-              }}>
-                Author also recommends
-              </h4>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(83px, 1fr))',
-                gap: '8px'
-              }}>
-                {alternativeLocations.map((altLocation, index) => (
-                  <div
-                    key={index}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleSwitchLocation(index);
-                    }}
-                    style={{
-                      cursor: 'pointer',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '0',
-                      overflow: 'hidden',
-                      transition: 'all 0.2s',
-                      backgroundColor: 'white'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }}
-                  >
-                    <AlternativeLocationPhoto 
-                      altLocation={altLocation}
-                    />
-                    <div style={{ padding: '5px' }}>
-                      <h5 style={{ 
-                        fontSize: '10px', 
-                        fontWeight: '600', 
-                        marginBottom: '2px',
-                        color: '#111827',
-                        lineHeight: '1.2'
-                      }}>
-                      {altLocation.place_id ? (
-                        <a
-                          href={`https://www.google.com/maps/place/?q=place_id:${altLocation.place_id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            color: '#111827',
-                            textDecoration: 'none',
-                            cursor: 'pointer'
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {altLocation.title || altLocation.name || 'Alternative location'}
-                        </a>
-                      ) : altLocation.address ? (
-                        <a
-                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(altLocation.address)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            color: '#111827',
-                            textDecoration: 'none',
-                            cursor: 'pointer'
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {altLocation.title || altLocation.name || 'Alternative location'}
-                        </a>
-                      ) : (
-                        altLocation.title || altLocation.name || 'Alternative location'
-                      )}
-                    </h5>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        </div>
       </div>
       </div>
 
       {/* Description - show placeholder hint when empty */}
       {(mainLocation.description || isEmptyLocation) && (
-        <div style={{ marginBottom: '16px' }}>
+        <div style={{ marginBottom: '14px' }}>
           {mainLocation.description ? (
             <div>
               <p
@@ -880,7 +788,7 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
 
       {/* Recommendations */}
       {mainLocation.recommendations && (
-        <div style={{ marginBottom: '16px' }}>
+        <div style={{ marginBottom: '14px' }}>
           <h4 style={{ 
             fontSize: '16px', 
             fontWeight: '600', 
@@ -905,10 +813,10 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
         </div>
       )}
 
-      {/* Alternative Locations - Mobile version: show after recommendations */}
-      {isMobile && alternativeLocations.length > 0 && (
+      {/* Alternative Locations - show after description/recommendations */}
+      {alternativeLocations.length > 0 && (
         <div style={{ 
-          marginTop: '24px',
+          marginTop: (!mainLocation.description && !mainLocation.recommendations) ? '14px' : '0',
           marginBottom: '16px'
         }}>
           <h4 style={{ 
