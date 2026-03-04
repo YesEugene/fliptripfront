@@ -181,6 +181,7 @@ export default function TripVisualizerPage() {
     description: '',
     preview: null,
     previewImages: [], // Additional gallery images for preview carousel
+    tourPdfUrl: '', // Optional uploaded tour presentation PDF
     tags: [], // Tags/interests for the tour
     highlights: {} // "What's Inside This Walk" structured: {icon3, text3, icon4, text4, icon5, text5}
   });
@@ -359,6 +360,7 @@ export default function TripVisualizerPage() {
           description: sourceData.description || tourObj.description || '',
           preview: sourceData.preview || tourObj.preview_media_url || null,
           previewImages: normalizeImageArray(draftData?.previewImages), // Additional gallery images
+          tourPdfUrl: (draftData?.tourPdfUrl || sourceData?.tourPdfUrl || '').toString(),
           tags: [], // Will be set later from tour_tags
           highlights: (() => {
             const h = draftData?.highlights;
@@ -461,6 +463,7 @@ export default function TripVisualizerPage() {
           title: tourObj.title || prev.title,
           description: tourObj.description || prev.description,
           preview: tourObj.preview || prev.preview,
+          tourPdfUrl: draftData?.tourPdfUrl || prev.tourPdfUrl || '',
           tags: interestIds.length > 0
             ? interestIds
             : (normalizeStringArray(loadedSettings?.tags).length > 0
@@ -1033,6 +1036,7 @@ export default function TripVisualizerPage() {
             tags: tourInfo.tags || [], // Tags/interests from tour header
             highlights: tourInfo.highlights || {}, // "What's Inside This Walk" structured highlights
             previewImages: tourInfo.previewImages || [], // Gallery images for preview carousel
+            tourPdfUrl: tourInfo.tourPdfUrl || '', // Optional uploaded tour presentation PDF
             meta: {
               interests: [],
               audience: 'him',
@@ -1107,7 +1111,8 @@ export default function TripVisualizerPage() {
             },
             tags: tourInfo.tags || [], // Tags/interests from tour header
             highlights: tourInfo.highlights || {}, // "What's Inside This Walk" structured highlights
-            previewImages: tourInfo.previewImages || [] // Gallery images for preview carousel
+            previewImages: tourInfo.previewImages || [], // Gallery images for preview carousel
+            tourPdfUrl: tourInfo.tourPdfUrl || '' // Optional uploaded tour presentation PDF
           })
         });
         
@@ -1156,6 +1161,9 @@ export default function TripVisualizerPage() {
               title: data.tour.title || tourInfo.title,
               description: data.tour.description || tourInfo.description,
               preview: tourInfo.preview, // Keep current preview (was just saved)
+              previewImages: tourInfo.previewImages || [],
+              tourPdfUrl: tourInfo.tourPdfUrl || '',
+              highlights: tourInfo.highlights || {},
               tags: interestIds.length > 0 ? interestIds : tourInfo.tags // Update interests from server response, fallback to current if empty
             });
             // Reload blocks after saving tour to ensure they're up to date
@@ -1222,7 +1230,8 @@ export default function TripVisualizerPage() {
               preview: tourInfo.preview, // Preserve preview_media_url
               tags: tourInfo.tags, // Save interests immediately
               highlights: tourInfo.highlights || {}, // Preserve highlights
-              previewImages: tourInfo.previewImages || [] // Preserve gallery images
+              previewImages: tourInfo.previewImages || [], // Preserve gallery images
+              tourPdfUrl: tourInfo.tourPdfUrl || '' // Preserve uploaded tour PDF
             })
           });
           
@@ -1293,6 +1302,7 @@ export default function TripVisualizerPage() {
             tags: tourInfo.tags || [], // Tags/interests from tour header
             highlights: tourInfo.highlights || {}, // "What's Inside This Walk" structured highlights
             previewImages: tourInfo.previewImages || [], // Gallery images for preview carousel
+            tourPdfUrl: tourInfo.tourPdfUrl || '', // Optional uploaded tour presentation PDF
             meta: {
               interests: [],
               audience: 'him',
@@ -1373,7 +1383,8 @@ export default function TripVisualizerPage() {
             },
             tags: tourInfo.tags || [], // Tags/interests from tour header
             highlights: tourInfo.highlights || {}, // "What's Inside This Walk" structured highlights
-            previewImages: tourInfo.previewImages || [] // Gallery images for preview carousel
+            previewImages: tourInfo.previewImages || [], // Gallery images for preview carousel
+            tourPdfUrl: tourInfo.tourPdfUrl || '' // Optional uploaded tour presentation PDF
           })
         });
 
@@ -4136,6 +4147,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
   const [interestSuggestions, setInterestSuggestions] = useState([]);
   const [showInterestSuggestions, setShowInterestSuggestions] = useState(false);
   const [generatingHighlights, setGeneratingHighlights] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
 
   // Generate highlights with AI
   const handleGenerateHighlights = async () => {
@@ -4500,6 +4512,70 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
     }
   };
 
+  const handleTourPdfUpload = async (file) => {
+    if (!file) return;
+    if (file.size > 50 * 1024 * 1024) {
+      alert('PDF is too large. Maximum file size is 50MB.');
+      return;
+    }
+
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    if (!isPdf) {
+      alert('Please upload a PDF file.');
+      return;
+    }
+
+    if (!tourId) {
+      alert('Please save the tour as draft first, then upload the PDF.');
+      return;
+    }
+
+    setUploadingPdf(true);
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+
+      const signedResp = await fetch(`${API_BASE_URL}/api/upload-tour-pdf-url`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          tourId,
+          fileName: file.name,
+          contentType: 'application/pdf',
+          fileSize: file.size
+        })
+      });
+
+      const signedData = await signedResp.json();
+      if (!signedResp.ok || !signedData?.success) {
+        throw new Error(signedData?.error || 'Failed to initialize PDF upload');
+      }
+
+      const uploadResp = await fetch(signedData.signedUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/pdf'
+        },
+        body: file
+      });
+
+      if (!uploadResp.ok) {
+        throw new Error(`Failed to upload PDF (${uploadResp.status})`);
+      }
+
+      onChange({ ...tourInfo, tourPdfUrl: signedData.publicUrl });
+      alert('Tour PDF uploaded successfully.');
+    } catch (error) {
+      console.error('Error uploading tour PDF:', error);
+      alert(`Failed to upload PDF: ${error.message}`);
+    } finally {
+      setUploadingPdf(false);
+    }
+  };
+
   return (
     <div style={{
       position: 'fixed',
@@ -4818,6 +4894,53 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
               id="tour-gallery-upload"
             />
           </div>
+        </div>
+
+        {/* Tour PDF Upload */}
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+            Tour PDF presentation
+          </label>
+          <input
+            type="file"
+            accept="application/pdf,.pdf"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleTourPdfUpload(file);
+              e.target.value = '';
+            }}
+            style={{ display: 'none' }}
+            id="tour-pdf-upload"
+          />
+          <label
+            htmlFor="tour-pdf-upload"
+            style={{
+              display: 'inline-block',
+              padding: '10px 20px',
+              backgroundColor: uploadingPdf ? '#9ca3af' : '#111827',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: uploadingPdf ? 'not-allowed' : 'pointer',
+              fontSize: '14px',
+              fontWeight: '500'
+            }}
+          >
+            {uploadingPdf ? 'Uploading PDF...' : 'Upload tour PDF'}
+          </label>
+          <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px', marginBottom: 0 }}>
+            PDF only. Max size 50MB.
+          </p>
+          {tourInfo.tourPdfUrl && (
+            <a
+              href={tourInfo.tourPdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'inline-block', marginTop: '8px', fontSize: '13px', color: '#2563eb' }}
+            >
+              View uploaded PDF
+            </a>
+          )}
         </div>
 
         <div style={{ marginBottom: '20px' }}>
