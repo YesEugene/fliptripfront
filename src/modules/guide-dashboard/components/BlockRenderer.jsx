@@ -354,6 +354,11 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
     !mainLocation.address &&
     alternativeLocations.length === 0
   );
+  const descriptionText = (mainLocation.description || '').toString();
+  const collapsedDescription = descriptionText.length > 360
+    ? `${descriptionText.slice(0, 360).trimEnd()}...`
+    : descriptionText;
+  const hasLongDescription = descriptionText.length > 360;
 
   return (
     <div style={{ 
@@ -528,8 +533,8 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                               });
                             }}
                             style={{
-                              width: index === desktopPhotoIndex ? '44px' : '12px',
-                              height: '12px',
+                              width: index === desktopPhotoIndex ? '22px' : '6px',
+                              height: '6px',
                               borderRadius: index === desktopPhotoIndex ? '9999px' : '50%',
                               border: 'none',
                               backgroundColor: '#ffffff',
@@ -799,42 +804,36 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
       {(mainLocation.description || isEmptyLocation) && (
         <div style={{ marginBottom: '16px' }}>
           {mainLocation.description ? (
-            <div style={{ position: 'relative' }}>
+            <div>
               <p
                 style={{
                   fontSize: '16px',
                   lineHeight: '1.6',
                   color: '#374151',
                   margin: 0,
-                  display: isDescriptionExpanded ? 'block' : '-webkit-box',
-                  WebkitLineClamp: isDescriptionExpanded ? 'unset' : 5,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: isDescriptionExpanded ? 'visible' : 'hidden',
-                  paddingRight: !isDescriptionExpanded ? '90px' : 0
+                  whiteSpace: 'pre-wrap'
                 }}
               >
-                {mainLocation.description}
+                {isDescriptionExpanded || !hasLongDescription ? descriptionText : collapsedDescription}{' '}
+                {hasLongDescription && (
+                  <button
+                    type="button"
+                    onClick={() => setIsDescriptionExpanded(prev => !prev)}
+                    style={{
+                      border: 'none',
+                      background: 'none',
+                      color: '#6b7280',
+                      textDecoration: 'underline',
+                      cursor: 'pointer',
+                      fontSize: '16px',
+                      lineHeight: '1.6',
+                      padding: 0
+                    }}
+                  >
+                    {isDescriptionExpanded ? 'Read less' : 'Read more'}
+                  </button>
+                )}
               </p>
-              <button
-                type="button"
-                onClick={() => setIsDescriptionExpanded(prev => !prev)}
-                style={{
-                  position: isDescriptionExpanded ? 'static' : 'absolute',
-                  right: isDescriptionExpanded ? 'auto' : 0,
-                  bottom: isDescriptionExpanded ? 'auto' : 0,
-                  marginTop: isDescriptionExpanded ? '8px' : 0,
-                  border: 'none',
-                  background: 'none',
-                  color: '#6b7280',
-                  textDecoration: 'underline',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  lineHeight: '1.6',
-                  padding: 0
-                }}
-              >
-                {isDescriptionExpanded ? 'Read less' : 'Read more'}
-              </button>
             </div>
           ) : (
             <div style={{ color: '#64748b' }}>

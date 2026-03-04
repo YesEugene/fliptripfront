@@ -2097,7 +2097,7 @@ export default function ItineraryPage() {
             height: isMobile 
               ? 'calc(350px + env(safe-area-inset-top, 0px))' 
               : '400px',
-            borderRadius: isMobile ? '0' : '16px',
+            borderRadius: '0',
             overflow: 'hidden',
             display: 'flex',
             alignItems: 'flex-start',
