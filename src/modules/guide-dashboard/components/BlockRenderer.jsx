@@ -375,12 +375,12 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
       {/* Main content: Photo and Details - 4-column grid (50/50 split) */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+        gridTemplateColumns: '1fr',
         gap: '24px',
         marginBottom: '24px',
         alignItems: 'start'
       }}>
-        {/* Photo - Left half */}
+        {/* Main photos */}
         <div>
           {(() => {
             // Normalize photos - support both array and single photo
@@ -441,10 +441,56 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
             });
             
             if (mainPhotosArray.length > 0 && validPhotos.length > 0) {
+              if (!isMobile) {
+                // Desktop layout: horizontal ribbon where one slide takes 3/4 width (3 of 4 columns)
+                return (
+                  <div
+                    style={{
+                      width: '100%',
+                      overflowX: 'auto',
+                      overflowY: 'hidden',
+                      display: 'flex',
+                      gap: '8px',
+                      WebkitOverflowScrolling: 'touch',
+                      scrollSnapType: 'x mandatory'
+                    }}
+                  >
+                    {validPhotos.map((photo, index) => (
+                      <div
+                        key={index}
+                        onClick={() => handlePhotoClick(validPhotos, index)}
+                        style={{
+                          flex: '0 0 75%',
+                          height: '360px',
+                          scrollSnapAlign: 'start',
+                          cursor: 'pointer',
+                          backgroundColor: '#e5e7eb',
+                          overflow: 'hidden'
+                        }}
+                      >
+                        <img
+                          src={photo}
+                          alt={`${mainLocation.title || 'Location'} photo ${index + 1}`}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            objectPosition: 'center',
+                            display: 'block'
+                          }}
+                          loading={index === 0 ? 'eager' : 'lazy'}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                );
+              }
+
               return (
                 <PhotoCarousel
                   photos={validPhotos}
                   onPhotoClick={handlePhotoClick}
+                  borderRadius="0px"
                 />
               );
             } else {
@@ -453,7 +499,6 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                   width: '100%',
                   aspectRatio: '1',
                   backgroundColor: '#e5e7eb',
-                  borderRadius: '20px',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -469,7 +514,7 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
           })()}
         </div>
 
-        {/* Details - Right half */}
+        {/* Details - full width */}
         <div style={{ 
           display: 'flex', 
           flexDirection: 'column',
@@ -597,7 +642,7 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
           {/* Alternative Locations - aligned to bottom on desktop, hidden on mobile (will show after description) */}
           {!isMobile && alternativeLocations.length > 0 && (
             <div style={{ 
-              marginTop: 'auto',
+              marginTop: '24px',
               paddingTop: '24px'
             }}>
               <h4 style={{ 
@@ -624,7 +669,7 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                     style={{
                       cursor: 'pointer',
                       border: '1px solid #e5e7eb',
-                      borderRadius: '6px',
+                      borderRadius: '0',
                       overflow: 'hidden',
                       transition: 'all 0.2s',
                       backgroundColor: 'white'
@@ -807,7 +852,7 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
                 style={{
                   cursor: 'pointer',
                   border: '1px solid #e5e7eb',
-                  borderRadius: '6px',
+                  borderRadius: '0',
                   overflow: 'hidden',
                   transition: 'all 0.2s',
                   backgroundColor: 'white'

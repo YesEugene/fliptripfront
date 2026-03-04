@@ -17,7 +17,7 @@ function refreshPhotoUrl(url) {
   return url;
 }
 
-export function PhotoCarousel({ photos, onPhotoClick }) {
+export function PhotoCarousel({ photos, onPhotoClick, borderRadius = '20px' }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
@@ -72,7 +72,7 @@ export function PhotoCarousel({ photos, onPhotoClick }) {
         width: '100%',
         aspectRatio: '1',
         backgroundColor: '#e5e7eb',
-        borderRadius: '20px',
+        borderRadius,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -96,7 +96,7 @@ export function PhotoCarousel({ photos, onPhotoClick }) {
           width: '100%',
           aspectRatio: '1',
           position: 'relative',
-          borderRadius: '20px',
+          borderRadius,
           overflow: 'hidden',
           cursor: 'pointer',
           backgroundColor: '#e5e7eb'
@@ -126,7 +126,7 @@ export function PhotoCarousel({ photos, onPhotoClick }) {
             if (!e.target.nextElementSibling || !e.target.nextElementSibling.classList.contains('photo-placeholder')) {
               const placeholder = document.createElement('div');
               placeholder.className = 'photo-placeholder';
-              placeholder.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 14px; border-radius: 20px;';
+              placeholder.style.cssText = `position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 14px; border-radius: ${borderRadius};`;
               placeholder.textContent = 'Photo unavailable';
               e.target.parentElement.appendChild(placeholder);
             }
