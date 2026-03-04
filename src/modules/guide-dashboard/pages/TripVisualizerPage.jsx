@@ -528,7 +528,11 @@ export default function TripVisualizerPage() {
               // Map block always goes to the end
               if (a.block_type === 'map' && b.block_type !== 'map') return 1;
               if (b.block_type === 'map' && a.block_type !== 'map') return -1;
-              return (a.order_index || 0) - (b.order_index || 0);
+              const byOrder = (a.order_index || 0) - (b.order_index || 0);
+              if (byOrder !== 0) return byOrder;
+              const byCreated = new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+              if (byCreated !== 0) return byCreated;
+              return String(a.id || '').localeCompare(String(b.id || ''));
             });
             
             // Check if map block exists, if not create it
@@ -626,59 +630,8 @@ export default function TripVisualizerPage() {
               }
             }
             
-            // Normalize order_index values to a clean contiguous sequence.
-            // This prevents legacy duplicate/null indices from causing stuck moves
-            // (e.g. divider/title pair cannot swap).
-            let nonMapOrderCounter = 0;
-            const normalizedBlocks = sortedBlocks.map((block) => {
-              if (block.block_type === 'map') return block;
-              const normalized = { ...block, order_index: nonMapOrderCounter };
-              nonMapOrderCounter += 1;
-              return normalized;
-            }).map((block) => {
-              if (block.block_type === 'map') {
-                return { ...block, order_index: nonMapOrderCounter };
-              }
-              return block;
-            });
-
-            const needsNormalization = sortedBlocks.some((block, idx) => {
-              const prevOrder = block.order_index ?? null;
-              const nextOrder = normalizedBlocks[idx]?.order_index ?? null;
-              return prevOrder !== nextOrder;
-            });
-
-            if (needsNormalization && tourIdToLoad) {
-              setTimeout(async () => {
-                try {
-                  const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-                  if (!token) return;
-
-                  const previousById = new Map(sortedBlocks.map(b => [b.id, b]));
-                  const updates = normalizedBlocks.filter(b => {
-                    const prev = previousById.get(b.id);
-                    return (prev?.order_index ?? null) !== (b.order_index ?? null);
-                  });
-
-                  await Promise.all(updates.map(b => fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
-                    method: 'PUT',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                      blockId: b.id,
-                      content: b.content,
-                      orderIndex: b.order_index
-                    })
-                  })));
-                } catch (normalizeError) {
-                  console.warn('⚠️ Failed to normalize block order indexes:', normalizeError);
-                }
-              }, 0);
-            }
-
-            sortedBlocks = normalizedBlocks;
+            // Do NOT auto-normalize order_index on load.
+            // Auto-rewriting order on page load caused random block jumps for authors.
 
             console.log('📍 Setting blocks state:', sortedBlocks.length, 'blocks');
             console.log('📍 Block types:', sortedBlocks.map(b => b.block_type));
@@ -1217,7 +1170,11 @@ export default function TripVisualizerPage() {
                   const sortedBlocks = loadedBlocks.sort((a, b) => {
                     if (a.block_type === 'map' && b.block_type !== 'map') return 1;
                     if (b.block_type === 'map' && a.block_type !== 'map') return -1;
-                    return (a.order_index || 0) - (b.order_index || 0);
+                    const byOrder = (a.order_index || 0) - (b.order_index || 0);
+                    if (byOrder !== 0) return byOrder;
+                    const byCreated = new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+                    if (byCreated !== 0) return byCreated;
+                    return String(a.id || '').localeCompare(String(b.id || ''));
                   });
                   setBlocks(sortedBlocks);
                   console.log(`✅ Reloaded ${sortedBlocks.length} blocks after save`);
@@ -1687,45 +1644,36 @@ export default function TripVisualizerPage() {
       if (data.success && data.block) {
         const newBlockId = data.block.id;
         setLastDraftSavedAt(null);
-        
-        const mapBlockInBlocks = blocks.find(b => b.block_type === 'map') || null;
-        const updatedNonMap = [...nonMapBlocks];
-        updatedNonMap.splice(insertPosition, 0, { ...data.block, order_index: insertPosition });
-        const normalizedNonMap = updatedNonMap.map((b, idx) => ({ ...b, order_index: idx }));
-        const normalizedAll = mapBlockInBlocks
-          ? [...normalizedNonMap, { ...mapBlockInBlocks, order_index: normalizedNonMap.length }]
-          : normalizedNonMap;
 
-        // Persist normalized order for all changed blocks to keep stable positions after reload
+        // Reload canonical block order from backend (it already shifts order_index atomically).
         try {
           const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-          if (token) {
-            const previousById = new Map(blocks.map(b => [b.id, b]));
-            const changedBlocks = normalizedAll.filter((b) => {
-              const prev = previousById.get(b.id);
-              return !prev || (prev.order_index ?? null) !== (b.order_index ?? null);
-            });
-
-            await Promise.all(changedBlocks.map((b) =>
-              fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
-                method: 'PUT',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                  blockId: b.id,
-                  content: b.content,
-                  orderIndex: b.order_index
-                })
-              })
-            ));
+          const blocksResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks?tourId=${currentTourId}`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+          });
+          if (blocksResponse.ok) {
+            const blocksData = await blocksResponse.json();
+            if (blocksData.success && blocksData.blocks) {
+              const sortedReloaded = blocksData.blocks.sort((a, b) => {
+                if (a.block_type === 'map' && b.block_type !== 'map') return 1;
+                if (b.block_type === 'map' && a.block_type !== 'map') return -1;
+                const byOrder = (a.order_index || 0) - (b.order_index || 0);
+                if (byOrder !== 0) return byOrder;
+                const byCreated = new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+                if (byCreated !== 0) return byCreated;
+                return String(a.id || '').localeCompare(String(b.id || ''));
+              });
+              setBlocks(sortedReloaded);
+            }
           }
-        } catch (err) {
-          console.warn('Failed to persist normalized block order:', err);
+        } catch (reloadErr) {
+          console.warn('⚠️ Failed to reload blocks after create, using local fallback:', reloadErr);
+          setBlocks(prev => [...prev, data.block].sort((a, b) => {
+            if (a.block_type === 'map' && b.block_type !== 'map') return 1;
+            if (b.block_type === 'map' && a.block_type !== 'map') return -1;
+            return (a.order_index || 0) - (b.order_index || 0);
+          }));
         }
-
-        setBlocks(normalizedAll);
         
         // Close selector
         setShowBlockSelector(false);
@@ -2058,7 +2006,11 @@ export default function TripVisualizerPage() {
             setBlocks(blocksData.blocks.sort((a, b) => {
               if (a.block_type === 'map' && b.block_type !== 'map') return 1;
               if (b.block_type === 'map' && a.block_type !== 'map') return -1;
-              return (a.order_index || 0) - (b.order_index || 0);
+              const byOrder = (a.order_index || 0) - (b.order_index || 0);
+              if (byOrder !== 0) return byOrder;
+              const byCreated = new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+              if (byCreated !== 0) return byCreated;
+              return String(a.id || '').localeCompare(String(b.id || ''));
             }));
           }
         }
