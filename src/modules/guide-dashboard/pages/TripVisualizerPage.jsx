@@ -4554,7 +4554,8 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
         throw new Error(signedData?.error || 'Failed to initialize PDF upload');
       }
 
-      const uploadResp = await fetch(signedData.signedUrl, {
+      const uploadTarget = signedData.uploadUrl || signedData.signedUrl;
+      const uploadResp = await fetch(uploadTarget, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/pdf'
