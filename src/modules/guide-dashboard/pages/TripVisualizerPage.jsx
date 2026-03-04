@@ -4564,7 +4564,8 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
       });
 
       if (!uploadResp.ok) {
-        throw new Error(`Failed to upload PDF (${uploadResp.status})`);
+        const uploadErrorText = await uploadResp.text().catch(() => '');
+        throw new Error(`Failed to upload PDF (${uploadResp.status}) ${uploadErrorText ? `- ${uploadErrorText.slice(0, 240)}` : ''}`);
       }
 
       onChange({ ...tourInfo, tourPdfUrl: signedData.publicUrl });
