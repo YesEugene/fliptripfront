@@ -4125,7 +4125,6 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
   const [interestsStructure, setInterestsStructure] = useState(null);
   const [availableInterests, setAvailableInterests] = useState([]);
   const [loadingInterests, setLoadingInterests] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
   const [newInterestInput, setNewInterestInput] = useState('');
   const [interestSuggestions, setInterestSuggestions] = useState([]);
   const [showInterestSuggestions, setShowInterestSuggestions] = useState(false);
@@ -4265,34 +4264,6 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
     [tourInfo.tags]
   );
   
-  // Get available interests for selected category
-  const getAvailableInterestsForCategory = () => {
-    if (!selectedCategory || !interestsStructure) return [];
-    const category = interestsStructure.find(c => c.id === selectedCategory);
-    if (!category) return [];
-    
-    const interestsList = [];
-    if (category.direct_interests) {
-      interestsList.push(...category.direct_interests);
-    }
-    if (category.subcategories) {
-      category.subcategories.forEach(subcategory => {
-        if (subcategory.interests) {
-          interestsList.push(...subcategory.interests);
-        }
-      });
-    }
-    return interestsList.filter(interest => !currentTags.includes(interest.id));
-  };
-
-  // Handle category selection
-  const handleCategorySelect = (categoryId) => {
-    setSelectedCategory(categoryId);
-    setNewInterestInput('');
-    setInterestSuggestions([]);
-    setShowInterestSuggestions(false);
-  };
-
   // Handle interest selection - save immediately to DB
   const handleInterestSelect = async (interestId) => {
     if (!currentTags.includes(interestId)) {
@@ -4398,9 +4369,28 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
     }
   };
 
+  const handleAddInterestFromInput = async () => {
+    const value = newInterestInput.trim();
+    if (!value) return;
+
+    const existingInterest = availableInterests.find(
+      (interest) => String(interest.name || '').trim().toLowerCase() === value.toLowerCase()
+    );
+
+    if (existingInterest) {
+      await handleInterestSelect(existingInterest.id);
+      setNewInterestInput('');
+      setInterestSuggestions([]);
+      setShowInterestSuggestions(false);
+      return;
+    }
+
+    await handleCreateNewInterest();
+  };
+
   // Create new interest
   const handleCreateNewInterest = async () => {
-    if (!newInterestInput.trim() || !selectedCategory) return;
+    if (!newInterestInput.trim()) return;
     
     // Check if suggestion was selected
     if (interestSuggestions.length > 0 && showInterestSuggestions) {
@@ -4412,6 +4402,16 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       
+      const fallbackCategoryId =
+        interestsStructure?.[0]?.id ||
+        interestsStructure?.find((category) => category.id)?.id ||
+        null;
+
+      if (!fallbackCategoryId) {
+        alert('Failed to create interest: category list is not loaded yet.');
+        return;
+      }
+
       // Create new interest
       const response = await fetch(`${API_BASE_URL}/api/interests`, {
         method: 'POST',
@@ -4421,7 +4421,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
         },
         body: JSON.stringify({
           name: newInterestInput.trim(),
-          category_id: selectedCategory
+          category_id: fallbackCategoryId
         })
       });
       
@@ -4581,8 +4581,8 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
         backgroundColor: 'white',
         borderRadius: '12px',
         padding: '24px',
-        maxWidth: '600px',
-        width: '90%',
+        maxWidth: '1080px',
+        width: '94%',
         maxHeight: '80vh',
         overflowY: 'auto'
       }}>
@@ -4591,838 +4591,420 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
           <button onClick={onClose} style={{ fontSize: '24px', background: 'none', border: 'none', cursor: 'pointer' }}>×</button>
         </div>
         
-        <div style={{ marginBottom: '20px', position: 'relative' }} className="city-autocomplete-container">
-          <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
-            City *
-            <HintButton hintKey="city" />
-          </label>
-          <input
-            type="text"
-            value={tourInfo.city}
-            onChange={async (e) => {
-              const value = e.target.value;
-              onChange({ ...tourInfo, city: value });
-              
-              // Search cities via API
-              if (value.length > 1) {
-                try {
-                  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://fliptripback.vercel.app';
-                  const response = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(value)}`);
-                  const data = await response.json();
-                  if (data.success && data.cities) {
-                    if (setCitySuggestions) setCitySuggestions(data.cities);
-                    if (setShowCitySuggestions) setShowCitySuggestions(data.cities.length > 0);
+        <div style={{ marginBottom: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div>
+            <div style={{ marginBottom: '14px', position: 'relative' }} className="city-autocomplete-container">
+              <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
+                City *
+                <HintButton hintKey="city" />
+              </label>
+              <input
+                type="text"
+                value={tourInfo.city}
+                onChange={async (e) => {
+                  const value = e.target.value;
+                  onChange({ ...tourInfo, city: value });
+                  if (value.length > 1) {
+                    try {
+                      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://fliptripback.vercel.app';
+                      const response = await fetch(`${API_BASE_URL}/api/admin-cities?search=${encodeURIComponent(value)}`);
+                      const data = await response.json();
+                      if (data.success && data.cities) {
+                        if (setCitySuggestions) setCitySuggestions(data.cities);
+                        if (setShowCitySuggestions) setShowCitySuggestions(data.cities.length > 0);
+                      } else {
+                        if (setCitySuggestions) setCitySuggestions([]);
+                        if (setShowCitySuggestions) setShowCitySuggestions(false);
+                      }
+                    } catch (err) {
+                      console.error('Error searching cities:', err);
+                      if (setCitySuggestions) setCitySuggestions([]);
+                      if (setShowCitySuggestions) setShowCitySuggestions(false);
+                    }
                   } else {
                     if (setCitySuggestions) setCitySuggestions([]);
                     if (setShowCitySuggestions) setShowCitySuggestions(false);
                   }
-                } catch (err) {
-                  console.error('Error searching cities:', err);
-                  if (setCitySuggestions) setCitySuggestions([]);
-                  if (setShowCitySuggestions) setShowCitySuggestions(false);
-                }
-              } else {
-                if (setCitySuggestions) setCitySuggestions([]);
-                if (setShowCitySuggestions) setShowCitySuggestions(false);
-              }
-            }}
-            onFocus={(e) => {
-              if (e.target.value.length > 1 && citySuggestions && citySuggestions.length > 0 && setShowCitySuggestions) {
-                setShowCitySuggestions(true);
-              }
-            }}
-            onBlur={(e) => {
-              // Validate that selected city exists in suggestions
-              // Delay to allow onClick on suggestion to fire first
-              setTimeout(() => {
-                const currentValue = e.target.value;
-                if (currentValue && citySuggestions && citySuggestions.length > 0) {
-                  const isValid = citySuggestions.some(c => 
-                    (typeof c === 'string' ? c : c.name) === currentValue ||
-                    (typeof c === 'string' ? c : (c.displayName || c.name)) === currentValue
-                  );
-                  if (!isValid && currentValue.length > 0) {
-                    // City not found - clear or show error
-                    onChange({ ...tourInfo, city: '' });
-                    if (setCitySuggestions) setCitySuggestions([]);
-                    if (setShowCitySuggestions) setShowCitySuggestions(false);
+                }}
+                onFocus={(e) => {
+                  if (e.target.value.length > 1 && citySuggestions && citySuggestions.length > 0 && setShowCitySuggestions) {
+                    setShowCitySuggestions(true);
                   }
-                }
-              }, 200);
-            }}
-            style={{
-              width: '100%',
-              padding: '12px',
-              border: '1px solid #d1d5db',
-              borderRadius: '8px',
-              fontSize: '16px',
-              boxSizing: 'border-box'
-            }}
-          />
-          {showCitySuggestions && citySuggestions.length > 0 && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              right: 0,
-              backgroundColor: 'white',
-              border: '1px solid #d1d5db',
-              borderRadius: '8px',
-              marginTop: '4px',
-              maxHeight: '200px',
-              overflowY: 'auto',
-              zIndex: 1000,
-              boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-            }}>
-              {citySuggestions.map((city, index) => {
-                const cityName = typeof city === 'string' ? city : city.name;
-                const displayName = typeof city === 'string' ? city : (city.displayName || city.name);
-                
-                return (
-                  <div
-                    key={city.id || cityName || index}
-                    onClick={() => {
-                      onChange({ ...tourInfo, city: cityName });
-                      if (setCitySuggestions) setCitySuggestions([]);
-                      if (setShowCitySuggestions) setShowCitySuggestions(false);
-                    }}
-                    style={{
-                      padding: '10px 12px',
-                      cursor: 'pointer',
-                      borderBottom: index < citySuggestions.length - 1 ? '1px solid #e5e7eb' : 'none'
-                    }}
-                    onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
-                  >
-                    {displayName}
-                  </div>
-                );
-              })}
+                }}
+                onBlur={(e) => {
+                  setTimeout(() => {
+                    const currentValue = e.target.value;
+                    if (currentValue && citySuggestions && citySuggestions.length > 0) {
+                      const isValid = citySuggestions.some(c =>
+                        (typeof c === 'string' ? c : c.name) === currentValue ||
+                        (typeof c === 'string' ? c : (c.displayName || c.name)) === currentValue
+                      );
+                      if (!isValid && currentValue.length > 0) {
+                        onChange({ ...tourInfo, city: '' });
+                        if (setCitySuggestions) setCitySuggestions([]);
+                        if (setShowCitySuggestions) setShowCitySuggestions(false);
+                      }
+                    }
+                  }, 200);
+                }}
+                style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '16px', boxSizing: 'border-box' }}
+              />
+              {showCitySuggestions && citySuggestions.length > 0 && (
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', border: '1px solid #d1d5db', borderRadius: '8px', marginTop: '4px', maxHeight: '200px', overflowY: 'auto', zIndex: 1000, boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                  {citySuggestions.map((city, index) => {
+                    const cityName = typeof city === 'string' ? city : city.name;
+                    const displayName = typeof city === 'string' ? city : (city.displayName || city.name);
+                    return (
+                      <div
+                        key={city.id || cityName || index}
+                        onClick={() => {
+                          onChange({ ...tourInfo, city: cityName });
+                          if (setCitySuggestions) setCitySuggestions([]);
+                          if (setShowCitySuggestions) setShowCitySuggestions(false);
+                        }}
+                        style={{ padding: '10px 12px', cursor: 'pointer', borderBottom: index < citySuggestions.length - 1 ? '1px solid #e5e7eb' : 'none' }}
+                        onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                        onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                      >
+                        {displayName}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
-            Trip name *
-            <HintButton hintKey="tripName" />
-          </label>
-          <input
-            type="text"
-            value={tourInfo.title}
-            onChange={(e) => onChange({ ...tourInfo, title: e.target.value })}
-            style={{
-              width: '100%',
-              padding: '12px',
-              border: '1px solid #d1d5db',
-              borderRadius: '8px',
-              fontSize: '16px',
-              boxSizing: 'border-box'
-            }}
-          />
-        </div>
-
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
-            Preview Photo *
-            <HintButton hintKey="previewPhoto" />
-          </label>
-          <div style={{
-            width: '100%',
-            height: '200px',
-            border: '2px dashed #d1d5db',
-            borderRadius: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: '12px',
-            backgroundColor: '#f9fafb'
-          }}>
-            {tourInfo.preview ? (
-              <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                <img 
-                  src={tourInfo.preview} 
-                  alt="Preview" 
-                  style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    objectFit: 'cover',
-                    borderRadius: '8px'
-                  }} 
-                />
-                <button
-                  onClick={() => {
-                    setImageToCrop(tourInfo.preview);
-                    setShowImageCrop(true);
-                  }}
-                  style={{
-                    position: 'absolute',
-                    top: '8px',
-                    right: '8px',
-                    padding: '6px 12px',
-                    backgroundColor: '#3b82f6',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: '500'
-                  }}
-                >
-                  Adjust
-                </button>
-              </div>
-            ) : (
-              <span style={{ color: '#6b7280' }}>No photo selected</span>
-            )}
-          </div>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files[0];
-              if (file && onImageUpload) {
-                onImageUpload(file, (base64) => {
-                  onChange({ ...tourInfo, preview: base64 });
-                });
-              }
-            }}
-            style={{ display: 'none' }}
-            id="tour-preview-upload"
-          />
-          <label
-            htmlFor="tour-preview-upload"
-            style={{
-              display: 'inline-block',
-              padding: '10px 20px',
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500'
-            }}
-          >
-            Choose photo
-          </label>
-          <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px', margin: 0 }}>
-            JPG, PNG or GIF. Max size 5MB
-          </p>
-        </div>
-
-        {/* Additional Gallery Images */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '4px', fontWeight: '500' }}>
-            Gallery images
-          </label>
-          <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '0', marginBottom: '12px' }}>
-            Add more photos — visitors can swipe through them on the preview page. The cover photo above is always shown first.
-          </p>
-          {/* Thumbnail grid */}
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-            {(Array.isArray(tourInfo.previewImages) ? tourInfo.previewImages : []).map((img, idx) => (
-              <div key={idx} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
-                <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newImages = (Array.isArray(tourInfo.previewImages) ? tourInfo.previewImages : []).filter((_, i) => i !== idx);
-                    onChange({ ...tourInfo, previewImages: newImages });
-                  }}
-                  style={{
-                    position: 'absolute', top: '2px', right: '2px',
-                    width: '20px', height: '20px', borderRadius: '50%',
-                    backgroundColor: 'rgba(0,0,0,0.6)', color: 'white',
-                    border: 'none', cursor: 'pointer', fontSize: '12px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    lineHeight: '1', padding: '0'
-                  }}
-                >×</button>
-              </div>
-            ))}
-            {/* Add button */}
-            <label
-              htmlFor="tour-gallery-upload"
-              style={{
-                width: '80px', height: '80px', borderRadius: '8px',
-                border: '2px dashed #d1d5db', display: 'flex',
-                alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', color: '#9ca3af', fontSize: '24px',
-                transition: 'border-color 0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.borderColor = '#3b82f6'}
-              onMouseLeave={(e) => e.currentTarget.style.borderColor = '#d1d5db'}
-            >
-              +
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) => {
-                const files = Array.from(e.target.files);
-                if (files.length > 0 && onImageUpload) {
-                  // Process files sequentially to avoid stale closure
-                  let currentImages = [...(Array.isArray(tourInfo.previewImages) ? tourInfo.previewImages : [])];
-                  let processed = 0;
-                  files.forEach(file => {
-                    onImageUpload(file, (base64) => {
-                      currentImages = [...currentImages, base64];
-                      processed++;
-                      // Update after each image (or all at once if sync)
-                      onChange({ ...tourInfo, previewImages: currentImages });
-                    });
-                  });
-                }
-                e.target.value = '';
-              }}
-              style={{ display: 'none' }}
-              id="tour-gallery-upload"
-            />
-          </div>
-        </div>
-
-        {/* Tour PDF Upload */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-            Tour PDF presentation
-          </label>
-          <input
-            type="file"
-            accept="application/pdf,.pdf"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleTourPdfUpload(file);
-              e.target.value = '';
-            }}
-            style={{ display: 'none' }}
-            id="tour-pdf-upload"
-          />
-          <label
-            htmlFor="tour-pdf-upload"
-            style={{
-              display: 'inline-block',
-              padding: '10px 20px',
-              backgroundColor: uploadingPdf ? '#9ca3af' : '#111827',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: uploadingPdf ? 'not-allowed' : 'pointer',
-              fontSize: '14px',
-              fontWeight: '500'
-            }}
-          >
-            {uploadingPdf ? 'Uploading PDF...' : 'Upload tour PDF'}
-          </label>
-          <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px', marginBottom: 0 }}>
-            PDF only. Max size 50MB.
-          </p>
-          {tourInfo.tourPdfUrl && (
-            <a
-              href={tourInfo.tourPdfUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ display: 'inline-block', marginTop: '8px', fontSize: '13px', color: '#2563eb' }}
-            >
-              View uploaded PDF
-            </a>
-          )}
-        </div>
-
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
-            A note from the author *
-            <HintButton hintKey="noteFromAuthor" />
-          </label>
-          <textarea
-            value={tourInfo.description}
-            onChange={(e) => onChange({ ...tourInfo, description: e.target.value })}
-            rows={6}
-            style={{
-              width: '100%',
-              padding: '12px',
-              border: '1px solid #d1d5db',
-              borderRadius: '8px',
-              fontSize: '16px',
-              boxSizing: 'border-box',
-              fontFamily: 'inherit'
-            }}
-          />
-        </div>
-
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
-            Short description for homepage card
-          </label>
-          <input
-            type="text"
-            value={tourInfo.shortDescription || ''}
-            onChange={(e) => onChange({ ...tourInfo, shortDescription: e.target.value.slice(0, 180) })}
-            placeholder="Two short vivid sentences for the homepage card"
-            maxLength={180}
-            style={{
-              width: '100%',
-              padding: '12px',
-              border: '1px solid #d1d5db',
-              borderRadius: '8px',
-              fontSize: '15px',
-              boxSizing: 'border-box',
-              fontFamily: 'inherit'
-            }}
-          />
-          <p style={{ marginTop: '6px', marginBottom: 0, fontSize: '12px', color: '#6b7280' }}>
-            {(tourInfo.shortDescription || '').length}/180 chars (2 short sentences)
-          </p>
-        </div>
-
-        {/* What's Inside This Walk - 6 Structured Bullets */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '4px', fontWeight: '500' }}>
-            What's Inside This Walk
-          </label>
-          <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '0', marginBottom: '12px' }}>
-            These 6 highlight cards appear on the preview page. Fill in the 3 editable fields — the rest are generated automatically.
-          </p>
-
-          {/* Generate with AI button */}
-          <button
-            type="button"
-            onClick={handleGenerateHighlights}
-            disabled={generatingHighlights || tourBlocks.length === 0}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              width: '100%',
-              padding: '10px 16px',
-              marginBottom: '16px',
-              border: 'none',
-              borderRadius: '8px',
-              background: generatingHighlights 
-                ? 'linear-gradient(135deg, #a78bfa, #818cf8)' 
-                : 'linear-gradient(135deg, #8b5cf6, #6366f1)',
-              color: 'white',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: generatingHighlights || tourBlocks.length === 0 ? 'not-allowed' : 'pointer',
-              opacity: tourBlocks.length === 0 ? 0.5 : 1,
-              transition: 'all 0.2s ease',
-              boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
-            }}
-            onMouseEnter={(e) => { if (!generatingHighlights && tourBlocks.length > 0) e.target.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.5)'; }}
-            onMouseLeave={(e) => { e.target.style.boxShadow = '0 2px 8px rgba(99, 102, 241, 0.3)'; }}
-          >
-            {generatingHighlights ? (
-              <>
-                <span style={{ display: 'inline-block', animation: 'highlightSpin 1s linear infinite', fontSize: '16px' }}>⏳</span>
-                Generating with AI...
-              </>
-            ) : (
-              <>
-                <span style={{ fontSize: '16px' }}>✨</span>
-                Generate bullets + short card text with AI
-              </>
-            )}
-          </button>
-          {tourBlocks.length === 0 && (
-            <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '-12px', marginBottom: '12px', textAlign: 'center' }}>
-              Add some content blocks first so AI can analyze your tour
-            </p>
-          )}
-
-          {/* Bullet 1 — Location count (auto-generated, shown as read-only) */}
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px',
-            padding: '12px', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0'
-          }}>
-            <span style={{ fontSize: '22px', width: '32px', textAlign: 'center', flexShrink: 0 }}>📍</span>
-            <div style={{ flex: 1 }}>
-              <span style={{ fontSize: '14px', color: '#111827' }}>
-                {locationCount > 0 
-                  ? `${locationCount} carefully selected location${locationCount !== 1 ? 's' : ''}${tourInfo.city ? ` across ${tourInfo.city}` : ''}`
-                  : 'Location count will appear here once you add location blocks'}
-              </span>
-              <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>🔒 Auto-generated from your location blocks</div>
-            </div>
-          </div>
-
-          {/* Bullet 2 — Fixed: A ready-to-follow route */}
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px',
-            padding: '12px', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0'
-          }}>
-            <span style={{ fontSize: '22px', width: '32px', textAlign: 'center', flexShrink: 0 }}>🗺</span>
-            <div style={{ flex: 1 }}>
-              <span style={{ fontSize: '14px', color: '#111827' }}>A ready-to-follow one-day route</span>
-              <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>🔒 Standard — shown for all tours</div>
-            </div>
-          </div>
-
-          {/* Bullet 3 — Creative description (editable) */}
-          <div style={{
-            marginBottom: '10px', padding: '12px',
-            backgroundColor: '#eff6ff', borderRadius: '8px', border: '1px solid #bfdbfe'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-              <span style={{ fontSize: '14px', color: '#2563eb', fontWeight: '500' }}>✏️ Creative tagline</span>
-              <span style={{ fontSize: '11px', color: '#6b7280' }}>— what makes this tour unique?</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
+                Trip name *
+                <HintButton hintKey="tripName" />
+              </label>
               <input
                 type="text"
-                value={(tourInfo.highlights || {}).icon3 || ''}
-                onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), icon3: e.target.value } })}
-                placeholder="⚔️"
-                maxLength={2}
-                style={{
-                  width: '44px', minWidth: '44px', padding: '8px',
-                  border: '1px solid #93c5fd', borderRadius: '6px',
-                  fontSize: '18px', textAlign: 'center', boxSizing: 'border-box'
-                }}
+                value={tourInfo.title}
+                onChange={(e) => onChange({ ...tourInfo, title: e.target.value })}
+                style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '16px', boxSizing: 'border-box' }}
               />
+            </div>
+
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
+                Tour Description *
+                <HintButton hintKey="noteFromAuthor" />
+              </label>
+              <textarea
+                value={tourInfo.description}
+                onChange={(e) => onChange({ ...tourInfo, description: e.target.value })}
+                rows={10}
+                style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '16px', boxSizing: 'border-box', fontFamily: 'inherit' }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
+                Preview Photo *
+                <HintButton hintKey="previewPhoto" />
+              </label>
+              <div style={{ width: '100%', height: '280px', border: '2px dashed #d1d5db', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px', backgroundColor: '#f9fafb' }}>
+                {tourInfo.preview ? (
+                  <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                    <img src={tourInfo.preview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                    <button
+                      onClick={() => {
+                        setImageToCrop(tourInfo.preview);
+                        setShowImageCrop(true);
+                      }}
+                      style={{ position: 'absolute', top: '8px', right: '8px', padding: '6px 12px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}
+                    >
+                      Adjust
+                    </button>
+                  </div>
+                ) : (
+                  <span style={{ color: '#6b7280' }}>No photo selected</span>
+                )}
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file && onImageUpload) {
+                    onImageUpload(file, (base64) => {
+                      onChange({ ...tourInfo, preview: base64 });
+                    });
+                  }
+                }}
+                style={{ display: 'none' }}
+                id="tour-preview-upload"
+              />
+              <label htmlFor="tour-preview-upload" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}>
+                Choose photo
+              </label>
+              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px', marginBottom: 0 }}>
+                JPG, PNG or GIF. Max size 5MB
+              </p>
+            </div>
+
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ display: 'block', marginBottom: '4px', fontWeight: '500' }}>
+                Additional images
+              </label>
+              <p style={{ fontSize: '12px', color: '#6b7280', marginTop: 0, marginBottom: '10px' }}>
+                Upload multiple photos and choose which one is the main image.
+              </p>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                {(Array.isArray(tourInfo.previewImages) ? tourInfo.previewImages : []).map((img, idx) => (
+                  <div key={idx} style={{ position: 'relative', width: '62px', height: '62px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+                    <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const galleryImages = [...(Array.isArray(tourInfo.previewImages) ? tourInfo.previewImages : [])];
+                        const selectedMain = galleryImages[idx];
+                        const currentMain = tourInfo.preview;
+                        galleryImages.splice(idx, 1);
+                        const nextImages = currentMain ? [currentMain, ...galleryImages] : galleryImages;
+                        onChange({ ...tourInfo, preview: selectedMain, previewImages: nextImages });
+                      }}
+                      style={{ position: 'absolute', left: '2px', top: '2px', padding: '0 5px', height: '16px', borderRadius: '8px', border: 'none', background: '#3b82f6', color: 'white', fontSize: '9px', cursor: 'pointer' }}
+                    >
+                      Main
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newImages = (Array.isArray(tourInfo.previewImages) ? tourInfo.previewImages : []).filter((_, i) => i !== idx);
+                        onChange({ ...tourInfo, previewImages: newImages });
+                      }}
+                      style={{ position: 'absolute', top: '2px', right: '2px', width: '16px', height: '16px', borderRadius: '50%', backgroundColor: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', cursor: 'pointer', fontSize: '10px', lineHeight: '1', padding: '0' }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                <label
+                  htmlFor="tour-gallery-upload"
+                  style={{ width: '62px', height: '62px', borderRadius: '8px', border: '2px dashed #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#9ca3af', fontSize: '20px' }}
+                >
+                  +
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files);
+                    if (files.length > 0 && onImageUpload) {
+                      let currentImages = [...(Array.isArray(tourInfo.previewImages) ? tourInfo.previewImages : [])];
+                      files.forEach(file => {
+                        onImageUpload(file, (base64) => {
+                          currentImages = [...currentImages, base64];
+                          onChange({ ...tourInfo, previewImages: currentImages });
+                        });
+                      });
+                    }
+                    e.target.value = '';
+                  }}
+                  style={{ display: 'none' }}
+                  id="tour-gallery-upload"
+                />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Tour PDF presentation
+              </label>
+              <input
+                type="file"
+                accept="application/pdf,.pdf"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleTourPdfUpload(file);
+                  e.target.value = '';
+                }}
+                style={{ display: 'none' }}
+                id="tour-pdf-upload"
+              />
+              <label htmlFor="tour-pdf-upload" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: uploadingPdf ? '#9ca3af' : '#111827', color: 'white', border: 'none', borderRadius: '8px', cursor: uploadingPdf ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500' }}>
+                {uploadingPdf ? 'Uploading PDF...' : 'Upload tour PDF'}
+              </label>
+              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px', marginBottom: 0 }}>
+                PDF only. Max size 50MB.
+              </p>
+              {tourInfo.tourPdfUrl && (
+                <a href={tourInfo.tourPdfUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '8px', fontSize: '13px', color: '#2563eb' }}>
+                  View uploaded PDF
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '20px', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '2px', fontWeight: '600' }}>
+                Generated content
+              </label>
+              <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
+                Three editable bullets + short homepage description.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleGenerateHighlights}
+              disabled={generatingHighlights || tourBlocks.length === 0}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                padding: '10px 14px',
+                border: 'none',
+                borderRadius: '8px',
+                background: generatingHighlights ? 'linear-gradient(135deg, #a78bfa, #818cf8)' : 'linear-gradient(135deg, #8b5cf6, #6366f1)',
+                color: 'white',
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: generatingHighlights || tourBlocks.length === 0 ? 'not-allowed' : 'pointer',
+                opacity: tourBlocks.length === 0 ? 0.5 : 1
+              }}
+            >
+              {generatingHighlights ? 'Generating...' : '✨ Generate with AI'}
+            </button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500' }}>
+                Creative tagline
+              </label>
               <input
                 type="text"
                 value={(tourInfo.highlights || {}).text3 || ''}
                 onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), text3: e.target.value } })}
-                placeholder="e.g. The real Paris of Athos, Porthos, Aramis, and d'Artagnan"
-                style={{
-                  flex: 1, padding: '8px 10px',
-                  border: '1px solid #93c5fd', borderRadius: '6px',
-                  fontSize: '14px', boxSizing: 'border-box'
-                }}
+                placeholder="What makes this tour unique?"
+                style={{ width: '100%', padding: '10px', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
               />
             </div>
-          </div>
-
-          {/* Bullet 4 — Theme description (editable) */}
-          <div style={{
-            marginBottom: '10px', padding: '12px',
-            backgroundColor: '#eff6ff', borderRadius: '8px', border: '1px solid #bfdbfe'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-              <span style={{ fontSize: '14px', color: '#2563eb', fontWeight: '500' }}>✏️ Theme / vibe</span>
-              <span style={{ fontSize: '11px', color: '#6b7280' }}>— what kind of experience is it?</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input
-                type="text"
-                value={(tourInfo.highlights || {}).icon4 || ''}
-                onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), icon4: e.target.value } })}
-                placeholder="🏛"
-                maxLength={2}
-                style={{
-                  width: '44px', minWidth: '44px', padding: '8px',
-                  border: '1px solid #93c5fd', borderRadius: '6px',
-                  fontSize: '18px', textAlign: 'center', boxSizing: 'border-box'
-                }}
-              />
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500' }}>
+                Theme / vibe
+              </label>
               <input
                 type="text"
                 value={(tourInfo.highlights || {}).text4 || ''}
                 onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), text4: e.target.value } })}
-                placeholder="e.g. Historical context at every stop"
-                style={{
-                  flex: 1, padding: '8px 10px',
-                  border: '1px solid #93c5fd', borderRadius: '6px',
-                  fontSize: '14px', boxSizing: 'border-box'
-                }}
+                placeholder="What kind of experience is it?"
+                style={{ width: '100%', padding: '10px', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
               />
             </div>
-          </div>
-
-          {/* Bullet 5 — Specific details (editable) */}
-          <div style={{
-            marginBottom: '10px', padding: '12px',
-            backgroundColor: '#eff6ff', borderRadius: '8px', border: '1px solid #bfdbfe'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-              <span style={{ fontSize: '14px', color: '#2563eb', fontWeight: '500' }}>✏️ What's also inside</span>
-              <span style={{ fontSize: '11px', color: '#6b7280' }}>— add a specific detail</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input
-                type="text"
-                value={(tourInfo.highlights || {}).icon5 || ''}
-                onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), icon5: e.target.value } })}
-                placeholder="☕"
-                maxLength={2}
-                style={{
-                  width: '44px', minWidth: '44px', padding: '8px',
-                  border: '1px solid #93c5fd', borderRadius: '6px',
-                  fontSize: '18px', textAlign: 'center', boxSizing: 'border-box'
-                }}
-              />
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500' }}>
+                What's also inside
+              </label>
               <input
                 type="text"
                 value={(tourInfo.highlights || {}).text5 || ''}
                 onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), text5: e.target.value } })}
-                placeholder="e.g. Atmospheric cafés and bistros along the way"
-                style={{
-                  flex: 1, padding: '8px 10px',
-                  border: '1px solid #93c5fd', borderRadius: '6px',
-                  fontSize: '14px', boxSizing: 'border-box'
-                }}
+                placeholder="Add one specific detail"
+                style={{ width: '100%', padding: '10px', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
               />
             </div>
-          </div>
-
-          {/* Bullet 6 — Fixed: Map + PDF */}
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '10px',
-            padding: '12px', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0'
-          }}>
-            <span style={{ fontSize: '22px', width: '32px', textAlign: 'center', flexShrink: 0 }}>📄</span>
-            <div style={{ flex: 1 }}>
-              <span style={{ fontSize: '14px', color: '#111827' }}>An interactive map + downloadable PDF</span>
-              <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>🔒 Standard — shown for all tours</div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500' }}>
+                Short description for homepage card
+              </label>
+              <textarea
+                value={tourInfo.shortDescription || ''}
+                onChange={(e) => onChange({ ...tourInfo, shortDescription: e.target.value.slice(0, 180) })}
+                placeholder="Two short vivid sentences for the homepage card"
+                maxLength={180}
+                rows={3}
+                style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box', fontFamily: 'inherit' }}
+              />
+              <p style={{ marginTop: '4px', marginBottom: 0, fontSize: '12px', color: '#6b7280' }}>
+                {(tourInfo.shortDescription || '').length}/180 chars
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Tags/Interests Section */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-            Tags / Interests
+        <div style={{ marginBottom: '20px', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '14px', position: 'relative' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600' }}>
+            Tour interests
           </label>
-          
-          {/* Category Selection */}
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#6b7280' }}>
-              Select Category
-            </label>
-            <select
-              value={selectedCategory || ''}
-              onChange={(e) => handleCategorySelect(e.target.value || null)}
-              disabled={loadingInterests}
-              style={{
-                width: '100%',
-                padding: '12px',
-                border: '1px solid #d1d5db',
-                borderRadius: '8px',
-                fontSize: '16px',
-                boxSizing: 'border-box',
-                backgroundColor: 'white'
+          <p style={{ fontSize: '12px', color: '#6b7280', marginTop: 0, marginBottom: '10px' }}>
+            Add interests in one field. Existing interests are suggested automatically.
+          </p>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+            <input
+              type="text"
+              value={newInterestInput}
+              onChange={(e) => handleNewInterestInput(e.target.value)}
+              onFocus={() => {
+                if (interestSuggestions.length > 0) setShowInterestSuggestions(true);
               }}
+              onKeyDown={async (e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  await handleAddInterestFromInput();
+                }
+              }}
+              placeholder="Enter interest and press Add"
+              style={{ flex: 1, padding: '12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '15px', boxSizing: 'border-box' }}
+            />
+            <button
+              type="button"
+              onClick={handleAddInterestFromInput}
+              disabled={!newInterestInput.trim()}
+              style={{ padding: '12px 16px', backgroundColor: !newInterestInput.trim() ? '#9ca3af' : '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: !newInterestInput.trim() ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500' }}
             >
-              <option value="">Choose category</option>
-              {interestsStructure?.map(category => (
-                <option key={category.id} value={category.id}>
-                  {category.icon} {CATEGORY_NAMES[category.name] || category.name}
-                </option>
-              ))}
-            </select>
+              Add
+            </button>
           </div>
 
-          {/* Interests Selection - shown after category is selected */}
-          {selectedCategory && (
-            <>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#6b7280' }}>
-                  Select Interests
-                </label>
-                {getAvailableInterestsForCategory().length > 0 ? (
-                  <select
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        handleInterestSelect(e.target.value);
-                        e.target.value = '';
-                      }
-                    }}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '8px',
-                      fontSize: '16px',
-                      boxSizing: 'border-box',
-                      backgroundColor: 'white',
-                      marginBottom: '12px'
-                    }}
-                  >
-                    <option value="">Select interest</option>
-                    {getAvailableInterestsForCategory().map(interest => (
-                      <option key={interest.id} value={interest.id}>
-                        {interest.name}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '12px' }}>
-                    All interests from this category are already selected.
-                  </p>
-                )}
-              </div>
-
-              {/* Create New Interest */}
-              <div style={{ marginBottom: '16px', position: 'relative' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#6b7280' }}>
-                  Or create new interest
-                </label>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <input
-                    type="text"
-                    value={newInterestInput}
-                    onChange={(e) => handleNewInterestInput(e.target.value)}
-                    onFocus={() => {
-                      if (interestSuggestions.length > 0) {
-                        setShowInterestSuggestions(true);
-                      }
-                    }}
-                    placeholder="Enter new interest name"
-                    style={{
-                      flex: 1,
-                      padding: '12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '8px',
-                      fontSize: '16px',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleCreateNewInterest}
-                    disabled={!newInterestInput.trim() || showInterestSuggestions}
-                    style={{
-                      padding: '12px 20px',
-                      backgroundColor: showInterestSuggestions ? '#9ca3af' : '#3b82f6',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: showInterestSuggestions ? 'not-allowed' : 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    Create
-                  </button>
+          {showInterestSuggestions && interestSuggestions.length > 0 && (
+            <div style={{ position: 'absolute', top: '98px', left: '14px', right: '14px', backgroundColor: 'white', border: '1px solid #d1d5db', borderRadius: '8px', maxHeight: '180px', overflowY: 'auto', zIndex: 1000, boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+              {interestSuggestions.map((interest, index) => (
+                <div
+                  key={interest.id}
+                  onClick={() => {
+                    handleInterestSelect(interest.id);
+                    setNewInterestInput('');
+                    setInterestSuggestions([]);
+                    setShowInterestSuggestions(false);
+                  }}
+                  style={{ padding: '10px 12px', cursor: 'pointer', borderBottom: index < interestSuggestions.length - 1 ? '1px solid #e5e7eb' : 'none' }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                >
+                  {interest.name}
                 </div>
-                
-                {/* Interest Suggestions */}
-                {showInterestSuggestions && interestSuggestions.length > 0 && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: 0,
-                    right: '80px',
-                    backgroundColor: 'white',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '8px',
-                    marginTop: '4px',
-                    maxHeight: '200px',
-                    overflowY: 'auto',
-                    zIndex: 1000,
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                  }}>
-                    <div style={{ padding: '8px', fontSize: '12px', color: '#6b7280', borderBottom: '1px solid #e5e7eb' }}>
-                      Similar interests found. Please select one to avoid duplicates:
-                    </div>
-                    {interestSuggestions.map((interest, index) => {
-                      const categoryForInterest = interestsStructure?.find(c => 
-                        c.id === interest.category_id || 
-                        c.subcategories?.some(s => s.id === interest.subcategory_id)
-                      );
-                      return (
-                        <div
-                          key={interest.id}
-                          onClick={() => {
-                            handleInterestSelect(interest.id);
-                            setNewInterestInput('');
-                            setInterestSuggestions([]);
-                            setShowInterestSuggestions(false);
-                          }}
-                          style={{
-                            padding: '10px 12px',
-                            cursor: 'pointer',
-                            borderBottom: index < interestSuggestions.length - 1 ? '1px solid #e5e7eb' : 'none'
-                          }}
-                          onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
-                          onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
-                        >
-                          {categoryForInterest?.icon} {interest.name} <span style={{ color: '#6b7280', fontSize: '12px' }}>({CATEGORY_NAMES[categoryForInterest?.name] || categoryForInterest?.name})</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </>
+              ))}
+            </div>
           )}
 
-          {/* Selected Tags/Interests */}
           {currentTags.length > 0 && (
-            <div style={{ marginTop: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#6b7280' }}>
-                Selected Tags
-              </label>
+            <div style={{ marginTop: '4px' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {currentTags.map(tagId => {
-                  // Convert both to strings for comparison
                   const tagIdString = String(tagId);
-                  
-                  // Wait for interests to load before trying to find them
                   if (loadingInterests || availableInterests.length === 0) {
                     return (
-                      <span key={tagIdString} style={{ 
-                        padding: '6px 12px', 
-                        backgroundColor: '#f3f4f6', 
-                        borderRadius: '20px', 
-                        fontSize: '14px',
-                        color: '#6b7280'
-                      }}>
+                      <span key={tagIdString} style={{ padding: '6px 12px', backgroundColor: '#f3f4f6', borderRadius: '20px', fontSize: '14px', color: '#6b7280' }}>
                         Loading...
                       </span>
                     );
                   }
-                  
                   const interest = availableInterests.find(i => String(i.id) === tagIdString);
-                  if (!interest) {
-                    // Don't show warning if interests are still loading
-                    if (!loadingInterests) {
-                      console.warn('⚠️ Interest not found in availableInterests for tagId:', tagIdString, {
-                        availableCount: availableInterests.length,
-                        availableIds: availableInterests.slice(0, 5).map(i => i.id),
-                        searchingFor: tagIdString
-                      });
-                    }
-                    return null;
-                  }
-                  
+                  if (!interest) return null;
                   return (
-                    <span
-                      key={tagId}
-                      style={{
-                        height: '30px',
-                        padding: '0 12px',
-                        backgroundColor: 'white',
-                        color: '#111827',
-                        borderRadius: '10px',
-                        fontSize: '10px',
-                        fontWeight: '500',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        border: '1px solid #DEDEDE'
-                      }}
-                    >
+                    <span key={tagId} style={{ height: '30px', padding: '0 12px', backgroundColor: 'white', color: '#111827', borderRadius: '10px', fontSize: '10px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #DEDEDE' }}>
                       {interest.name}
-                      <button
-                        type="button"
-                        onClick={() => handleInterestRemove(tagId)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#111827',
-                          cursor: 'pointer',
-                          fontSize: '14px',
-                          padding: '0',
-                          lineHeight: '1',
-                          fontWeight: 'bold',
-                          marginLeft: '4px'
-                        }}
-                      >
+                      <button type="button" onClick={() => handleInterestRemove(tagId)} style={{ background: 'none', border: 'none', color: '#111827', cursor: 'pointer', fontSize: '14px', padding: '0', lineHeight: '1', fontWeight: 'bold', marginLeft: '4px' }}>
                         ×
                       </button>
                     </span>
