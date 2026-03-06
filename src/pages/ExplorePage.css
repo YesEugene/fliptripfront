@@ -64,8 +64,16 @@
 }
 
 .explore-hero {
-  padding: 58px 40px 0;
+  margin-top: 70px;
+  margin-bottom: 70px;
+  padding: 0;
   text-align: center;
+}
+
+.explore-hero-title-container {
+  width: 100%;
+  padding: 0 30px;
+  box-sizing: border-box;
 }
 
 .explore-hero h1 {
@@ -73,7 +81,7 @@
   font-family: 'Urbanist', Inter, system-ui, sans-serif;
   font-weight: 600;
   text-transform: uppercase;
-  width: calc(100vw - 80px);
+  width: 100%;
   max-width: none;
   margin-left: auto;
   margin-right: auto;
@@ -81,8 +89,14 @@
   line-height: 1.05;
 }
 
+.explore-hero-subtitle-container {
+  margin-top: 30px;
+  padding: 0 30px;
+  box-sizing: border-box;
+}
+
 .explore-hero p {
-  margin: 30px auto 0;
+  margin: 0 auto;
   max-width: 740px;
   font-size: 16px;
   line-height: 1.4;
@@ -90,7 +104,7 @@
 
 .explore-pills-wrap {
   max-width: 1007px;
-  margin: 50px auto 0;
+  margin: 0 auto 0;
   padding: 0 40px;
   display: flex;
   flex-wrap: wrap;
@@ -454,11 +468,16 @@
 
 @media (max-width: 900px) {
   .explore-topbar,
-  .explore-hero,
   .explore-pills-wrap,
   .explore-trips-section,
   .more-trips-row,
   .explore-insiders {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .explore-hero-title-container,
+  .explore-hero-subtitle-container {
     padding-left: 20px;
     padding-right: 20px;
   }

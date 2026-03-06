@@ -165,8 +165,12 @@ export default function ExplorePage() {
       </header>
 
       <section className="explore-hero">
-        <h1>Explore cities. Like a local.</h1>
-        <p>Your personal, curated city guide from the people who live there. Just Paris and Rome. For now.</p>
+        <div className="explore-hero-title-container">
+          <h1>Explore cities. Like a local.</h1>
+        </div>
+        <div className="explore-hero-subtitle-container">
+          <p>Your personal, curated city guide from the people who live there. Just Paris and Rome. For now.</p>
+        </div>
       </section>
 
       <section className="explore-pills-wrap">
