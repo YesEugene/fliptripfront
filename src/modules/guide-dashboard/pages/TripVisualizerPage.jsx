@@ -87,6 +87,7 @@ export default function TripVisualizerPage() {
   const [isRefreshingPhotos, setIsRefreshingPhotos] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isSubmittingForModeration, setIsSubmittingForModeration] = useState(false);
+  const [isSavingHeaderModal, setIsSavingHeaderModal] = useState(false);
   const [lastDraftSavedAt, setLastDraftSavedAt] = useState(null);
   const [lastSubmittedAt, setLastSubmittedAt] = useState(null);
 
@@ -1211,61 +1212,67 @@ export default function TripVisualizerPage() {
   };
 
   const handleSaveTour = async () => {
+    if (isSavingHeaderModal) return;
+    setIsSavingHeaderModal(true);
+
     // This function is called from TourEditorModal when clicking "Save"
     // CRITICAL: Save interests immediately to DB when Save is clicked
-    if (!tourInfo.city || !tourInfo.title) {
-      alert('Please fill in City and Trip name before saving');
-      return;
-    }
-    
-    // CRITICAL: Save interests to DB immediately if tour exists
-    if (tourId && tourInfo.tags && tourInfo.tags.length > 0) {
-      console.log('💾 Saving interests immediately on Save button:', tourInfo.tags);
-      try {
-        const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-        if (token) {
-          const saveResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tours-update?id=${tourId}`, {
-            method: 'PUT',
-            headers: { 
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              city: tourInfo.city,
-              title: tourInfo.title,
-              shortDescription: tourInfo.shortDescription || '',
-              preview: tourInfo.preview, // Preserve preview_media_url
-              tags: tourInfo.tags, // Save interests immediately
-              highlights: tourInfo.highlights || {}, // Preserve highlights
-              previewImages: tourInfo.previewImages || [], // Preserve gallery images
-              tourPdfUrl: tourInfo.tourPdfUrl || '' // Preserve uploaded tour PDF
-            })
-          });
-          
-          if (saveResponse.ok) {
-            const saveData = await saveResponse.json();
-            console.log('✅ Interests saved immediately:', saveData);
-            // Update from response
-            if (saveData.tour?.tour_tags) {
-              const interestIds = saveData.tour.tour_tags.map(tt => String(tt.interest?.id || tt.interest_id)).filter(Boolean);
-              if (interestIds.length > 0) {
-                setTourInfo(prev => ({ ...prev, tags: interestIds }));
-              }
-            }
-          } else {
-            console.error('❌ Failed to save interests immediately:', await saveResponse.text());
-          }
-        }
-      } catch (error) {
-        console.error('❌ Error saving interests immediately:', error);
+    try {
+      if (!tourInfo.city || !tourInfo.title) {
+        alert('Please fill in City and Trip name before saving');
+        return;
       }
+      
+      // CRITICAL: Save interests to DB immediately if tour exists
+      if (tourId && tourInfo.tags && tourInfo.tags.length > 0) {
+        console.log('💾 Saving interests immediately on Save button:', tourInfo.tags);
+        try {
+          const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+          if (token) {
+            const saveResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tours-update?id=${tourId}`, {
+              method: 'PUT',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                city: tourInfo.city,
+                title: tourInfo.title,
+                shortDescription: tourInfo.shortDescription || '',
+                preview: tourInfo.preview, // Preserve preview_media_url
+                tags: tourInfo.tags, // Save interests immediately
+                highlights: tourInfo.highlights || {}, // Preserve highlights
+                previewImages: tourInfo.previewImages || [], // Preserve gallery images
+                tourPdfUrl: tourInfo.tourPdfUrl || '' // Preserve uploaded tour PDF
+              })
+            });
+            
+            if (saveResponse.ok) {
+              const saveData = await saveResponse.json();
+              console.log('✅ Interests saved immediately:', saveData);
+              // Update from response
+              if (saveData.tour?.tour_tags) {
+                const interestIds = saveData.tour.tour_tags.map(tt => String(tt.interest?.id || tt.interest_id)).filter(Boolean);
+                if (interestIds.length > 0) {
+                  setTourInfo(prev => ({ ...prev, tags: interestIds }));
+                }
+              }
+            } else {
+              console.error('❌ Failed to save interests immediately:', await saveResponse.text());
+            }
+          }
+        } catch (error) {
+          console.error('❌ Error saving interests immediately:', error);
+        }
+      }
+
+      // Save full tour as draft first (shows global saving state)
+      await handleSaveAsDraft();
+      // Close modal only after save flow is complete
+      setShowTourEditor(false);
+    } finally {
+      setIsSavingHeaderModal(false);
     }
-    
-    // Close modal
-    setShowTourEditor(false);
-    
-    // Also save full tour as draft
-    await handleSaveAsDraft();
   };
 
   const handleSubmitForModeration = async () => {
@@ -3522,6 +3529,7 @@ export default function TripVisualizerPage() {
             setShowTourEditor(false);
           }}
           onSave={handleSaveTour}
+          isSaving={isSavingHeaderModal || isSavingDraft}
           onChange={setTourInfo}
           onImageUpload={handleImageUpload}
           onAdjustPreviewImage={() => {
@@ -4139,7 +4147,7 @@ function HintButton({ hintKey }) {
     );
 }
 
-function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageUpload, onAdjustPreviewImage, locationCount = 0, tourBlocks = [], cities = [], citySuggestions = [], showCitySuggestions = false, setCitySuggestions, setShowCitySuggestions }) {
+function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, onChange, onImageUpload, onAdjustPreviewImage, locationCount = 0, tourBlocks = [], cities = [], citySuggestions = [], showCitySuggestions = false, setCitySuggestions, setShowCitySuggestions }) {
   const [interestsStructure, setInterestsStructure] = useState(null);
   const [availableInterests, setAvailableInterests] = useState([]);
   const [loadingInterests, setLoadingInterests] = useState(false);
@@ -5035,6 +5043,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
 
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
           <button
+            disabled={isSaving}
             onClick={onClose}
             style={{
               padding: '10px 20px',
@@ -5042,7 +5051,8 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
               color: 'white',
               border: 'none',
               borderRadius: '8px',
-              cursor: 'pointer',
+              cursor: isSaving ? 'not-allowed' : 'pointer',
+              opacity: isSaving ? 0.7 : 1,
               fontSize: '14px',
               fontWeight: '500'
             }}
@@ -5050,19 +5060,20 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
             Close
           </button>
           <button
+            disabled={isSaving}
             onClick={onSave}
             style={{
               padding: '10px 20px',
-              backgroundColor: '#3b82f6',
+              backgroundColor: isSaving ? '#9ca3af' : '#3b82f6',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
-              cursor: 'pointer',
+              cursor: isSaving ? 'not-allowed' : 'pointer',
               fontSize: '14px',
               fontWeight: '500'
             }}
           >
-            Save
+            {isSaving ? 'Saving...' : 'Save'}
           </button>
         </div>
       </div>
