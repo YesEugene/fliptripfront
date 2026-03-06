@@ -4958,9 +4958,9 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
           <input
             type="text"
             value={tourInfo.shortDescription || ''}
-            onChange={(e) => onChange({ ...tourInfo, shortDescription: e.target.value.slice(0, 120) })}
-            placeholder="One short, vivid sentence for the homepage card"
-            maxLength={120}
+            onChange={(e) => onChange({ ...tourInfo, shortDescription: e.target.value.slice(0, 180) })}
+            placeholder="Two short vivid sentences for the homepage card"
+            maxLength={180}
             style={{
               width: '100%',
               padding: '12px',
@@ -4972,7 +4972,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
             }}
           />
           <p style={{ marginTop: '6px', marginBottom: 0, fontSize: '12px', color: '#6b7280' }}>
-            {(tourInfo.shortDescription || '').length}/120 chars
+            {(tourInfo.shortDescription || '').length}/180 chars (2 short sentences)
           </p>
         </div>
 
