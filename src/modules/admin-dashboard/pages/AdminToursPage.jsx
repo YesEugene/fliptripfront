@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getTours, exportToCSV, moderateTour, deleteTours, setTourExploreWideCard } from '../services/adminService';
+import { getTours, exportToCSV, moderateTour, deleteTours, setTourExploreWideCard, setTourExploreOrder } from '../services/adminService';
 import { getCurrentUser } from '../../auth/services/authService';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
 
@@ -23,6 +23,20 @@ export default function AdminToursPage() {
   const [rejectComment, setRejectComment] = useState('');
   const [moderating, setModerating] = useState(false);
   const [savingWideTourId, setSavingWideTourId] = useState(null);
+  const [reordering, setReordering] = useState(false);
+
+  const sortToursByExploreOrder = (items = []) => {
+    return [...items].sort((a, b) => {
+      const orderA = Number.isFinite(Number(a?.exploreOrder)) ? Number(a.exploreOrder) : null;
+      const orderB = Number.isFinite(Number(b?.exploreOrder)) ? Number(b.exploreOrder) : null;
+      if (orderA !== null && orderB !== null) return orderA - orderB;
+      if (orderA !== null) return -1;
+      if (orderB !== null) return 1;
+      const dateA = new Date(a.createdAt || a.created_at || 0).getTime();
+      const dateB = new Date(b.createdAt || b.created_at || 0).getTime();
+      return dateB - dateA;
+    });
+  };
 
   useEffect(() => {
     const currentUser = getCurrentUser();
@@ -59,6 +73,8 @@ export default function AdminToursPage() {
           const dateB = new Date(b.createdAt || b.created_at || 0);
           return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
         });
+      } else if (activeTab === 'all') {
+        loadedTours = sortToursByExploreOrder(loadedTours);
       }
       
       // Log tour IDs for debugging
@@ -257,6 +273,35 @@ export default function AdminToursPage() {
     }
   };
 
+  const handleMoveTour = async (tourId, direction) => {
+    if (activeTab !== 'all' || reordering || searchTerm.trim()) return;
+    const currentIndex = tours.findIndex((tour) => tour.id === tourId);
+    if (currentIndex < 0) return;
+
+    const targetIndex = currentIndex + direction;
+    if (targetIndex < 0 || targetIndex >= tours.length) return;
+
+    const previousTours = tours;
+    const nextTours = [...tours];
+    const [moved] = nextTours.splice(currentIndex, 1);
+    nextTours.splice(targetIndex, 0, moved);
+    const normalizedTours = nextTours.map((tour, index) => ({ ...tour, exploreOrder: index + 1 }));
+    setTours(normalizedTours);
+
+    try {
+      setReordering(true);
+      await Promise.all(
+        normalizedTours.map((tour, index) => setTourExploreOrder(tour.id, index + 1))
+      );
+    } catch (err) {
+      console.error('Error reordering tours:', err);
+      alert(`Error reordering tours: ${err.message}`);
+      setTours(previousTours);
+    } finally {
+      setReordering(false);
+    }
+  };
+
   if (!user) {
     return <div style={{ padding: '20px' }}>Loading...</div>;
   }
@@ -448,6 +493,11 @@ export default function AdminToursPage() {
               fontSize: '16px'
             }}
           />
+          {activeTab === 'all' && (
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>
+              Reorder is available when search is empty.
+            </span>
+          )}
           
           {/* AI Tours specific controls */}
           {activeTab === 'ai-tours' && (
@@ -542,7 +592,7 @@ export default function AdminToursPage() {
               <table style={{ 
                 width: '100%', 
                 borderCollapse: 'collapse',
-                minWidth: activeTab === 'all' ? '920px' : '800px' // Keep extra room for "Wide on Explore" column
+                minWidth: activeTab === 'all' ? '980px' : '800px' // Keep extra room for Explore controls
               }}>
               <thead>
                 <tr style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
@@ -565,6 +615,11 @@ export default function AdminToursPage() {
                       Wide on Explore
                     </th>
                   )}
+                  {activeTab === 'all' && (
+                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', whiteSpace: 'nowrap' }}>
+                      Order
+                    </th>
+                  )}
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Created</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Actions</th>
                 </tr>
@@ -573,7 +628,7 @@ export default function AdminToursPage() {
                 {tours.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={activeTab === 'ai-tours' ? '7' : activeTab === 'all' ? '7' : '6'}
+                      colSpan={activeTab === 'ai-tours' ? '7' : activeTab === 'all' ? '8' : '6'}
                       style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}
                     >
                       No tours found
@@ -647,6 +702,44 @@ export default function AdminToursPage() {
                             title="Show this tour as full-width card on /explore"
                             style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                           />
+                        </td>
+                      )}
+                      {activeTab === 'all' && (
+                        <td style={{ padding: '12px', textAlign: 'center' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                            <button
+                              type="button"
+                              disabled={reordering || !!searchTerm.trim() || savingWideTourId === tour.id || tours[0]?.id === tour.id}
+                              onClick={() => handleMoveTour(tour.id, -1)}
+                              title="Move up"
+                              style={{
+                                width: '26px',
+                                height: '26px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                background: 'white',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              ↑
+                            </button>
+                            <button
+                              type="button"
+                              disabled={reordering || !!searchTerm.trim() || savingWideTourId === tour.id || tours[tours.length - 1]?.id === tour.id}
+                              onClick={() => handleMoveTour(tour.id, 1)}
+                              title="Move down"
+                              style={{
+                                width: '26px',
+                                height: '26px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                background: 'white',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              ↓
+                            </button>
+                          </div>
                         </td>
                       )}
                       <td style={{ padding: '12px', color: '#6b7280', fontSize: '14px' }}>

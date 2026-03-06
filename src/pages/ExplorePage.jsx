@@ -220,23 +220,42 @@ export default function ExplorePage() {
   }, [toursWithResolvedTags, selectedCity, selectedTag]);
 
   const displayedTours = useMemo(() => filteredTours.slice(0, visibleCount), [filteredTours, visibleCount]);
-  const wideFeaturedTours = useMemo(
-    () => displayedTours.filter((tour) => Boolean(tour?.draft_data?.exploreWideCard)),
-    [displayedTours]
-  );
-  const regularColumnTours = useMemo(
-    () => displayedTours.filter((tour) => !Boolean(tour?.draft_data?.exploreWideCard)),
-    [displayedTours]
-  );
-  const columnTours = useMemo(() => {
-    const left = [];
-    const right = [];
-    regularColumnTours.forEach((tour, index) => {
-      if (index % 2 === 0) left.push(tour);
-      else right.push(tour);
+  const orderedDisplayedTours = useMemo(() => {
+    return [...displayedTours].sort((a, b) => {
+      const orderA = Number.isFinite(Number(a?.draft_data?.exploreOrder))
+        ? Number(a.draft_data.exploreOrder)
+        : null;
+      const orderB = Number.isFinite(Number(b?.draft_data?.exploreOrder))
+        ? Number(b.draft_data.exploreOrder)
+        : null;
+      if (orderA !== null && orderB !== null) return orderA - orderB;
+      if (orderA !== null) return -1;
+      if (orderB !== null) return 1;
+      const dateA = new Date(a.createdAt || a.created_at || 0).getTime();
+      const dateB = new Date(b.createdAt || b.created_at || 0).getTime();
+      return dateB - dateA;
     });
-    return { left, right };
-  }, [regularColumnTours]);
+  }, [displayedTours]);
+  const exploreLayoutItems = useMemo(() => {
+    const items = [];
+    let segment = [];
+    orderedDisplayedTours.forEach((tour) => {
+      const isWide = Boolean(tour?.draft_data?.exploreWideCard);
+      if (isWide) {
+        if (segment.length > 0) {
+          items.push({ type: 'columns', tours: segment });
+          segment = [];
+        }
+        items.push({ type: 'wide', tour });
+      } else {
+        segment.push(tour);
+      }
+    });
+    if (segment.length > 0) {
+      items.push({ type: 'columns', tours: segment });
+    }
+    return items;
+  }, [orderedDisplayedTours]);
   const hasMoreTours = filteredTours.length > displayedTours.length;
 
   useEffect(() => {
@@ -320,44 +339,60 @@ export default function ExplorePage() {
       </section>
 
       <section className="explore-trips-section">
-        <div className="explore-trips-columns">
-          <div className="explore-trips-column">
-            {columnTours.left.map((tour, index) => (
-              <TourCard
-                key={`${tour.id || index}-left`}
-                tour={tour}
-                tags={tour._resolvedTags || []}
-                variant="below"
-                onClick={() => openTourPreview(tour.id)}
-              />
-            ))}
-          </div>
-          <div className="explore-trips-column">
-            {columnTours.right.map((tour, index) => (
-              <TourCard
-                key={`${tour.id || index}-right`}
-                tour={tour}
-                tags={tour._resolvedTags || []}
-                variant="below"
-                onClick={() => openTourPreview(tour.id)}
-              />
-            ))}
-          </div>
-        </div>
-        {wideFeaturedTours.length > 0 && (
-          <div className="explore-wide-tours">
-            {wideFeaturedTours.map((tour, index) => (
-              <TourCard
-                key={`${tour.id || index}-wide`}
-                tour={tour}
-                tags={tour._resolvedTags || []}
-                className="explore-wide-tour-card"
-                variant="overlay"
-                onClick={() => openTourPreview(tour.id)}
-              />
-            ))}
-          </div>
-        )}
+        {exploreLayoutItems.map((item, itemIndex) => {
+          if (item.type === 'wide') {
+            const tour = item.tour;
+            return (
+              <div className="explore-layout-item" key={`wide-${tour.id || itemIndex}`}>
+                <div className="explore-wide-tours">
+                  <TourCard
+                    tour={tour}
+                    tags={tour._resolvedTags || []}
+                    className="explore-wide-tour-card"
+                    variant="overlay"
+                    onClick={() => openTourPreview(tour.id)}
+                  />
+                </div>
+              </div>
+            );
+          }
+
+          const left = [];
+          const right = [];
+          item.tours.forEach((tour, index) => {
+            if (index % 2 === 0) left.push(tour);
+            else right.push(tour);
+          });
+
+          return (
+            <div className="explore-layout-item" key={`columns-${itemIndex}`}>
+              <div className="explore-trips-columns">
+                <div className="explore-trips-column">
+                  {left.map((tour, index) => (
+                    <TourCard
+                      key={`${tour.id || index}-left-${itemIndex}`}
+                      tour={tour}
+                      tags={tour._resolvedTags || []}
+                      variant="below"
+                      onClick={() => openTourPreview(tour.id)}
+                    />
+                  ))}
+                </div>
+                <div className="explore-trips-column">
+                  {right.map((tour, index) => (
+                    <TourCard
+                      key={`${tour.id || index}-right-${itemIndex}`}
+                      tour={tour}
+                      tags={tour._resolvedTags || []}
+                      variant="below"
+                      onClick={() => openTourPreview(tour.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })}
         {loading && <p className="explore-loading">Loading trips...</p>}
       </section>
 

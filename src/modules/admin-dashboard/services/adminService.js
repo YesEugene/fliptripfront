@@ -538,6 +538,35 @@ export async function setTourExploreWideCard(tourId, enabled) {
 }
 
 /**
+ * Set explicit order for explore page listing
+ */
+export async function setTourExploreOrder(tourId, order) {
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/api/admin-tours?id=${tourId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        exploreOrder: order
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || data.error || 'Error updating explore order');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Set tour explore order error:', error);
+    throw error;
+  }
+}
+
+/**
  * Delete tour(s)
  */
 export async function deleteTour(tourId) {

@@ -188,8 +188,12 @@
   gap: 40px;
 }
 
-.explore-wide-tours {
+.explore-layout-item + .explore-layout-item {
   margin-top: 40px;
+}
+
+.explore-wide-tours {
+  margin-top: 0;
   display: flex;
   flex-direction: column;
   gap: 40px;
@@ -570,7 +574,7 @@
   }
 
   .explore-wide-tours {
-    margin-top: 40px;
+    margin-top: 0;
   }
 
   .explore-tour-card-body h3 {
