@@ -389,13 +389,14 @@
   text-align: center;
   font-family: 'Urbanist', Inter, system-ui, sans-serif;
   text-transform: uppercase;
-  font-size: clamp(36px, 5vw, 65px);
+  font-size: clamp(34px, 4.4vw, 62px);
   line-height: 1.05;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .explore-insiders > p {
-  max-width: 742px;
+  max-width: var(--content-max-width);
   margin: 16px auto 0;
   text-align: center;
   color: #575450;
@@ -426,19 +427,29 @@
 
 .insider-card {
   background: #fff;
-  min-height: 330px;
+  min-height: 360px;
   min-width: 520px;
   flex: 0 0 520px;
-  display: grid;
-  grid-template-columns: 170px 1fr;
-  gap: 16px;
+  display: flex;
+  gap: 18px;
   padding: 20px;
+}
+
+.insider-left {
+  width: 170px;
+  flex: 0 0 170px;
+}
+
+.insider-right {
+  flex: 1;
+  min-width: 0;
 }
 
 .insider-avatar {
   width: 170px;
   height: 170px;
   object-fit: cover;
+  display: block;
 }
 
 .insider-avatar-placeholder {
@@ -451,20 +462,20 @@
   font-weight: 700;
 }
 
-.insider-content h3 {
+.insider-right h3 {
   margin: 0;
   font-family: 'Urbanist', Inter, system-ui, sans-serif;
   font-size: 28px;
 }
 
-.insider-content p {
+.insider-right p {
   margin: 12px 0 0;
   font-size: 12px;
   line-height: 1.4;
 }
 
 .insider-meta {
-  margin-top: 18px;
+  margin-top: 14px;
   font-size: 12px;
   line-height: 1.4;
 }
@@ -559,12 +570,21 @@
   .insider-card {
     min-width: min(88vw, 520px);
     flex: 0 0 min(88vw, 520px);
-    grid-template-columns: 120px 1fr;
+    gap: 14px;
+  }
+
+  .insider-left {
+    width: 120px;
+    flex: 0 0 120px;
   }
 
   .insider-avatar {
     width: 120px;
     height: 120px;
+  }
+
+  .explore-insiders h2 {
+    white-space: normal;
   }
 }
 

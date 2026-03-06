@@ -341,29 +341,33 @@ export default function ExplorePage() {
         <h2>Meet Your Local Insiders</h2>
         <p>
           Whenever we land in a new city, the first thing we do is text a friend for advice. Flip-Trip does that for you.
-          We&apos;ve brought together a community of locals to share personal city secrets and routes they truly love.
+          We&apos;ve brought together a community of locals-from designers and actors to foodies and art experts-to share their
+          personal city secrets. Each itinerary is a piece of their daily life: the spots they actually visit, the coffee they
+          actually drink. No filters, no fake reviews-just the real city, curated by those who call it home.
         </p>
         <div className="insiders-grid" ref={insidersScrollRef}>
           {insiders.map((insider) => (
             <article className="insider-card" key={insider.id}>
-              {insider.avatar ? (
-                <img
-                  src={insider.avatar}
-                  alt={insider.name}
-                  className="insider-avatar"
-                />
-              ) : (
-                <div className="insider-avatar insider-avatar-placeholder">
-                  {getInitials(insider.name)}
-                </div>
-              )}
-              <div className="insider-content">
-                <h3>{insider.name}</h3>
-                <p>{insider.bio}</p>
+              <div className="insider-left">
+                {insider.avatar ? (
+                  <img
+                    src={insider.avatar}
+                    alt={insider.name}
+                    className="insider-avatar"
+                  />
+                ) : (
+                  <div className="insider-avatar insider-avatar-placeholder">
+                    {getInitials(insider.name)}
+                  </div>
+                )}
                 <div className="insider-meta">
                   <div><strong>City:</strong> {insider.city || 'Paris'}</div>
                   <div><strong>Interests:</strong> {insider.interests || 'Culture, Food, Art'}</div>
                 </div>
+              </div>
+              <div className="insider-right">
+                <h3>{insider.name}</h3>
+                <p>{insider.bio}</p>
               </div>
             </article>
           ))}
