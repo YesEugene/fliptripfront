@@ -95,7 +95,6 @@ function TourCard({ tour, tags = [], className = '', variant = 'below', onClick 
             )}
             <span className="explore-creator-name">{creatorName}</span>
           </div>
-          {isOverlay && <span className="explore-city-pill">{tour?.city || 'City'}</span>}
         </div>
         {!isOverlay && <span className="explore-city-pill explore-city-pill-bottom">{tour?.city || 'City'}</span>}
 
@@ -104,6 +103,9 @@ function TourCard({ tour, tags = [], className = '', variant = 'below', onClick 
             <h3>{cardTitle}</h3>
             <p>{description}</p>
             <div className="explore-tags-row">
+              <span className="explore-tag-pill explore-tag-pill-city-overlay">
+                {tour?.city || 'City'}
+              </span>
               {tags.map((tag) => (
                 <span className="explore-tag-pill" key={`${tour.id}-${tag}`}>
                   {tag}

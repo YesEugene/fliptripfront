@@ -304,7 +304,7 @@
   margin: 0;
   font-size: 12px;
   line-height: 1.35;
-  max-width: 360px;
+  max-width: none;
 }
 
 .explore-tour-card-body {
@@ -356,6 +356,12 @@
   border-color: #1c1c1b;
   color: #1c1c1b;
   background: #fcfbf9;
+}
+
+.explore-tag-pill-city-overlay {
+  background: #fff;
+  color: #1c1c1b;
+  border-color: #fff;
 }
 
 .is-below .explore-tour-card-overlay {
