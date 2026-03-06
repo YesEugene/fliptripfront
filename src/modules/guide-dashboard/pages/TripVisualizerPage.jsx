@@ -179,6 +179,7 @@ export default function TripVisualizerPage() {
     city: '',
     title: '',
     description: '',
+    shortDescription: '',
     preview: null,
     previewImages: [], // Additional gallery images for preview carousel
     tourPdfUrl: '', // Optional uploaded tour presentation PDF
@@ -358,6 +359,7 @@ export default function TripVisualizerPage() {
           city: sourceData.city || tourObj.city?.name || '',
           title: sourceData.title || tourObj.title || '',
           description: sourceData.description || tourObj.description || '',
+          shortDescription: sourceData.shortDescription || draftData?.shortDescription || '',
           preview: sourceData.preview || tourObj.preview_media_url || null,
           previewImages: normalizeImageArray(draftData?.previewImages), // Additional gallery images
           tourPdfUrl: (draftData?.tourPdfUrl || sourceData?.tourPdfUrl || '').toString(),
@@ -462,6 +464,7 @@ export default function TripVisualizerPage() {
           city: tourObj.city?.name || prev.city,
           title: tourObj.title || prev.title,
           description: tourObj.description || prev.description,
+          shortDescription: draftData?.shortDescription || prev.shortDescription || '',
           preview: tourObj.preview || prev.preview,
           tourPdfUrl: draftData?.tourPdfUrl || prev.tourPdfUrl || '',
           tags: interestIds.length > 0
@@ -1029,6 +1032,7 @@ export default function TripVisualizerPage() {
             city: tourInfo.city,
             title: tourInfo.title,
             description: tourInfo.description || '',
+            shortDescription: tourInfo.shortDescription || '',
             preview: tourInfo.preview || null,
             previewType: 'image',
             status: 'draft',
@@ -1091,6 +1095,7 @@ export default function TripVisualizerPage() {
             city: tourInfo.city,
             title: tourInfo.title,
             description: tourInfo.description || '',
+            shortDescription: tourInfo.shortDescription || '',
             preview: tourInfo.preview || null,
             previewType: 'image',
             saveAsDraft: true,
@@ -1160,6 +1165,7 @@ export default function TripVisualizerPage() {
               city: data.tour.city?.name || tourInfo.city,
               title: data.tour.title || tourInfo.title,
               description: data.tour.description || tourInfo.description,
+              shortDescription: tourInfo.shortDescription || '',
               preview: tourInfo.preview, // Keep current preview (was just saved)
               previewImages: tourInfo.previewImages || [],
               tourPdfUrl: tourInfo.tourPdfUrl || '',
@@ -1227,6 +1233,7 @@ export default function TripVisualizerPage() {
             body: JSON.stringify({
               city: tourInfo.city,
               title: tourInfo.title,
+              shortDescription: tourInfo.shortDescription || '',
               preview: tourInfo.preview, // Preserve preview_media_url
               tags: tourInfo.tags, // Save interests immediately
               highlights: tourInfo.highlights || {}, // Preserve highlights
@@ -1295,6 +1302,7 @@ export default function TripVisualizerPage() {
             city: tourInfo.city,
             title: tourInfo.title,
             description: tourInfo.description || '',
+            shortDescription: tourInfo.shortDescription || '',
             preview: tourInfo.preview || null,
             previewType: 'image',
             status: 'pending',
@@ -1363,6 +1371,7 @@ export default function TripVisualizerPage() {
             city: tourInfo.city,
             title: tourInfo.title,
             description: tourInfo.description || '',
+            shortDescription: tourInfo.shortDescription || '',
             preview: tourInfo.preview || null,
             previewType: 'image',
             status: 'pending',
@@ -1462,6 +1471,7 @@ export default function TripVisualizerPage() {
           city: tourInfo.city || '',
           title: tourInfo.title || '',
           description: tourInfo.description || '',
+          shortDescription: tourInfo.shortDescription || '',
           preview: tourInfo.preview || null,
           previewType: 'image',
           status: 'draft',
@@ -4141,6 +4151,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
           tourId: tourId,
           tourTitle: tourInfo.title,
           tourDescription: tourInfo.description,
+          language: 'English',
           city: tourInfo.city,
           // Strip photos/images from blocks to avoid 413 payload too large
           blocks: tourBlocks.map(b => {
@@ -4183,6 +4194,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
       if (data.success && data.highlights) {
         onChange({
           ...tourInfo,
+          shortDescription: data.shortDescription || tourInfo.shortDescription || '',
           highlights: {
             ...(tourInfo.highlights || {}),
             icon3: data.highlights.icon3 || (tourInfo.highlights || {}).icon3 || '',
@@ -4939,6 +4951,31 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
           />
         </div>
 
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
+            Short description for homepage card
+          </label>
+          <input
+            type="text"
+            value={tourInfo.shortDescription || ''}
+            onChange={(e) => onChange({ ...tourInfo, shortDescription: e.target.value.slice(0, 120) })}
+            placeholder="One short, vivid sentence for the homepage card"
+            maxLength={120}
+            style={{
+              width: '100%',
+              padding: '12px',
+              border: '1px solid #d1d5db',
+              borderRadius: '8px',
+              fontSize: '15px',
+              boxSizing: 'border-box',
+              fontFamily: 'inherit'
+            }}
+          />
+          <p style={{ marginTop: '6px', marginBottom: 0, fontSize: '12px', color: '#6b7280' }}>
+            {(tourInfo.shortDescription || '').length}/120 chars
+          </p>
+        </div>
+
         {/* What's Inside This Walk - 6 Structured Bullets */}
         <div style={{ marginBottom: '20px' }}>
           <label style={{ display: 'block', marginBottom: '4px', fontWeight: '500' }}>
@@ -4985,7 +5022,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
             ) : (
               <>
                 <span style={{ fontSize: '16px' }}>✨</span>
-                Generate all 3 bullets with AI
+                Generate bullets + short card text with AI
               </>
             )}
           </button>

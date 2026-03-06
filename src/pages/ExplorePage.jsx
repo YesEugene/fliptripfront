@@ -72,7 +72,7 @@ function TourCard({ tour, tags = [], className = '', variant = 'below', onClick 
   const creatorName = tour?.guide?.name || 'Guide';
   const creatorAvatar = tour?.guide?.avatar_url || '';
   const cardTitle = tour?.title || 'Explore city with a local';
-  const description = tour?.description || tour?.subtitle || 'Curated route with authentic places and local context.';
+  const description = tour?.draft_data?.shortDescription || tour?.shortDescription || tour?.description || tour?.subtitle || 'Curated route with authentic places and local context.';
   const isOverlay = variant === 'overlay';
 
   return (
