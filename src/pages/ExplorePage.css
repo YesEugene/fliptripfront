@@ -265,10 +265,16 @@
 }
 
 .explore-city-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 25px;
+  box-sizing: border-box;
   background: #fff;
   border-radius: 50px;
   font-size: 12px;
-  padding: 4px 14px;
+  line-height: 1;
+  padding: 0 14px;
   z-index: 3;
 }
 
@@ -333,10 +339,16 @@
 }
 
 .explore-tag-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 25px;
+  box-sizing: border-box;
   border-radius: 50px;
   border: 1px solid rgba(255, 255, 255, 0.9);
   color: #fff;
-  padding: 3px 10px;
+  line-height: 1;
+  padding: 0 10px;
   font-size: 11px;
 }
 

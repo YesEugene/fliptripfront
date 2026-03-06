@@ -245,6 +245,13 @@ export default function ExplorePage() {
     });
   };
 
+  const openTourPreview = (tourId) => {
+    const params = new URLSearchParams();
+    params.append('tourId', tourId);
+    params.append('previewOnly', 'true');
+    navigate(`/itinerary?${params.toString()}`);
+  };
+
   return (
     <main className="explore-page">
       <header className="explore-topbar">
@@ -307,7 +314,7 @@ export default function ExplorePage() {
                 tags={tour._resolvedTags || []}
                 className={cardClass}
                 variant={variant}
-                onClick={() => navigate(`/preview?tourId=${tour.id}`)}
+                onClick={() => openTourPreview(tour.id)}
               />
             );
           })}
@@ -321,7 +328,7 @@ export default function ExplorePage() {
                 tags={tour._resolvedTags || []}
                 className="explore-extra-card"
                 variant="below"
-                onClick={() => navigate(`/preview?tourId=${tour.id}`)}
+                onClick={() => openTourPreview(tour.id)}
               />
             ))}
           </div>
