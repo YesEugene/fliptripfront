@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import { getTours } from '../services/api';
@@ -133,6 +133,7 @@ function TourCard({ tour, tags = [], className = '', variant = 'below', onClick 
 
 export default function ExplorePage() {
   const navigate = useNavigate();
+  const insidersScrollRef = useRef(null);
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [interestNameById, setInterestNameById] = useState(new Map());
@@ -234,6 +235,16 @@ export default function ExplorePage() {
     return Array.from(unique.values());
   }, [tours]);
 
+  const scrollInsiders = (direction) => {
+    const container = insidersScrollRef.current;
+    if (!container) return;
+    const delta = Math.max(280, Math.floor(container.clientWidth * 0.85));
+    container.scrollBy({
+      left: direction * delta,
+      behavior: 'smooth'
+    });
+  };
+
   return (
     <main className="explore-page">
       <header className="explore-topbar">
@@ -332,7 +343,7 @@ export default function ExplorePage() {
           Whenever we land in a new city, the first thing we do is text a friend for advice. Flip-Trip does that for you.
           We&apos;ve brought together a community of locals to share personal city secrets and routes they truly love.
         </p>
-        <div className="insiders-grid">
+        <div className="insiders-grid" ref={insidersScrollRef}>
           {insiders.map((insider) => (
             <article className="insider-card" key={insider.id}>
               {insider.avatar ? (
@@ -357,7 +368,14 @@ export default function ExplorePage() {
             </article>
           ))}
         </div>
-        <div className="insiders-nav">← &nbsp;&nbsp; →</div>
+        <div className="insiders-nav">
+          <button type="button" className="insiders-nav-btn" onClick={() => scrollInsiders(-1)} aria-label="Previous insiders">
+            ←
+          </button>
+          <button type="button" className="insiders-nav-btn" onClick={() => scrollInsiders(1)} aria-label="Next insiders">
+            →
+          </button>
+        </div>
       </section>
 
       <footer className="explore-footer">

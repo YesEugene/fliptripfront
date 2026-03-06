@@ -15,6 +15,7 @@
 }
 
 .explore-page {
+  --content-max-width: 800px;
   width: 100%;
   background: #fcfbf9;
   color: #1c1c1b;
@@ -25,7 +26,7 @@
 }
 
 .explore-topbar-inner {
-  max-width: 1007px;
+  max-width: var(--content-max-width);
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -107,7 +108,7 @@
 }
 
 .explore-pills-wrap {
-  max-width: 1007px;
+  max-width: var(--content-max-width);
   margin: 0 auto 0;
   padding: 0 40px;
   display: flex;
@@ -170,7 +171,7 @@
 }
 
 .explore-trips-section {
-  max-width: 1007px;
+  max-width: var(--content-max-width);
   margin: 18px auto 0;
   padding: 0 40px;
 }
@@ -402,7 +403,7 @@
 }
 
 .more-trips-row {
-  max-width: 1007px;
+  max-width: var(--content-max-width);
   margin: 22px auto 0;
   padding: 0 40px;
   text-align: center;
@@ -426,7 +427,7 @@
 }
 
 .explore-insiders h2 {
-  max-width: 1007px;
+  max-width: var(--content-max-width);
   margin: 0 auto;
   text-align: center;
   font-family: 'Urbanist', Inter, system-ui, sans-serif;
@@ -446,16 +447,28 @@
 }
 
 .insiders-grid {
-  max-width: 1007px;
+  max-width: var(--content-max-width);
   margin: 40px auto 0;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: nowrap;
   gap: 20px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.insiders-grid::-webkit-scrollbar {
+  display: none;
 }
 
 .insider-card {
   background: #fff;
   min-height: 330px;
+  min-width: 520px;
+  flex: 0 0 520px;
   display: grid;
   grid-template-columns: 170px 1fr;
   gap: 16px;
@@ -500,6 +513,19 @@
   margin: 26px 0 0;
   text-align: center;
   font-size: 26px;
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+}
+
+.insiders-nav-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 44px;
+  line-height: 1;
+  color: #1c1c1b;
+  padding: 0;
 }
 
 .explore-footer {
@@ -575,10 +601,12 @@
   }
 
   .insiders-grid {
-    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .insider-card {
+    min-width: min(88vw, 520px);
+    flex: 0 0 min(88vw, 520px);
     grid-template-columns: 120px 1fr;
   }
 
