@@ -313,6 +313,10 @@
   max-width: none;
 }
 
+.explore-wide-tour-card .explore-tour-card-content p {
+  max-width: 70%;
+}
+
 .explore-tour-card-body {
   padding: 10px 0 0;
 }
