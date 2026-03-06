@@ -1735,16 +1735,16 @@ export default function ItineraryPage() {
       <div style={{ minHeight: '100vh', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
           <img 
-            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23f0f0f0' width='200' height='200'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='14' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ELoading...%3C/text%3E%3C/svg%3E" 
-            alt="Loading..." 
+            src={FlipTripLogo}
+            alt="FlipTrip"
             style={{ 
               width: '60px', 
               height: '60px', 
               marginBottom: '16px',
-              borderRadius: '8px'
+              objectFit: 'contain'
             }} 
           />
-          <div style={{ fontSize: '20px', color: '#374151' }}>Curating your perfect day experience...</div>
+          <div style={{ fontSize: '20px', color: '#374151' }}>Unfolding your local journey...</div>
         </div>
       </div>
     );
@@ -2383,7 +2383,7 @@ export default function ItineraryPage() {
                 minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
               }}>
                 <span style={{ fontSize: '24px', marginBottom: '8px' }}>📍</span>
-                <span style={{ fontSize: '19px', fontWeight: '600', color: '#111827', lineHeight: '1.3' }}>
+                <span style={{ fontSize: '17px', fontWeight: '500', color: '#111827', lineHeight: '1.3' }}>
                   {previewLocationCount > 0 
                     ? `${previewLocationCount} carefully selected location${previewLocationCount !== 1 ? 's' : ''}${cityName ? ` across ${cityName}` : ''}`
                     : `Carefully selected locations${cityName ? ` across ${cityName}` : ''}`}
@@ -2396,7 +2396,7 @@ export default function ItineraryPage() {
                 minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
               }}>
                 <span style={{ fontSize: '24px', marginBottom: '8px' }}>🗺</span>
-                <span style={{ fontSize: '19px', fontWeight: '600', color: '#111827', lineHeight: '1.3' }}>A ready-to-follow one-day route</span>
+                <span style={{ fontSize: '17px', fontWeight: '500', color: '#111827', lineHeight: '1.3' }}>A ready-to-follow one-day route</span>
               </div>
               
               {/* Bullet 3 — Creative tagline (from author) */}
@@ -2406,7 +2406,7 @@ export default function ItineraryPage() {
                   minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
                 }}>
                   <span style={{ fontSize: '24px', marginBottom: '8px' }}>{tourHighlights.icon3 || '⚔️'}</span>
-                  <span style={{ fontSize: '19px', fontWeight: '600', color: '#111827', lineHeight: '1.3' }}>{tourHighlights.text3}</span>
+                  <span style={{ fontSize: '17px', fontWeight: '500', color: '#111827', lineHeight: '1.3' }}>{tourHighlights.text3}</span>
                 </div>
               )}
               
@@ -2417,7 +2417,7 @@ export default function ItineraryPage() {
                   minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
                 }}>
                   <span style={{ fontSize: '24px', marginBottom: '8px' }}>{tourHighlights.icon4 || '🏛'}</span>
-                  <span style={{ fontSize: '19px', fontWeight: '600', color: '#111827', lineHeight: '1.3' }}>{tourHighlights.text4}</span>
+                  <span style={{ fontSize: '17px', fontWeight: '500', color: '#111827', lineHeight: '1.3' }}>{tourHighlights.text4}</span>
                 </div>
               )}
               
@@ -2428,7 +2428,7 @@ export default function ItineraryPage() {
                   minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
                 }}>
                   <span style={{ fontSize: '24px', marginBottom: '8px' }}>{tourHighlights.icon5 || '☕'}</span>
-                  <span style={{ fontSize: '19px', fontWeight: '600', color: '#111827', lineHeight: '1.3' }}>{tourHighlights.text5}</span>
+                  <span style={{ fontSize: '17px', fontWeight: '500', color: '#111827', lineHeight: '1.3' }}>{tourHighlights.text5}</span>
                 </div>
               )}
               
@@ -2442,7 +2442,7 @@ export default function ItineraryPage() {
                   alt="PDF"
                   style={{ width: '18px', height: '19px', marginBottom: '8px' }}
                 />
-                <span style={{ fontSize: '19px', fontWeight: '600', color: '#111827', lineHeight: '1.3' }}>An interactive map + downloadable PDF</span>
+                <span style={{ fontSize: '17px', fontWeight: '500', color: '#111827', lineHeight: '1.3' }}>An interactive map + downloadable PDF</span>
               </div>
             </div>
           </div>
