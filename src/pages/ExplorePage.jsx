@@ -16,6 +16,7 @@ const FILTER_PILLS = [
 
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?w=1200&h=1600&fit=crop&q=80&auto=format';
 const FALLBACK_GUIDE_BIO = 'Local creator sharing authentic city routes, hidden places, and personal recommendations.';
+const UUID_LIKE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function getTourImage(tour) {
   if (tour?.preview_media_url && tour.preview_media_url.trim()) return tour.preview_media_url;
@@ -23,7 +24,7 @@ function getTourImage(tour) {
   return DEFAULT_IMAGE;
 }
 
-function getTourTags(tour) {
+function getTourTags(tour, interestNameById = new Map()) {
   const directTourTags = Array.isArray(tour?.tour_tags)
     ? tour.tour_tags
     .map((tt) => tt?.tag?.name || tt?.interest?.name)
@@ -31,7 +32,17 @@ function getTourTags(tour) {
     : [];
 
   const draftTags = Array.isArray(tour?.draft_data?.tags)
-    ? tour.draft_data.tags.filter((tag) => typeof tag === 'string' && tag.trim() !== '')
+    ? tour.draft_data.tags
+        .map((tag) => {
+          if (typeof tag !== 'string') return '';
+          const value = tag.trim();
+          if (!value) return '';
+          if (interestNameById.has(value)) return interestNameById.get(value);
+          // Hide raw UUIDs from UI when we can't map them to a label.
+          if (UUID_LIKE.test(value)) return '';
+          return value;
+        })
+        .filter(Boolean)
     : [];
 
   const guideInterests = typeof tour?.guide?.interests === 'string'
@@ -68,10 +79,10 @@ function getGuideFromTour(tour) {
   };
 }
 
-function TourCard({ tour, className = '', variant = 'below', onClick }) {
+function TourCard({ tour, className = '', variant = 'below', onClick, interestNameById }) {
   const creatorName = tour?.guide?.name || 'Local Insider';
   const creatorAvatar = tour?.guide?.avatar_url || '';
-  const tags = getTourTags(tour);
+  const tags = getTourTags(tour, interestNameById);
   const cardTitle = tour?.title || 'Explore city with a local';
   const description = tour?.description || tour?.subtitle || 'Curated route with authentic places and local context.';
   const isOverlay = variant === 'overlay';
@@ -130,6 +141,38 @@ export default function ExplorePage() {
   const navigate = useNavigate();
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [interestNameById, setInterestNameById] = useState(new Map());
+
+  useEffect(() => {
+    const loadInterestNames = async () => {
+      try {
+        const apiBase = import.meta.env.VITE_API_URL
+          ? import.meta.env.VITE_API_URL.replace('/api', '')
+          : (import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app');
+        const response = await fetch(`${apiBase}/api/interests?full_structure=true`);
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!data?.success || !Array.isArray(data?.categories)) return;
+
+        const nextMap = new Map();
+        data.categories.forEach((category) => {
+          (category.direct_interests || []).forEach((interest) => {
+            if (interest?.id && interest?.name) nextMap.set(String(interest.id), interest.name);
+          });
+          (category.subcategories || []).forEach((subcategory) => {
+            (subcategory.interests || []).forEach((interest) => {
+              if (interest?.id && interest?.name) nextMap.set(String(interest.id), interest.name);
+            });
+          });
+        });
+        setInterestNameById(nextMap);
+      } catch (error) {
+        console.warn('Failed to load interests for tag labels:', error);
+      }
+    };
+
+    loadInterestNames();
+  }, []);
 
   useEffect(() => {
     const loadTours = async () => {
@@ -212,6 +255,7 @@ export default function ExplorePage() {
                 tour={tour}
                 className={cardClass}
                 variant={variant}
+                interestNameById={interestNameById}
                 onClick={() => navigate(`/preview?tourId=${tour.id}`)}
               />
             );
