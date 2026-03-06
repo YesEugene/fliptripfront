@@ -4,15 +4,7 @@ import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import { getTours } from '../services/api';
 import './ExplorePage.css';
 
-const FILTER_PILLS = [
-  { label: 'Rome', active: false },
-  { label: 'Paris', active: true },
-  { label: 'Active' },
-  { label: 'Culture' },
-  { label: 'Family' },
-  { label: 'Food', accent: 'blue' },
-  { label: 'Nature' }
-];
+const CITY_PILLS = ['Rome', 'Paris'];
 
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?w=1200&h=1600&fit=crop&q=80&auto=format';
 const FALLBACK_GUIDE_BIO = 'Local creator sharing authentic city routes, hidden places, and personal recommendations.';
@@ -79,10 +71,9 @@ function getGuideFromTour(tour) {
   };
 }
 
-function TourCard({ tour, className = '', variant = 'below', onClick, interestNameById }) {
+function TourCard({ tour, tags = [], className = '', variant = 'below', onClick }) {
   const creatorName = tour?.guide?.name || 'Local Insider';
   const creatorAvatar = tour?.guide?.avatar_url || '';
-  const tags = getTourTags(tour, interestNameById);
   const cardTitle = tour?.title || 'Explore city with a local';
   const description = tour?.description || tour?.subtitle || 'Curated route with authentic places and local context.';
   const isOverlay = variant === 'overlay';
@@ -142,6 +133,9 @@ export default function ExplorePage() {
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [interestNameById, setInterestNameById] = useState(new Map());
+  const [selectedCity, setSelectedCity] = useState(null);
+  const [selectedTag, setSelectedTag] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(5);
 
   useEffect(() => {
     const loadInterestNames = async () => {
@@ -195,7 +189,38 @@ export default function ExplorePage() {
     loadTours();
   }, []);
 
-  const displayedTours = useMemo(() => tours.slice(0, 5), [tours]);
+  const toursWithResolvedTags = useMemo(
+    () => tours.map((tour) => ({ ...tour, _resolvedTags: getTourTags(tour, interestNameById) })),
+    [tours, interestNameById]
+  );
+
+  const availableTagPills = useMemo(() => {
+    const unique = new Set();
+    toursWithResolvedTags.forEach((tour) => {
+      (tour._resolvedTags || []).forEach((tag) => {
+        const normalized = String(tag || '').trim();
+        if (normalized) unique.add(normalized);
+      });
+    });
+    return Array.from(unique).slice(0, 10);
+  }, [toursWithResolvedTags]);
+
+  const filteredTours = useMemo(() => {
+    return toursWithResolvedTags.filter((tour) => {
+      const cityMatch = selectedCity ? String(tour.city || '').toLowerCase() === selectedCity.toLowerCase() : true;
+      const tagMatch = selectedTag ? (tour._resolvedTags || []).some((tag) => String(tag).toLowerCase() === selectedTag.toLowerCase()) : true;
+      return cityMatch && tagMatch;
+    });
+  }, [toursWithResolvedTags, selectedCity, selectedTag]);
+
+  const displayedTours = useMemo(() => filteredTours.slice(0, visibleCount), [filteredTours, visibleCount]);
+  const primaryTours = useMemo(() => displayedTours.slice(0, 5), [displayedTours]);
+  const extraTours = useMemo(() => displayedTours.slice(5), [displayedTours]);
+  const hasMoreTours = filteredTours.length > displayedTours.length;
+
+  useEffect(() => {
+    setVisibleCount(5);
+  }, [selectedCity, selectedTag]);
 
   const insiders = useMemo(() => {
     const unique = new Map();
@@ -234,41 +259,69 @@ export default function ExplorePage() {
       </section>
 
       <section className="explore-pills-wrap">
-        {FILTER_PILLS.map((pill) => (
-          <span
-            key={pill.label}
-            className={`explore-pill ${pill.active ? 'active' : ''} ${pill.accent === 'blue' ? 'accent-blue' : ''}`}
+        {CITY_PILLS.map((city) => (
+          <button
+            key={city}
+            type="button"
+            className={`explore-pill city-pill ${selectedCity === city ? 'active' : ''}`}
+            onClick={() => setSelectedCity((prev) => (prev === city ? null : city))}
           >
-            {pill.label}
-          </span>
+            {city}
+          </button>
+        ))}
+        {availableTagPills.map((tag) => (
+          <button
+            key={tag}
+            type="button"
+            className={`explore-pill tag-pill ${selectedTag === tag ? 'accent-blue' : ''}`}
+            onClick={() => setSelectedTag((prev) => (prev === tag ? null : tag))}
+          >
+            {tag}
+          </button>
         ))}
       </section>
 
       <section className="explore-trips-section">
         <div className="explore-trips-grid">
-          {displayedTours.map((tour, index) => {
+          {primaryTours.map((tour, index) => {
             const cardClass = `explore-card-pos-${index}`;
             const variant = index === 4 ? 'overlay' : 'below';
             return (
               <TourCard
                 key={tour.id || index}
                 tour={tour}
+                tags={tour._resolvedTags || []}
                 className={cardClass}
                 variant={variant}
-                interestNameById={interestNameById}
                 onClick={() => navigate(`/preview?tourId=${tour.id}`)}
               />
             );
           })}
         </div>
+        {extraTours.length > 0 && (
+          <div className="explore-extra-trips-grid">
+            {extraTours.map((tour, index) => (
+              <TourCard
+                key={`${tour.id || index}-extra`}
+                tour={tour}
+                tags={tour._resolvedTags || []}
+                className="explore-extra-card"
+                variant="below"
+                onClick={() => navigate(`/preview?tourId=${tour.id}`)}
+              />
+            ))}
+          </div>
+        )}
         {loading && <p className="explore-loading">Loading trips...</p>}
       </section>
 
-      <section className="more-trips-row">
-        <button type="button" className="more-trips-btn" onClick={() => navigate('/')}>
-          More Trips
-        </button>
-      </section>
+      {hasMoreTours && (
+        <section className="more-trips-row">
+          <button type="button" className="more-trips-btn" onClick={() => setVisibleCount((prev) => prev + 6)}>
+            More Trips
+          </button>
+        </section>
+      )}
 
       <section className="explore-insiders">
         <h2>Meet Your Local Insiders</h2>

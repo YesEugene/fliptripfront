@@ -125,6 +125,7 @@
   padding: 0 14px;
   font-size: 12px;
   background: #fcfbf9;
+  cursor: pointer;
 }
 
 .explore-pill.active {
@@ -135,6 +136,21 @@
 }
 
 .explore-pill.accent-blue {
+  background: #3e85fc;
+  border-color: #3e85fc;
+  color: #fff;
+}
+
+.explore-pill.city-pill {
+  min-width: 60px;
+}
+
+.explore-pill.tag-pill {
+  background: #efece7;
+  border-color: #efece7;
+}
+
+.explore-pill.tag-pill.accent-blue {
   background: #3e85fc;
   border-color: #3e85fc;
   color: #fff;
@@ -155,6 +171,17 @@
     "leftBottom rightTall"
     "wide wide";
   gap: 14px;
+}
+
+.explore-extra-trips-grid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.explore-extra-card .explore-tour-media {
+  height: 380px;
 }
 
 .explore-tour-card {
@@ -335,6 +362,7 @@
 .explore-tag-pill-dark {
   border-color: #1c1c1b;
   color: #1c1c1b;
+  background: #fcfbf9;
 }
 
 .is-below .explore-tour-card-overlay {
@@ -492,11 +520,16 @@
     grid-template-areas: none;
   }
 
+  .explore-extra-trips-grid {
+    grid-template-columns: 1fr;
+  }
+
   .explore-card-pos-0 .explore-tour-media,
   .explore-card-pos-1 .explore-tour-media,
   .explore-card-pos-2 .explore-tour-media,
   .explore-card-pos-3 .explore-tour-media,
-  .explore-card-pos-4 .explore-tour-media {
+  .explore-card-pos-4 .explore-tour-media,
+  .explore-extra-card .explore-tour-media {
     height: 320px;
   }
 
