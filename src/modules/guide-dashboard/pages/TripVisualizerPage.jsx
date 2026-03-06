@@ -3524,6 +3524,11 @@ export default function TripVisualizerPage() {
           onSave={handleSaveTour}
           onChange={setTourInfo}
           onImageUpload={handleImageUpload}
+          onAdjustPreviewImage={() => {
+            if (!tourInfo.preview) return;
+            setImageToCrop(tourInfo.preview);
+            setShowImageCrop(true);
+          }}
           cities={cities}
           citySuggestions={citySuggestions}
           showCitySuggestions={showCitySuggestions}
@@ -4121,7 +4126,7 @@ function HintButton({ hintKey }) {
     );
 }
 
-function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageUpload, locationCount = 0, tourBlocks = [], cities = [], citySuggestions = [], showCitySuggestions = false, setCitySuggestions, setShowCitySuggestions }) {
+function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageUpload, onAdjustPreviewImage, locationCount = 0, tourBlocks = [], cities = [], citySuggestions = [], showCitySuggestions = false, setCitySuggestions, setShowCitySuggestions }) {
   const [interestsStructure, setInterestsStructure] = useState(null);
   const [availableInterests, setAvailableInterests] = useState([]);
   const [loadingInterests, setLoadingInterests] = useState(false);
@@ -4699,6 +4704,34 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
                 style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '16px', boxSizing: 'border-box', fontFamily: 'inherit' }}
               />
             </div>
+
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Tour PDF presentation
+              </label>
+              <input
+                type="file"
+                accept="application/pdf,.pdf"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleTourPdfUpload(file);
+                  e.target.value = '';
+                }}
+                style={{ display: 'none' }}
+                id="tour-pdf-upload"
+              />
+              <label htmlFor="tour-pdf-upload" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: uploadingPdf ? '#9ca3af' : '#111827', color: 'white', border: 'none', borderRadius: '8px', cursor: uploadingPdf ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500' }}>
+                {uploadingPdf ? 'Uploading PDF...' : 'Upload tour PDF'}
+              </label>
+              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px', marginBottom: 0 }}>
+                PDF only. Max size 50MB.
+              </p>
+              {tourInfo.tourPdfUrl && (
+                <a href={tourInfo.tourPdfUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '8px', fontSize: '13px', color: '#2563eb' }}>
+                  View uploaded PDF
+                </a>
+              )}
+            </div>
           </div>
 
           <div>
@@ -4712,10 +4745,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
                   <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                     <img src={tourInfo.preview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
                     <button
-                      onClick={() => {
-                        setImageToCrop(tourInfo.preview);
-                        setShowImageCrop(true);
-                      }}
+                      onClick={() => onAdjustPreviewImage && onAdjustPreviewImage()}
                       style={{ position: 'absolute', top: '8px', right: '8px', padding: '6px 12px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}
                     >
                       Adjust
@@ -4756,25 +4786,25 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
               </p>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
                 {(Array.isArray(tourInfo.previewImages) ? tourInfo.previewImages : []).map((img, idx) => (
-                  <div key={idx} style={{ position: 'relative', width: '62px', height: '62px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+                  <div
+                    key={idx}
+                    title="Click to make this the main preview"
+                    onClick={() => {
+                      const galleryImages = [...(Array.isArray(tourInfo.previewImages) ? tourInfo.previewImages : [])];
+                      const selectedMain = galleryImages[idx];
+                      const currentMain = tourInfo.preview;
+                      galleryImages.splice(idx, 1);
+                      const nextImages = currentMain ? [currentMain, ...galleryImages] : galleryImages;
+                      onChange({ ...tourInfo, preview: selectedMain, previewImages: nextImages });
+                    }}
+                    style={{ position: 'relative', width: '62px', height: '62px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e5e7eb', cursor: 'pointer' }}
+                  >
                     <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     <button
                       type="button"
-                      onClick={() => {
-                        const galleryImages = [...(Array.isArray(tourInfo.previewImages) ? tourInfo.previewImages : [])];
-                        const selectedMain = galleryImages[idx];
-                        const currentMain = tourInfo.preview;
-                        galleryImages.splice(idx, 1);
-                        const nextImages = currentMain ? [currentMain, ...galleryImages] : galleryImages;
-                        onChange({ ...tourInfo, preview: selectedMain, previewImages: nextImages });
-                      }}
-                      style={{ position: 'absolute', left: '2px', top: '2px', padding: '0 5px', height: '16px', borderRadius: '8px', border: 'none', background: '#3b82f6', color: 'white', fontSize: '9px', cursor: 'pointer' }}
-                    >
-                      Main
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
+                      onClick={(e) => {
+                        // Prevent triggering "set as main" click on parent
+                        e.stopPropagation();
                         const newImages = (Array.isArray(tourInfo.previewImages) ? tourInfo.previewImages : []).filter((_, i) => i !== idx);
                         onChange({ ...tourInfo, previewImages: newImages });
                       }}
@@ -4813,33 +4843,6 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
               </div>
             </div>
 
-            <div style={{ marginBottom: '14px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                Tour PDF presentation
-              </label>
-              <input
-                type="file"
-                accept="application/pdf,.pdf"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleTourPdfUpload(file);
-                  e.target.value = '';
-                }}
-                style={{ display: 'none' }}
-                id="tour-pdf-upload"
-              />
-              <label htmlFor="tour-pdf-upload" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: uploadingPdf ? '#9ca3af' : '#111827', color: 'white', border: 'none', borderRadius: '8px', cursor: uploadingPdf ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500' }}>
-                {uploadingPdf ? 'Uploading PDF...' : 'Upload tour PDF'}
-              </label>
-              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px', marginBottom: 0 }}>
-                PDF only. Max size 50MB.
-              </p>
-              {tourInfo.tourPdfUrl && (
-                <a href={tourInfo.tourPdfUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '8px', fontSize: '13px', color: '#2563eb' }}>
-                  View uploaded PDF
-                </a>
-              )}
-            </div>
           </div>
         </div>
 
@@ -4877,41 +4880,43 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
             </button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500' }}>
-                Creative tagline
-              </label>
-              <input
-                type="text"
-                value={(tourInfo.highlights || {}).text3 || ''}
-                onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), text3: e.target.value } })}
-                placeholder="What makes this tour unique?"
-                style={{ width: '100%', padding: '10px', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500' }}>
-                Theme / vibe
-              </label>
-              <input
-                type="text"
-                value={(tourInfo.highlights || {}).text4 || ''}
-                onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), text4: e.target.value } })}
-                placeholder="What kind of experience is it?"
-                style={{ width: '100%', padding: '10px', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500' }}>
-                What's also inside
-              </label>
-              <input
-                type="text"
-                value={(tourInfo.highlights || {}).text5 || ''}
-                onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), text5: e.target.value } })}
-                placeholder="Add one specific detail"
-                style={{ width: '100%', padding: '10px', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
-              />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500' }}>
+                  Creative tagline
+                </label>
+                <input
+                  type="text"
+                  value={(tourInfo.highlights || {}).text3 || ''}
+                  onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), text3: e.target.value } })}
+                  placeholder="What makes this tour unique?"
+                  style={{ width: '100%', padding: '10px', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500' }}>
+                  Theme / vibe
+                </label>
+                <input
+                  type="text"
+                  value={(tourInfo.highlights || {}).text4 || ''}
+                  onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), text4: e.target.value } })}
+                  placeholder="What kind of experience is it?"
+                  style={{ width: '100%', padding: '10px', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500' }}>
+                  What's also inside
+                </label>
+                <input
+                  type="text"
+                  value={(tourInfo.highlights || {}).text5 || ''}
+                  onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), text5: e.target.value } })}
+                  placeholder="Add one specific detail"
+                  style={{ width: '100%', padding: '10px', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
+                />
+              </div>
             </div>
             <div>
               <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500' }}>
@@ -4922,7 +4927,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, onChange, onImageU
                 onChange={(e) => onChange({ ...tourInfo, shortDescription: e.target.value.slice(0, 180) })}
                 placeholder="Two short vivid sentences for the homepage card"
                 maxLength={180}
-                rows={3}
+                rows={8}
                 style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box', fontFamily: 'inherit' }}
               />
               <p style={{ marginTop: '4px', marginBottom: 0, fontSize: '12px', color: '#6b7280' }}>
