@@ -10,6 +10,13 @@ const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1507608869274-d3177c8bb
 const FALLBACK_GUIDE_BIO = 'Local creator sharing authentic city routes, hidden places, and personal recommendations.';
 const UUID_LIKE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+function getInitials(name = '') {
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase();
+  return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
+}
+
 function getTourImage(tour) {
   if (tour?.preview_media_url && tour.preview_media_url.trim()) return tour.preview_media_url;
   if (tour?.preview && tour.preview.trim()) return tour.preview;
@@ -44,10 +51,7 @@ function getTourTags(tour, interestNameById = new Map()) {
   const merged = [...directTourTags, ...draftTags, ...guideInterests];
   const unique = Array.from(new Set(merged));
 
-  if (unique.length > 0) return unique.slice(0, 5);
-
-  // Fallback so every tour card still shows meaningful chips.
-  return [tour?.city || 'City walk', tour?.format || 'Local route'].filter(Boolean).slice(0, 3);
+  return unique.slice(0, 5);
 }
 
 function getGuideFromTour(tour) {
@@ -61,18 +65,11 @@ function getGuideFromTour(tour) {
       interests: tour.guide.interests || 'Culture, Food, Coffee'
     };
   }
-  return {
-    id: `fallback-${tour.id}`,
-    name: 'Local Insider',
-    avatar: '',
-    bio: FALLBACK_GUIDE_BIO,
-    city: tour.city || 'Paris',
-    interests: 'Culture, Food, Coffee'
-  };
+  return null;
 }
 
 function TourCard({ tour, tags = [], className = '', variant = 'below', onClick }) {
-  const creatorName = tour?.guide?.name || 'Local Insider';
+  const creatorName = tour?.guide?.name || 'Guide';
   const creatorAvatar = tour?.guide?.avatar_url || '';
   const cardTitle = tour?.title || 'Explore city with a local';
   const description = tour?.description || tour?.subtitle || 'Curated route with authentic places and local context.';
@@ -85,11 +82,17 @@ function TourCard({ tour, tags = [], className = '', variant = 'below', onClick 
         <div className="explore-tour-card-overlay" />
         <div className="explore-tour-card-meta">
           <div className="explore-creator-row">
-            <img
-              src={creatorAvatar || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&q=80&auto=format'}
-              alt={creatorName}
-              className="explore-creator-avatar"
-            />
+            {creatorAvatar ? (
+              <img
+                src={creatorAvatar}
+                alt={creatorName}
+                className="explore-creator-avatar"
+              />
+            ) : (
+              <div className="explore-creator-avatar explore-creator-avatar-placeholder">
+                {getInitials(creatorName)}
+              </div>
+            )}
             <span className="explore-creator-name">{creatorName}</span>
           </div>
           {isOverlay && <span className="explore-city-pill">{tour?.city || 'City'}</span>}
@@ -172,7 +175,7 @@ export default function ExplorePage() {
     const loadTours = async () => {
       try {
         setLoading(true);
-        const result = await getTours({ limit: 20 });
+        const result = await getTours({ limit: 200 });
         if (result?.success && Array.isArray(result.tours)) {
           setTours(result.tours);
         } else {
@@ -226,9 +229,9 @@ export default function ExplorePage() {
     const unique = new Map();
     tours.forEach((tour) => {
       const guide = getGuideFromTour(tour);
-      if (!unique.has(guide.id)) unique.set(guide.id, guide);
+      if (guide && !unique.has(guide.id)) unique.set(guide.id, guide);
     });
-    return Array.from(unique.values()).slice(0, 2);
+    return Array.from(unique.values());
   }, [tours]);
 
   return (
@@ -332,11 +335,17 @@ export default function ExplorePage() {
         <div className="insiders-grid">
           {insiders.map((insider) => (
             <article className="insider-card" key={insider.id}>
-              <img
-                src={insider.avatar || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=340&h=340&fit=crop&q=80&auto=format'}
-                alt={insider.name}
-                className="insider-avatar"
-              />
+              {insider.avatar ? (
+                <img
+                  src={insider.avatar}
+                  alt={insider.name}
+                  className="insider-avatar"
+                />
+              ) : (
+                <div className="insider-avatar insider-avatar-placeholder">
+                  {getInitials(insider.name)}
+                </div>
+              )}
               <div className="insider-content">
                 <h3>{insider.name}</h3>
                 <p>{insider.bio}</p>
