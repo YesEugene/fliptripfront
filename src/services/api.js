@@ -279,6 +279,7 @@ export const getTours = async (filters = {}) => {
     if (filters.format) params.append('format', filters.format);
     if (filters.limit) params.append('limit', filters.limit);
     if (filters.offset) params.append('offset', filters.offset);
+    if (filters.summary) params.append('summary', '1');
     
     const response = await api.get(`/api/tours?${params.toString()}`);
     return response.data;

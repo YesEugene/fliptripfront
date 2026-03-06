@@ -19,6 +19,7 @@ function getInitials(name = '') {
 }
 
 function getTourImage(tour) {
+  if (tour?.draft_data?.previewOriginal && String(tour.draft_data.previewOriginal).trim()) return tour.draft_data.previewOriginal;
   if (tour?.preview_media_url && tour.preview_media_url.trim()) return tour.preview_media_url;
   if (tour?.preview && tour.preview.trim()) return tour.preview;
   return DEFAULT_IMAGE;
@@ -79,7 +80,13 @@ function TourCard({ tour, tags = [], className = '', variant = 'below', onClick 
   return (
     <article className={`explore-tour-card ${className} ${isOverlay ? 'is-overlay' : 'is-below'}`} onClick={onClick} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onClick()}>
       <div className="explore-tour-media">
-        <img src={getTourImage(tour)} alt={cardTitle} className="explore-tour-card-image" />
+        <img
+          src={getTourImage(tour)}
+          alt={cardTitle}
+          className="explore-tour-card-image"
+          loading="lazy"
+          decoding="async"
+        />
         <div className="explore-tour-card-overlay" />
         <div className="explore-tour-card-meta">
           <div className="explore-creator-row">
@@ -197,7 +204,7 @@ export default function ExplorePage() {
       try {
         // Avoid showing full-page loading state if cached tours are already rendered.
         setLoading(!hasToursFromCacheRef.current);
-        const result = await getTours({ limit: 200 });
+        const result = await getTours({ limit: 200, summary: true });
         if (result?.success && Array.isArray(result.tours)) {
           setTours(result.tours);
           hasToursFromCacheRef.current = true;

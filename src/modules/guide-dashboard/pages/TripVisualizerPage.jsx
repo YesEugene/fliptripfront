@@ -182,6 +182,7 @@ export default function TripVisualizerPage() {
     description: '',
     shortDescription: '',
     preview: null,
+    previewOriginal: null,
     previewImages: [], // Additional gallery images for preview carousel
     tourPdfUrl: '', // Optional uploaded tour presentation PDF
     tags: [], // Tags/interests for the tour
@@ -361,7 +362,8 @@ export default function TripVisualizerPage() {
           title: sourceData.title || tourObj.title || '',
           description: sourceData.description || tourObj.description || '',
           shortDescription: sourceData.shortDescription || draftData?.shortDescription || '',
-          preview: sourceData.preview || tourObj.preview_media_url || null,
+          preview: sourceData.preview || draftData?.preview || tourObj.preview_media_url || null,
+          previewOriginal: sourceData.previewOriginal || draftData?.previewOriginal || tourObj.preview_media_url || sourceData.preview || null,
           previewImages: normalizeImageArray(draftData?.previewImages), // Additional gallery images
           tourPdfUrl: (draftData?.tourPdfUrl || sourceData?.tourPdfUrl || '').toString(),
           tags: [], // Will be set later from tour_tags
@@ -467,6 +469,7 @@ export default function TripVisualizerPage() {
           description: tourObj.description || prev.description,
           shortDescription: draftData?.shortDescription || prev.shortDescription || '',
           preview: tourObj.preview || prev.preview,
+          previewOriginal: draftData?.previewOriginal || tourObj.preview_media_url || prev.previewOriginal || prev.preview,
           tourPdfUrl: draftData?.tourPdfUrl || prev.tourPdfUrl || '',
           tags: interestIds.length > 0
             ? interestIds
@@ -1035,6 +1038,7 @@ export default function TripVisualizerPage() {
             description: tourInfo.description || '',
             shortDescription: tourInfo.shortDescription || '',
             preview: tourInfo.preview || null,
+            previewOriginal: tourInfo.previewOriginal || tourInfo.preview || null,
             previewType: 'image',
             status: 'draft',
             daily_plan: [], // Empty daily_plan for visualizer tours
@@ -1098,6 +1102,7 @@ export default function TripVisualizerPage() {
             description: tourInfo.description || '',
             shortDescription: tourInfo.shortDescription || '',
             preview: tourInfo.preview || null,
+            previewOriginal: tourInfo.previewOriginal || tourInfo.preview || null,
             previewType: 'image',
             saveAsDraft: true,
             format: tourSettings.withGuide ? 'guided' : (tourSettings.selfGuided ? 'self-guided' : 'self-guided'),
@@ -1168,6 +1173,7 @@ export default function TripVisualizerPage() {
               description: data.tour.description || tourInfo.description,
               shortDescription: tourInfo.shortDescription || '',
               preview: tourInfo.preview, // Keep current preview (was just saved)
+              previewOriginal: tourInfo.previewOriginal || tourInfo.preview,
               previewImages: tourInfo.previewImages || [],
               tourPdfUrl: tourInfo.tourPdfUrl || '',
               highlights: tourInfo.highlights || {},
@@ -1240,6 +1246,7 @@ export default function TripVisualizerPage() {
                 title: tourInfo.title,
                 shortDescription: tourInfo.shortDescription || '',
                 preview: tourInfo.preview, // Preserve preview_media_url
+                previewOriginal: tourInfo.previewOriginal || tourInfo.preview,
                 tags: tourInfo.tags, // Save interests immediately
                 highlights: tourInfo.highlights || {}, // Preserve highlights
                 previewImages: tourInfo.previewImages || [], // Preserve gallery images
@@ -1311,6 +1318,7 @@ export default function TripVisualizerPage() {
             description: tourInfo.description || '',
             shortDescription: tourInfo.shortDescription || '',
             preview: tourInfo.preview || null,
+            previewOriginal: tourInfo.previewOriginal || tourInfo.preview || null,
             previewType: 'image',
             status: 'pending',
             daily_plan: [], // Empty daily_plan for visualizer tours
@@ -1380,6 +1388,7 @@ export default function TripVisualizerPage() {
             description: tourInfo.description || '',
             shortDescription: tourInfo.shortDescription || '',
             preview: tourInfo.preview || null,
+            previewOriginal: tourInfo.previewOriginal || tourInfo.preview || null,
             previewType: 'image',
             status: 'pending',
             format: tourSettings.withGuide ? 'guided' : (tourSettings.selfGuided ? 'self-guided' : 'self-guided'),
@@ -1480,6 +1489,7 @@ export default function TripVisualizerPage() {
           description: tourInfo.description || '',
           shortDescription: tourInfo.shortDescription || '',
           preview: tourInfo.preview || null,
+          previewOriginal: tourInfo.previewOriginal || tourInfo.preview || null,
           previewType: 'image',
           status: 'draft',
           daily_plan: [],
@@ -4783,7 +4793,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
                   const file = e.target.files[0];
                   if (file && onImageUpload) {
                     onImageUpload(file, (base64) => {
-                      onChange({ ...tourInfo, preview: base64 });
+                      onChange({ ...tourInfo, preview: base64, previewOriginal: base64 });
                     });
                   }
                 }}
@@ -4816,7 +4826,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
                       const currentMain = tourInfo.preview;
                       galleryImages.splice(idx, 1);
                       const nextImages = currentMain ? [currentMain, ...galleryImages] : galleryImages;
-                      onChange({ ...tourInfo, preview: selectedMain, previewImages: nextImages });
+                      onChange({ ...tourInfo, preview: selectedMain, previewOriginal: selectedMain, previewImages: nextImages });
                     }}
                     style={{ position: 'relative', width: '62px', height: '62px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e5e7eb', cursor: 'pointer' }}
                   >
