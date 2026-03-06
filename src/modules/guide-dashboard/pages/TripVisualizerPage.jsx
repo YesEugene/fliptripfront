@@ -3722,14 +3722,17 @@ function ImageCropModal({ imageSrc, onClose, onCrop }) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState(0);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageLoadError, setImageLoadError] = useState(false);
   const [imageDisplayHeight, setImageDisplayHeight] = useState(0);
   const containerHeight = 400;
 
   useEffect(() => {
-    if (imageRef.current && imageRef.current.complete) {
+    setImageLoaded(false);
+    setImageLoadError(false);
+    if (imageRef.current && imageRef.current.complete && imageRef.current.naturalWidth > 0) {
       handleImageLoad();
     }
-  }, []);
+  }, [imageSrc]);
 
   const handleImageLoad = () => {
     const img = imageRef.current;
@@ -3745,6 +3748,7 @@ function ImageCropModal({ imageSrc, onClose, onCrop }) {
       // Center image vertically initially
       setImagePosition(Math.max(0, (displayHeight - containerHeight) / 2));
       setImageLoaded(true);
+      setImageLoadError(false);
     }
   };
 
@@ -3791,9 +3795,14 @@ function ImageCropModal({ imageSrc, onClose, onCrop }) {
     
     const ctx = canvas.getContext('2d');
     ctx.drawImage(img, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-    
-    const croppedBase64 = canvas.toDataURL('image/jpeg', 0.9);
-    onCrop(croppedBase64);
+
+    try {
+      const croppedBase64 = canvas.toDataURL('image/jpeg', 0.9);
+      onCrop(croppedBase64);
+    } catch (error) {
+      console.error('Failed to crop image:', error);
+      alert('Unable to crop this image source. Please re-upload the image and try again.');
+    }
   };
 
   return (
@@ -3842,21 +3851,25 @@ function ImageCropModal({ imageSrc, onClose, onCrop }) {
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
         >
-          {imageLoaded && (
-            <img
-              ref={imageRef}
-              src={imageSrc}
-              alt="Crop"
-              onLoad={handleImageLoad}
-              style={{
-                width: '100%',
-                height: 'auto',
-                display: 'block',
-                transform: `translateY(-${imagePosition}px)`,
-                transition: isDragging ? 'none' : 'transform 0.1s ease-out'
-              }}
-            />
-          )}
+          <img
+            ref={imageRef}
+            src={imageSrc}
+            crossOrigin="anonymous"
+            alt="Crop"
+            onLoad={handleImageLoad}
+            onError={() => {
+              setImageLoadError(true);
+              setImageLoaded(false);
+            }}
+            style={{
+              width: '100%',
+              height: 'auto',
+              display: imageLoadError ? 'none' : 'block',
+              transform: `translateY(-${imagePosition}px)`,
+              transition: isDragging ? 'none' : 'transform 0.1s ease-out',
+              opacity: imageLoaded ? 1 : 0
+            }}
+          />
           {!imageLoaded && (
             <div style={{
               display: 'flex',
@@ -3865,7 +3878,7 @@ function ImageCropModal({ imageSrc, onClose, onCrop }) {
               height: '100%',
               color: '#6b7280'
             }}>
-              Loading image...
+              {imageLoadError ? 'Failed to load image' : 'Loading image...'}
             </div>
           )}
           <div style={{
