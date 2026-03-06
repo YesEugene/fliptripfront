@@ -74,6 +74,7 @@
   width: 100%;
   padding: 0 30px;
   box-sizing: border-box;
+  text-align: center;
 }
 
 .explore-hero h1 {
@@ -85,15 +86,17 @@
   max-width: none;
   margin-left: auto;
   margin-right: auto;
-  /* Scale heading with viewport width so the line visually stretches close to container edges */
-  font-size: min(104px, max(46px, calc((100vw - 60px) / 10.5)));
+  /* Dynamic size that stays centered and respects 30px side paddings */
+  font-size: min(74px, max(46px, calc((100vw - 60px) / 20.5)));
   line-height: 1.05;
+  text-align: center;
 }
 
 .explore-hero-subtitle-container {
-  margin-top: 30px;
+  margin-top: 20px;
   padding: 0 30px;
   box-sizing: border-box;
+  text-align: center;
 }
 
 .explore-hero p {
