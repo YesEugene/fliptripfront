@@ -5,6 +5,7 @@ import { getTours } from '../services/api';
 import './ExplorePage.css';
 
 const CITY_PILLS = ['Rome', 'Paris'];
+const EXPLORE_TOURS_CACHE_KEY = 'fliptrip_explore_tours_cache_v1';
 
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?w=1200&h=1600&fit=crop&q=80&auto=format';
 const FALLBACK_GUIDE_BIO = 'Local creator sharing authentic city routes, hidden places, and personal recommendations.';
@@ -136,6 +137,7 @@ function TourCard({ tour, tags = [], className = '', variant = 'below', onClick 
 export default function ExplorePage() {
   const navigate = useNavigate();
   const insidersScrollRef = useRef(null);
+  const hasToursFromCacheRef = useRef(false);
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [interestNameById, setInterestNameById] = useState(new Map());
@@ -175,12 +177,38 @@ export default function ExplorePage() {
   }, []);
 
   useEffect(() => {
+    // Show last successful payload immediately while fresh data is loading.
+    try {
+      const rawCache = sessionStorage.getItem(EXPLORE_TOURS_CACHE_KEY);
+      if (!rawCache) return;
+      const parsed = JSON.parse(rawCache);
+      if (Array.isArray(parsed?.tours) && parsed.tours.length > 0) {
+        setTours(parsed.tours);
+        setLoading(false);
+        hasToursFromCacheRef.current = true;
+      }
+    } catch (error) {
+      console.warn('Failed to read explore tours cache:', error);
+    }
+  }, []);
+
+  useEffect(() => {
     const loadTours = async () => {
       try {
-        setLoading(true);
+        // Avoid showing full-page loading state if cached tours are already rendered.
+        setLoading(!hasToursFromCacheRef.current);
         const result = await getTours({ limit: 200 });
         if (result?.success && Array.isArray(result.tours)) {
           setTours(result.tours);
+          hasToursFromCacheRef.current = true;
+          try {
+            sessionStorage.setItem(
+              EXPLORE_TOURS_CACHE_KEY,
+              JSON.stringify({ savedAt: Date.now(), tours: result.tours })
+            );
+          } catch (error) {
+            console.warn('Failed to save explore tours cache:', error);
+          }
         } else {
           setTours([]);
         }
