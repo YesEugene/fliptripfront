@@ -265,8 +265,8 @@
 
 .is-below .explore-city-pill {
   position: absolute;
-  left: 0;
-  bottom: -26px;
+  left: 20px;
+  bottom: 20px;
 }
 
 .explore-tour-card-content {
@@ -293,7 +293,7 @@
 }
 
 .explore-tour-card-body {
-  padding: 26px 0 0;
+  padding: 10px 0 40px;
 }
 
 .explore-tour-card-body h3 {
@@ -306,14 +306,14 @@
 }
 
 .explore-tour-card-body p {
-  margin: 16px 0 0;
+  margin: 10px 0 0;
   color: #1c1c1b;
   font-size: 12px;
   line-height: 1.4;
 }
 
 .explore-tour-card-body .explore-tags-row {
-  margin-top: 14px;
+  margin-top: 20px;
 }
 
 .explore-tags-row {
