@@ -1,0 +1,406 @@
+@font-face {
+  font-family: 'Urbanist';
+  src: url('/fonts/Urbanist-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Urbanist';
+  src: url('/fonts/Urbanist-Italic-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+.explore-page {
+  width: 100%;
+  background: #fcfbf9;
+  color: #1c1c1b;
+}
+
+.explore-topbar {
+  padding: 16px 40px 0;
+}
+
+.explore-topbar-inner {
+  max-width: 1007px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.explore-logo-link {
+  display: inline-flex;
+}
+
+.explore-logo {
+  width: 74px;
+  height: auto;
+}
+
+.explore-auth-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.become-local-btn {
+  border: 1px solid #1c1c1b;
+  background: transparent;
+  height: 31px;
+  padding: 0 14px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.login-btn {
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.explore-hero {
+  padding: 40px 40px 0;
+  text-align: center;
+}
+
+.explore-hero h1 {
+  margin: 0;
+  font-family: 'Urbanist', Inter, system-ui, sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: clamp(40px, 6vw, 65px);
+  line-height: 1.05;
+}
+
+.explore-hero p {
+  margin: 18px auto 0;
+  max-width: 740px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.explore-pills-wrap {
+  max-width: 1007px;
+  margin: 34px auto 0;
+  padding: 0 40px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.explore-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 25px;
+  border-radius: 50px;
+  border: 1px solid #1c1c1b;
+  padding: 0 14px;
+  font-size: 12px;
+  background: #fcfbf9;
+}
+
+.explore-pill.active {
+  background: #ff6a6d;
+  border-color: #ff6a6d;
+  color: #fff;
+  font-weight: 600;
+}
+
+.explore-pill.accent-blue {
+  background: #3e85fc;
+  border-color: #3e85fc;
+  color: #fff;
+}
+
+.explore-trips-section {
+  max-width: 1007px;
+  margin: 18px auto 0;
+  padding: 0 40px;
+}
+
+.explore-trips-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 170px;
+  gap: 14px;
+}
+
+.explore-tour-card {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  background: #ddd;
+  border: 1px solid #d8d8d8;
+}
+
+.explore-card-medium {
+  grid-row: span 2;
+}
+
+.explore-card-tall {
+  grid-row: span 3;
+}
+
+.explore-card-wide {
+  grid-column: 1 / -1;
+  grid-row: span 3;
+}
+
+.explore-tour-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.explore-tour-card-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 45%;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 5%, rgba(0, 0, 0, 0.7) 100%);
+}
+
+.explore-tour-card-meta {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.explore-creator-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.explore-creator-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.explore-creator-name {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.explore-city-pill {
+  background: #fff;
+  border-radius: 50px;
+  font-size: 12px;
+  padding: 4px 12px;
+}
+
+.explore-tour-card-content {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 12px;
+  color: #fff;
+}
+
+.explore-tour-card-content h3 {
+  margin: 0 0 8px;
+  font-family: 'Urbanist', Inter, system-ui, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.explore-tour-card-content p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  max-width: 360px;
+}
+
+.explore-tags-row {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.explore-tag-pill {
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  color: #fff;
+  padding: 3px 10px;
+  font-size: 11px;
+}
+
+.explore-loading {
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+.more-trips-row {
+  max-width: 1007px;
+  margin: 22px auto 0;
+  padding: 0 40px;
+  text-align: center;
+}
+
+.more-trips-btn {
+  border: none;
+  background: transparent;
+  text-transform: uppercase;
+  text-decoration: underline;
+  font-family: 'Urbanist', Inter, system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 30px;
+  cursor: pointer;
+}
+
+.explore-insiders {
+  margin-top: 40px;
+  background: #f0eeeb;
+  padding: 48px 40px 20px;
+}
+
+.explore-insiders h2 {
+  max-width: 1007px;
+  margin: 0 auto;
+  text-align: center;
+  font-family: 'Urbanist', Inter, system-ui, sans-serif;
+  text-transform: uppercase;
+  font-size: clamp(36px, 5vw, 65px);
+  line-height: 1.05;
+  font-weight: 600;
+}
+
+.explore-insiders > p {
+  max-width: 742px;
+  margin: 16px auto 0;
+  text-align: center;
+  color: #575450;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.insiders-grid {
+  max-width: 1007px;
+  margin: 40px auto 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.insider-card {
+  background: #fff;
+  min-height: 330px;
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 16px;
+  padding: 20px;
+}
+
+.insider-avatar {
+  width: 170px;
+  height: 170px;
+  object-fit: cover;
+}
+
+.insider-content h3 {
+  margin: 0;
+  font-family: 'Urbanist', Inter, system-ui, sans-serif;
+  font-size: 28px;
+}
+
+.insider-content p {
+  margin: 12px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.insider-meta {
+  margin-top: 18px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.insiders-nav {
+  margin: 26px 0 0;
+  text-align: center;
+  font-size: 26px;
+}
+
+.explore-footer {
+  margin-top: 0;
+  background: #1c1c1b;
+  color: #fff;
+  text-align: center;
+  padding: 42px 20px 54px;
+}
+
+.explore-footer-logo {
+  width: 74px;
+  height: auto;
+}
+
+.explore-footer h4 {
+  margin: 24px 0 0;
+  text-transform: uppercase;
+  text-decoration: underline;
+  font-family: 'Urbanist', Inter, system-ui, sans-serif;
+  font-size: clamp(40px, 5vw, 65px);
+  line-height: 1.05;
+  font-weight: 600;
+}
+
+.explore-footer span {
+  display: inline-block;
+  margin-top: 38px;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+
+@media (max-width: 900px) {
+  .explore-topbar,
+  .explore-hero,
+  .explore-pills-wrap,
+  .explore-trips-section,
+  .more-trips-row,
+  .explore-insiders {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .explore-trips-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: 130px;
+  }
+
+  .explore-card-wide,
+  .explore-card-tall,
+  .explore-card-medium {
+    grid-column: auto;
+    grid-row: span 3;
+  }
+
+  .insiders-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .insider-card {
+    grid-template-columns: 120px 1fr;
+  }
+
+  .insider-avatar {
+    width: 120px;
+    height: 120px;
+  }
+}

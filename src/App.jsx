@@ -6,6 +6,7 @@ import PaymentPage from './pages/PaymentPage';
 import SuccessPage from './pages/SuccessPage';
 import ItineraryPage from './pages/ItineraryPage';
 import ExampleTripPage from './pages/ExampleTripPage';
+import ExplorePage from './pages/ExplorePage';
 
 // Auth Module
 import { LoginPage, RegisterPage, ProtectedRoute } from './modules/auth';
@@ -29,6 +30,7 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
+          <Route path="/explore" element={<ExplorePage />} />
           <Route path="/preview" element={<FlipTripPreviewPage />} />
           <Route path="/payment" element={<PaymentPage />} />
           <Route path="/success" element={<SuccessPage />} />
