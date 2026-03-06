@@ -111,11 +111,26 @@
   margin: 0 auto 0;
   padding: 0 40px;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  white-space: nowrap;
+}
+
+.explore-pills-wrap::-webkit-scrollbar {
+  height: 6px;
+}
+
+.explore-pills-wrap::-webkit-scrollbar-thumb {
+  background: rgba(28, 28, 27, 0.25);
+  border-radius: 999px;
 }
 
 .explore-pill {
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
