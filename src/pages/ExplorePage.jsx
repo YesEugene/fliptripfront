@@ -52,40 +52,59 @@ function getGuideFromTour(tour) {
   };
 }
 
-function TourCard({ tour, className = '', onClick }) {
+function TourCard({ tour, className = '', variant = 'below', onClick }) {
   const creatorName = tour?.guide?.name || 'Local Insider';
   const creatorAvatar = tour?.guide?.avatar_url || '';
   const tags = getTourTags(tour);
   const cardTitle = tour?.title || 'Explore city with a local';
   const description = tour?.description || tour?.subtitle || 'Curated route with authentic places and local context.';
+  const isOverlay = variant === 'overlay';
 
   return (
-    <article className={`explore-tour-card ${className}`} onClick={onClick} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onClick()}>
-      <img src={getTourImage(tour)} alt={cardTitle} className="explore-tour-card-image" />
-      <div className="explore-tour-card-overlay" />
-      <div className="explore-tour-card-meta">
-        <div className="explore-creator-row">
-          <img
-            src={creatorAvatar || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&q=80&auto=format'}
-            alt={creatorName}
-            className="explore-creator-avatar"
-          />
-          <span className="explore-creator-name">{creatorName}</span>
+    <article className={`explore-tour-card ${className} ${isOverlay ? 'is-overlay' : 'is-below'}`} onClick={onClick} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onClick()}>
+      <div className="explore-tour-media">
+        <img src={getTourImage(tour)} alt={cardTitle} className="explore-tour-card-image" />
+        <div className="explore-tour-card-overlay" />
+        <div className="explore-tour-card-meta">
+          <div className="explore-creator-row">
+            <img
+              src={creatorAvatar || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&q=80&auto=format'}
+              alt={creatorName}
+              className="explore-creator-avatar"
+            />
+            <span className="explore-creator-name">{creatorName}</span>
+          </div>
+          <span className="explore-city-pill">{tour?.city || 'City'}</span>
         </div>
-        <span className="explore-city-pill">{tour?.city || 'City'}</span>
+
+        {isOverlay && (
+          <div className="explore-tour-card-content">
+            <h3>{cardTitle}</h3>
+            <p>{description}</p>
+            <div className="explore-tags-row">
+              {tags.map((tag) => (
+                <span className="explore-tag-pill" key={`${tour.id}-${tag}`}>
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="explore-tour-card-content">
-        <h3>{cardTitle}</h3>
-        <p>{description}</p>
-        <div className="explore-tags-row">
-          {tags.map((tag) => (
-            <span className="explore-tag-pill" key={`${tour.id}-${tag}`}>
-              {tag}
-            </span>
-          ))}
+      {!isOverlay && (
+        <div className="explore-tour-card-body">
+          <h3>{cardTitle}</h3>
+          <p>{description}</p>
+          <div className="explore-tags-row">
+            {tags.map((tag) => (
+              <span className="explore-tag-pill explore-tag-pill-dark" key={`${tour.id}-${tag}`}>
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </article>
   );
 }
@@ -164,15 +183,14 @@ export default function ExplorePage() {
       <section className="explore-trips-section">
         <div className="explore-trips-grid">
           {displayedTours.map((tour, index) => {
-            let cardClass = 'explore-card-medium';
-            if (index === 0) cardClass = 'explore-card-tall';
-            if (index === 3) cardClass = 'explore-card-tall';
-            if (index === 4) cardClass = 'explore-card-wide';
+            const cardClass = `explore-card-pos-${index}`;
+            const variant = index === 4 ? 'overlay' : 'below';
             return (
               <TourCard
                 key={tour.id || index}
                 tour={tour}
                 className={cardClass}
+                variant={variant}
                 onClick={() => navigate(`/preview?tourId=${tour.id}`)}
               />
             );
