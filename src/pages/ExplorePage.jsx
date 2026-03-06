@@ -220,8 +220,15 @@ export default function ExplorePage() {
   }, [toursWithResolvedTags, selectedCity, selectedTag]);
 
   const displayedTours = useMemo(() => filteredTours.slice(0, visibleCount), [filteredTours, visibleCount]);
-  const primaryTours = useMemo(() => displayedTours.slice(0, 5), [displayedTours]);
-  const extraTours = useMemo(() => displayedTours.slice(5), [displayedTours]);
+  const columnTours = useMemo(() => {
+    const left = [];
+    const right = [];
+    displayedTours.forEach((tour, index) => {
+      if (index % 2 === 0) left.push(tour);
+      else right.push(tour);
+    });
+    return { left, right };
+  }, [displayedTours]);
   const hasMoreTours = filteredTours.length > displayedTours.length;
 
   useEffect(() => {
@@ -305,36 +312,30 @@ export default function ExplorePage() {
       </section>
 
       <section className="explore-trips-section">
-        <div className="explore-trips-grid">
-          {primaryTours.map((tour, index) => {
-            const cardClass = `explore-card-pos-${index}`;
-            const variant = index === 4 ? 'overlay' : 'below';
-            return (
+        <div className="explore-trips-columns">
+          <div className="explore-trips-column">
+            {columnTours.left.map((tour, index) => (
               <TourCard
-                key={tour.id || index}
+                key={`${tour.id || index}-left`}
                 tour={tour}
                 tags={tour._resolvedTags || []}
-                className={cardClass}
-                variant={variant}
-                onClick={() => openTourPreview(tour.id)}
-              />
-            );
-          })}
-        </div>
-        {extraTours.length > 0 && (
-          <div className="explore-extra-trips-grid">
-            {extraTours.map((tour, index) => (
-              <TourCard
-                key={`${tour.id || index}-extra`}
-                tour={tour}
-                tags={tour._resolvedTags || []}
-                className="explore-extra-card"
                 variant="below"
                 onClick={() => openTourPreview(tour.id)}
               />
             ))}
           </div>
-        )}
+          <div className="explore-trips-column">
+            {columnTours.right.map((tour, index) => (
+              <TourCard
+                key={`${tour.id || index}-right`}
+                tour={tour}
+                tags={tour._resolvedTags || []}
+                variant="below"
+                onClick={() => openTourPreview(tour.id)}
+              />
+            ))}
+          </div>
+        </div>
         {loading && <p className="explore-loading">Loading trips...</p>}
       </section>
 

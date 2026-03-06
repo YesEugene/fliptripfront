@@ -176,17 +176,16 @@
   padding: 0 40px;
 }
 
-.explore-trips-grid {
+.explore-trips-columns {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 28px;
 }
 
-.explore-extra-trips-grid {
-  margin-top: 18px;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+.explore-trips-column {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
 }
 
 .explore-tour-card {
@@ -202,10 +201,6 @@
   overflow: hidden;
   border: 1px solid #d8d8d8;
   line-height: 0;
-}
-
-.explore-card-pos-4 {
-  grid-column: 1 / -1;
 }
 
 .explore-tour-card-image {
@@ -308,7 +303,7 @@
 }
 
 .explore-tour-card-body {
-  padding: 10px 0 40px;
+  padding: 10px 0 0;
 }
 
 .explore-tour-card-body h3 {
@@ -563,11 +558,7 @@
     padding-right: 20px;
   }
 
-  .explore-trips-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .explore-extra-trips-grid {
+  .explore-trips-columns {
     grid-template-columns: 1fr;
   }
 
