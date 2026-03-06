@@ -86,8 +86,8 @@
   max-width: none;
   margin-left: auto;
   margin-right: auto;
-  /* Dynamic size that stays centered and respects 30px side paddings */
-  font-size: min(74px, max(46px, calc((100vw - 60px) / 20.5)));
+  /* Dynamic size that nearly fills the 30px-gutter container */
+  font-size: min(102px, max(46px, calc((100vw - 60px) / 17.5)));
   line-height: 1.05;
   text-align: center;
 }
@@ -261,9 +261,10 @@
   border-radius: 50px;
   font-size: 12px;
   padding: 4px 14px;
+  z-index: 3;
 }
 
-.is-below .explore-city-pill {
+.explore-city-pill-bottom {
   position: absolute;
   left: 20px;
   bottom: 20px;

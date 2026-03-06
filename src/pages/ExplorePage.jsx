@@ -24,11 +24,27 @@ function getTourImage(tour) {
 }
 
 function getTourTags(tour) {
-  if (!Array.isArray(tour?.tour_tags)) return [];
-  return tour.tour_tags
+  const directTourTags = Array.isArray(tour?.tour_tags)
+    ? tour.tour_tags
     .map((tt) => tt?.tag?.name || tt?.interest?.name)
     .filter(Boolean)
-    .slice(0, 4);
+    : [];
+
+  const draftTags = Array.isArray(tour?.draft_data?.tags)
+    ? tour.draft_data.tags.filter((tag) => typeof tag === 'string' && tag.trim() !== '')
+    : [];
+
+  const guideInterests = typeof tour?.guide?.interests === 'string'
+    ? tour.guide.interests.split(',').map((value) => value.trim()).filter(Boolean)
+    : [];
+
+  const merged = [...directTourTags, ...draftTags, ...guideInterests];
+  const unique = Array.from(new Set(merged));
+
+  if (unique.length > 0) return unique.slice(0, 5);
+
+  // Fallback so every tour card still shows meaningful chips.
+  return [tour?.city || 'City walk', tour?.format || 'Local route'].filter(Boolean).slice(0, 3);
 }
 
 function getGuideFromTour(tour) {
@@ -74,8 +90,9 @@ function TourCard({ tour, className = '', variant = 'below', onClick }) {
             />
             <span className="explore-creator-name">{creatorName}</span>
           </div>
-          <span className="explore-city-pill">{tour?.city || 'City'}</span>
+          {isOverlay && <span className="explore-city-pill">{tour?.city || 'City'}</span>}
         </div>
+        {!isOverlay && <span className="explore-city-pill explore-city-pill-bottom">{tour?.city || 'City'}</span>}
 
         {isOverlay && (
           <div className="explore-tour-card-content">
