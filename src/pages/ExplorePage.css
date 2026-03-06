@@ -116,17 +116,15 @@
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   white-space: nowrap;
 }
 
 .explore-pills-wrap::-webkit-scrollbar {
-  height: 6px;
-}
-
-.explore-pills-wrap::-webkit-scrollbar-thumb {
-  background: rgba(28, 28, 27, 0.25);
-  border-radius: 999px;
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .explore-pill {
