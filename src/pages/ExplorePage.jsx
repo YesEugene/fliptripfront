@@ -220,15 +220,23 @@ export default function ExplorePage() {
   }, [toursWithResolvedTags, selectedCity, selectedTag]);
 
   const displayedTours = useMemo(() => filteredTours.slice(0, visibleCount), [filteredTours, visibleCount]);
+  const wideFeaturedTours = useMemo(
+    () => displayedTours.filter((tour) => Boolean(tour?.draft_data?.exploreWideCard)),
+    [displayedTours]
+  );
+  const regularColumnTours = useMemo(
+    () => displayedTours.filter((tour) => !Boolean(tour?.draft_data?.exploreWideCard)),
+    [displayedTours]
+  );
   const columnTours = useMemo(() => {
     const left = [];
     const right = [];
-    displayedTours.forEach((tour, index) => {
+    regularColumnTours.forEach((tour, index) => {
       if (index % 2 === 0) left.push(tour);
       else right.push(tour);
     });
     return { left, right };
-  }, [displayedTours]);
+  }, [regularColumnTours]);
   const hasMoreTours = filteredTours.length > displayedTours.length;
 
   useEffect(() => {
@@ -336,6 +344,20 @@ export default function ExplorePage() {
             ))}
           </div>
         </div>
+        {wideFeaturedTours.length > 0 && (
+          <div className="explore-wide-tours">
+            {wideFeaturedTours.map((tour, index) => (
+              <TourCard
+                key={`${tour.id || index}-wide`}
+                tour={tour}
+                tags={tour._resolvedTags || []}
+                className="explore-wide-tour-card"
+                variant="overlay"
+                onClick={() => openTourPreview(tour.id)}
+              />
+            ))}
+          </div>
+        )}
         {loading && <p className="explore-loading">Loading trips...</p>}
       </section>
 

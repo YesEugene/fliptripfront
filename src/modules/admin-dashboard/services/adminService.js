@@ -509,6 +509,35 @@ export async function updateTour(tourId, tourData) {
 }
 
 /**
+ * Toggle "wide card on explore page" for a tour
+ */
+export async function setTourExploreWideCard(tourId, enabled) {
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/api/admin-tours?id=${tourId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        exploreWideCard: Boolean(enabled)
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || data.error || 'Error updating explore wide card flag');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Set tour explore wide card error:', error);
+    throw error;
+  }
+}
+
+/**
  * Delete tour(s)
  */
 export async function deleteTour(tourId) {

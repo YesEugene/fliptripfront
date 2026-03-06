@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getTours, exportToCSV, moderateTour, deleteTours } from '../services/adminService';
+import { getTours, exportToCSV, moderateTour, deleteTours, setTourExploreWideCard } from '../services/adminService';
 import { getCurrentUser } from '../../auth/services/authService';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
 
@@ -22,6 +22,7 @@ export default function AdminToursPage() {
   const [rejectingTourId, setRejectingTourId] = useState(null);
   const [rejectComment, setRejectComment] = useState('');
   const [moderating, setModerating] = useState(false);
+  const [savingWideTourId, setSavingWideTourId] = useState(null);
 
   useEffect(() => {
     const currentUser = getCurrentUser();
@@ -236,6 +237,24 @@ export default function AdminToursPage() {
     setRejectingTourId(tourId);
     setRejectComment('');
     setShowRejectModal(true);
+  };
+
+  const handleToggleExploreWide = async (tourId, enabled) => {
+    const previousTours = tours;
+    setSavingWideTourId(tourId);
+    setTours((prev) => prev.map((tour) => (
+      tour.id === tourId ? { ...tour, exploreWideCard: Boolean(enabled) } : tour
+    )));
+
+    try {
+      await setTourExploreWideCard(tourId, enabled);
+    } catch (err) {
+      console.error('Error toggling explore wide card:', err);
+      alert(`Error updating wide-card flag: ${err.message}`);
+      setTours(previousTours);
+    } finally {
+      setSavingWideTourId(null);
+    }
   };
 
   if (!user) {
@@ -523,7 +542,7 @@ export default function AdminToursPage() {
               <table style={{ 
                 width: '100%', 
                 borderCollapse: 'collapse',
-                minWidth: '800px' // Минимальная ширина для корректного отображения на мобильных
+                minWidth: activeTab === 'all' ? '920px' : '800px' // Keep extra room for "Wide on Explore" column
               }}>
               <thead>
                 <tr style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
@@ -541,6 +560,11 @@ export default function AdminToursPage() {
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Guide</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>City</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Status</th>
+                  {activeTab === 'all' && (
+                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', whiteSpace: 'nowrap' }}>
+                      Wide on Explore
+                    </th>
+                  )}
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Created</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Actions</th>
                 </tr>
@@ -548,7 +572,10 @@ export default function AdminToursPage() {
               <tbody>
                 {tours.length === 0 ? (
                   <tr>
-                    <td colSpan={activeTab === 'ai-tours' ? '7' : '6'} style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+                    <td
+                      colSpan={activeTab === 'ai-tours' ? '7' : activeTab === 'all' ? '7' : '6'}
+                      style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}
+                    >
                       No tours found
                     </td>
                   </tr>
@@ -610,6 +637,18 @@ export default function AdminToursPage() {
                           {tour.status || 'draft'}
                         </span>
                       </td>
+                      {activeTab === 'all' && (
+                        <td style={{ padding: '12px', textAlign: 'center' }}>
+                          <input
+                            type="checkbox"
+                            checked={Boolean(tour.exploreWideCard)}
+                            disabled={savingWideTourId === tour.id}
+                            onChange={(e) => handleToggleExploreWide(tour.id, e.target.checked)}
+                            title="Show this tour as full-width card on /explore"
+                            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                          />
+                        </td>
+                      )}
                       <td style={{ padding: '12px', color: '#6b7280', fontSize: '14px' }}>
                         {tour.created_at ? new Date(tour.created_at).toLocaleDateString() : 
                          tour.createdAt ? new Date(tour.createdAt).toLocaleDateString() : 'N/A'}
