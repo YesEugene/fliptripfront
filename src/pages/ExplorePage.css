@@ -156,18 +156,29 @@
   top: 50%;
   transform: translateY(-50%);
   z-index: 3;
-  width: 66px;
-  height: 48px;
+  width: 62px;
+  height: 44px;
+  padding: 0;
   border-radius: 999px;
-  border: 2px solid #1c1c1b;
+  border: 1px solid #1c1c1b;
   background: #fcfbf9;
   color: #1c1c1b;
-  font-size: 30px;
-  line-height: 1;
+  appearance: none;
+  -webkit-appearance: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+
+.explore-pills-arrow-icon {
+  width: 22px;
+  height: 22px;
+  stroke: #1c1c1b;
+  stroke-width: 2.4;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .explore-pill {
@@ -635,7 +646,11 @@
   .explore-pills-arrow {
     width: 52px;
     height: 38px;
-    font-size: 24px;
+  }
+
+  .explore-pills-arrow-icon {
+    width: 18px;
+    height: 18px;
   }
 
   .explore-wide-tours {

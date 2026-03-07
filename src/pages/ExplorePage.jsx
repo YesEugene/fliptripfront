@@ -401,7 +401,10 @@ export default function ExplorePage() {
         </div>
         <div className="explore-pills-fade" aria-hidden="true" />
         <button type="button" className="explore-pills-arrow" onClick={scrollPillsRight} aria-label="Scroll tags">
-          →
+          <svg className="explore-pills-arrow-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 12H19" />
+            <path d="M13 6L19 12L13 18" />
+          </svg>
         </button>
       </section>
 
