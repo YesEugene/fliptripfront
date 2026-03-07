@@ -51,6 +51,7 @@
 .become-local-btn {
   border: 1px solid #1c1c1b;
   background: transparent;
+  color: #1c1c1b;
   height: 31px;
   padding: 0 14px;
   font-size: 12px;
@@ -60,6 +61,7 @@
 .login-btn {
   border: none;
   background: transparent;
+  color: #1c1c1b;
   font-size: 12px;
   cursor: pointer;
 }
@@ -191,6 +193,7 @@
   border: 1px solid #1c1c1b;
   padding: 0 14px;
   font-size: 12px;
+  color: #1c1c1b;
   background: #fcfbf9;
   cursor: pointer;
 }
@@ -215,6 +218,7 @@
 .explore-pill.tag-pill {
   background: #efece7;
   border-color: #efece7;
+  color: #1c1c1b;
 }
 
 .explore-pill.tag-pill.accent-blue {
@@ -628,6 +632,19 @@
 
   .explore-trips-columns {
     grid-template-columns: 1fr;
+  }
+
+  .explore-pill {
+    min-height: 30px;
+    font-size: 14px;
+    padding: 0 16px;
+  }
+
+  .explore-city-pill,
+  .explore-tag-pill {
+    height: 30px;
+    font-size: 13px;
+    padding: 0 12px;
   }
 
   .explore-pills-wrap {
