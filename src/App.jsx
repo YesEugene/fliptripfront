@@ -7,6 +7,7 @@ import SuccessPage from './pages/SuccessPage';
 import ItineraryPage from './pages/ItineraryPage';
 import ExampleTripPage from './pages/ExampleTripPage';
 import ExplorePage from './pages/ExplorePage';
+import TourRedirectPage from './pages/TourRedirectPage';
 
 // Auth Module
 import { LoginPage, RegisterPage, ProtectedRoute } from './modules/auth';
@@ -36,6 +37,7 @@ function App() {
           <Route path="/success" element={<SuccessPage />} />
           <Route path="/success.html" element={<SuccessPage />} />
           <Route path="/itinerary" element={<ItineraryPage />} />
+          <Route path="/tour/:slug" element={<TourRedirectPage />} />
           <Route path="/example/:city" element={<ExampleTripPage />} />
           
           {/* Auth Routes */}

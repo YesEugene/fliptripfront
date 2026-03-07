@@ -1,6 +1,28 @@
 const DEFAULT_SITE_URL = 'https://flip-trip.com';
 const DEFAULT_API_BASE_URL = 'https://fliptripback.vercel.app';
 
+function slugifyTourTitle(title = '') {
+  return String(title || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80) || 'tour';
+}
+
+function buildTourSlug(tour = {}) {
+  const id = String(tour?.id || '').trim();
+  if (!id) return '';
+  const titleSlug = slugifyTourTitle(tour?.title || 'tour');
+  return `${titleSlug}-${id}`;
+}
+
+function extractTourIdFromSlug(slug = '') {
+  const value = String(slug || '').trim();
+  const match = value.match(/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+  return match ? match[0] : null;
+}
+
 function escapeHtml(value = '') {
   return String(value)
     .replace(/&/g, '&amp;')
@@ -77,10 +99,10 @@ function renderExploreSeo(tours = []) {
     .map((tour) => {
       const cityName = tour?.city?.name || tour?.city || 'City';
       const tourTitle = tour?.title || 'Tour';
-      const tourId = tour?.id || '';
+      const tourSlug = buildTourSlug(tour);
       const desc = getTourDescription(tour);
       return `<article>
-  <h2><a href="/itinerary?tourId=${escapeHtml(tourId)}&previewOnly=true">${escapeHtml(tourTitle)}</a></h2>
+  <h2><a href="/tour/${escapeHtml(tourSlug)}">${escapeHtml(tourTitle)}</a></h2>
   <p><strong>${escapeHtml(cityName)}</strong></p>
   <p>${escapeHtml(desc)}</p>
 </article>`;
@@ -94,7 +116,7 @@ function renderExploreSeo(tours = []) {
     itemListElement: tours.slice(0, 20).map((tour, index) => ({
       '@type': 'ListItem',
       position: index + 1,
-      url: `${process.env.SITE_URL || DEFAULT_SITE_URL}/itinerary?tourId=${tour.id}&previewOnly=true`,
+      url: `${process.env.SITE_URL || DEFAULT_SITE_URL}/tour/${buildTourSlug(tour)}`,
       name: tour.title || 'Tour'
     }))
   });
@@ -129,7 +151,9 @@ function renderTourSeo(tourId, tour) {
   const tourTitle = tour?.title || 'FlipTrip Tour';
   const description = stripHtml(getTourDescription(tour)).slice(0, 220);
   const cityName = tour?.city?.name || tour?.city || '';
-  const canonicalPath = `/itinerary?tourId=${encodeURIComponent(tourId)}&previewOnly=true`;
+  const tourSlug = buildTourSlug({ ...tour, id: tourId });
+  const canonicalPath = `/tour/${tourSlug}`;
+  const openPath = `/itinerary?tourId=${encodeURIComponent(tourId)}&previewOnly=true`;
   const previewImage = tour?.draft_data?.previewOriginal || tour?.preview_media_url || '';
 
   const bodyHtml = `
@@ -137,7 +161,7 @@ function renderTourSeo(tourId, tour) {
   <h1>${escapeHtml(tourTitle)}</h1>
   ${cityName ? `<p><strong>${escapeHtml(cityName)}</strong></p>` : ''}
   <p>${escapeHtml(description)}</p>
-  <p><a href="${escapeHtml(canonicalPath)}">Open tour preview</a></p>
+  <p><a href="${escapeHtml(openPath)}">Open tour preview</a></p>
 </article>`;
 
   const jsonLd = JSON.stringify({
@@ -199,6 +223,36 @@ export default async function handler(req, res) {
         );
       }
 
+      return res.status(200).send(renderTourSeo(tourId, tour));
+    }
+
+    if (route === 'tour') {
+      const slug = String(req.query.slug || '').trim();
+      const tourId = extractTourIdFromSlug(slug);
+
+      if (!tourId) {
+        return res.status(404).send(
+          buildPageHtml({
+            title: 'Tour not found | FlipTrip',
+            description: 'The requested tour was not found.',
+            canonicalPath: '/explore',
+            bodyHtml: '<h1>Tour not found</h1>'
+          })
+        );
+      }
+
+      const data = await fetchJson(`${apiBaseUrl}/api/tours?id=${encodeURIComponent(tourId)}`);
+      const tour = data?.tour || null;
+      if (!tour) {
+        return res.status(404).send(
+          buildPageHtml({
+            title: 'Tour not found | FlipTrip',
+            description: 'The requested tour was not found.',
+            canonicalPath: '/explore',
+            bodyHtml: '<h1>Tour not found</h1>'
+          })
+        );
+      }
       return res.status(200).send(renderTourSeo(tourId, tour));
     }
 

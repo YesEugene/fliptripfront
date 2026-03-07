@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import { getTours } from '../services/api';
+import { buildTourSlug } from '../utils/tourSlug';
 import './ExplorePage.css';
 
 const CITY_PILLS = ['Rome', 'Paris'];
@@ -316,11 +317,10 @@ export default function ExplorePage() {
     });
   };
 
-  const openTourPreview = (tourId) => {
-    const params = new URLSearchParams();
-    params.append('tourId', tourId);
-    params.append('previewOnly', 'true');
-    navigate(`/itinerary?${params.toString()}`);
+  const openTourPreview = (tour) => {
+    const slug = buildTourSlug(tour);
+    if (!slug) return;
+    navigate(`/tour/${slug}`);
   };
 
   return (
@@ -385,7 +385,7 @@ export default function ExplorePage() {
                     tags={tour._resolvedTags || []}
                     className="explore-wide-tour-card"
                     variant="overlay"
-                    onClick={() => openTourPreview(tour.id)}
+                    onClick={() => openTourPreview(tour)}
                   />
                 </div>
               </div>
@@ -409,7 +409,7 @@ export default function ExplorePage() {
                       tour={tour}
                       tags={tour._resolvedTags || []}
                       variant="below"
-                      onClick={() => openTourPreview(tour.id)}
+                      onClick={() => openTourPreview(tour)}
                     />
                   ))}
                 </div>
@@ -420,7 +420,7 @@ export default function ExplorePage() {
                       tour={tour}
                       tags={tour._resolvedTags || []}
                       variant="below"
-                      onClick={() => openTourPreview(tour.id)}
+                      onClick={() => openTourPreview(tour)}
                     />
                   ))}
                 </div>

@@ -1,6 +1,22 @@
 const DEFAULT_SITE_URL = 'https://flip-trip.com';
 const DEFAULT_API_BASE_URL = 'https://fliptripback.vercel.app';
 
+function slugifyTourTitle(title = '') {
+  return String(title || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80) || 'tour';
+}
+
+function buildTourSlug(tour = {}) {
+  const id = String(tour?.id || '').trim();
+  if (!id) return '';
+  const titleSlug = slugifyTourTitle(tour?.title || 'tour');
+  return `${titleSlug}-${id}`;
+}
+
 function xmlEscape(value = '') {
   return String(value)
     .replace(/&/g, '&amp;')
@@ -44,7 +60,7 @@ export default async function handler(req, res) {
     const tourUrls = tours
       .filter((tour) => tour?.id)
       .map((tour) => ({
-        loc: `${siteUrl}/itinerary?tourId=${encodeURIComponent(tour.id)}&previewOnly=true`,
+        loc: `${siteUrl}/tour/${buildTourSlug(tour)}`,
         lastmod: toIsoDate(tour.updated_at || tour.created_at),
         changefreq: 'weekly',
         priority: '0.8'
