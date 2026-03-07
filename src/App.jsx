@@ -8,6 +8,7 @@ import ItineraryPage from './pages/ItineraryPage';
 import ExampleTripPage from './pages/ExampleTripPage';
 import ExplorePage from './pages/ExplorePage';
 import TourRedirectPage from './pages/TourRedirectPage';
+import AuthOnboardingPage from './modules/auth/pages/AuthOnboardingPage';
 
 // Auth Module
 import { LoginPage, RegisterPage, ProtectedRoute } from './modules/auth';
@@ -39,6 +40,8 @@ function App() {
           <Route path="/itinerary" element={<ItineraryPage />} />
           <Route path="/tour/:slug" element={<TourRedirectPage />} />
           <Route path="/example/:city" element={<ExampleTripPage />} />
+          <Route path="/join" element={<AuthOnboardingPage />} />
+          <Route path="/become-local" element={<AuthOnboardingPage />} />
           
           {/* Auth Routes */}
           <Route path="/login" element={<LoginPage />} />

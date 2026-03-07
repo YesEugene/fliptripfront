@@ -357,10 +357,10 @@ export default function ExplorePage() {
             <img src={FlipTripLogo} alt="FlipTrip" className="explore-logo" />
           </Link>
           <div className="explore-auth-actions">
-            <button type="button" className="become-local-btn" onClick={() => navigate('/register')}>
+            <button type="button" className="become-local-btn" onClick={() => navigate('/become-local')}>
               Become a Local
             </button>
-            <button type="button" className="login-btn" onClick={() => navigate('/login')}>
+            <button type="button" className="login-btn" onClick={() => navigate('/join?tab=traveler')}>
               Login
             </button>
           </div>

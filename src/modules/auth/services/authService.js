@@ -70,6 +70,64 @@ export async function register(userData) {
 }
 
 /**
+ * Request one-time email code for registration
+ * @param {Object} userData
+ * @returns {Promise<Object>}
+ */
+export async function requestRegistrationCode(userData) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth-register-request-code`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Failed to send verification code');
+    }
+    return data;
+  } catch (error) {
+    console.error('Request registration code error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Verify one-time email code and complete registration
+ * @param {Object} payload
+ * @returns {Promise<Object>}
+ */
+export async function verifyRegistrationCode(payload) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth-register-verify-code`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Verification failed');
+    }
+
+    if (data.token) {
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Verify registration code error:', error);
+    throw error;
+  }
+}
+
+/**
  * Вход пользователя
  * @param {string} email - Email
  * @param {string} password - Пароль
