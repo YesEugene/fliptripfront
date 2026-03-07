@@ -16,7 +16,7 @@ Create a guide for your ideal day. Let others see the city through your eyes and
 };
 
 const TRAVELER_COPY = {
-  headline: 'See the city through a local’s eyes.',
+  headline: "SEE THE CITY THROUGH A LOCAL'S EYES",
   subheadline: 'Skip the tourist traps. Discover curated day trips created by people who actually live and breathe the city.',
   body: `Stop scrolling through endless "top 10" lists. We’ve gathered architects, chefs, and artists to show you their version of the city.
 

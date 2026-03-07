@@ -881,7 +881,7 @@ export default function HomePage() {
                 ) : (
                   <>
                     <Link
-                      to="/login"
+                      to="/join?tab=traveler"
                       style={{
                         color: 'white',
                         textDecoration: 'none',
@@ -893,7 +893,7 @@ export default function HomePage() {
                       Вход
                     </Link>
                     <Link
-                      to="/register"
+                      to="/become-local"
                       style={{
                         backgroundColor: 'rgba(255,255,255,0.2)',
                         color: 'white',
