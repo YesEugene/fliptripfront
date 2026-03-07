@@ -602,7 +602,7 @@
   margin-bottom: 50px;
   color: #9ca3af;
   font-size: 14px;
-  padding: 20px;
-  background-color: #f9fafb;
-  border-radius: 12px;
+  padding: 0;
+  background-color: transparent;
+  border-radius: 0;
 }
