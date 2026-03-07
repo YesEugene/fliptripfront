@@ -1,5 +1,38 @@
 {
   "rewrites": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Gg]ooglebot|[Bb]ingbot|[Yy]andex|[Bb]aiduspider|[Dd]uck[Dd]uck[Bb]ot|[Ss]lurp|facebookexternalhit|[Ff]acebot|[Tt]witterbot|[Ll]inked[Ii]n[Bb]ot|[Rr]ogerbot|[Aa]pplebot|[Ww]hats[Aa]pp|[Tt]elegram[Bb]ot|[Dd]iscord[Bb]ot).*"
+        }
+      ],
+      "destination": "/api/seo-render?route=home"
+    },
+    {
+      "source": "/explore",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Gg]ooglebot|[Bb]ingbot|[Yy]andex|[Bb]aiduspider|[Dd]uck[Dd]uck[Bb]ot|[Ss]lurp|facebookexternalhit|[Ff]acebot|[Tt]witterbot|[Ll]inked[Ii]n[Bb]ot|[Rr]ogerbot|[Aa]pplebot|[Ww]hats[Aa]pp|[Tt]elegram[Bb]ot|[Dd]iscord[Bb]ot).*"
+        }
+      ],
+      "destination": "/api/seo-render?route=explore"
+    },
+    {
+      "source": "/itinerary",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Gg]ooglebot|[Bb]ingbot|[Yy]andex|[Bb]aiduspider|[Dd]uck[Dd]uck[Bb]ot|[Ss]lurp|facebookexternalhit|[Ff]acebot|[Tt]witterbot|[Ll]inked[Ii]n[Bb]ot|[Rr]ogerbot|[Aa]pplebot|[Ww]hats[Aa]pp|[Tt]elegram[Bb]ot|[Dd]iscord[Bb]ot).*"
+        }
+      ],
+      "destination": "/api/seo-render?route=itinerary"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
