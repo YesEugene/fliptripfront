@@ -1,4 +1,4 @@
-const DEFAULT_SITE_URL = 'https://flip-trip.com';
+const DEFAULT_SITE_URL = 'https://www.flip-trip.com';
 
 function normalizeSiteUrl() {
   return (process.env.SITE_URL || DEFAULT_SITE_URL).replace(/\/$/, '');
@@ -13,6 +13,10 @@ export default function handler(req, res) {
     'Disallow: /admin',
     'Disallow: /guide',
     'Disallow: /profile',
+    'Disallow: /login',
+    'Disallow: /register',
+    'Disallow: /payment',
+    'Disallow: /success',
     '',
     `Sitemap: ${siteUrl}/sitemap.xml`
   ].join('\n');

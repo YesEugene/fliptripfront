@@ -1,4 +1,4 @@
-const DEFAULT_SITE_URL = 'https://flip-trip.com';
+const DEFAULT_SITE_URL = 'https://www.flip-trip.com';
 const DEFAULT_API_BASE_URL = 'https://fliptripback.vercel.app';
 
 function normalizeApiBaseUrl() {

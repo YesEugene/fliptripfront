@@ -1,4 +1,4 @@
-const DEFAULT_SITE_URL = 'https://flip-trip.com';
+const DEFAULT_SITE_URL = 'https://www.flip-trip.com';
 const DEFAULT_API_BASE_URL = 'https://fliptripback.vercel.app';
 const DEFAULT_OG_IMAGE = 'https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?w=1200&h=630&fit=crop&q=80&auto=format';
 
