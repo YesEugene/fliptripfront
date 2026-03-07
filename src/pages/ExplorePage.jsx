@@ -71,7 +71,7 @@ function getGuideFromTour(tour) {
   return null;
 }
 
-function TourCard({ tour, tags = [], className = '', variant = 'below', onClick }) {
+function TourCard({ tour, tags = [], className = '', variant = 'below', onClick, imagePriority = false }) {
   const creatorName = tour?.guide?.name || 'Guide';
   const creatorAvatar = tour?.guide?.avatar_url || '';
   const cardTitle = tour?.title || 'Explore city with a local';
@@ -85,8 +85,9 @@ function TourCard({ tour, tags = [], className = '', variant = 'below', onClick 
           src={getTourImage(tour)}
           alt={cardTitle}
           className="explore-tour-card-image"
-          loading="lazy"
+          loading={imagePriority ? 'eager' : 'lazy'}
           decoding="async"
+          fetchPriority={imagePriority ? 'high' : 'auto'}
         />
         <div className="explore-tour-card-overlay" />
         <div className="explore-tour-card-meta">
@@ -385,6 +386,7 @@ export default function ExplorePage() {
                     tags={tour._resolvedTags || []}
                     className="explore-wide-tour-card"
                     variant="overlay"
+                    imagePriority={itemIndex === 0}
                     onClick={() => openTourPreview(tour)}
                   />
                 </div>
@@ -409,6 +411,7 @@ export default function ExplorePage() {
                       tour={tour}
                       tags={tour._resolvedTags || []}
                       variant="below"
+                      imagePriority={itemIndex === 0 && index === 0}
                       onClick={() => openTourPreview(tour)}
                     />
                   ))}
@@ -420,6 +423,7 @@ export default function ExplorePage() {
                       tour={tour}
                       tags={tour._resolvedTags || []}
                       variant="below"
+                      imagePriority={itemIndex === 0 && index === 0}
                       onClick={() => openTourPreview(tour)}
                     />
                   ))}
