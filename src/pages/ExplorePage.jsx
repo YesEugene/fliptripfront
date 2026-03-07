@@ -150,8 +150,8 @@ export default function ExplorePage() {
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [interestNameById, setInterestNameById] = useState(new Map());
-  const [selectedCity, setSelectedCity] = useState(null);
-  const [selectedTag, setSelectedTag] = useState(null);
+  const [selectedCities, setSelectedCities] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]);
   const [visibleCount, setVisibleCount] = useState(5);
 
   useEffect(() => {
@@ -250,11 +250,20 @@ export default function ExplorePage() {
 
   const filteredTours = useMemo(() => {
     return toursWithResolvedTags.filter((tour) => {
-      const cityMatch = selectedCity ? String(tour.city || '').toLowerCase() === selectedCity.toLowerCase() : true;
-      const tagMatch = selectedTag ? (tour._resolvedTags || []).some((tag) => String(tag).toLowerCase() === selectedTag.toLowerCase()) : true;
+      const normalizedCity = String(tour.city || '').toLowerCase();
+      const cityMatch = selectedCities.length === 0
+        ? true
+        : selectedCities.some((city) => city.toLowerCase() === normalizedCity);
+
+      const tagMatch = selectedTags.length === 0
+        ? true
+        : (tour._resolvedTags || []).some((tag) =>
+            selectedTags.some((selectedTag) => selectedTag.toLowerCase() === String(tag).toLowerCase())
+          );
+
       return cityMatch && tagMatch;
     });
-  }, [toursWithResolvedTags, selectedCity, selectedTag]);
+  }, [toursWithResolvedTags, selectedCities, selectedTags]);
 
   const displayedTours = useMemo(() => filteredTours.slice(0, visibleCount), [filteredTours, visibleCount]);
   const orderedDisplayedTours = useMemo(() => {
@@ -297,7 +306,15 @@ export default function ExplorePage() {
 
   useEffect(() => {
     setVisibleCount(5);
-  }, [selectedCity, selectedTag]);
+  }, [selectedCities, selectedTags]);
+
+  const toggleCity = (city) => {
+    setSelectedCities((prev) => (prev.includes(city) ? prev.filter((value) => value !== city) : [...prev, city]));
+  };
+
+  const toggleTag = (tag) => {
+    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((value) => value !== tag) : [...prev, tag]));
+  };
 
   const insiders = useMemo(() => {
     const unique = new Map();
@@ -356,8 +373,8 @@ export default function ExplorePage() {
           <button
             key={city}
             type="button"
-            className={`explore-pill city-pill ${selectedCity === city ? 'active' : ''}`}
-            onClick={() => setSelectedCity((prev) => (prev === city ? null : city))}
+            className={`explore-pill city-pill ${selectedCities.includes(city) ? 'active' : ''}`}
+            onClick={() => toggleCity(city)}
           >
             {city}
           </button>
@@ -366,8 +383,8 @@ export default function ExplorePage() {
           <button
             key={tag}
             type="button"
-            className={`explore-pill tag-pill ${selectedTag === tag ? 'accent-blue' : ''}`}
-            onClick={() => setSelectedTag((prev) => (prev === tag ? null : tag))}
+            className={`explore-pill tag-pill ${selectedTags.includes(tag) ? 'accent-blue' : ''}`}
+            onClick={() => toggleTag(tag)}
           >
             {tag}
           </button>
