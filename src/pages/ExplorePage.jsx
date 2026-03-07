@@ -146,6 +146,7 @@ function TourCard({ tour, tags = [], className = '', variant = 'below', onClick,
 export default function ExplorePage() {
   const navigate = useNavigate();
   const insidersScrollRef = useRef(null);
+  const pillsScrollRef = useRef(null);
   const hasToursFromCacheRef = useRef(false);
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -335,6 +336,13 @@ export default function ExplorePage() {
     });
   };
 
+  const scrollPillsRight = () => {
+    const container = pillsScrollRef.current;
+    if (!container) return;
+    const delta = Math.max(220, Math.floor(container.clientWidth * 0.7));
+    container.scrollBy({ left: delta, behavior: 'smooth' });
+  };
+
   const openTourPreview = (tour) => {
     const slug = buildTourSlug(tour);
     if (!slug) return;
@@ -368,27 +376,33 @@ export default function ExplorePage() {
         </div>
       </section>
 
-      <section className="explore-pills-wrap">
-        {CITY_PILLS.map((city) => (
-          <button
-            key={city}
-            type="button"
-            className={`explore-pill city-pill ${selectedCities.includes(city) ? 'active' : ''}`}
-            onClick={() => toggleCity(city)}
-          >
-            {city}
-          </button>
-        ))}
-        {availableTagPills.map((tag) => (
-          <button
-            key={tag}
-            type="button"
-            className={`explore-pill tag-pill ${selectedTags.includes(tag) ? 'accent-blue' : ''}`}
-            onClick={() => toggleTag(tag)}
-          >
-            {tag}
-          </button>
-        ))}
+      <section className="explore-pills-shell">
+        <div className="explore-pills-wrap" ref={pillsScrollRef}>
+          {CITY_PILLS.map((city) => (
+            <button
+              key={city}
+              type="button"
+              className={`explore-pill city-pill ${selectedCities.includes(city) ? 'active' : ''}`}
+              onClick={() => toggleCity(city)}
+            >
+              {city}
+            </button>
+          ))}
+          {availableTagPills.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              className={`explore-pill tag-pill ${selectedTags.includes(tag) ? 'accent-blue' : ''}`}
+              onClick={() => toggleTag(tag)}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+        <div className="explore-pills-fade" aria-hidden="true" />
+        <button type="button" className="explore-pills-arrow" onClick={scrollPillsRight} aria-label="Scroll tags">
+          →
+        </button>
       </section>
 
       <section className="explore-trips-section">

@@ -107,10 +107,17 @@
   line-height: 1.4;
 }
 
-.explore-pills-wrap {
+.explore-pills-shell {
   max-width: var(--content-max-width);
-  margin: 0 auto 0;
+  margin: 0 auto;
   padding: 0 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.explore-pills-wrap {
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-wrap: nowrap;
   gap: 8px;
@@ -122,10 +129,45 @@
   white-space: nowrap;
 }
 
+.explore-pills-wrap {
+  padding-right: 120px;
+}
+
 .explore-pills-wrap::-webkit-scrollbar {
   display: none;
   width: 0;
   height: 0;
+}
+
+.explore-pills-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 40px;
+  width: 150px;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(252, 251, 249, 0) 0%, rgba(252, 251, 249, 0.72) 42%, rgba(252, 251, 249, 1) 100%);
+  z-index: 2;
+}
+
+.explore-pills-arrow {
+  position: absolute;
+  right: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  width: 66px;
+  height: 48px;
+  border-radius: 999px;
+  border: 2px solid #1c1c1b;
+  background: #fcfbf9;
+  color: #1c1c1b;
+  font-size: 30px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 
 .explore-pill {
@@ -559,7 +601,7 @@
 
 @media (max-width: 900px) {
   .explore-topbar,
-  .explore-pills-wrap,
+  .explore-pills-shell,
   .explore-trips-section,
   .more-trips-row,
   .explore-insiders {
@@ -575,6 +617,25 @@
 
   .explore-trips-columns {
     grid-template-columns: 1fr;
+  }
+
+  .explore-pills-wrap {
+    padding-right: 88px;
+  }
+
+  .explore-pills-fade,
+  .explore-pills-arrow {
+    right: 20px;
+  }
+
+  .explore-pills-fade {
+    width: 110px;
+  }
+
+  .explore-pills-arrow {
+    width: 52px;
+    height: 38px;
+    font-size: 24px;
   }
 
   .explore-wide-tours {
