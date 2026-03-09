@@ -4662,24 +4662,76 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
         throw new Error(previewData?.error || 'Failed to build styled PDF HTML');
       }
 
-      // 2) Generate PDF directly from HTML string in same-document mode.
-      const { default: html2pdf } = await import('html2pdf.js');
-      const pdfBlob = await html2pdf()
-        .set({
-          margin: [0, 0, 0, 0],
-          filename: `styled-${tourId}.pdf`,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: {
+      // 2) Render preview HTML in hidden frame and export each .ft-page to PDF.
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.left = '-10000px';
+      iframe.style.top = '0';
+      iframe.style.width = '1240px';
+      iframe.style.height = '1754px';
+      iframe.style.opacity = '0';
+      document.body.appendChild(iframe);
+
+      let pdfBlob;
+      try {
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (!iframeDoc) throw new Error('Failed to initialize hidden render frame');
+        iframeDoc.open();
+        iframeDoc.write(previewData.previewHtml);
+        iframeDoc.close();
+
+        await new Promise((resolve) => setTimeout(resolve, 900));
+        await Promise.all(
+          Array.from(iframeDoc.images || []).map((img) => (
+            img.complete
+              ? Promise.resolve()
+              : new Promise((resolveImg) => {
+                  img.onload = resolveImg;
+                  img.onerror = resolveImg;
+                })
+          ))
+        );
+
+        const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+          import('html2canvas'),
+          import('jspdf')
+        ]);
+
+        const pageNodes = Array.from(iframeDoc.querySelectorAll('.ft-page'));
+        const nodesToRender = pageNodes.length > 0 ? pageNodes : [iframeDoc.body];
+        const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+
+        for (let i = 0; i < nodesToRender.length; i += 1) {
+          const node = nodesToRender[i];
+          const canvas = await html2canvas(node, {
             scale: 2,
             useCORS: true,
             allowTaint: false,
-            backgroundColor: '#FCFBF9'
-          },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-          pagebreak: { mode: ['css', 'legacy'] }
-        })
-        .from(previewData.previewHtml, 'string')
-        .outputPdf('blob');
+            backgroundColor: '#FCFBF9',
+            windowWidth: Math.max(node.scrollWidth || 1240, 1240),
+            windowHeight: Math.max(node.scrollHeight || 1754, 1754)
+          });
+          const imageData = canvas.toDataURL('image/jpeg', 0.98);
+
+          const pageW = 210;
+          const pageH = 297;
+          let imgW = pageW;
+          let imgH = (canvas.height * imgW) / canvas.width;
+          if (imgH > pageH) {
+            imgH = pageH;
+            imgW = (canvas.width * imgH) / canvas.height;
+          }
+          const x = (pageW - imgW) / 2;
+          const y = (pageH - imgH) / 2;
+
+          if (i > 0) pdf.addPage();
+          pdf.addImage(imageData, 'JPEG', x, y, imgW, imgH, undefined, 'FAST');
+        }
+
+        pdfBlob = pdf.output('blob');
+      } finally {
+        if (iframe && iframe.parentNode) iframe.parentNode.removeChild(iframe);
+      }
 
       // 3) Upload generated blob via signed URL and save tourPdfUrl.
       const generatedFile = new File([pdfBlob], `styled-${Date.now()}.pdf`, {
