@@ -4679,6 +4679,8 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
 
       if (data?.renderMode === 'pdfkit-fallback') {
         alert('Styled PDF generated, but visual HTML render is unavailable on server right now. Fallback renderer was used.');
+      } else if (data?.mapIncluded === false) {
+        alert(`Styled PDF generated, but map was not included: ${data?.mapIssue || 'Map generation failed.'}`);
       } else {
         alert('Styled PDF generated successfully.');
       }
