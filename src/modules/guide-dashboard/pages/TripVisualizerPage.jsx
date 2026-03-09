@@ -4711,18 +4711,44 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
             windowWidth: Math.max(node.scrollWidth || 1240, 1240),
             windowHeight: Math.max(node.scrollHeight || 1754, 1754)
           });
-          const imageData = canvas.toDataURL('image/jpeg', 0.98);
-
           const pageW = 210;
           const pageH = 297;
+          const targetRatio = pageH / pageW;
+          const sourceRatio = canvas.height / canvas.width;
+
+          let renderCanvas = canvas;
           let imgW = pageW;
-          let imgH = (canvas.height * imgW) / canvas.width;
-          if (imgH > pageH) {
+          let imgH = pageH;
+          let x = 0;
+          let y = 0;
+
+          // If slide is taller than A4 ratio, crop by height so width stays full.
+          // This prevents side margins caused by shrinking the whole page.
+          if (sourceRatio > targetRatio) {
+            const cropHeight = Math.round(canvas.width * targetRatio);
+            const cropped = document.createElement('canvas');
+            cropped.width = canvas.width;
+            cropped.height = cropHeight;
+            const ctx = cropped.getContext('2d');
+            if (!ctx) throw new Error('Failed to prepare PDF canvas crop context');
+            ctx.drawImage(canvas, 0, 0, canvas.width, cropHeight, 0, 0, cropped.width, cropped.height);
+            renderCanvas = cropped;
+            imgW = pageW;
             imgH = pageH;
-            imgW = (canvas.width * imgH) / canvas.height;
+            x = 0;
+            y = 0;
+          } else {
+            // Keep previous fit behavior for non-tall slides.
+            imgW = pageW;
+            imgH = (renderCanvas.height * imgW) / renderCanvas.width;
+            if (imgH > pageH) {
+              imgH = pageH;
+              imgW = (renderCanvas.width * imgH) / renderCanvas.height;
+            }
+            x = (pageW - imgW) / 2;
+            y = (pageH - imgH) / 2;
           }
-          const x = (pageW - imgW) / 2;
-          const y = (pageH - imgH) / 2;
+          const imageData = renderCanvas.toDataURL('image/jpeg', 0.98);
 
           if (i > 0) pdf.addPage();
           pdf.addImage(imageData, 'JPEG', x, y, imgW, imgH, undefined, 'FAST');
