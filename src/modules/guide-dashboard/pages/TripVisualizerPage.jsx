@@ -4638,7 +4638,6 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
     }
 
     setGeneratingStyledPdf(true);
-    let hiddenRenderFrame = null;
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
@@ -4663,36 +4662,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
         throw new Error(previewData?.error || 'Failed to build styled PDF HTML');
       }
 
-      // 2) Render HTML in hidden iframe and generate PDF in browser.
-      hiddenRenderFrame = document.createElement('iframe');
-      hiddenRenderFrame.style.position = 'fixed';
-      hiddenRenderFrame.style.left = '-10000px';
-      hiddenRenderFrame.style.top = '0';
-      hiddenRenderFrame.style.width = '1240px';
-      hiddenRenderFrame.style.height = '1754px';
-      hiddenRenderFrame.style.opacity = '0';
-      document.body.appendChild(hiddenRenderFrame);
-
-      const iframeDoc = hiddenRenderFrame.contentDocument || hiddenRenderFrame.contentWindow?.document;
-      if (!iframeDoc) throw new Error('Unable to initialize hidden render frame');
-
-      iframeDoc.open();
-      iframeDoc.write(previewData.previewHtml);
-      iframeDoc.close();
-
-      // Wait for images and layout scripts inside hidden frame.
-      await new Promise((resolve) => setTimeout(resolve, 900));
-      await Promise.all(
-        Array.from(iframeDoc.images || []).map((img) => (
-          img.complete
-            ? Promise.resolve()
-            : new Promise((resolveImg) => {
-                img.onload = resolveImg;
-                img.onerror = resolveImg;
-              })
-        ))
-      );
-
+      // 2) Generate PDF directly from HTML string in same-document mode.
       const { default: html2pdf } = await import('html2pdf.js');
       const pdfBlob = await html2pdf()
         .set({
@@ -4702,13 +4672,13 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
           html2canvas: {
             scale: 2,
             useCORS: true,
-            allowTaint: true,
+            allowTaint: false,
             backgroundColor: '#FCFBF9'
           },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
           pagebreak: { mode: ['css', 'legacy'] }
         })
-        .from(iframeDoc.body)
+        .from(previewData.previewHtml, 'string')
         .outputPdf('blob');
 
       // 3) Upload generated blob via signed URL and save tourPdfUrl.
@@ -4761,9 +4731,6 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
       console.error('Error generating styled PDF:', error);
       alert(`Failed to generate styled PDF: ${error.message}`);
     } finally {
-      if (hiddenRenderFrame && hiddenRenderFrame.parentNode) {
-        hiddenRenderFrame.parentNode.removeChild(hiddenRenderFrame);
-      }
       setGeneratingStyledPdf(false);
     }
   };
