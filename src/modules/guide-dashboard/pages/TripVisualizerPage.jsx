@@ -4195,9 +4195,8 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
   const [interestSuggestions, setInterestSuggestions] = useState([]);
   const [showInterestSuggestions, setShowInterestSuggestions] = useState(false);
   const [generatingHighlights, setGeneratingHighlights] = useState(false);
-  const [uploadingPdf, setUploadingPdf] = useState(false);
   const [generatingStyledPdf, setGeneratingStyledPdf] = useState(false);
-  const [openingStyledPdfPreview, setOpeningStyledPdfPreview] = useState(false);
+  const [deletingStyledPdf, setDeletingStyledPdf] = useState(false);
 
   // Generate highlights with AI
   const handleGenerateHighlights = async () => {
@@ -4565,82 +4564,6 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
     }
   };
 
-  const handleTourPdfUpload = async (file) => {
-    if (!file) return;
-    if (file.size > 50 * 1024 * 1024) {
-      alert('PDF is too large. Maximum file size is 50MB.');
-      return;
-    }
-
-    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-    if (!isPdf) {
-      alert('Please upload a PDF file.');
-      return;
-    }
-
-    if (!tourId) {
-      alert('Please save the tour as draft first, then upload the PDF.');
-      return;
-    }
-
-    setUploadingPdf(true);
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-
-      const signedResp = await fetch(`${API_BASE_URL}/api/upload-tour-pdf-url`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({
-          tourId,
-          fileName: file.name,
-          contentType: 'application/pdf',
-          fileSize: file.size
-        })
-      });
-
-      const signedData = await signedResp.json();
-      if (!signedResp.ok || !signedData?.success) {
-        throw new Error(signedData?.error || 'Failed to initialize PDF upload');
-      }
-
-      const uploadTarget = signedData.uploadUrl || signedData.signedUrl;
-      const uploadResp = await fetch(uploadTarget, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/pdf'
-        },
-        body: file
-      });
-
-      if (!uploadResp.ok) {
-        const uploadErrorText = await uploadResp.text().catch(() => '');
-        throw new Error(`Failed to upload PDF (${uploadResp.status}) ${uploadErrorText ? `- ${uploadErrorText.slice(0, 240)}` : ''}`);
-      }
-
-      onChange({ ...tourInfo, tourPdfUrl: signedData.publicUrl });
-      alert('Tour PDF uploaded successfully.');
-    } catch (error) {
-      console.error('Error uploading tour PDF:', error);
-      alert(`Failed to upload PDF: ${error.message}`);
-    } finally {
-      setUploadingPdf(false);
-    }
-  };
-
-  const updatePdfLayout = (key, value) => {
-    onChange({
-      ...tourInfo,
-      pdfLayout: {
-        ...(tourInfo.pdfLayout || {}),
-        [key]: value
-      }
-    });
-  };
-
   const handleGenerateStyledPdf = async () => {
     if (!tourId) {
       alert('Please save the tour as draft first, then generate styled PDF.');
@@ -4692,50 +4615,35 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
     }
   };
 
-  const handleOpenStyledPdfPreview = async () => {
-    if (!tourId) {
-      alert('Please save the tour as draft first, then open PDF preview page.');
-      return;
-    }
+  const handleDeleteStyledPdf = async () => {
+    if (!tourId || !tourInfo?.tourPdfUrl) return;
+    if (!window.confirm('Delete generated PDF?')) return;
 
-    setOpeningStyledPdfPreview(true);
+    setDeletingStyledPdf(true);
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/generate-styled-tour-pdf`, {
+      const response = await fetch(`${API_BASE_URL}/api/delete-tour-pdf`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
-        body: JSON.stringify({
-          tourId,
-          template: tourInfo.pdfTemplate || 'classic',
-          layout: tourInfo.pdfLayout || {},
-          previewHtml: true
-        })
+        body: JSON.stringify({ tourId })
       });
 
       const data = await response.json();
-      if (!response.ok || !data?.success || !data?.previewHtml) {
-        throw new Error(data?.error || 'Failed to build PDF preview page');
-      }
-      if (data?.mapIncluded === false) {
-        alert(`Preview opened, but map is missing: ${data?.mapIssue || 'Map generation failed.'}`);
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.error || 'Failed to delete PDF');
       }
 
-      const previewWindow = window.open('', '_blank');
-      if (!previewWindow) {
-        throw new Error('Popup blocked. Please allow popups and try again.');
-      }
-      previewWindow.document.open();
-      previewWindow.document.write(data.previewHtml);
-      previewWindow.document.close();
+      onChange({ ...tourInfo, tourPdfUrl: '' });
+      alert('PDF deleted.');
     } catch (error) {
-      console.error('Error opening styled PDF preview page:', error);
-      alert(`Failed to open preview page: ${error.message}`);
+      console.error('Error deleting styled PDF:', error);
+      alert(`Failed to delete PDF: ${error.message}`);
     } finally {
-      setOpeningStyledPdfPreview(false);
+      setDeletingStyledPdf(false);
     }
   };
 
@@ -4880,79 +4788,31 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
                 Tour PDF presentation
               </label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
-                <select
-                  value={tourInfo.pdfTemplate || 'classic'}
-                  onChange={(e) => onChange({ ...tourInfo, pdfTemplate: e.target.value })}
-                  style={{ padding: '10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', backgroundColor: 'white' }}
-                >
-                  <option value="classic">Classic</option>
-                  <option value="magazine">Magazine</option>
-                  <option value="minimal">Minimal</option>
-                </select>
-                <input
-                  type="text"
-                  placeholder="PDF subtitle (optional)"
-                  value={tourInfo.pdfLayout?.subtitle || ''}
-                  onChange={(e) => updatePdfLayout('subtitle', e.target.value)}
-                  style={{ padding: '10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px' }}
-                />
-              </div>
-              <div style={{ display: 'flex', gap: '12px', marginBottom: '10px' }}>
-                <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#4b5563' }}>
-                  <input
-                    type="checkbox"
-                    checked={tourInfo.pdfLayout?.includeMap !== false}
-                    onChange={(e) => updatePdfLayout('includeMap', e.target.checked)}
-                  />
-                  Include static map
-                </label>
-                <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#4b5563' }}>
-                  <input
-                    type="checkbox"
-                    checked={tourInfo.pdfLayout?.includeHighlights !== false}
-                    onChange={(e) => updatePdfLayout('includeHighlights', e.target.checked)}
-                  />
-                  Include highlights
-                </label>
-              </div>
               <button
                 type="button"
                 onClick={handleGenerateStyledPdf}
                 disabled={generatingStyledPdf}
-                style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: generatingStyledPdf ? '#9ca3af' : '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: generatingStyledPdf ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500', marginRight: '8px' }}
+                style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: generatingStyledPdf ? '#9ca3af' : '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: generatingStyledPdf ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500' }}
               >
-                {generatingStyledPdf ? 'Generating styled PDF...' : 'Generate Styled PDF'}
+                {generatingStyledPdf ? 'Generating PDF...' : 'Generate PDF'}
               </button>
-              <button
-                type="button"
-                onClick={handleOpenStyledPdfPreview}
-                disabled={openingStyledPdfPreview}
-                style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: openingStyledPdfPreview ? '#9ca3af' : '#4b5563', color: 'white', border: 'none', borderRadius: '8px', cursor: openingStyledPdfPreview ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500', marginRight: '8px' }}
-              >
-                {openingStyledPdfPreview ? 'Opening preview...' : 'Open PDF Preview Page'}
-              </button>
-              <input
-                type="file"
-                accept="application/pdf,.pdf"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleTourPdfUpload(file);
-                  e.target.value = '';
-                }}
-                style={{ display: 'none' }}
-                id="tour-pdf-upload"
-              />
-              <label htmlFor="tour-pdf-upload" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: uploadingPdf ? '#9ca3af' : '#111827', color: 'white', border: 'none', borderRadius: '8px', cursor: uploadingPdf ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500' }}>
-                {uploadingPdf ? 'Uploading PDF...' : 'Upload tour PDF'}
-              </label>
               <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px', marginBottom: 0 }}>
-                PDF only. Max size 50MB.
+                Generates and attaches a PDF automatically.
               </p>
               {tourInfo.tourPdfUrl && (
-                <a href={tourInfo.tourPdfUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '8px', fontSize: '13px', color: '#2563eb' }}>
-                  View uploaded PDF
-                </a>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '8px' }}>
+                  <a href={tourInfo.tourPdfUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '13px', color: '#2563eb' }}>
+                    View PDF
+                  </a>
+                  <button
+                    type="button"
+                    onClick={handleDeleteStyledPdf}
+                    disabled={deletingStyledPdf}
+                    style={{ padding: '6px 10px', backgroundColor: deletingStyledPdf ? '#9ca3af' : '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: deletingStyledPdf ? 'not-allowed' : 'pointer', fontSize: '12px', fontWeight: '500' }}
+                  >
+                    {deletingStyledPdf ? 'Deleting...' : 'Delete PDF'}
+                  </button>
+                </div>
               )}
             </div>
           </div>
