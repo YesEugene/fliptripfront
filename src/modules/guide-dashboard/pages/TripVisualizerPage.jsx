@@ -4720,6 +4720,9 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
       if (!response.ok || !data?.success || !data?.previewHtml) {
         throw new Error(data?.error || 'Failed to build PDF preview page');
       }
+      if (data?.mapIncluded === false) {
+        alert(`Preview opened, but map is missing: ${data?.mapIssue || 'Map generation failed.'}`);
+      }
 
       const previewWindow = window.open('', '_blank');
       if (!previewWindow) {
