@@ -4197,6 +4197,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
   const [generatingHighlights, setGeneratingHighlights] = useState(false);
   const [uploadingPdf, setUploadingPdf] = useState(false);
   const [generatingStyledPdf, setGeneratingStyledPdf] = useState(false);
+  const [openingStyledPdfPreview, setOpeningStyledPdfPreview] = useState(false);
 
   // Generate highlights with AI
   const handleGenerateHighlights = async () => {
@@ -4676,12 +4677,60 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
         pdfLayout: tourInfo.pdfLayout || {}
       });
 
-      alert('Styled PDF generated successfully.');
+      if (data?.renderMode === 'pdfkit-fallback') {
+        alert('Styled PDF generated, but visual HTML render is unavailable on server right now. Fallback renderer was used.');
+      } else {
+        alert('Styled PDF generated successfully.');
+      }
     } catch (error) {
       console.error('Error generating styled PDF:', error);
       alert(`Failed to generate styled PDF: ${error.message}`);
     } finally {
       setGeneratingStyledPdf(false);
+    }
+  };
+
+  const handleOpenStyledPdfPreview = async () => {
+    if (!tourId) {
+      alert('Please save the tour as draft first, then open PDF preview page.');
+      return;
+    }
+
+    setOpeningStyledPdfPreview(true);
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/generate-styled-tour-pdf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          tourId,
+          template: tourInfo.pdfTemplate || 'classic',
+          layout: tourInfo.pdfLayout || {},
+          previewHtml: true
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data?.success || !data?.previewHtml) {
+        throw new Error(data?.error || 'Failed to build PDF preview page');
+      }
+
+      const previewWindow = window.open('', '_blank');
+      if (!previewWindow) {
+        throw new Error('Popup blocked. Please allow popups and try again.');
+      }
+      previewWindow.document.open();
+      previewWindow.document.write(data.previewHtml);
+      previewWindow.document.close();
+    } catch (error) {
+      console.error('Error opening styled PDF preview page:', error);
+      alert(`Failed to open preview page: ${error.message}`);
+    } finally {
+      setOpeningStyledPdfPreview(false);
     }
   };
 
@@ -4869,6 +4918,14 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
                 style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: generatingStyledPdf ? '#9ca3af' : '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: generatingStyledPdf ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500', marginRight: '8px' }}
               >
                 {generatingStyledPdf ? 'Generating styled PDF...' : 'Generate Styled PDF'}
+              </button>
+              <button
+                type="button"
+                onClick={handleOpenStyledPdfPreview}
+                disabled={openingStyledPdfPreview}
+                style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: openingStyledPdfPreview ? '#9ca3af' : '#4b5563', color: 'white', border: 'none', borderRadius: '8px', cursor: openingStyledPdfPreview ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500', marginRight: '8px' }}
+              >
+                {openingStyledPdfPreview ? 'Opening preview...' : 'Open PDF Preview Page'}
               </button>
               <input
                 type="file"
