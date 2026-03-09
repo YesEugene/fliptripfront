@@ -4700,6 +4700,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
         const pageNodes = Array.from(iframeDoc.querySelectorAll('.ft-page'));
         const nodesToRender = pageNodes.length > 0 ? pageNodes : [iframeDoc.body];
         const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+        let isFirstPdfPage = true;
 
         for (let i = 0; i < nodesToRender.length; i += 1) {
           const node = nodesToRender[i];
@@ -4715,43 +4716,48 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
           const pageH = 297;
           const targetRatio = pageH / pageW;
           const sourceRatio = canvas.height / canvas.width;
-
-          let renderCanvas = canvas;
-          let imgW = pageW;
-          let imgH = pageH;
-          let x = 0;
-          let y = 0;
-
-          // If slide is taller than A4 ratio, crop by height so width stays full.
-          // This prevents side margins caused by shrinking the whole page.
           if (sourceRatio > targetRatio) {
-            const cropHeight = Math.round(canvas.width * targetRatio);
-            const cropped = document.createElement('canvas');
-            cropped.width = canvas.width;
-            cropped.height = cropHeight;
-            const ctx = cropped.getContext('2d');
-            if (!ctx) throw new Error('Failed to prepare PDF canvas crop context');
-            ctx.drawImage(canvas, 0, 0, canvas.width, cropHeight, 0, 0, cropped.width, cropped.height);
-            renderCanvas = cropped;
-            imgW = pageW;
-            imgH = pageH;
-            x = 0;
-            y = 0;
+            // Split oversized slide into multiple A4 chunks to preserve content
+            // instead of shrinking or cutting it.
+            const chunkHeightPx = Math.round(canvas.width * targetRatio);
+            for (let offsetY = 0; offsetY < canvas.height; offsetY += chunkHeightPx) {
+              const currentChunkHeight = Math.min(chunkHeightPx, canvas.height - offsetY);
+              const chunkCanvas = document.createElement('canvas');
+              chunkCanvas.width = canvas.width;
+              chunkCanvas.height = currentChunkHeight;
+              const ctx = chunkCanvas.getContext('2d');
+              if (!ctx) throw new Error('Failed to prepare PDF chunk canvas context');
+              ctx.drawImage(
+                canvas,
+                0, offsetY, canvas.width, currentChunkHeight,
+                0, 0, chunkCanvas.width, chunkCanvas.height
+              );
+
+              const imageData = chunkCanvas.toDataURL('image/jpeg', 0.98);
+              const imgW = pageW;
+              const imgH = (currentChunkHeight * imgW) / canvas.width;
+              const x = 0;
+              const y = 0;
+
+              if (!isFirstPdfPage) pdf.addPage();
+              pdf.addImage(imageData, 'JPEG', x, y, imgW, imgH, undefined, 'FAST');
+              isFirstPdfPage = false;
+            }
           } else {
             // Keep previous fit behavior for non-tall slides.
-            imgW = pageW;
-            imgH = (renderCanvas.height * imgW) / renderCanvas.width;
+            let imgW = pageW;
+            let imgH = (canvas.height * imgW) / canvas.width;
             if (imgH > pageH) {
               imgH = pageH;
-              imgW = (renderCanvas.width * imgH) / renderCanvas.height;
+              imgW = (canvas.width * imgH) / canvas.height;
             }
-            x = (pageW - imgW) / 2;
-            y = (pageH - imgH) / 2;
+            const x = (pageW - imgW) / 2;
+            const y = (pageH - imgH) / 2;
+            const imageData = canvas.toDataURL('image/jpeg', 0.98);
+            if (!isFirstPdfPage) pdf.addPage();
+            pdf.addImage(imageData, 'JPEG', x, y, imgW, imgH, undefined, 'FAST');
+            isFirstPdfPage = false;
           }
-          const imageData = renderCanvas.toDataURL('image/jpeg', 0.98);
-
-          if (i > 0) pdf.addPage();
-          pdf.addImage(imageData, 'JPEG', x, y, imgW, imgH, undefined, 'FAST');
         }
 
         pdfBlob = pdf.output('blob');
