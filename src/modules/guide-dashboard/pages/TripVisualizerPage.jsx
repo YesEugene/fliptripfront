@@ -4638,11 +4638,13 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
     }
 
     setGeneratingStyledPdf(true);
+    let hiddenRenderFrame = null;
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
 
-      const response = await fetch(`${API_BASE_URL}/api/generate-styled-tour-pdf`, {
+      // 1) Get HTML template from backend (same styled page used for server render).
+      const previewResponse = await fetch(`${API_BASE_URL}/api/generate-styled-tour-pdf`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -4652,31 +4654,116 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
           tourId,
           template: tourInfo.pdfTemplate || 'classic',
           layout: tourInfo.pdfLayout || {},
-          allowFallback: false
+          previewHtml: true
         })
       });
 
-      const data = await response.json();
-      if (!response.ok || !data?.success) {
-        throw new Error(data?.error || 'Failed to generate styled PDF');
+      const previewData = await previewResponse.json();
+      if (!previewResponse.ok || !previewData?.success || !previewData?.previewHtml) {
+        throw new Error(previewData?.error || 'Failed to build styled PDF HTML');
+      }
+
+      // 2) Render HTML in hidden iframe and generate PDF in browser.
+      hiddenRenderFrame = document.createElement('iframe');
+      hiddenRenderFrame.style.position = 'fixed';
+      hiddenRenderFrame.style.left = '-10000px';
+      hiddenRenderFrame.style.top = '0';
+      hiddenRenderFrame.style.width = '1240px';
+      hiddenRenderFrame.style.height = '1754px';
+      hiddenRenderFrame.style.opacity = '0';
+      document.body.appendChild(hiddenRenderFrame);
+
+      const iframeDoc = hiddenRenderFrame.contentDocument || hiddenRenderFrame.contentWindow?.document;
+      if (!iframeDoc) throw new Error('Unable to initialize hidden render frame');
+
+      iframeDoc.open();
+      iframeDoc.write(previewData.previewHtml);
+      iframeDoc.close();
+
+      // Wait for images and layout scripts inside hidden frame.
+      await new Promise((resolve) => setTimeout(resolve, 900));
+      await Promise.all(
+        Array.from(iframeDoc.images || []).map((img) => (
+          img.complete
+            ? Promise.resolve()
+            : new Promise((resolveImg) => {
+                img.onload = resolveImg;
+                img.onerror = resolveImg;
+              })
+        ))
+      );
+
+      const { default: html2pdf } = await import('html2pdf.js');
+      const pdfBlob = await html2pdf()
+        .set({
+          margin: [0, 0, 0, 0],
+          filename: `styled-${tourId}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#FCFBF9'
+          },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['css', 'legacy'] }
+        })
+        .from(iframeDoc.body)
+        .outputPdf('blob');
+
+      // 3) Upload generated blob via signed URL and save tourPdfUrl.
+      const generatedFile = new File([pdfBlob], `styled-${Date.now()}.pdf`, {
+        type: 'application/pdf'
+      });
+
+      const signedResp = await fetch(`${API_BASE_URL}/api/upload-tour-pdf-url`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          tourId,
+          fileName: generatedFile.name,
+          contentType: 'application/pdf',
+          fileSize: generatedFile.size
+        })
+      });
+      const signedData = await signedResp.json();
+      if (!signedResp.ok || !signedData?.success) {
+        throw new Error(signedData?.error || 'Failed to initialize PDF upload');
+      }
+
+      const uploadTarget = signedData.uploadUrl || signedData.signedUrl;
+      const uploadResp = await fetch(uploadTarget, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/pdf' },
+        body: generatedFile
+      });
+      if (!uploadResp.ok) {
+        const uploadErrorText = await uploadResp.text().catch(() => '');
+        throw new Error(`Failed to upload generated PDF (${uploadResp.status}) ${uploadErrorText ? `- ${uploadErrorText.slice(0, 240)}` : ''}`);
       }
 
       onChange({
         ...tourInfo,
-        tourPdfUrl: data.pdfUrl || tourInfo.tourPdfUrl || '',
-        pdfTemplate: data.template || tourInfo.pdfTemplate || 'classic',
+        tourPdfUrl: signedData.publicUrl || tourInfo.tourPdfUrl || '',
+        pdfTemplate: tourInfo.pdfTemplate || 'classic',
         pdfLayout: tourInfo.pdfLayout || {}
       });
 
-      if (data?.mapIncluded === false) {
-        alert(`Styled PDF generated, but map was not included: ${data?.mapIssue || 'Map generation failed.'}`);
+      if (previewData?.mapIncluded === false) {
+        alert(`PDF generated, but map was not included: ${previewData?.mapIssue || 'Map generation failed.'}`);
       } else {
-        alert('Styled PDF generated successfully.');
+        alert('PDF generated successfully.');
       }
     } catch (error) {
       console.error('Error generating styled PDF:', error);
       alert(`Failed to generate styled PDF: ${error.message}`);
     } finally {
+      if (hiddenRenderFrame && hiddenRenderFrame.parentNode) {
+        hiddenRenderFrame.parentNode.removeChild(hiddenRenderFrame);
+      }
       setGeneratingStyledPdf(false);
     }
   };
