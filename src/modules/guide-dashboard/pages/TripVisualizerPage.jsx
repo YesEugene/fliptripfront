@@ -4714,50 +4714,18 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
           });
           const pageW = 210;
           const pageH = 297;
-          const targetRatio = pageH / pageW;
-          const sourceRatio = canvas.height / canvas.width;
-          if (sourceRatio > targetRatio) {
-            // Split oversized slide into multiple A4 chunks to preserve content
-            // instead of shrinking or cutting it.
-            const chunkHeightPx = Math.round(canvas.width * targetRatio);
-            for (let offsetY = 0; offsetY < canvas.height; offsetY += chunkHeightPx) {
-              const currentChunkHeight = Math.min(chunkHeightPx, canvas.height - offsetY);
-              const chunkCanvas = document.createElement('canvas');
-              chunkCanvas.width = canvas.width;
-              chunkCanvas.height = currentChunkHeight;
-              const ctx = chunkCanvas.getContext('2d');
-              if (!ctx) throw new Error('Failed to prepare PDF chunk canvas context');
-              ctx.drawImage(
-                canvas,
-                0, offsetY, canvas.width, currentChunkHeight,
-                0, 0, chunkCanvas.width, chunkCanvas.height
-              );
-
-              const imageData = chunkCanvas.toDataURL('image/jpeg', 0.98);
-              const imgW = pageW;
-              const imgH = (currentChunkHeight * imgW) / canvas.width;
-              const x = 0;
-              const y = 0;
-
-              if (!isFirstPdfPage) pdf.addPage();
-              pdf.addImage(imageData, 'JPEG', x, y, imgW, imgH, undefined, 'FAST');
-              isFirstPdfPage = false;
-            }
-          } else {
-            // Keep previous fit behavior for non-tall slides.
-            let imgW = pageW;
-            let imgH = (canvas.height * imgW) / canvas.width;
-            if (imgH > pageH) {
-              imgH = pageH;
-              imgW = (canvas.width * imgH) / canvas.height;
-            }
-            const x = (pageW - imgW) / 2;
-            const y = (pageH - imgH) / 2;
-            const imageData = canvas.toDataURL('image/jpeg', 0.98);
-            if (!isFirstPdfPage) pdf.addPage();
-            pdf.addImage(imageData, 'JPEG', x, y, imgW, imgH, undefined, 'FAST');
-            isFirstPdfPage = false;
+          let imgW = pageW;
+          let imgH = (canvas.height * imgW) / canvas.width;
+          if (imgH > pageH) {
+            imgH = pageH;
+            imgW = (canvas.width * imgH) / canvas.height;
           }
+          const x = (pageW - imgW) / 2;
+          const y = (pageH - imgH) / 2;
+          const imageData = canvas.toDataURL('image/jpeg', 0.98);
+          if (!isFirstPdfPage) pdf.addPage();
+          pdf.addImage(imageData, 'JPEG', x, y, imgW, imgH, undefined, 'FAST');
+          isFirstPdfPage = false;
         }
 
         pdfBlob = pdf.output('blob');
