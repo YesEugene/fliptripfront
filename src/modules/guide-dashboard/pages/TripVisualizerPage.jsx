@@ -4724,6 +4724,9 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
           const y = (pageH - imgH) / 2;
           const imageData = canvas.toDataURL('image/jpeg', 0.98);
           if (!isFirstPdfPage) pdf.addPage();
+          // Keep any side/top/bottom offsets consistent with page background.
+          pdf.setFillColor(252, 251, 249);
+          pdf.rect(0, 0, pageW, pageH, 'F');
           pdf.addImage(imageData, 'JPEG', x, y, imgW, imgH, undefined, 'FAST');
           isFirstPdfPage = false;
         }
