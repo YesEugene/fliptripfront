@@ -4195,6 +4195,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
   const [interestSuggestions, setInterestSuggestions] = useState([]);
   const [showInterestSuggestions, setShowInterestSuggestions] = useState(false);
   const [generatingHighlights, setGeneratingHighlights] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
   const [generatingStyledPdf, setGeneratingStyledPdf] = useState(false);
   const [deletingStyledPdf, setDeletingStyledPdf] = useState(false);
 
@@ -4564,6 +4565,72 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
     }
   };
 
+  const handleTourPdfUpload = async (file) => {
+    if (!file) return;
+    if (file.size > 50 * 1024 * 1024) {
+      alert('PDF is too large. Maximum file size is 50MB.');
+      return;
+    }
+
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    if (!isPdf) {
+      alert('Please upload a PDF file.');
+      return;
+    }
+
+    if (!tourId) {
+      alert('Please save the tour as draft first, then upload the PDF.');
+      return;
+    }
+
+    setUploadingPdf(true);
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+
+      const signedResp = await fetch(`${API_BASE_URL}/api/upload-tour-pdf-url`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          tourId,
+          fileName: file.name,
+          contentType: 'application/pdf',
+          fileSize: file.size
+        })
+      });
+
+      const signedData = await signedResp.json();
+      if (!signedResp.ok || !signedData?.success) {
+        throw new Error(signedData?.error || 'Failed to initialize PDF upload');
+      }
+
+      const uploadTarget = signedData.uploadUrl || signedData.signedUrl;
+      const uploadResp = await fetch(uploadTarget, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/pdf'
+        },
+        body: file
+      });
+
+      if (!uploadResp.ok) {
+        const uploadErrorText = await uploadResp.text().catch(() => '');
+        throw new Error(`Failed to upload PDF (${uploadResp.status}) ${uploadErrorText ? `- ${uploadErrorText.slice(0, 240)}` : ''}`);
+      }
+
+      onChange({ ...tourInfo, tourPdfUrl: signedData.publicUrl });
+      alert('Tour PDF uploaded successfully.');
+    } catch (error) {
+      console.error('Error uploading tour PDF:', error);
+      alert(`Failed to upload PDF: ${error.message}`);
+    } finally {
+      setUploadingPdf(false);
+    }
+  };
+
   const handleGenerateStyledPdf = async () => {
     if (!tourId) {
       alert('Please save the tour as draft first, then generate styled PDF.');
@@ -4584,7 +4651,8 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
         body: JSON.stringify({
           tourId,
           template: tourInfo.pdfTemplate || 'classic',
-          layout: tourInfo.pdfLayout || {}
+          layout: tourInfo.pdfLayout || {},
+          allowFallback: false
         })
       });
 
@@ -4600,9 +4668,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
         pdfLayout: tourInfo.pdfLayout || {}
       });
 
-      if (data?.renderMode === 'pdfkit-fallback') {
-        alert('Styled PDF generated, but visual HTML render is unavailable on server right now. Fallback renderer was used.');
-      } else if (data?.mapIncluded === false) {
+      if (data?.mapIncluded === false) {
         alert(`Styled PDF generated, but map was not included: ${data?.mapIssue || 'Map generation failed.'}`);
       } else {
         alert('Styled PDF generated successfully.');
@@ -4796,8 +4862,22 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
               >
                 {generatingStyledPdf ? 'Generating PDF...' : 'Generate PDF'}
               </button>
+              <input
+                type="file"
+                accept="application/pdf,.pdf"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleTourPdfUpload(file);
+                  e.target.value = '';
+                }}
+                style={{ display: 'none' }}
+                id="tour-pdf-upload"
+              />
+              <label htmlFor="tour-pdf-upload" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: uploadingPdf ? '#9ca3af' : '#111827', color: 'white', border: 'none', borderRadius: '8px', cursor: uploadingPdf ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500', marginLeft: '8px' }}>
+                {uploadingPdf ? 'Uploading PDF...' : 'Upload tour PDF'}
+              </label>
               <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px', marginBottom: 0 }}>
-                Generates and attaches a PDF automatically.
+                Generate or upload a PDF (max 50MB).
               </p>
               {tourInfo.tourPdfUrl && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '8px' }}>
