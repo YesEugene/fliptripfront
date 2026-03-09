@@ -185,6 +185,12 @@ export default function TripVisualizerPage() {
     previewOriginal: null,
     previewImages: [], // Additional gallery images for preview carousel
     tourPdfUrl: '', // Optional uploaded tour presentation PDF
+    pdfTemplate: 'classic', // Styled PDF template: classic|magazine|minimal
+    pdfLayout: {
+      subtitle: '',
+      includeMap: true,
+      includeHighlights: true
+    },
     tags: [], // Tags/interests for the tour
     highlights: {} // "What's Inside This Walk" structured: {icon3, text3, icon4, text4, icon5, text5}
   });
@@ -366,6 +372,12 @@ export default function TripVisualizerPage() {
           previewOriginal: sourceData.previewOriginal || draftData?.previewOriginal || tourObj.preview_media_url || sourceData.preview || null,
           previewImages: normalizeImageArray(draftData?.previewImages), // Additional gallery images
           tourPdfUrl: (draftData?.tourPdfUrl || sourceData?.tourPdfUrl || '').toString(),
+          pdfTemplate: draftData?.pdfTemplate || sourceData?.pdfTemplate || 'classic',
+          pdfLayout: {
+            subtitle: draftData?.pdfLayout?.subtitle || '',
+            includeMap: draftData?.pdfLayout?.includeMap !== false,
+            includeHighlights: draftData?.pdfLayout?.includeHighlights !== false
+          },
           tags: [], // Will be set later from tour_tags
           highlights: (() => {
             const h = draftData?.highlights;
@@ -471,6 +483,12 @@ export default function TripVisualizerPage() {
           preview: tourObj.preview || prev.preview,
           previewOriginal: draftData?.previewOriginal || tourObj.preview_media_url || prev.previewOriginal || prev.preview,
           tourPdfUrl: draftData?.tourPdfUrl || prev.tourPdfUrl || '',
+          pdfTemplate: draftData?.pdfTemplate || prev.pdfTemplate || 'classic',
+          pdfLayout: {
+            subtitle: draftData?.pdfLayout?.subtitle || prev.pdfLayout?.subtitle || '',
+            includeMap: draftData?.pdfLayout?.includeMap !== false,
+            includeHighlights: draftData?.pdfLayout?.includeHighlights !== false
+          },
           tags: interestIds.length > 0
             ? interestIds
             : (normalizeStringArray(loadedSettings?.tags).length > 0
@@ -1046,6 +1064,8 @@ export default function TripVisualizerPage() {
             highlights: tourInfo.highlights || {}, // "What's Inside This Walk" structured highlights
             previewImages: tourInfo.previewImages || [], // Gallery images for preview carousel
             tourPdfUrl: tourInfo.tourPdfUrl || '', // Optional uploaded tour presentation PDF
+            pdfTemplate: tourInfo.pdfTemplate || 'classic',
+            pdfLayout: tourInfo.pdfLayout || {},
             meta: {
               interests: [],
               audience: 'him',
@@ -1123,7 +1143,9 @@ export default function TripVisualizerPage() {
             tags: tourInfo.tags || [], // Tags/interests from tour header
             highlights: tourInfo.highlights || {}, // "What's Inside This Walk" structured highlights
             previewImages: tourInfo.previewImages || [], // Gallery images for preview carousel
-            tourPdfUrl: tourInfo.tourPdfUrl || '' // Optional uploaded tour presentation PDF
+            tourPdfUrl: tourInfo.tourPdfUrl || '', // Optional uploaded tour presentation PDF
+            pdfTemplate: tourInfo.pdfTemplate || 'classic',
+            pdfLayout: tourInfo.pdfLayout || {}
           })
         });
         
@@ -1176,6 +1198,8 @@ export default function TripVisualizerPage() {
               previewOriginal: tourInfo.previewOriginal || tourInfo.preview,
               previewImages: tourInfo.previewImages || [],
               tourPdfUrl: tourInfo.tourPdfUrl || '',
+              pdfTemplate: tourInfo.pdfTemplate || 'classic',
+              pdfLayout: tourInfo.pdfLayout || {},
               highlights: tourInfo.highlights || {},
               tags: interestIds.length > 0 ? interestIds : tourInfo.tags // Update interests from server response, fallback to current if empty
             });
@@ -1250,7 +1274,9 @@ export default function TripVisualizerPage() {
                 tags: tourInfo.tags, // Save interests immediately
                 highlights: tourInfo.highlights || {}, // Preserve highlights
                 previewImages: tourInfo.previewImages || [], // Preserve gallery images
-                tourPdfUrl: tourInfo.tourPdfUrl || '' // Preserve uploaded tour PDF
+                tourPdfUrl: tourInfo.tourPdfUrl || '', // Preserve uploaded tour PDF
+                pdfTemplate: tourInfo.pdfTemplate || 'classic',
+                pdfLayout: tourInfo.pdfLayout || {}
               })
             });
             
@@ -1326,6 +1352,8 @@ export default function TripVisualizerPage() {
             highlights: tourInfo.highlights || {}, // "What's Inside This Walk" structured highlights
             previewImages: tourInfo.previewImages || [], // Gallery images for preview carousel
             tourPdfUrl: tourInfo.tourPdfUrl || '', // Optional uploaded tour presentation PDF
+            pdfTemplate: tourInfo.pdfTemplate || 'classic',
+            pdfLayout: tourInfo.pdfLayout || {},
             meta: {
               interests: [],
               audience: 'him',
@@ -1409,7 +1437,9 @@ export default function TripVisualizerPage() {
             tags: tourInfo.tags || [], // Tags/interests from tour header
             highlights: tourInfo.highlights || {}, // "What's Inside This Walk" structured highlights
             previewImages: tourInfo.previewImages || [], // Gallery images for preview carousel
-            tourPdfUrl: tourInfo.tourPdfUrl || '' // Optional uploaded tour presentation PDF
+            tourPdfUrl: tourInfo.tourPdfUrl || '', // Optional uploaded tour presentation PDF
+            pdfTemplate: tourInfo.pdfTemplate || 'classic',
+            pdfLayout: tourInfo.pdfLayout || {}
           })
         });
 
@@ -4166,6 +4196,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
   const [showInterestSuggestions, setShowInterestSuggestions] = useState(false);
   const [generatingHighlights, setGeneratingHighlights] = useState(false);
   const [uploadingPdf, setUploadingPdf] = useState(false);
+  const [generatingStyledPdf, setGeneratingStyledPdf] = useState(false);
 
   // Generate highlights with AI
   const handleGenerateHighlights = async () => {
@@ -4599,6 +4630,61 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
     }
   };
 
+  const updatePdfLayout = (key, value) => {
+    onChange({
+      ...tourInfo,
+      pdfLayout: {
+        ...(tourInfo.pdfLayout || {}),
+        [key]: value
+      }
+    });
+  };
+
+  const handleGenerateStyledPdf = async () => {
+    if (!tourId) {
+      alert('Please save the tour as draft first, then generate styled PDF.');
+      return;
+    }
+
+    setGeneratingStyledPdf(true);
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+
+      const response = await fetch(`${API_BASE_URL}/api/generate-styled-tour-pdf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          tourId,
+          template: tourInfo.pdfTemplate || 'classic',
+          layout: tourInfo.pdfLayout || {}
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.error || 'Failed to generate styled PDF');
+      }
+
+      onChange({
+        ...tourInfo,
+        tourPdfUrl: data.pdfUrl || tourInfo.tourPdfUrl || '',
+        pdfTemplate: data.template || tourInfo.pdfTemplate || 'classic',
+        pdfLayout: tourInfo.pdfLayout || {}
+      });
+
+      alert('Styled PDF generated successfully.');
+    } catch (error) {
+      console.error('Error generating styled PDF:', error);
+      alert(`Failed to generate styled PDF: ${error.message}`);
+    } finally {
+      setGeneratingStyledPdf(false);
+    }
+  };
+
   return (
     <div style={{
       position: 'fixed',
@@ -4740,6 +4826,50 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
                 Tour PDF presentation
               </label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+                <select
+                  value={tourInfo.pdfTemplate || 'classic'}
+                  onChange={(e) => onChange({ ...tourInfo, pdfTemplate: e.target.value })}
+                  style={{ padding: '10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', backgroundColor: 'white' }}
+                >
+                  <option value="classic">Classic</option>
+                  <option value="magazine">Magazine</option>
+                  <option value="minimal">Minimal</option>
+                </select>
+                <input
+                  type="text"
+                  placeholder="PDF subtitle (optional)"
+                  value={tourInfo.pdfLayout?.subtitle || ''}
+                  onChange={(e) => updatePdfLayout('subtitle', e.target.value)}
+                  style={{ padding: '10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px' }}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: '12px', marginBottom: '10px' }}>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#4b5563' }}>
+                  <input
+                    type="checkbox"
+                    checked={tourInfo.pdfLayout?.includeMap !== false}
+                    onChange={(e) => updatePdfLayout('includeMap', e.target.checked)}
+                  />
+                  Include static map
+                </label>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#4b5563' }}>
+                  <input
+                    type="checkbox"
+                    checked={tourInfo.pdfLayout?.includeHighlights !== false}
+                    onChange={(e) => updatePdfLayout('includeHighlights', e.target.checked)}
+                  />
+                  Include highlights
+                </label>
+              </div>
+              <button
+                type="button"
+                onClick={handleGenerateStyledPdf}
+                disabled={generatingStyledPdf}
+                style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: generatingStyledPdf ? '#9ca3af' : '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: generatingStyledPdf ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500', marginRight: '8px' }}
+              >
+                {generatingStyledPdf ? 'Generating styled PDF...' : 'Generate Styled PDF'}
+              </button>
               <input
                 type="file"
                 accept="application/pdf,.pdf"
