@@ -230,7 +230,11 @@ export default function ExplorePage() {
         setLoading(!hasToursFromCacheRef.current);
 
         // Phase 1: fetch a small batch for instant first paint.
-        const firstBatch = await getTours({ limit: hasToursFromCacheRef.current ? 16 : EXPLORE_INITIAL_BATCH, summary: true });
+        const firstBatch = await getTours({
+          limit: hasToursFromCacheRef.current ? 16 : EXPLORE_INITIAL_BATCH,
+          summary: true,
+          fast: true
+        });
         const firstTours = (firstBatch?.success && Array.isArray(firstBatch.tours)) ? firstBatch.tours : [];
         if (!cancelled && firstTours.length > 0) {
           setTours((prev) => mergeToursById(firstTours, prev));
