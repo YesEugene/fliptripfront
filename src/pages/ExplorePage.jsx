@@ -7,7 +7,6 @@ import './ExplorePage.css';
 
 const CITY_PILLS = ['Rome', 'Paris'];
 const EXPLORE_TOURS_CACHE_KEY = 'fliptrip_explore_tours_cache_v1';
-const EXPLORE_TOURS_CACHE_TTL_MS = 10 * 60 * 1000;
 const EXPLORE_INITIAL_BATCH = 8;
 
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?w=1200&h=1600&fit=crop&q=80&auto=format';
@@ -203,8 +202,7 @@ export default function ExplorePage() {
       const rawCache = localStorage.getItem(EXPLORE_TOURS_CACHE_KEY) || sessionStorage.getItem(EXPLORE_TOURS_CACHE_KEY);
       if (!rawCache) return;
       const parsed = JSON.parse(rawCache);
-      const isFresh = Number.isFinite(parsed?.savedAt) && (Date.now() - parsed.savedAt) < EXPLORE_TOURS_CACHE_TTL_MS;
-      if (isFresh && Array.isArray(parsed?.tours) && parsed.tours.length > 0) {
+      if (Array.isArray(parsed?.tours) && parsed.tours.length > 0) {
         setTours(parsed.tours);
         setLoading(false);
         hasToursFromCacheRef.current = true;
@@ -215,44 +213,59 @@ export default function ExplorePage() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     const loadTours = async () => {
+      const persistCache = (nextTours) => {
+        const payload = JSON.stringify({ savedAt: Date.now(), tours: nextTours });
+        try {
+          sessionStorage.setItem(EXPLORE_TOURS_CACHE_KEY, payload);
+          localStorage.setItem(EXPLORE_TOURS_CACHE_KEY, payload);
+        } catch (error) {
+          console.warn('Failed to save explore tours cache:', error);
+        }
+      };
+
       try {
         // Avoid showing full-page loading state if cached tours are already rendered.
         setLoading(!hasToursFromCacheRef.current);
 
         // Phase 1: fetch a small batch for instant first paint.
-        const firstBatch = await getTours({ limit: EXPLORE_INITIAL_BATCH, summary: true });
+        const firstBatch = await getTours({ limit: hasToursFromCacheRef.current ? 16 : EXPLORE_INITIAL_BATCH, summary: true });
         const firstTours = (firstBatch?.success && Array.isArray(firstBatch.tours)) ? firstBatch.tours : [];
-        if (firstTours.length > 0) {
+        if (!cancelled && firstTours.length > 0) {
           setTours((prev) => mergeToursById(firstTours, prev));
           setLoading(false);
           hasToursFromCacheRef.current = true;
         }
 
         // Phase 2: fetch the full list in background for filters/more trips.
-        const fullResult = await getTours({ limit: 200, summary: true });
-        if (fullResult?.success && Array.isArray(fullResult.tours)) {
-          setTours(fullResult.tours);
-          hasToursFromCacheRef.current = true;
-          const payload = JSON.stringify({ savedAt: Date.now(), tours: fullResult.tours });
-          try {
-            sessionStorage.setItem(EXPLORE_TOURS_CACHE_KEY, payload);
-            localStorage.setItem(EXPLORE_TOURS_CACHE_KEY, payload);
-          } catch (error) {
-            console.warn('Failed to save explore tours cache:', error);
-          }
-        } else if (!hasToursFromCacheRef.current) {
-          setTours([]);
-        }
+        void getTours({ limit: 200, summary: true })
+          .then((fullResult) => {
+            if (cancelled) return;
+            if (fullResult?.success && Array.isArray(fullResult.tours) && fullResult.tours.length > 0) {
+              setTours(fullResult.tours);
+              hasToursFromCacheRef.current = true;
+              persistCache(fullResult.tours);
+            } else if (!hasToursFromCacheRef.current) {
+              setTours([]);
+            }
+          })
+          .catch((error) => {
+            console.error('Failed to load full explore tours list:', error);
+          });
       } catch (error) {
         console.error('Failed to load explore tours:', error);
-        if (!hasToursFromCacheRef.current) setTours([]);
+        if (!cancelled && !hasToursFromCacheRef.current) setTours([]);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     loadTours();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const toursWithResolvedTags = useMemo(
