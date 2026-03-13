@@ -6,6 +6,7 @@ export {
   createTour,
   getTours,
   getTourById,
+  getTourPreview,
   getGuideTours,
   updateTour,
   deleteTour

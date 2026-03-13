@@ -366,6 +366,17 @@
   }
 }
 
+/* ── Skeleton pulse animation for itinerary page ── */
+@keyframes itinerary-skeleton-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.itinerary-skeleton-pulse {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 800px 100%;
+  animation: itinerary-skeleton-shimmer 1.6s ease-in-out infinite;
+}
+
 /* Loading and error states */
 .loading-container {
   min-height: 100vh;

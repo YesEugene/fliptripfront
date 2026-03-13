@@ -165,6 +165,29 @@ export async function getTourById(tourId) {
 }
 
 /**
+ * Lightweight preview fetch — returns only header data (title, image, price, city, guide)
+ * Skips heavy tour_days join, other tours, availability
+ * @param {string} tourId - ID тура
+ * @returns {Promise<Object>} - Минимальные данные тура для header
+ */
+export async function getTourPreview(tourId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/tours?id=${tourId}&preview=1`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success || !data.tour) {
+      throw new Error(data.message || 'Tour not found');
+    }
+    return data.tour;
+  } catch (error) {
+    console.error('❌ Get tour preview error:', error);
+    throw error;
+  }
+}
+
+/**
  * Получение туров гида
  * @returns {Promise<Object>} - Список туров гида
  */

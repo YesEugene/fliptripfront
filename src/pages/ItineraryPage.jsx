@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail, checkPayment } from '../services/api';
-import { getTourById } from '../modules/tours-database';
+import { getTourById, getTourPreview } from '../modules/tours-database';
 import { isAuthenticated, getCurrentUser, logout } from '../modules/auth/services/authService';
 import html2pdf from 'html2pdf.js';
 import PhotoGallery from '../components/PhotoGallery';
@@ -255,6 +255,7 @@ export default function ItineraryPage() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
+  const [blocksLoading, setBlocksLoading] = useState(true); // separate flag: blocks still loading
   const [error, setError] = useState('');
   const [itinerary, setItinerary] = useState(null);
   const [email, setEmail] = useState('');
@@ -669,38 +670,89 @@ export default function ItineraryPage() {
     }
   };
 
-  // Load tour from database
+  // ── Cache helpers ──────────────────────────────────────────────
+  const TOUR_CACHE_KEY = 'fliptrip_tour_cache_';
+  const TOUR_CACHE_TTL = 10 * 60 * 1000; // 10 min
+
+  const getCachedTour = (id) => {
+    try {
+      const raw = sessionStorage.getItem(TOUR_CACHE_KEY + id);
+      if (!raw) return null;
+      const { ts, data } = JSON.parse(raw);
+      if (Date.now() - ts > TOUR_CACHE_TTL) { sessionStorage.removeItem(TOUR_CACHE_KEY + id); return null; }
+      return data;
+    } catch { return null; }
+  };
+
+  const cacheTour = (id, data) => {
+    try { sessionStorage.setItem(TOUR_CACHE_KEY + id, JSON.stringify({ ts: Date.now(), data })); } catch {}
+  };
+
+  // Build minimal itinerary header from tour object (works with both preview & full tour)
+  const buildItineraryHeader = (tour, tourIdParam) => {
+    const cityName = typeof tour.city === 'string' ? tour.city : tour.city?.name || 'Unknown City';
+    const draftData = tour.draft_data || {};
+    return {
+      title: draftData.title || tour.title || 'Tour',
+      subtitle: draftData.description || tour.description || `Explore ${cityName} with this curated tour`,
+      city: cityName,
+      tourId: tourIdParam,
+      preview_media_url: draftData.preview || tour.preview_media_url || tour.preview || null,
+      daily_plan: [],
+      tags: { city: cityName, date: formData.date || new Date().toISOString().slice(0, 10), audience: null, budget: null, interests: [] }
+    };
+  };
+
+  // Load tour from database — TWO-PHASE approach for speed
   const loadTourFromDatabase = async (tourIdParam, isPreviewOnly, isFull) => {
     try {
-      setLoading(true);
       setError('');
-      // Ensure previewOnly is correctly determined from URL if not explicitly passed
       const previewOnlyFromUrl = searchParams.get('previewOnly') === 'true';
       const actualPreviewOnly = isPreviewOnly !== undefined ? isPreviewOnly : previewOnlyFromUrl;
       console.log('📖 Loading tour from database:', tourIdParam, 'previewOnly:', actualPreviewOnly, 'full:', isFull);
-      
-      // Check if user has paid for this tour (if email is available)
-      const emailFromUrl = searchParams.get('email');
-      if (emailFromUrl && tourIdParam) {
-        try {
-          const paymentCheck = await checkPayment(tourIdParam, emailFromUrl);
-          if (paymentCheck.success && paymentCheck.hasPaid) {
-            console.log('✅ User has paid for this tour, unlocking full itinerary');
-            setIsPaid(true);
-            // Remove previewOnly flag if paid
-            if (isPreviewOnly) {
-              isPreviewOnly = false;
-            }
-          } else {
-            console.log('ℹ️ User has not paid for this tour yet');
-            setIsPaid(false);
-          }
-        } catch (paymentError) {
-          console.warn('⚠️ Error checking payment status (non-critical):', paymentError);
-          // Don't fail the whole load if payment check fails
-        }
+
+      // ── PHASE 0: instant from cache ─────────────────────────
+      const cached = getCachedTour(tourIdParam);
+      if (cached) {
+        console.log('⚡ Tour header from cache — showing instantly');
+        setTourData(cached);
+        setItinerary(buildItineraryHeader(cached, tourIdParam));
+        setLoading(false); // header visible immediately
+      } else {
+        setLoading(true);
       }
-      
+      setBlocksLoading(true);
+
+      // ── PHASE 1: lightweight preview + payment check in PARALLEL ──
+      const emailFromUrl = searchParams.get('email');
+      const [previewTour, paymentResult] = await Promise.all([
+        // If we already have cache we still fetch preview for freshness
+        getTourPreview(tourIdParam).catch(() => null),
+        // Payment check (only if email present)
+        (emailFromUrl && tourIdParam)
+          ? checkPayment(tourIdParam, emailFromUrl).catch(() => null)
+          : Promise.resolve(null)
+      ]);
+
+      // Handle payment result
+      if (paymentResult?.success && paymentResult?.hasPaid) {
+        console.log('✅ User has paid for this tour, unlocking full itinerary');
+        setIsPaid(true);
+        if (isPreviewOnly) isPreviewOnly = false;
+      } else if (emailFromUrl) {
+        setIsPaid(false);
+      }
+
+      // Show header from preview if we didn't have cache
+      if (previewTour) {
+        setTourData(previewTour);
+        setItinerary(buildItineraryHeader(previewTour, tourIdParam));
+        cacheTour(tourIdParam, previewTour);
+        if (loading) setLoading(false); // header now visible
+        console.log('⚡ Phase 1 done — header rendered from preview API');
+      }
+
+      // ── PHASE 2: full tour + content blocks in background ──
       const tour = await getTourById(tourIdParam);
       setTourData(tour); // Save raw tour data for guide info
       console.log('✅ Tour loaded from DB:', tour);
@@ -882,6 +934,7 @@ export default function ItineraryPage() {
         setContentBlocks([]); // Empty blocks array
         setUseNewFormat(true); // Use new format rendering even if empty
         setLoading(false);
+        setBlocksLoading(false);
         return; // Exit early - will show empty state in UI
       }
       
@@ -963,6 +1016,8 @@ export default function ItineraryPage() {
         setSelectedDate(null);
         
         setLoading(false);
+        setBlocksLoading(false);
+        cacheTour(tourIdParam, tour); // cache full tour for instant reload
         return; // Exit early for new format tours
       }
       
@@ -1128,10 +1183,13 @@ export default function ItineraryPage() {
           setSelectedDate(null);
           
           setLoading(false);
+          setBlocksLoading(false);
+          cacheTour(tourIdParam, tour); // cache full tour for instant reload
     } catch (err) {
       console.error('❌ Error loading tour from database:', err);
       setError(err.message || 'Failed to load tour');
       setLoading(false);
+      setBlocksLoading(false);
     }
   };
 
@@ -1183,6 +1241,7 @@ export default function ItineraryPage() {
       // Use example data directly
       setItinerary(exampleItinerary);
       setLoading(false);
+      setBlocksLoading(false);
     } else if (tourId) {
       // Load tour from database
       loadTourFromDatabase(tourId, previewOnly, isFullPlan);
@@ -1376,6 +1435,7 @@ export default function ItineraryPage() {
       setError(`Failed to generate itinerary for ${formData.city}. Please try again later.`);
     } finally {
       setLoading(false);
+      setBlocksLoading(false);
     }
   };
 
@@ -1732,19 +1792,47 @@ export default function ItineraryPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <img 
-            src={FlipTripLogo}
-            alt="FlipTrip"
-            style={{ 
-              width: '60px', 
-              height: '60px', 
-              marginBottom: '16px',
-              objectFit: 'contain'
-            }} 
-          />
-          <div style={{ fontSize: '20px', color: '#374151' }}>Unfolding your local journey...</div>
+      <div style={{ minHeight: '100vh', backgroundColor: '#ffffff' }}>
+        {/* Skeleton header */}
+        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 16px' }}>
+          {/* Nav bar skeleton */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <div className="itinerary-skeleton-pulse" style={{ width: 100, height: 36, borderRadius: 8 }} />
+            <div style={{ display: 'flex', gap: 12 }}>
+              <div className="itinerary-skeleton-pulse" style={{ width: 60, height: 20, borderRadius: 6 }} />
+              <div className="itinerary-skeleton-pulse" style={{ width: 60, height: 20, borderRadius: 6 }} />
+            </div>
+          </div>
+          {/* Hero image skeleton */}
+          <div className="itinerary-skeleton-pulse" style={{ width: '100%', height: 340, borderRadius: 14, marginBottom: 20 }} />
+          {/* Title skeleton */}
+          <div className="itinerary-skeleton-pulse" style={{ width: '75%', height: 30, borderRadius: 6, marginBottom: 12 }} />
+          {/* City + price row */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div className="itinerary-skeleton-pulse" style={{ width: 90, height: 18, borderRadius: 6 }} />
+            <div className="itinerary-skeleton-pulse" style={{ width: 70, height: 18, borderRadius: 6 }} />
+          </div>
+          {/* Author row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
+            <div className="itinerary-skeleton-pulse" style={{ width: 40, height: 40, borderRadius: '50%' }} />
+            <div>
+              <div className="itinerary-skeleton-pulse" style={{ width: 80, height: 12, borderRadius: 4, marginBottom: 6 }} />
+              <div className="itinerary-skeleton-pulse" style={{ width: 50, height: 12, borderRadius: 4 }} />
+            </div>
+          </div>
+          {/* CTA button skeleton */}
+          <div className="itinerary-skeleton-pulse" style={{ width: '100%', height: 48, borderRadius: 24, marginBottom: 32 }} />
+          {/* About trip skeleton */}
+          <div className="itinerary-skeleton-pulse" style={{ width: '40%', height: 22, borderRadius: 6, marginBottom: 12 }} />
+          <div className="itinerary-skeleton-pulse" style={{ width: '100%', height: 14, borderRadius: 4, marginBottom: 8 }} />
+          <div className="itinerary-skeleton-pulse" style={{ width: '100%', height: 14, borderRadius: 4, marginBottom: 8 }} />
+          <div className="itinerary-skeleton-pulse" style={{ width: '60%', height: 14, borderRadius: 4, marginBottom: 24 }} />
+          {/* Bullets skeleton */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            {[1,2,3,4].map(i => (
+              <div key={i} className="itinerary-skeleton-pulse" style={{ height: 80, borderRadius: 10 }} />
+            ))}
+          </div>
         </div>
       </div>
     );
