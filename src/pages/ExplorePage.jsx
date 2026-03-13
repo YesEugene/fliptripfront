@@ -570,40 +570,53 @@ export default function ExplorePage() {
           actually drink. No filters, no fake reviews-just the real city, curated by those who call it home.
         </p>
         <div className="insiders-grid" ref={insidersScrollRef}>
-          {insiders.map((insider) => (
-            <article className="insider-card" key={insider.id}>
-              <div className="insider-left">
-                {insider.avatar ? (
-                  <img
-                    src={insider.avatar}
-                    alt={insider.name}
-                    className="insider-avatar"
-                  />
-                ) : (
-                  <div className="insider-avatar insider-avatar-placeholder">
-                    {getInitials(insider.name)}
-                  </div>
-                )}
-                <div className="insider-meta">
-                  <div><strong>City:</strong> {insider.city || 'Paris'}</div>
-                  <div><strong>Interests:</strong> {insider.interests || 'Culture, Food, Art'}</div>
+          {loading && insiders.length === 0
+            ? Array.from({ length: 3 }).map((_, idx) => (
+              <article className="insider-card insider-card-skeleton" key={`insider-skeleton-${idx}`} aria-hidden="true">
+                <div className="insider-skeleton-block insider-skeleton-avatar" />
+                <div className="insider-skeleton-column">
+                  <div className="insider-skeleton-block insider-skeleton-line short" />
+                  <div className="insider-skeleton-block insider-skeleton-line" />
+                  <div className="insider-skeleton-block insider-skeleton-line" />
                 </div>
-              </div>
-              <div className="insider-right">
-                <h3>{insider.name}</h3>
-                <p>{insider.bio}</p>
-              </div>
-            </article>
-          ))}
+              </article>
+            ))
+            : insiders.map((insider) => (
+              <article className="insider-card" key={insider.id}>
+                <div className="insider-left">
+                  {insider.avatar ? (
+                    <img
+                      src={insider.avatar}
+                      alt={insider.name}
+                      className="insider-avatar"
+                    />
+                  ) : (
+                    <div className="insider-avatar insider-avatar-placeholder">
+                      {getInitials(insider.name)}
+                    </div>
+                  )}
+                  <div className="insider-meta">
+                    <div><strong>City:</strong> {insider.city || 'Paris'}</div>
+                    <div><strong>Interests:</strong> {insider.interests || 'Culture, Food, Art'}</div>
+                  </div>
+                </div>
+                <div className="insider-right">
+                  <h3>{insider.name}</h3>
+                  <p>{insider.bio}</p>
+                </div>
+              </article>
+            ))}
         </div>
-        <div className="insiders-nav">
-          <button type="button" className="insiders-nav-btn" onClick={() => scrollInsiders(-1)} aria-label="Previous insiders">
-            ←
-          </button>
-          <button type="button" className="insiders-nav-btn" onClick={() => scrollInsiders(1)} aria-label="Next insiders">
-            →
-          </button>
-        </div>
+        {insiders.length > 0 && (
+          <div className="insiders-nav">
+            <button type="button" className="insiders-nav-btn" onClick={() => scrollInsiders(-1)} aria-label="Previous insiders">
+              ←
+            </button>
+            <button type="button" className="insiders-nav-btn" onClick={() => scrollInsiders(1)} aria-label="Next insiders">
+              →
+            </button>
+          </div>
+        )}
       </section>
 
       <footer className="explore-footer">
