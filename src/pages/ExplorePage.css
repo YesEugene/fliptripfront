@@ -458,6 +458,11 @@
 .explore-skeleton-image {
   width: 100%;
   aspect-ratio: 16 / 10;
+  border: none;
+}
+
+.explore-tour-card-skeleton .explore-tour-media {
+  border: none;
 }
 
 .explore-skeleton-title {
