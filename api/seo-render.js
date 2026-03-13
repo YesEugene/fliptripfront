@@ -55,9 +55,14 @@ function toAbsoluteUrl(url = '') {
   return '';
 }
 
-function getOgImageUrl(rawImage = '') {
+function getOgImageUrl(rawImage = '', tourId = '') {
   const value = String(rawImage || '').trim();
   if (!value) return DEFAULT_OG_IMAGE;
+  // base64 data-URIs can't be used as og:image — serve via /api/og-image proxy
+  if (value.startsWith('data:') && tourId) {
+    const siteUrl = normalizeSiteUrl();
+    return `${siteUrl}/api/og-image?tourId=${encodeURIComponent(tourId)}`;
+  }
   if (value.startsWith('data:')) return DEFAULT_OG_IMAGE;
   return toAbsoluteUrl(value) || DEFAULT_OG_IMAGE;
 }
@@ -75,12 +80,12 @@ async function fetchJson(url) {
   return response.json();
 }
 
-function buildPageHtml({ title, description, canonicalPath, bodyHtml, jsonLd, ogImage, pageType = 'website', noindex = false }) {
+function buildPageHtml({ title, description, canonicalPath, bodyHtml, jsonLd, ogImage, pageType = 'website', noindex = false, tourId = '' }) {
   const siteUrl = normalizeSiteUrl();
   const canonical = `${siteUrl}${canonicalPath}`;
   const safeTitle = escapeHtml(title);
   const safeDescription = escapeHtml(description);
-  const safeOgImage = escapeHtml(getOgImageUrl(ogImage));
+  const safeOgImage = escapeHtml(getOgImageUrl(ogImage, tourId));
   const robots = noindex ? 'noindex,follow,max-image-preview:large' : 'index,follow,max-image-preview:large';
 
   return `<!doctype html>
@@ -178,6 +183,7 @@ function renderExploreSeo(tours = []) {
     bodyHtml: `<nav aria-label="Breadcrumb"><a href="/">Home</a> / <span>Explore</span></nav><h1>Explore cities. Like a local.</h1>${listItems || '<p>Tours are being prepared.</p>'}`,
     jsonLd,
     ogImage: tours[0]?.draft_data?.previewOriginal || tours[0]?.preview_media_url || DEFAULT_OG_IMAGE,
+    tourId: tours[0]?.id || '',
     pageType: 'website'
   });
 }
@@ -258,7 +264,7 @@ function renderTourSeo(tourId, tour) {
         '@id': `${siteUrl}${canonicalPath}#trip`,
         name: tourTitle,
         description,
-        image: getOgImageUrl(previewImage),
+        image: getOgImageUrl(previewImage, tourId),
         url: `${siteUrl}${canonicalPath}`,
         provider: {
           '@type': 'Organization',
@@ -294,7 +300,8 @@ function renderTourSeo(tourId, tour) {
     bodyHtml,
     jsonLd,
     ogImage: previewImage,
-    pageType: 'article'
+    pageType: 'article',
+    tourId
   });
 }
 
