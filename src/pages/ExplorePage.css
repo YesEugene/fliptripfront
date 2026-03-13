@@ -444,6 +444,54 @@
   font-size: 14px;
 }
 
+.explore-tour-card-skeleton {
+  pointer-events: none;
+}
+
+.explore-skeleton-block {
+  background: linear-gradient(90deg, #ece9e4 0%, #f3f1ed 45%, #ece9e4 100%);
+  background-size: 220% 100%;
+  animation: explore-shimmer 1.3s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+.explore-skeleton-image {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+}
+
+.explore-skeleton-title {
+  height: 28px;
+  width: 78%;
+}
+
+.explore-skeleton-line {
+  margin-top: 10px;
+  height: 14px;
+  width: 100%;
+}
+
+.explore-skeleton-line.short {
+  width: 72%;
+}
+
+.explore-skeleton-tags {
+  margin-top: 18px;
+  display: flex;
+  gap: 8px;
+}
+
+.explore-skeleton-pill {
+  height: 25px;
+  width: 96px;
+  border-radius: 999px;
+}
+
+@keyframes explore-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
 .more-trips-row {
   max-width: var(--content-max-width);
   margin: 22px auto 0;

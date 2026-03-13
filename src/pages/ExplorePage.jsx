@@ -7,7 +7,7 @@ import './ExplorePage.css';
 
 const CITY_PILLS = ['Rome', 'Paris'];
 const EXPLORE_TOURS_CACHE_KEY = 'fliptrip_explore_tours_cache_v1';
-const EXPLORE_INITIAL_BATCH = 8;
+const EXPLORE_INITIAL_BATCH = 60;
 
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?w=1200&h=1600&fit=crop&q=80&auto=format';
 const FALLBACK_GUIDE_BIO = 'Local creator sharing authentic city routes, hidden places, and personal recommendations.';
@@ -79,6 +79,40 @@ function mergeToursById(primary = [], secondary = []) {
     if (key) map.set(key, tour);
   });
   return Array.from(map.values());
+}
+
+function mergeToursPreserveOrder(current = [], incoming = []) {
+  const incomingById = new Map(incoming.map((tour) => [String(tour?.id || ''), tour]));
+  const currentIds = new Set(current.map((tour) => String(tour?.id || '')));
+  const merged = current.map((tour) => {
+    const key = String(tour?.id || '');
+    const next = incomingById.get(key);
+    return next ? { ...tour, ...next } : tour;
+  });
+  incoming.forEach((tour) => {
+    const key = String(tour?.id || '');
+    if (key && !currentIds.has(key)) merged.push(tour);
+  });
+  return merged;
+}
+
+function TourCardSkeleton() {
+  return (
+    <article className="explore-tour-card explore-tour-card-skeleton" aria-hidden="true">
+      <div className="explore-tour-media">
+        <div className="explore-skeleton-block explore-skeleton-image" />
+      </div>
+      <div className="explore-tour-card-body">
+        <div className="explore-skeleton-block explore-skeleton-title" />
+        <div className="explore-skeleton-block explore-skeleton-line" />
+        <div className="explore-skeleton-block explore-skeleton-line short" />
+        <div className="explore-skeleton-tags">
+          <div className="explore-skeleton-block explore-skeleton-pill" />
+          <div className="explore-skeleton-block explore-skeleton-pill" />
+        </div>
+      </div>
+    </article>
+  );
 }
 
 function TourCard({ tour, tags = [], className = '', variant = 'below', onClick, imagePriority = false }) {
@@ -247,7 +281,7 @@ export default function ExplorePage() {
           .then((fullResult) => {
             if (cancelled) return;
             if (fullResult?.success && Array.isArray(fullResult.tours) && fullResult.tours.length > 0) {
-              setTours(fullResult.tours);
+              setTours((prev) => mergeToursPreserveOrder(prev, fullResult.tours));
               hasToursFromCacheRef.current = true;
               persistCache(fullResult.tours);
             } else if (!hasToursFromCacheRef.current) {
@@ -448,6 +482,18 @@ export default function ExplorePage() {
       </section>
 
       <section className="explore-trips-section">
+        {loading && displayedTours.length === 0 && (
+          <div className="explore-trips-columns explore-trips-columns-skeleton">
+            <div className="explore-trips-column">
+              <TourCardSkeleton />
+              <TourCardSkeleton />
+            </div>
+            <div className="explore-trips-column">
+              <TourCardSkeleton />
+              <TourCardSkeleton />
+            </div>
+          </div>
+        )}
         {exploreLayoutItems.map((item, itemIndex) => {
           if (item.type === 'wide') {
             const tour = item.tour;
@@ -505,7 +551,6 @@ export default function ExplorePage() {
             </div>
           );
         })}
-        {loading && <p className="explore-loading">Loading trips...</p>}
       </section>
 
       {hasMoreTours && (
