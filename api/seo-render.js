@@ -215,7 +215,10 @@ function renderHomeSeo() {
     title: 'FlipTrip | Curated city routes by locals',
     description: 'Find city routes created by local insiders and explore places beyond typical tourist paths.',
     canonicalPath: '/',
-    bodyHtml: '<h1>FlipTrip</h1><p>Curated city guides from people who live there.</p>',
+    bodyHtml: `<h1>FlipTrip — Curated City Routes by Local Insiders</h1>
+<p>Explore cities like a local. Skip the tourist traps — discover curated day trips created by people who actually live and breathe the city.</p>
+<p>Whether it's hidden courtyards of Paris or ancient layers beneath Rome, these are the places locals recommend to their friends.</p>
+<nav><a href="/explore">Explore all tours</a></nav>`,
     jsonLd,
     ogImage: DEFAULT_OG_IMAGE
   });
@@ -347,9 +350,8 @@ export default async function handler(req, res) {
         );
       }
 
-      const target = `/tour/${buildTourSlug({ ...tour, id: tourId })}`;
-      res.setHeader('Location', target);
-      return res.status(301).send('');
+      // Render full SEO HTML directly (canonical → /tour/slug to avoid duplicate indexing)
+      return res.status(200).send(renderTourSeo(tourId, tour));
     }
 
     if (route === 'tour') {
