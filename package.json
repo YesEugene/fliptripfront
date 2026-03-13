@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && mv dist/index.html dist/_spa.html",
     "lint": "eslint .",
     "preview": "vite preview",
-    "vercel-build": "vite build"
+    "vercel-build": "vite build && mv dist/index.html dist/_spa.html"
   },
   "dependencies": {
     "@tailwindcss/forms": "^0.5.10",

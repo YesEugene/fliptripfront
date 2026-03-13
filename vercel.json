@@ -112,6 +112,6 @@
       ],
       "destination": "/api/seo-render?route=tour&slug=:slug"
     },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/(.*)", "destination": "/_spa.html" }
   ]
 }
