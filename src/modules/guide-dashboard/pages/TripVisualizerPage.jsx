@@ -255,11 +255,15 @@ export default function TripVisualizerPage() {
   }, [tourSettings.withGuide, tourId]);
 
   useEffect(() => {
-    loadUser();
-    loadGuideProfile();
-    if (tourId) {
-      loadTour();
-    }
+    const initPage = async () => {
+      await loadUser();
+      loadGuideProfile();
+      if (tourId) {
+        await loadTour();
+      }
+      setLoading(false);
+    };
+    initPage();
     // No need to preload all cities - we'll search via API as user types
     // Cities are now searched via API for better performance
     
@@ -313,7 +317,8 @@ export default function TripVisualizerPage() {
     // Check if user is admin
     const userIsAdmin = currentUser.role === 'admin';
     setIsAdmin(userIsAdmin);
-    setLoading(false);
+    // Don't set loading=false here — wait for loadTour to finish too
+    // If there's no tourId, loading will be set false after this useEffect
   };
 
   const loadGuideProfile = async () => {
