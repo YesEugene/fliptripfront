@@ -2247,25 +2247,72 @@ export default function TripVisualizerPage() {
   }, [tour?.status, lastSubmittedAt]);
 
   if (loading) {
+    const skeletonBlock = {
+      background: 'linear-gradient(90deg, #ece9e4 0%, #f3f1ed 45%, #ece9e4 100%)',
+      backgroundSize: '220% 100%',
+      animation: 'visualizer-shimmer 1.3s ease-in-out infinite',
+      borderRadius: '6px',
+    };
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column',
-        gap: '10px',
-        backgroundColor: '#ffffff'
-      }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#ffffff' }}>
+        <style>{`
+          @keyframes visualizer-shimmer {
+            0% { background-position: 100% 0; }
+            100% { background-position: -100% 0; }
+          }
+        `}</style>
+        {/* Skeleton Header */}
         <div style={{
-          width: '28px',
-          height: '28px',
-          border: '3px solid #e5e7eb',
-          borderTop: '3px solid #2563eb',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite'
-        }} />
-        <div style={{ color: '#374151', fontWeight: '500' }}>Loading tour...</div>
+          backgroundColor: 'white',
+          borderBottom: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          width: '100%',
+          padding: '16px 20px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <img src={FlipTripLogo} alt="FlipTrip" style={{ height: '40px' }} />
+            <div style={{ ...skeletonBlock, width: '110px', height: '24px' }} />
+          </div>
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <div style={{ ...skeletonBlock, width: '70px', height: '16px' }} />
+            <div style={{ ...skeletonBlock, width: '140px', height: '36px', borderRadius: '8px' }} />
+          </div>
+        </div>
+        {/* Skeleton Content */}
+        <div style={{ maxWidth: '750px', margin: '0 auto', padding: '40px 20px' }}>
+          {/* Hero image skeleton */}
+          <div style={{ ...skeletonBlock, width: '100%', height: '400px', borderRadius: '16px', marginBottom: '20px' }} />
+          {/* Title */}
+          <div style={{ ...skeletonBlock, width: '55%', height: '28px', marginBottom: '10px' }} />
+          {/* City */}
+          <div style={{ ...skeletonBlock, width: '80px', height: '16px', marginBottom: '20px' }} />
+          {/* Author row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '28px' }}>
+            <div style={{ ...skeletonBlock, width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0 }} />
+            <div>
+              <div style={{ ...skeletonBlock, width: '90px', height: '12px', marginBottom: '6px' }} />
+              <div style={{ ...skeletonBlock, width: '130px', height: '16px' }} />
+            </div>
+          </div>
+          {/* About section */}
+          <div style={{ ...skeletonBlock, width: '120px', height: '22px', marginBottom: '12px' }} />
+          <div style={{ ...skeletonBlock, width: '100%', height: '14px', marginBottom: '8px' }} />
+          <div style={{ ...skeletonBlock, width: '92%', height: '14px', marginBottom: '8px' }} />
+          <div style={{ ...skeletonBlock, width: '70%', height: '14px', marginBottom: '40px' }} />
+          {/* Content blocks skeleton */}
+          {[1, 2].map((i) => (
+            <div key={i} style={{ marginBottom: '32px' }}>
+              <div style={{ ...skeletonBlock, width: '100%', height: '220px', borderRadius: '12px', marginBottom: '12px' }} />
+              <div style={{ ...skeletonBlock, width: '45%', height: '20px', marginBottom: '8px' }} />
+              <div style={{ ...skeletonBlock, width: '100%', height: '14px', marginBottom: '6px' }} />
+              <div style={{ ...skeletonBlock, width: '85%', height: '14px' }} />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
