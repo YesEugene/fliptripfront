@@ -881,7 +881,7 @@ export default function HomePage() {
                 ) : (
                   <>
                     <Link
-                      to="/join?tab=traveler"
+                      to="/join?tab=traveler&mode=login"
                       style={{
                         color: 'white',
                         textDecoration: 'none',

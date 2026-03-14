@@ -18,10 +18,18 @@ Create a guide for your ideal day. Let others see the city through your eyes and
 const TRAVELER_COPY = {
   headline: "SEE THE CITY THROUGH A LOCAL'S EYES",
   subheadline: 'Skip the tourist traps. Discover curated day trips created by people who actually live and breathe the city.',
-  body: `Stop scrolling through endless "top 10" lists. We’ve gathered architects, chefs, and artists to show you their version of the city.
+  body: `Stop scrolling through endless "top 10" lists. We've gathered architects, chefs, and artists to show you their version of the city.
 
-Whether it’s a morning route through hidden courtyards or a late-night tour of the best vinyl bars, these are the places locals actually recommend to their friends. Just pick a mood, follow the map, and enjoy your ideal day.`,
+Whether it's a morning route through hidden courtyards or a late-night tour of the best vinyl bars, these are the places locals actually recommend to their friends. Just pick a mood, follow the map, and enjoy your ideal day.`,
   cta: 'Start exploring',
+};
+
+const LOGIN_COPY = {
+  headline: "SEE THE CITY THROUGH A LOCAL'S EYES",
+  subheadline: 'Welcome back! Your personal dashboard is waiting.',
+  body: `In your dashboard you can access all the tours you've purchased, revisit your favorite routes anytime, and keep track of new tours from your favorite locals.
+
+Soon we'll add email notifications for new tours in your favorite cities, wishlists, and personal travel notes. Stay tuned — your best trips are ahead.`,
 };
 
 function getRedirectByRole(role) {
@@ -36,10 +44,11 @@ export default function AuthOnboardingPage() {
 
   const searchParams = new URLSearchParams(location.search);
   const requestedTab = searchParams.get('tab');
+  const requestedMode = searchParams.get('mode'); // 'login' or null
   const defaultGuideTab = location.pathname === '/become-local' || requestedTab === 'guide';
 
   const [activeTab, setActiveTab] = useState(defaultGuideTab ? 'guide' : 'traveler');
-  const [authMode, setAuthMode] = useState('register'); // register | login
+  const [authMode, setAuthMode] = useState(requestedMode === 'login' ? 'login' : 'register'); // register | login
   const [step, setStep] = useState('form'); // form | verify
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -56,7 +65,11 @@ export default function AuthOnboardingPage() {
   });
   const [code, setCode] = useState('');
 
-  const activeCopy = useMemo(() => (activeTab === 'guide' ? GUIDE_COPY : TRAVELER_COPY), [activeTab]);
+  const activeCopy = useMemo(() => {
+    if (activeTab === 'guide') return GUIDE_COPY;
+    if (authMode === 'login') return LOGIN_COPY;
+    return TRAVELER_COPY;
+  }, [activeTab, authMode]);
 
   const role = activeTab === 'guide' ? 'guide' : 'user';
 
@@ -238,7 +251,7 @@ export default function AuthOnboardingPage() {
               )}
             </div>
 
-            {authMode === 'login' && (
+            {authMode === 'login' && requestedMode !== 'login' && (
               <div className="auth-switch-row auth-switch-back">
                 <Link to={activeTab === 'guide' ? '/become-local' : '/join?tab=traveler'} className="auth-back-link">
                   Back to onboarding

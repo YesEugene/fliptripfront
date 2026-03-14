@@ -433,7 +433,7 @@ export default function ExplorePage() {
             <button type="button" className="become-local-btn" onClick={() => navigate('/become-local')}>
               Become a Local
             </button>
-            <button type="button" className="login-btn" onClick={() => navigate('/join?tab=traveler')}>
+            <button type="button" className="login-btn" onClick={() => navigate('/join?tab=traveler&mode=login')}>
               Login
             </button>
           </div>
