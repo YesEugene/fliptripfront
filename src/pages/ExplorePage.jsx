@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import { getTours } from '../services/api';
+import { getCurrentUser, logout } from '../modules/auth/services/authService';
 import { buildTourSlug } from '../utils/tourSlug';
 import './ExplorePage.css';
 
@@ -187,6 +188,12 @@ function TourCard({ tour, tags = [], className = '', variant = 'below', onClick,
   );
 }
 
+function getDashboardPath(role) {
+  if (role === 'admin') return '/admin/dashboard';
+  if (role === 'guide') return '/guide/dashboard';
+  return '/user/dashboard';
+}
+
 export default function ExplorePage() {
   const navigate = useNavigate();
   const insidersScrollRef = useRef(null);
@@ -198,6 +205,16 @@ export default function ExplorePage() {
   const [selectedCities, setSelectedCities] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
   const [visibleCount, setVisibleCount] = useState(5);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    try {
+      const currentUser = getCurrentUser();
+      if (currentUser) setUser(currentUser);
+    } catch (e) {
+      console.error('Error checking auth:', e);
+    }
+  }, []);
 
   useEffect(() => {
     const loadInterestNames = async () => {
@@ -430,12 +447,33 @@ export default function ExplorePage() {
             <img src={FlipTripLogo} alt="FlipTrip" className="explore-logo" />
           </Link>
           <div className="explore-auth-actions">
-            <button type="button" className="become-local-btn" onClick={() => navigate('/become-local')}>
-              Become a Local
-            </button>
-            <button type="button" className="login-btn" onClick={() => navigate('/join?tab=traveler&mode=login')}>
-              Login
-            </button>
+            {user ? (
+              <>
+                <button
+                  type="button"
+                  className="login-btn"
+                  onClick={() => navigate(getDashboardPath(user.role))}
+                >
+                  {user.role === 'admin' ? 'Admin' : (user.name || 'Dashboard')}
+                </button>
+                <button
+                  type="button"
+                  className="become-local-btn"
+                  onClick={() => { logout(); setUser(null); window.location.reload(); }}
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <button type="button" className="become-local-btn" onClick={() => navigate('/become-local')}>
+                  Become a Local
+                </button>
+                <button type="button" className="login-btn" onClick={() => navigate('/join?tab=traveler&mode=login')}>
+                  Login
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>

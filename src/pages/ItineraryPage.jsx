@@ -2128,7 +2128,7 @@ export default function ItineraryPage() {
           {user ? (
             <>
               <Link
-                to={user.role === 'guide' ? '/guide/dashboard' : '/user/dashboard'}
+                to={user.role === 'admin' ? '/admin/dashboard' : (user.role === 'guide' ? '/guide/dashboard' : '/user/dashboard')}
                 style={{
                   color: '#374151',
                   textDecoration: 'none',
@@ -2136,7 +2136,7 @@ export default function ItineraryPage() {
                   fontWeight: '600'
                 }}
               >
-                {user.name}
+                {user.role === 'admin' ? 'Admin' : (user.name || 'Dashboard')}
               </Link>
               <button
                 onClick={() => {
@@ -2155,13 +2155,13 @@ export default function ItineraryPage() {
                   fontWeight: '600'
                 }}
               >
-                Выйти
+                Logout
               </button>
             </>
           ) : (
             <>
               <Link
-                to="/login"
+                to="/join?tab=traveler&mode=login"
                 style={{
                   color: '#374151',
                   textDecoration: 'none',
@@ -2169,10 +2169,10 @@ export default function ItineraryPage() {
                   fontWeight: '600'
                 }}
               >
-                Вход
+                Login
               </Link>
               <Link
-                to="/register"
+                to="/become-local"
                 style={{
                   backgroundColor: '#3b82f6',
                   color: 'white',
@@ -2184,7 +2184,7 @@ export default function ItineraryPage() {
                   fontWeight: '600'
                 }}
               >
-                Регистрация
+                Become a Local
               </Link>
             </>
           )}

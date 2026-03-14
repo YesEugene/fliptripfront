@@ -857,7 +857,7 @@ export default function HomePage() {
                         textShadow: '0 2px 4px rgba(0,0,0,0.5)'
                       }}
                     >
-                      {user.role === 'admin' ? 'Admin' : user.name}
+                      {user.role === 'admin' ? 'Admin' : (user.name || 'Dashboard')}
                     </Link>
                     <button
                       onClick={() => {
@@ -875,7 +875,7 @@ export default function HomePage() {
                         cursor: 'pointer'
                       }}
                     >
-                      Выйти
+                      Logout
                     </button>
                   </>
                 ) : (
@@ -890,7 +890,7 @@ export default function HomePage() {
                         textShadow: '0 2px 4px rgba(0,0,0,0.5)'
                       }}
                     >
-                      Вход
+                      Login
                     </Link>
                     <Link
                       to="/become-local"
@@ -905,7 +905,7 @@ export default function HomePage() {
                         fontWeight: '600'
                       }}
                     >
-                      Регистрация
+                      Become a Local
                     </Link>
                   </>
                 )}
