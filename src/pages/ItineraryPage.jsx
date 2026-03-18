@@ -287,6 +287,7 @@ export default function ItineraryPage() {
   const [currentSlide, setCurrentSlide] = useState(0); // Image carousel current slide index
   const [isMobile, setIsMobile] = useState(false); // Mobile detection
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const trackedTourViewsRef = useRef(new Set()); // Prevent duplicate analytics events per tour ID
 
   // Detect mobile screen size
   useEffect(() => {
@@ -1250,6 +1251,27 @@ export default function ItineraryPage() {
       generateItineraryData();
     }
   }, [isExample, exampleItinerary, tourId, previewOnly, isFullPlan, isPaid]);
+
+  // Send custom GTM event once per tour page view with both ID and title.
+  useEffect(() => {
+    if (!tourId || typeof window === 'undefined') return;
+
+    const draftData = tourData?.draft_data || {};
+    const resolvedTourName = (draftData.title || tourData?.title || itinerary?.title || '').trim();
+    if (!resolvedTourName) return;
+
+    if (trackedTourViewsRef.current.has(tourId)) return;
+
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'view_tour',
+      tour_name: resolvedTourName,
+      tour_id: tourId
+    });
+
+    trackedTourViewsRef.current.add(tourId);
+    console.log('📊 GTM event pushed:', { event: 'view_tour', tour_name: resolvedTourName, tour_id: tourId });
+  }, [tourId, tourData, itinerary]);
 
   const generateItineraryData = async () => {
     try {
