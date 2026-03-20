@@ -65,6 +65,19 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 // Weekday names for calendar (Monday first)
 const WEEKDAYS = ['П', 'В', 'С', 'Ч', 'П', 'С', 'В'];
 
+function AnimatedProgressText({ label }) {
+  const [dotCount, setDotCount] = useState(1);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setDotCount(prev => (prev % 3) + 1);
+    }, 350);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  return <>{label}{'.'.repeat(dotCount)}</>;
+}
+
 export default function TripVisualizerPage() {
   const navigate = useNavigate();
   const { tourId } = useParams();
@@ -88,6 +101,8 @@ export default function TripVisualizerPage() {
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isSubmittingForModeration, setIsSubmittingForModeration] = useState(false);
   const [isSavingHeaderModal, setIsSavingHeaderModal] = useState(false);
+  const [isSavingBlock, setIsSavingBlock] = useState(false);
+  const [isDeletingBlock, setIsDeletingBlock] = useState(false);
   const [lastDraftSavedAt, setLastDraftSavedAt] = useState(null);
   const [lastSubmittedAt, setLastSubmittedAt] = useState(null);
 
@@ -1783,6 +1798,8 @@ export default function TripVisualizerPage() {
   };
 
   const handleSaveBlock = async (updatedBlock) => {
+    if (isSavingBlock || isDeletingBlock) return;
+    setIsSavingBlock(true);
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       if (!token) {
@@ -1929,10 +1946,14 @@ export default function TripVisualizerPage() {
     } catch (error) {
       console.error('Error saving block:', error);
       alert('Error saving block. Please try again.');
+    } finally {
+      setIsSavingBlock(false);
     }
   };
 
   const handleDeleteBlock = async (blockId) => {
+    if (isDeletingBlock || isSavingBlock) return;
+    setIsDeletingBlock(true);
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       if (!token) {
@@ -1961,6 +1982,8 @@ export default function TripVisualizerPage() {
     } catch (error) {
       console.error('Error deleting block:', error);
       alert('Error deleting block. Please try again.');
+    } finally {
+      setIsDeletingBlock(false);
     }
   };
 
@@ -2963,7 +2986,7 @@ export default function TripVisualizerPage() {
                   }}
                   title="Refresh expired Google Places photos for all locations"
                 >
-                  {isRefreshingPhotos ? '⏳' : '🔄'} {isRefreshingPhotos ? 'Refreshing...' : 'Refresh Photos'}
+                  {isRefreshingPhotos ? '⏳' : '🔄'} {isRefreshingPhotos ? <AnimatedProgressText label="Refreshing" /> : 'Refresh Photos'}
                 </button>
               )}
 
@@ -2999,7 +3022,7 @@ export default function TripVisualizerPage() {
                 }}
                 title=""
               >
-                {isSavingDraft ? 'Saving...' : (lastDraftSavedAt ? 'Saved' : 'Save as Draft')}
+                {isSavingDraft ? <AnimatedProgressText label="Saving" /> : (lastDraftSavedAt ? 'Saved' : 'Save as Draft')}
               </button>
             </div>
 
@@ -3551,7 +3574,7 @@ export default function TripVisualizerPage() {
                     )}
                 >
                   {isSubmittingForModeration
-                    ? 'Submitting...'
+                    ? <AnimatedProgressText label="Submitting" />
                     : (((tour?.status || '').toLowerCase() === 'pending' || lastSubmittedAt) ? 'Submitted' : 'Submit for Moderation')}
                 </button>
               </div>
@@ -3644,6 +3667,8 @@ export default function TripVisualizerPage() {
           onClose={() => setEditingBlock(null)}
           onSave={handleSaveBlock}
           onDelete={handleDeleteBlock}
+          isSaving={isSavingBlock}
+          isDeleting={isDeletingBlock}
           onImageUpload={handleImageUpload}
           onOpenLocationSelector={(locationIndex) => {
             // Save current editingLocationIndex to editingBlock before opening selector
@@ -5384,7 +5409,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
   );
 }
 
-function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onOpenLocationSelector, tourCity }) {
+function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onOpenLocationSelector, tourCity, isSaving = false, isDeleting = false }) {
   // Helper function to normalize content
   const normalizeContent = (contentToNormalize) => {
     if (!contentToNormalize || Object.keys(contentToNormalize).length === 0) {
@@ -5500,8 +5525,9 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
 
   // Interests structure loading removed - interests are now edited in tour header only
 
-  const handleSave = () => {
-    onSave({ ...block, content });
+  const handleSave = async () => {
+    if (isSaving || isDeleting) return;
+    await onSave({ ...block, content });
   };
 
   const renderEditor = () => {
@@ -7234,33 +7260,38 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'space-between', marginTop: '24px' }}>
           <button
             onClick={() => {
+              if (isSaving || isDeleting) return;
               if (onDelete && confirm('Are you sure you want to delete this block?')) {
                 onDelete(block.id);
               }
             }}
+            disabled={isSaving || isDeleting}
             style={{
               padding: '10px 20px',
               backgroundColor: '#ef4444',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
-              cursor: 'pointer',
+              cursor: (isSaving || isDeleting) ? 'not-allowed' : 'pointer',
+              opacity: (isSaving || isDeleting) ? 0.7 : 1,
               fontSize: '14px',
               fontWeight: '500'
             }}
           >
-            Delete
+            {isDeleting ? <AnimatedProgressText label="Deleting" /> : 'Delete'}
           </button>
           <div style={{ display: 'flex', gap: '12px' }}>
             <button
               onClick={onClose}
+              disabled={isSaving || isDeleting}
               style={{
                 padding: '10px 20px',
                 backgroundColor: '#111827',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
-                cursor: 'pointer',
+                cursor: (isSaving || isDeleting) ? 'not-allowed' : 'pointer',
+                opacity: (isSaving || isDeleting) ? 0.7 : 1,
                 fontSize: '14px',
                 fontWeight: '500'
               }}
@@ -7269,18 +7300,19 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
             </button>
             <button
               onClick={handleSave}
+              disabled={isSaving || isDeleting}
               style={{
                 padding: '10px 20px',
-                backgroundColor: '#3b82f6',
+                backgroundColor: (isSaving || isDeleting) ? '#93c5fd' : '#3b82f6',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
-                cursor: 'pointer',
+                cursor: (isSaving || isDeleting) ? 'not-allowed' : 'pointer',
                 fontSize: '14px',
                 fontWeight: '500'
               }}
             >
-              Save
+              {isSaving ? <AnimatedProgressText label="Saving" /> : 'Save'}
             </button>
           </div>
         </div>
