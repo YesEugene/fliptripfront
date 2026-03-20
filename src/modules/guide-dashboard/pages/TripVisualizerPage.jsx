@@ -6617,11 +6617,12 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                     Photos of Location
                     <HintButton hintKey="locationPhoto" />
                   </label>
-                  
-                  {/* Photo preview carousel */}
+
+                  {/* Smaller photo preview: first photo is the cover in user itinerary */}
                   <div style={{
                     width: '100%',
-                    aspectRatio: '1',
+                    maxWidth: '640px',
+                    height: '180px',
                     border: '2px dashed #d1d5db',
                     borderRadius: '8px',
                     display: 'flex',
@@ -6635,7 +6636,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                     {(() => {
                       const photos = currentLocation.photos || (currentLocation.photo ? [currentLocation.photo] : []);
                       if (photos.length > 0) {
-                        const currentPhoto = refreshPhotoUrl(photos[0]);
+                        const currentPhoto = refreshPhotoUrl(photos[0]); // first photo is primary
                         return (
                           <>
                             <img 
@@ -6648,6 +6649,18 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                                 objectPosition: 'center'
                               }} 
                             />
+                            <div style={{
+                              position: 'absolute',
+                              top: '8px',
+                              left: '8px',
+                              backgroundColor: 'rgba(17, 24, 39, 0.75)',
+                              color: '#fff',
+                              fontSize: '12px',
+                              padding: '3px 8px',
+                              borderRadius: '999px'
+                            }}>
+                              Cover photo
+                            </div>
                             {photos.length > 1 && (
                               <div style={{
                                 position: 'absolute',
@@ -6677,7 +6690,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                       return <span style={{ color: '#6b7280' }}>No photos selected</span>;
                     })()}
                   </div>
-                  
+
                   <input
                     type="file"
                     accept="image/*"
@@ -6723,7 +6736,126 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                   >
                     Add photos
                   </label>
-                  
+
+                  {/* Per-photo controls for order + delete */}
+                  {(() => {
+                    const photos = currentLocation.photos || (currentLocation.photo ? [currentLocation.photo] : []);
+                    if (photos.length === 0) return null;
+
+                    const movePhoto = (fromIndex, toIndex) => {
+                      if (toIndex < 0 || toIndex >= photos.length) return;
+                      const updated = [...photos];
+                      const [moved] = updated.splice(fromIndex, 1);
+                      updated.splice(toIndex, 0, moved);
+                      updateCurrentLocation({
+                        photos: updated,
+                        photo: undefined
+                      });
+                    };
+
+                    const removePhotoAt = (indexToRemove) => {
+                      const updated = photos.filter((_, idx) => idx !== indexToRemove);
+                      updateCurrentLocation({
+                        photos: updated,
+                        photo: undefined
+                      });
+                    };
+
+                    return (
+                      <div style={{
+                        marginBottom: '12px',
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(118px, 1fr))',
+                        gap: '10px'
+                      }}>
+                        {photos.map((photo, index) => (
+                          <div
+                            key={`${index}-${photo?.slice?.(0, 30) || 'photo'}`}
+                            style={{
+                              border: '1px solid #e5e7eb',
+                              borderRadius: '8px',
+                              padding: '6px',
+                              backgroundColor: '#fff'
+                            }}
+                          >
+                            <img
+                              src={refreshPhotoUrl(photo)}
+                              alt={`Location photo ${index + 1}`}
+                              style={{
+                                width: '100%',
+                                height: '72px',
+                                borderRadius: '6px',
+                                objectFit: 'cover',
+                                marginBottom: '6px'
+                              }}
+                            />
+                            <div style={{
+                              fontSize: '11px',
+                              color: '#6b7280',
+                              marginBottom: '6px',
+                              textAlign: 'center',
+                              fontWeight: index === 0 ? '600' : '400'
+                            }}>
+                              {index === 0 ? '1 (cover)' : index + 1}
+                            </div>
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                              <button
+                                type="button"
+                                onClick={() => movePhoto(index, index - 1)}
+                                disabled={index === 0}
+                                style={{
+                                  flex: 1,
+                                  border: '1px solid #d1d5db',
+                                  borderRadius: '6px',
+                                  backgroundColor: index === 0 ? '#f3f4f6' : '#fff',
+                                  color: index === 0 ? '#9ca3af' : '#111827',
+                                  cursor: index === 0 ? 'not-allowed' : 'pointer',
+                                  fontSize: '11px',
+                                  padding: '4px 0'
+                                }}
+                              >
+                                ←
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => movePhoto(index, index + 1)}
+                                disabled={index === photos.length - 1}
+                                style={{
+                                  flex: 1,
+                                  border: '1px solid #d1d5db',
+                                  borderRadius: '6px',
+                                  backgroundColor: index === photos.length - 1 ? '#f3f4f6' : '#fff',
+                                  color: index === photos.length - 1 ? '#9ca3af' : '#111827',
+                                  cursor: index === photos.length - 1 ? 'not-allowed' : 'pointer',
+                                  fontSize: '11px',
+                                  padding: '4px 0'
+                                }}
+                              >
+                                →
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => removePhotoAt(index)}
+                                style={{
+                                  flex: 1,
+                                  border: '1px solid #fecaca',
+                                  borderRadius: '6px',
+                                  backgroundColor: '#fff5f5',
+                                  color: '#dc2626',
+                                  cursor: 'pointer',
+                                  fontSize: '11px',
+                                  padding: '4px 0'
+                                }}
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+
                   {/* Remove photos button */}
                   {(() => {
                     const photos = currentLocation.photos || (currentLocation.photo ? [currentLocation.photo] : []);
@@ -6756,9 +6888,9 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                     }
                     return null;
                   })()}
-                  
+
                   <p style={{ fontSize: '12px', color: '#6b7280', margin: '4px 0 0 0' }}>
-                    JPG, PNG or GIF. Max size 5MB per image. You can select multiple photos at once.
+                    JPG, PNG or GIF. Max size 5MB per image. You can select multiple photos at once. The first photo is used as the main cover.
                   </p>
                 </div>
 
