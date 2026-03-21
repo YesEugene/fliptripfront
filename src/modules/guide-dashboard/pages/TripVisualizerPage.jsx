@@ -1352,61 +1352,14 @@ export default function TripVisualizerPage() {
     if (isSavingHeaderModal) return;
     setIsSavingHeaderModal(true);
 
-    // This function is called from TourEditorModal when clicking "Save"
-    // CRITICAL: Save interests immediately to DB when Save is clicked
+    // Save from modal: one draft save only. (A prior extra PUT without saveAsDraft ran the
+    // destructive full tours-update path — deleting tour_days — and could fail or corrupt data.)
     try {
       if (!tourInfo.city || !tourInfo.title) {
         alert('Please fill in City and Trip name before saving');
         return;
       }
-      
-      // CRITICAL: Save interests to DB immediately if tour exists
-      if (tourId && tourInfo.tags && tourInfo.tags.length > 0) {
-        console.log('💾 Saving interests immediately on Save button:', tourInfo.tags);
-        try {
-          const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-          if (token) {
-            const saveResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tours-update?id=${tourId}`, {
-              method: 'PUT',
-              headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-              },
-              body: JSON.stringify({
-                city: tourInfo.city,
-                title: tourInfo.title,
-                shortDescription: tourInfo.shortDescription || '',
-                preview: tourInfo.preview, // Preserve preview_media_url
-                previewOriginal: tourInfo.previewOriginal || tourInfo.preview,
-                tags: tourInfo.tags, // Save interests immediately
-                highlights: tourInfo.highlights || {}, // Preserve highlights
-                previewImages: tourInfo.previewImages || [], // Preserve gallery images
-                tourPdfUrl: tourInfo.tourPdfUrl || '', // Preserve uploaded tour PDF
-                pdfTemplate: tourInfo.pdfTemplate || 'classic',
-                pdfLayout: tourInfo.pdfLayout || {}
-              })
-            });
-            
-            if (saveResponse.ok) {
-              const saveData = await saveResponse.json();
-              console.log('✅ Interests saved immediately:', saveData);
-              // Update from response
-              if (saveData.tour?.tour_tags) {
-                const interestIds = saveData.tour.tour_tags.map(tt => String(tt.interest?.id || tt.interest_id)).filter(Boolean);
-                if (interestIds.length > 0) {
-                  setTourInfo(prev => ({ ...prev, tags: interestIds }));
-                }
-              }
-            } else {
-              console.error('❌ Failed to save interests immediately:', await saveResponse.text());
-            }
-          }
-        } catch (error) {
-          console.error('❌ Error saving interests immediately:', error);
-        }
-      }
 
-      // Save full tour as draft first (shows global saving state)
       await handleSaveAsDraft();
       // Close modal only after save flow is complete
       setShowTourEditor(false);
@@ -3699,9 +3652,10 @@ export default function TripVisualizerPage() {
                       'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
-                      city: tourInfo.city, // Required for validation
-                      title: tourInfo.title, // Required for validation
-                      tags: tourInfo.tags // Backend expects 'tags' parameter but treats them as interests
+                      city: tourInfo.city,
+                      title: tourInfo.title,
+                      tags: tourInfo.tags,
+                      saveAsDraft: true
                     })
                   });
                   if (response.ok) {
@@ -4518,7 +4472,8 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
               body: JSON.stringify({
                 city: tourInfo.city,
                 title: tourInfo.title,
-                tags: newTags
+                tags: newTags,
+                saveAsDraft: true
               })
             });
             if (response.ok) {
@@ -4563,7 +4518,8 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
             body: JSON.stringify({
               city: tourInfo.city,
               title: tourInfo.title,
-              tags: newTags
+              tags: newTags,
+              saveAsDraft: true
             })
           });
           if (response.ok) {
@@ -4679,7 +4635,8 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
               body: JSON.stringify({
                 city: tourInfo.city,
                 title: tourInfo.title,
-                tags: newTags
+                tags: newTags,
+                saveAsDraft: true
               })
             });
             if (saveResponse.ok) {
