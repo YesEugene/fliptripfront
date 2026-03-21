@@ -982,6 +982,18 @@ export default function TripVisualizerPage() {
 
   const compressImage = (file) => {
     return new Promise((resolve, reject) => {
+      // Canvas + JPEG keeps only the first frame of animated GIFs (and drops animation).
+      const isGif =
+        (file.type && file.type.toLowerCase() === 'image/gif') ||
+        /\.gif$/i.test(file.name || '');
+      if (isGif) {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = new Image();
