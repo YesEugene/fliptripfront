@@ -1034,18 +1034,93 @@ export default function TripVisualizerPage() {
     });
   };
 
+  /** GIF as base64 in JSON exceeds Vercel serverless body limits (~4.5MB). Upload to Supabase instead. */
+  const uploadTourPreviewViaStorage = async (file) => {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
+    const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+    if (!token) throw new Error('Please log in to upload images');
+
+    let contentType = (file.type && String(file.type).toLowerCase().split(';')[0].trim()) || '';
+    if (!contentType || contentType === 'application/octet-stream') {
+      const n = (file.name || '').toLowerCase();
+      if (n.endsWith('.gif')) contentType = 'image/gif';
+      else if (n.endsWith('.png')) contentType = 'image/png';
+      else if (n.endsWith('.webp')) contentType = 'image/webp';
+      else contentType = 'image/jpeg';
+    }
+
+    const signedResp = await fetch(`${API_BASE_URL}/api/upload-tour-preview-url`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        tourId,
+        fileName: file.name || 'preview',
+        contentType,
+        fileSize: file.size
+      })
+    });
+
+    const signedData = await signedResp.json();
+    if (!signedResp.ok || !signedData?.success) {
+      throw new Error(signedData?.error || 'Failed to initialize image upload');
+    }
+
+    const uploadTarget = signedData.uploadUrl || signedData.signedUrl;
+    const uploadResp = await fetch(uploadTarget, {
+      method: 'PUT',
+      headers: { 'Content-Type': contentType },
+      body: file
+    });
+
+    if (!uploadResp.ok) {
+      const uploadErrorText = await uploadResp.text().catch(() => '');
+      throw new Error(
+        `Failed to upload image (${uploadResp.status})${uploadErrorText ? ` — ${uploadErrorText.slice(0, 240)}` : ''}`
+      );
+    }
+
+    if (!signedData.publicUrl) throw new Error('Upload succeeded but no public URL was returned');
+    return signedData.publicUrl;
+  };
+
   const handleImageUpload = async (file, callback) => {
     if (!file) return;
-    
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
+
+    const looksLikeImage =
+      (file.type && file.type.startsWith('image/')) ||
+      /\.(gif|jpe?g|png|webp)$/i.test(file.name || '');
+    if (!looksLikeImage) {
       alert('Please select an image file');
       return;
     }
-    
+
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert('Image size should be less than 5MB');
+      return;
+    }
+
+    const isGif =
+      (file.type && file.type.toLowerCase() === 'image/gif') ||
+      /\.gif$/i.test(file.name || '');
+
+    if (isGif) {
+      if (!tourId) {
+        alert(
+          'To use an animated GIF, save the tour as a draft first so it gets an ID. Then upload the GIF again — it will be stored in the cloud (the save request cannot fit large GIFs).'
+        );
+        return;
+      }
+      try {
+        const publicUrl = await uploadTourPreviewViaStorage(file);
+        callback(publicUrl);
+      } catch (error) {
+        console.error('Error uploading GIF:', error);
+        alert(error.message || 'Failed to upload GIF. Please try again.');
+      }
       return;
     }
 
