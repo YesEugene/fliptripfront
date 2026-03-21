@@ -456,7 +456,7 @@ export default function AdminLocationsPage() {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                             <span style={{ color: '#1f2937' }}>{location.source_tour_title || 'Untitled tour'}</span>
                             <a
-                              href={`/guide/tours/visualizer/${location.source_tour_id}`}
+                              href={`/guide/tours/visualizer/${location.source_tour_id}?returnTo=${encodeURIComponent('/admin/locations')}`}
                               target="_blank"
                               rel="noreferrer"
                               style={{

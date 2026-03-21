@@ -771,7 +771,7 @@ export default function AdminToursPage() {
                           👁️ View
                         </Link>
                         <Link
-                          to={`/guide/tours/visualizer/${tour.id}`}
+                          to={`/guide/tours/visualizer/${tour.id}?returnTo=${encodeURIComponent('/admin/tours')}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{

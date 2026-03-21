@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom';
 import { getCurrentUser } from '../../auth/services/authService';
 
 /**
@@ -17,6 +17,14 @@ function refreshPhotoUrl(url) {
   // Google Places Photo API URLs cost ~$7/1000 loads — block them
   if (url.includes('maps.googleapis.com/maps/api/place/photo')) return null;
   return url;
+}
+
+/** Allow only in-app paths (no open redirects). Used for ?returnTo= from admin panel links. */
+function isSafeVisualizerReturnPath(path) {
+  if (typeof path !== 'string' || path.length === 0) return false;
+  if (!path.startsWith('/') || path.startsWith('//')) return false;
+  if (path.includes('://')) return false;
+  return path.startsWith('/admin') || path.startsWith('/guide');
 }
 import { getGuideProfile } from '../../../modules/guide-profile';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
@@ -81,6 +89,15 @@ function AnimatedProgressText({ label }) {
 export default function TripVisualizerPage() {
   const navigate = useNavigate();
   const { tourId } = useParams();
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const visualizerPathWithQuery = useCallback(
+    (id) => {
+      const q = searchParams.toString();
+      return `/guide/tours/visualizer/${id}${q ? `?${q}` : ''}`;
+    },
+    [searchParams]
+  );
   const [user, setUser] = useState(null);
   const [guideProfile, setGuideProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -977,6 +994,19 @@ export default function TripVisualizerPage() {
   };
 
   const handleBackToDashboard = () => {
+    const fromQuery = searchParams.get('returnTo');
+    const fromState = location.state?.visualizerReturnTo;
+    const target = [fromQuery, fromState].find((p) => isSafeVisualizerReturnPath(p));
+    if (target) {
+      navigate(target);
+      return;
+    }
+    // Admins opening the visualizer without returnTo (e.g. bookmark) should not hit /guide/dashboard
+    // (often redirects away); send them to tour management instead.
+    if (isAdmin) {
+      navigate('/admin/tours');
+      return;
+    }
     navigate('/guide/dashboard');
   };
 
@@ -1206,7 +1236,7 @@ export default function TripVisualizerPage() {
         if (data.success && data.tour) {
           // Update URL with new tour ID
           const newTourId = data.tour.id;
-          navigate(`/guide/tours/visualizer/${newTourId}`, { replace: true });
+          navigate(visualizerPathWithQuery(newTourId), { replace: true });
           setTour(data.tour);
           // Update tourId in state by reloading tour
           await loadTour(newTourId);
@@ -1454,7 +1484,7 @@ export default function TripVisualizerPage() {
         if (data.success && data.tour) {
           // Update URL with new tour ID
           const newTourId = data.tour.id;
-          navigate(`/guide/tours/visualizer/${newTourId}`, { replace: true });
+          navigate(visualizerPathWithQuery(newTourId), { replace: true });
           setTour(data.tour);
           setLastSubmittedAt(Date.now());
           // Reload page to update tourId from URL params
@@ -1616,7 +1646,7 @@ export default function TripVisualizerPage() {
       if (data.success && data.tour) {
         const newTourId = data.tour.id;
         // Update URL with new tour ID
-        navigate(`/guide/tours/visualizer/${newTourId}`, { replace: true });
+        navigate(visualizerPathWithQuery(newTourId), { replace: true });
         setTour(data.tour);
         return newTourId;
       } else {
