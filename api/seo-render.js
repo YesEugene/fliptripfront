@@ -20,7 +20,7 @@ function buildTourSlug(tour = {}) {
 
 function extractTourIdFromSlug(slug = '') {
   const value = String(slug || '').trim();
-  const match = value.match(/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+  const match = value.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
   return match ? match[0] : null;
 }
 
@@ -345,7 +345,8 @@ export default async function handler(req, res) {
             title: 'Tour not found | FlipTrip',
             description: 'The requested tour was not found.',
             canonicalPath: '/explore',
-            bodyHtml: '<h1>Tour not found</h1>'
+            bodyHtml: '<h1>Tour not found</h1>',
+            noindex: true
           })
         );
       }
@@ -364,7 +365,8 @@ export default async function handler(req, res) {
             title: 'Tour not found | FlipTrip',
             description: 'The requested tour was not found.',
             canonicalPath: '/explore',
-            bodyHtml: '<h1>Tour not found</h1>'
+            bodyHtml: '<h1>Tour not found</h1>',
+            noindex: true
           })
         );
       }
@@ -377,7 +379,8 @@ export default async function handler(req, res) {
             title: 'Tour not found | FlipTrip',
             description: 'The requested tour was not found.',
             canonicalPath: '/explore',
-            bodyHtml: '<h1>Tour not found</h1>'
+            bodyHtml: '<h1>Tour not found</h1>',
+            noindex: true
           })
         );
       }
@@ -387,6 +390,29 @@ export default async function handler(req, res) {
     return res.status(200).send(renderHomeSeo());
   } catch (error) {
     console.error('SEO render error:', error);
+    const r = String(req.query.route || '');
+    if (r === 'tour' || r === 'itinerary') {
+      return res.status(503).send(
+        buildPageHtml({
+          title: 'FlipTrip',
+          description: 'Tour page is temporarily unavailable. Please try again.',
+          canonicalPath: '/explore',
+          bodyHtml: '<h1>Temporarily unavailable</h1><p>Please try again shortly.</p>',
+          noindex: true
+        })
+      );
+    }
+    if (r === 'explore') {
+      return res.status(503).send(
+        buildPageHtml({
+          title: 'Explore Cities Like a Local | FlipTrip',
+          description: 'Discover curated city walks and self-guided tours created by local insiders.',
+          canonicalPath: '/explore',
+          bodyHtml: '<h1>Explore cities. Like a local.</h1><p>Please try again shortly.</p>',
+          noindex: true
+        })
+      );
+    }
     return res.status(200).send(renderHomeSeo());
   }
 }
