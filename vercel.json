@@ -53,6 +53,12 @@
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }
       ]
+    },
+    {
+      "source": "/_internal/(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }
+      ]
     }
   ],
   "rewrites": [
@@ -77,7 +83,7 @@
           "value": ".*([Gg]ooglebot|[Gg]oogle-[Ii]nspection[Tt]ool|[Gg]oogle[Oo]ther|[Aa]ds[Bb]ot-[Gg]oogle|[Aa]pi[sS]-[Gg]oogle|[Mm]ediapartners-[Gg]oogle|[Bb]ingbot|[Yy]andex|[Bb]aiduspider|[Dd]uck[Dd]uck[Bb]ot|[Ss]lurp|facebookexternalhit|[Ff]acebot|[Tt]witterbot|[Ll]inked[Ii]n[Bb]ot|[Rr]ogerbot|[Aa]pplebot|[Ww]hats[Aa]pp|[Tt]elegram[Bb]ot|[Dd]iscord[Bb]ot|[Cc]rawler|[Ss]pider|[Bb]ot).*"
         }
       ],
-      "destination": "/api/seo-render?route=home"
+      "destination": "/api/seo-render?route=explore"
     },
     {
       "source": "/explore",

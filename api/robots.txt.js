@@ -17,6 +17,7 @@ export default function handler(req, res) {
     'Disallow: /register',
     'Disallow: /payment',
     'Disallow: /success',
+    'Disallow: /_internal',
     '',
     `Sitemap: ${siteUrl}/sitemap.xml`
   ].join('\n');

@@ -32,8 +32,10 @@ function App() {
       <div className="App">
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<ExplorePage />} />
           <Route path="/explore" element={<ExplorePage />} />
+          {/* Legacy home kept for rollback/reference only. No links point here. */}
+          <Route path="/_internal/legacy-home-2026" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/preview" element={<FlipTripPreviewPage />} />
           <Route path="/payment" element={<PaymentPage />} />
@@ -139,7 +141,7 @@ function App() {
             } 
           />
           
-          <Route path="*" element={<HomePage />} />
+          <Route path="*" element={<ExplorePage />} />
         </Routes>
       </div>
     </Router>
