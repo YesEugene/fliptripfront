@@ -267,7 +267,7 @@
 .explore-tour-media {
   position: relative;
   overflow: hidden;
-  border: 1px solid #d8d8d8;
+  border: none;
   line-height: 0;
 }
 
