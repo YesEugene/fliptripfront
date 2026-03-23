@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import FlipTripPreviewPage from './pages/FlipTripPreviewPage';
 import PaymentPage from './pages/PaymentPage';
@@ -32,7 +32,7 @@ function App() {
       <div className="App">
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<ExplorePage />} />
+          <Route path="/" element={<Navigate to="/explore" replace />} />
           <Route path="/explore" element={<ExplorePage />} />
           {/* Legacy home kept for rollback/reference only. No links point here. */}
           <Route path="/_internal/legacy-home-2026" element={<HomePage />} />
