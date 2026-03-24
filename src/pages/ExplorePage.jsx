@@ -9,6 +9,8 @@ import './ExplorePage.css';
 const CITY_PILLS = ['Rome', 'Paris'];
 const EXPLORE_TOURS_CACHE_KEY = 'fliptrip_explore_tours_cache_v1';
 const EXPLORE_INITIAL_BATCH = 60;
+/** How many tour cards show before "More Trips" */
+const EXPLORE_INITIAL_VISIBLE = 7;
 
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?w=1200&h=1600&fit=crop&q=80&auto=format';
 const FALLBACK_GUIDE_BIO = 'Local creator sharing authentic city routes, hidden places, and personal recommendations.';
@@ -204,7 +206,7 @@ export default function ExplorePage() {
   const [interestNameById, setInterestNameById] = useState(new Map());
   const [selectedCities, setSelectedCities] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
-  const [visibleCount, setVisibleCount] = useState(5);
+  const [visibleCount, setVisibleCount] = useState(EXPLORE_INITIAL_VISIBLE);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -396,7 +398,7 @@ export default function ExplorePage() {
   const hasMoreTours = filteredTours.length > displayedTours.length;
 
   useEffect(() => {
-    setVisibleCount(5);
+    setVisibleCount(EXPLORE_INITIAL_VISIBLE);
   }, [selectedCities, selectedTags]);
 
   const toggleCity = (city) => {

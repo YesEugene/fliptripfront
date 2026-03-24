@@ -54,7 +54,10 @@ export default async function handler(req, res) {
 
     const staticUrls = [
       { loc: `${siteUrl}/`, changefreq: 'daily', priority: '1.0' },
-      { loc: `${siteUrl}/explore`, changefreq: 'hourly', priority: '0.9' }
+      { loc: `${siteUrl}/explore`, changefreq: 'hourly', priority: '0.9' },
+      { loc: `${siteUrl}/about`, changefreq: 'monthly', priority: '0.8' },
+      { loc: `${siteUrl}/join`, changefreq: 'monthly', priority: '0.7' },
+      { loc: `${siteUrl}/become-local`, changefreq: 'monthly', priority: '0.7' }
     ];
 
     const tourUrls = tours
@@ -98,6 +101,21 @@ ${urls
     <loc>${xmlEscape(`${siteUrl}/explore`)}</loc>
     <changefreq>hourly</changefreq>
     <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>${xmlEscape(`${siteUrl}/about`)}</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${xmlEscape(`${siteUrl}/join`)}</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>${xmlEscape(`${siteUrl}/become-local`)}</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>`;
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
