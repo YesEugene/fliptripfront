@@ -11,7 +11,14 @@ import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import PDFIcon from '../assets/PDF.svg';
 // import SkateboardingGif from '../assets/Skateboarding.gif'; // File not found, commented out
 import './ItineraryPage.css';
+import './ExplorePage.css';
 import { normalizeSelfGuidedDisplay } from '../constants/pricing';
+
+function getDashboardPath(role) {
+  if (role === 'admin') return '/admin/dashboard';
+  if (role === 'guide') return '/guide/dashboard';
+  return '/user/dashboard';
+}
 
 /**
  * PreviewMap — Non-interactive Google Map for preview page
@@ -2123,103 +2130,47 @@ export default function ItineraryPage() {
         marginTop: '0'
       } : undefined}
     >
-      {/* White Header with Logo and Auth Buttons — hidden on mobile */}
-      {!isMobile && (
-      <div style={{
-        backgroundColor: 'white',
-        padding: '20px',
-        maxWidth: '750px',
-        margin: '0 auto',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        width: '100%'
-      }}>
-        {/* Logo - Clickable with filter restoration */}
-        <img 
-          src={FlipTripLogo} 
-          alt="FlipTrip" 
-          onClick={handleBack}
-          style={{ 
-            cursor: 'pointer',
-            height: '60px',
-            width: 'auto'
-          }}
-        />
-        
-        {/* Auth Buttons */}
-        <div style={{ 
-          display: 'flex', 
-          gap: '12px',
-          alignItems: 'center',
-          height: '60px'
-        }}>
-          {user ? (
-            <>
-              <Link
-                to={user.role === 'admin' ? '/admin/dashboard' : (user.role === 'guide' ? '/guide/dashboard' : '/user/dashboard')}
-                style={{
-                  color: '#374151',
-                  textDecoration: 'none',
-                  fontSize: '14px',
-                  fontWeight: '600'
-                }}
-              >
-                {user.role === 'admin' ? 'Admin' : (user.name || 'Dashboard')}
-              </Link>
-              <button
-                onClick={() => {
-                  logout();
-                  setUser(null);
-                  window.location.reload();
-                }}
-                style={{
-                  backgroundColor: '#f3f4f6',
-                  color: '#374151',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '6px',
-                  padding: '6px 12px',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  fontWeight: '600'
-                }}
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                to="/join?tab=traveler&mode=login"
-                style={{
-                  color: '#374151',
-                  textDecoration: 'none',
-                  fontSize: '14px',
-                  fontWeight: '600'
-                }}
-              >
-                Login
-              </Link>
-              <Link
-                to="/become-local"
-                style={{
-                  backgroundColor: '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '6px 12px',
-                  fontSize: '12px',
-                  textDecoration: 'none',
-                  fontWeight: '600'
-                }}
-              >
-                Become a Local
-              </Link>
-            </>
-          )}
+      {/* Site header — same layout & styles as Explore (explore-topbar) */}
+      <header className="explore-topbar">
+        <div className="explore-topbar-inner">
+          <Link to="/" className="explore-logo-link" aria-label="FlipTrip home">
+            <img src={FlipTripLogo} alt="FlipTrip" className="explore-logo" />
+          </Link>
+          <div className="explore-auth-actions">
+            {user ? (
+              <>
+                <button
+                  type="button"
+                  className="login-btn"
+                  onClick={() => navigate(getDashboardPath(user.role))}
+                >
+                  {user.role === 'admin' ? 'Admin' : (user.name || 'Dashboard')}
+                </button>
+                <button
+                  type="button"
+                  className="become-local-btn"
+                  onClick={() => {
+                    logout();
+                    setUser(null);
+                    window.location.reload();
+                  }}
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <button type="button" className="become-local-btn" onClick={() => navigate('/become-local')}>
+                  Become a Local
+                </button>
+                <button type="button" className="login-btn" onClick={() => navigate('/join?tab=traveler&mode=login')}>
+                  Login
+                </button>
+              </>
+            )}
+          </div>
         </div>
-      </div>
-      )}
+      </header>
 
       {/* Content Wrapper - Centers all content blocks at 750px max width */}
       <div style={{

@@ -2,7 +2,8 @@
 
 .itinerary-container {
   min-height: 100vh;
-  background-color: white;
+  /* Match Explore (explore-page) so header & page chrome align */
+  background-color: #fcfbf9;
   margin: 0;
   padding: 0;
   position: relative;
