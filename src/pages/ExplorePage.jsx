@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import { getTours } from '../services/api';
 import { getCurrentUser, logout } from '../modules/auth/services/authService';
@@ -8,6 +8,24 @@ import './ExplorePage.css';
 
 const CITY_PILLS = ['Rome', 'Paris'];
 const EXPLORE_TOURS_CACHE_KEY = 'fliptrip_explore_tours_cache_v1';
+
+/** Query ?city=Rome or ?city=Paris,Rome — case-insensitive; only known CITY_PILLS are kept */
+function normalizeCityListFromParam(raw) {
+  if (!raw || typeof raw !== 'string') return [];
+  const parts = raw.split(',').map((s) => s.trim()).filter(Boolean);
+  const out = [];
+  parts.forEach((p) => {
+    const match = CITY_PILLS.find((c) => c.toLowerCase() === p.toLowerCase());
+    if (match && !out.includes(match)) out.push(match);
+  });
+  return out;
+}
+
+/** Query ?tags=a,b or ?tag=a */
+function parseTagsParam(raw) {
+  if (!raw || typeof raw !== 'string') return [];
+  return raw.split(',').map((s) => s.trim()).filter(Boolean);
+}
 const EXPLORE_INITIAL_BATCH = 60;
 /** How many tour cards show before "More Trips" */
 const EXPLORE_INITIAL_VISIBLE = 7;
@@ -198,14 +216,21 @@ function getDashboardPath(role) {
 
 export default function ExplorePage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const insidersScrollRef = useRef(null);
   const pillsScrollRef = useRef(null);
   const hasToursFromCacheRef = useRef(false);
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [interestNameById, setInterestNameById] = useState(new Map());
-  const [selectedCities, setSelectedCities] = useState([]);
-  const [selectedTags, setSelectedTags] = useState([]);
+  const selectedCities = useMemo(
+    () => normalizeCityListFromParam(searchParams.get('city') || searchParams.get('cities') || ''),
+    [searchParams]
+  );
+  const selectedTags = useMemo(
+    () => parseTagsParam(searchParams.get('tags') || searchParams.get('tag') || ''),
+    [searchParams]
+  );
   const [visibleCount, setVisibleCount] = useState(EXPLORE_INITIAL_VISIBLE);
   const [user, setUser] = useState(null);
 
@@ -402,11 +427,34 @@ export default function ExplorePage() {
   }, [selectedCities, selectedTags]);
 
   const toggleCity = (city) => {
-    setSelectedCities((prev) => (prev.includes(city) ? prev.filter((value) => value !== city) : [...prev, city]));
+    const next = new URLSearchParams(searchParams);
+    const current = normalizeCityListFromParam(next.get('city') || next.get('cities') || '');
+    const cities = current.includes(city)
+      ? current.filter((value) => value !== city)
+      : [...current, city];
+    if (cities.length > 0) {
+      next.set('city', cities.join(','));
+    } else {
+      next.delete('city');
+      next.delete('cities');
+    }
+    setSearchParams(next, { replace: true });
   };
 
   const toggleTag = (tag) => {
-    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((value) => value !== tag) : [...prev, tag]));
+    const next = new URLSearchParams(searchParams);
+    const current = parseTagsParam(next.get('tags') || next.get('tag') || '');
+    const tags = current.includes(tag)
+      ? current.filter((value) => value !== tag)
+      : [...current, tag];
+    if (tags.length > 0) {
+      next.set('tags', tags.join(','));
+      next.delete('tag');
+    } else {
+      next.delete('tags');
+      next.delete('tag');
+    }
+    setSearchParams(next, { replace: true });
   };
 
   const insiders = useMemo(() => {
