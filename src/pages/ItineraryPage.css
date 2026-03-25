@@ -4,10 +4,46 @@
   min-height: 100vh;
   /* Match Explore (explore-page) so header & page chrome align */
   background-color: #fcfbf9;
+  /* Same CSS var as .explore-page — needed for .explore-topbar-inner max-width */
+  --content-max-width: 800px;
   margin: 0;
   padding: 0;
   position: relative;
   box-sizing: border-box;
+}
+
+/* Explore header on itinerary: explicit rules so layout matches Explore even if CSS order/cache differs */
+.itinerary-container .explore-logo-link {
+  display: inline-flex;
+}
+
+.itinerary-container .explore-logo {
+  width: 74px;
+  height: auto;
+}
+
+.itinerary-container .explore-auth-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.itinerary-container .become-local-btn {
+  border: 1px solid #1c1c1b;
+  background: transparent;
+  color: #1c1c1b;
+  height: 31px;
+  padding: 0 14px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.itinerary-container .login-btn {
+  border: none;
+  background: transparent;
+  color: #1c1c1b;
+  font-size: 12px;
+  cursor: pointer;
 }
 
 .itinerary-container > div[style*="maxWidth"] {
