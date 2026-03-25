@@ -513,11 +513,15 @@ export default function TripVisualizerPage() {
         });
         
         // CRITICAL: Set tourInfo.tags from loaded interests
+        // Draft tours store description in draft_data; top-level tour.description may be stale until submit.
         setTourInfo(prev => ({
           ...prev,
           city: tourObj.city?.name || prev.city,
           title: tourObj.title || prev.title,
-          description: tourObj.description || prev.description,
+          description:
+            draftData && draftData.description !== undefined
+              ? draftData.description
+              : (tourObj.description || prev.description),
           shortDescription: draftData?.shortDescription || prev.shortDescription || '',
           preview: tourObj.preview || prev.preview,
           previewOriginal: draftData?.previewOriginal || tourObj.preview_media_url || prev.previewOriginal || prev.preview,
@@ -1331,7 +1335,10 @@ export default function TripVisualizerPage() {
             setTourInfo({
               city: data.tour.city?.name || tourInfo.city,
               title: data.tour.title || tourInfo.title,
-              description: data.tour.description || tourInfo.description,
+              description:
+                data.tour.draft_data && data.tour.draft_data.description !== undefined
+                  ? data.tour.draft_data.description
+                  : (data.tour.description || tourInfo.description),
               shortDescription: tourInfo.shortDescription || '',
               preview: tourInfo.preview, // Keep current preview (was just saved)
               previewOriginal: tourInfo.previewOriginal || tourInfo.preview,
