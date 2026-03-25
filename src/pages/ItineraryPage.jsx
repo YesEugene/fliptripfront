@@ -234,7 +234,7 @@ function PreviewMap({ locations }) {
 
   return (
     <div style={{
-      borderRadius: '14px',
+      borderRadius: '0',
       overflow: 'hidden',
       position: 'relative'
     }}>
@@ -243,7 +243,7 @@ function PreviewMap({ locations }) {
         style={{
           width: '100%',
           height: '250px',
-          borderRadius: '14px',
+          borderRadius: '0',
           backgroundColor: '#f3f4f6'
         }}
       />
@@ -2358,7 +2358,7 @@ export default function ItineraryPage() {
                 <div style={{
                   width: '44px',
                   height: '44px',
-                  borderRadius: '50%',
+                  borderRadius: '0',
                   backgroundColor: '#e5e7eb',
                   overflow: 'hidden',
                   flexShrink: 0
@@ -2386,7 +2386,7 @@ export default function ItineraryPage() {
                 backgroundColor: '#2059ff',
                 color: '#ebf6fa',
                 border: 'none',
-                borderRadius: '24px',
+                borderRadius: '0',
                 padding: '12px 28px',
                 fontSize: '14px',
                 fontWeight: '600',
@@ -2450,7 +2450,7 @@ export default function ItineraryPage() {
             }}>
               {/* Bullet 1 — Location count (auto) */}
               <div style={{
-                backgroundColor: '#E3F0F3', borderRadius: '12px', padding: '16px',
+                backgroundColor: '#E3F0F3', borderRadius: '0', padding: '16px',
                 minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
               }}>
                 <span style={{ fontSize: '24px', marginBottom: '8px' }}>📍</span>
@@ -2463,7 +2463,7 @@ export default function ItineraryPage() {
               
               {/* Bullet 2 — Fixed route */}
               <div style={{
-                backgroundColor: '#E3F0F3', borderRadius: '12px', padding: '16px',
+                backgroundColor: '#E3F0F3', borderRadius: '0', padding: '16px',
                 minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
               }}>
                 <span style={{ fontSize: '24px', marginBottom: '8px' }}>🗺</span>
@@ -2473,7 +2473,7 @@ export default function ItineraryPage() {
               {/* Bullet 3 — Creative tagline (from author) */}
               {tourHighlights.text3 && (
                 <div style={{
-                  backgroundColor: '#E3F0F3', borderRadius: '12px', padding: '16px',
+                  backgroundColor: '#E3F0F3', borderRadius: '0', padding: '16px',
                   minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
                 }}>
                   <span style={{ fontSize: '24px', marginBottom: '8px' }}>{tourHighlights.icon3 || '⚔️'}</span>
@@ -2484,7 +2484,7 @@ export default function ItineraryPage() {
               {/* Bullet 4 — Theme (from author) */}
               {tourHighlights.text4 && (
                 <div style={{
-                  backgroundColor: '#E3F0F3', borderRadius: '12px', padding: '16px',
+                  backgroundColor: '#E3F0F3', borderRadius: '0', padding: '16px',
                   minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
                 }}>
                   <span style={{ fontSize: '24px', marginBottom: '8px' }}>{tourHighlights.icon4 || '🏛'}</span>
@@ -2495,7 +2495,7 @@ export default function ItineraryPage() {
               {/* Bullet 5 — Specific details (from author) */}
               {tourHighlights.text5 && (
                 <div style={{
-                  backgroundColor: '#E3F0F3', borderRadius: '12px', padding: '16px',
+                  backgroundColor: '#E3F0F3', borderRadius: '0', padding: '16px',
                   minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
                 }}>
                   <span style={{ fontSize: '24px', marginBottom: '8px' }}>{tourHighlights.icon5 || '☕'}</span>
@@ -2505,7 +2505,7 @@ export default function ItineraryPage() {
               
               {/* Bullet 6 — Fixed map + PDF */}
               <div style={{
-                backgroundColor: '#E3F0F3', borderRadius: '12px', padding: '16px',
+                backgroundColor: '#E3F0F3', borderRadius: '0', padding: '16px',
                 minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
               }}>
                 <img
@@ -2531,7 +2531,7 @@ export default function ItineraryPage() {
           {/* Unlock full trip section */}
           <div id="preview-unlock-section" style={{
             backgroundColor: 'white',
-            borderRadius: '14px',
+            borderRadius: '0',
             border: '1px solid #d1d5db',
             padding: '24px',
             marginBottom: '40px'
@@ -2574,7 +2574,7 @@ export default function ItineraryPage() {
               {/* Left: Price block */}
               <div style={{
                 backgroundColor: '#f5f5f6',
-                borderRadius: '12px',
+                borderRadius: '0',
                 padding: '16px 20px',
                 flex: 1,
                 display: 'flex',
@@ -2587,7 +2587,7 @@ export default function ItineraryPage() {
               {/* Right: Payment button */}
               <div style={{
                 background: 'linear-gradient(to right, #1f59ff, #1641ba)',
-                borderRadius: '12px',
+                borderRadius: '0',
                 padding: '16px 24px',
                 flex: 1,
                 display: 'flex',
@@ -2635,7 +2635,7 @@ export default function ItineraryPage() {
                 <div style={{
                   width: isMobile ? '120px' : '170px',
                   minHeight: isMobile ? '120px' : '170px',
-                  borderRadius: '10px',
+                  borderRadius: '0',
                   backgroundColor: '#e5e7eb',
                   overflow: 'hidden',
                   flexShrink: 0
@@ -2709,7 +2709,7 @@ export default function ItineraryPage() {
                     <div style={{
                       width: '170px',
                       height: '115px',
-                      borderRadius: '10px',
+                      borderRadius: '0',
                       overflow: 'hidden',
                       backgroundColor: '#e5e7eb',
                       marginBottom: '8px'
