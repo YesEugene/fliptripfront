@@ -2505,14 +2505,14 @@ export default function TripVisualizerPage() {
           alignItems: 'center',
           gap: '12px 20px',
           paddingBottom: '16px',
-          borderBottom: '1px solid #e5e7eb'
+          borderBottom: '1px solid #BCBCBC'
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
           <div
             style={{
-              width: '44px',
-              height: '44px',
+              width: '28px',
+              height: '28px',
               borderRadius: '50%',
               backgroundColor: '#e5e7eb',
               overflow: 'hidden',
@@ -2522,56 +2522,56 @@ export default function TripVisualizerPage() {
             {(guideProfile?.avatar || user?.avatar) ? (
               <img src={guideProfile?.avatar || user?.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
-              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#9ca3af' }}>👤</div>
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: '#9ca3af' }}>👤</div>
             )}
           </div>
-          <p style={{ margin: 0, fontSize: '12px', color: '#111827', lineHeight: 1.4 }}>
+          <p style={{ margin: 0, fontSize: '12px', color: '#111827', lineHeight: 1.4, fontWeight: 500 }}>
             <span style={{ fontWeight: 400 }}>Author: </span>
-            <span style={{ fontWeight: 600, fontSize: '14px' }}>{guideDisplayName}</span>
+            <span style={{ fontWeight: 500 }}>{guideDisplayName}</span>
           </p>
         </div>
         {visualizerLocationLabel ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#111827' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#111827', fontWeight: 500 }}>
             <span style={{ fontSize: '14px' }}>📍</span>
             {visualizerLocationLabel}
           </div>
         ) : (
-          <div style={{ fontSize: '12px', color: '#9ca3af', fontStyle: 'italic' }}>📍 City</div>
+          <div style={{ fontSize: '12px', color: '#9ca3af', fontStyle: 'italic', fontWeight: 500 }}>📍 City</div>
         )}
         {tourLastUpdatedLabel && (
-          <span style={{ color: '#a2a2a2', fontSize: '12px' }}>{tourLastUpdatedLabel}</span>
+          <span style={{ color: '#a2a2a2', fontSize: '12px', fontWeight: 500 }}>{tourLastUpdatedLabel}</span>
         )}
         <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
           <button
             type="button"
             style={{
-              backgroundColor: '#2059ff',
-              color: '#ebf6fa',
+              backgroundColor: 'transparent',
+              color: '#111827',
               border: 'none',
-              borderRadius: '24px',
-              padding: '12px 20px',
-              fontSize: '13px',
-              fontWeight: '600',
+              borderRadius: 0,
+              padding: 0,
+              fontSize: '12px',
+              fontWeight: 500,
               cursor: 'default',
               flexShrink: 0,
               whiteSpace: 'nowrap',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              opacity: 0.7
+              gap: '6px',
+              opacity: 0.85
             }}
           >
-            <img src={PDFIcon} alt="" style={{ width: '18px', height: '19px' }} />
+            <img src={PDFIcon} alt="" style={{ width: '14px', height: '15px', flexShrink: 0 }} />
             Download PDF
           </button>
         </div>
       </div>
       <h1 style={{
-        fontSize: '28px',
-        fontWeight: '700',
+        fontSize: '50px',
+        fontWeight: 500,
         color: tourInfo.title ? '#111827' : '#9ca3af',
-        margin: '16px 0 0 0',
-        lineHeight: '1.2',
+        margin: '50px 0 50px 0',
+        lineHeight: '1.15',
         fontStyle: tourInfo.title ? 'normal' : 'italic'
       }}>
         {tourInfo.title || 'Your Tour Title'}
@@ -2757,8 +2757,8 @@ export default function TripVisualizerPage() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div style={{ maxWidth: '750px', margin: '0 auto', padding: '40px 20px' }}>
+      {/* Main Content — desktop: 70px below top bar */}
+      <div style={{ maxWidth: '750px', margin: '0 auto', padding: isMobile ? '40px 20px' : '70px 20px 40px' }}>
         {/* Admin editing indicator */}
         {isEditingOtherTour && (
           <div style={{
@@ -2787,7 +2787,9 @@ export default function TripVisualizerPage() {
         {/* Hero + title: mobile = hero first (unchanged); desktop = meta + title + date, then hero (Figma) */}
         {isMobile && visualizerHeroBlock}
         {!isMobile && desktopVisualizerTourHeader}
-        {!isMobile && visualizerHeroBlock}
+        {!isMobile && (
+          <div style={{ marginBottom: '50px' }}>{visualizerHeroBlock}</div>
+        )}
         {isMobile && mobileVisualizerTitleSection}
 
         {/* Interest tags — only author-defined tags */}
@@ -2817,9 +2819,11 @@ export default function TripVisualizerPage() {
           </div>
         )}
 
-        {/* About trip */}
+        {/* About trip — desktop: no section title; 20px medium body */}
         <div style={{ marginBottom: '32px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 12px 0' }}>About trip</h2>
+          {isMobile && (
+            <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 12px 0' }}>About trip</h2>
+          )}
           {(() => {
             const isPlaceholder = !tourInfo.description;
             const text = tourInfo.description || 'This is where you describe your tour. Tell travelers what they\'ll discover, what makes this route unique, and why they should follow it.\n\nClick "Edit block" above to add your description.';
@@ -2827,7 +2831,8 @@ export default function TripVisualizerPage() {
             return (
               <>
                 <p style={{
-                  fontSize: '14px',
+                  fontSize: isMobile ? '14px' : '20px',
+                  fontWeight: isMobile ? 400 : 500,
                   color: isPlaceholder ? '#9ca3af' : '#374151',
                   lineHeight: '1.5',
                   margin: '0 0 8px 0',
@@ -2845,7 +2850,12 @@ export default function TripVisualizerPage() {
                 {isLong && (
                   <span
                     onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
-                    style={{ fontSize: '14px', fontWeight: '600', color: '#2059ff', cursor: 'pointer' }}
+                    style={{
+                      fontSize: isMobile ? '14px' : '20px',
+                      fontWeight: 500,
+                      color: '#2059ff',
+                      cursor: 'pointer'
+                    }}
                   >
                     {isAuthorTextExpanded ? 'Show less' : 'See More..'}
                   </span>

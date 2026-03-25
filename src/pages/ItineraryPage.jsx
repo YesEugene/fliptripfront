@@ -2172,7 +2172,7 @@ export default function ItineraryPage() {
         width: '100%',
         boxSizing: 'border-box',
         marginTop: isMobile ? 'calc(-1 * env(safe-area-inset-top, 0px))' : '0',
-        marginBottom: '0',
+        marginBottom: isMobile ? '0' : '50px',
         marginLeft: '0',
         marginRight: '0',
         padding: '0'
@@ -2319,8 +2319,8 @@ export default function ItineraryPage() {
       >
         <div
           style={{
-            width: '44px',
-            height: '44px',
+            width: '28px',
+            height: '28px',
             borderRadius: '50%',
             backgroundColor: '#e5e7eb',
             overflow: 'hidden',
@@ -2330,18 +2330,18 @@ export default function ItineraryPage() {
           {guideAvatar ? (
             <img src={guideAvatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
-            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#9ca3af' }}>👤</div>
+            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: '#9ca3af' }}>👤</div>
           )}
         </div>
-        <p style={{ margin: 0, fontSize: '12px', color: '#111827', lineHeight: 1.4 }}>
+        <p style={{ margin: 0, fontSize: '12px', color: '#111827', lineHeight: 1.4, fontWeight: 500 }}>
           <span style={{ fontWeight: 400 }}>Author: </span>
-          <span style={{ fontWeight: 600, fontSize: '14px' }}>{guideName}</span>
+          <span style={{ fontWeight: 500 }}>{guideName}</span>
         </p>
       </div>
     ) : null;
 
   const desktopPreviewTourHeader = (
-    <div style={{ width: '100%', boxSizing: 'border-box', paddingTop: '24px' }}>
+    <div style={{ width: '100%', boxSizing: 'border-box', paddingTop: '0' }}>
       <div
         style={{
           display: 'flex',
@@ -2349,31 +2349,27 @@ export default function ItineraryPage() {
           alignItems: 'center',
           gap: '12px 20px',
           paddingBottom: '16px',
-          borderBottom: '1px solid #e5e7eb'
+          borderBottom: '1px solid #BCBCBC'
         }}
       >
         {desktopTourMetaAuthor(true)}
         {locationLabel && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#111827' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#111827', fontWeight: 500 }}>
             <span style={{ color: '#3b82f6', fontSize: '14px' }}>📍</span>
             {locationLabel}
           </div>
         )}
         {tourLastUpdatedLabel && (
-          <span style={{ color: '#a2a2a2', fontSize: '12px' }}>{tourLastUpdatedLabel}</span>
+          <span style={{ color: '#a2a2a2', fontSize: '12px', fontWeight: 500 }}>{tourLastUpdatedLabel}</span>
         )}
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-          <span style={{ fontSize: '20px', fontWeight: '700', color: '#2059ff' }}>{currencySymbol}{previewPdfPrice}</span>
-          <span style={{ fontSize: '13px', color: '#858586' }}>/trip</span>
-        </div>
       </div>
       <h1
         style={{
-          fontSize: '28px',
-          fontWeight: '700',
+          fontSize: '50px',
+          fontWeight: 500,
           color: '#111827',
-          margin: '16px 0 0 0',
-          lineHeight: '1.2'
+          margin: '50px 0 50px 0',
+          lineHeight: '1.15'
         }}
       >
         {tourTitle}
@@ -2382,7 +2378,7 @@ export default function ItineraryPage() {
   );
 
   const desktopFullTourHeader = (
-    <div style={{ width: '100%', boxSizing: 'border-box', paddingTop: '24px' }}>
+    <div style={{ width: '100%', boxSizing: 'border-box', paddingTop: '0' }}>
       <div
         style={{
           display: 'flex',
@@ -2390,18 +2386,18 @@ export default function ItineraryPage() {
           alignItems: 'center',
           gap: '12px 20px',
           paddingBottom: '16px',
-          borderBottom: '1px solid #e5e7eb'
+          borderBottom: '1px solid #BCBCBC'
         }}
       >
         {desktopTourMetaAuthor(false)}
         {locationLabel && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#111827' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#111827', fontWeight: 500 }}>
             <span style={{ color: '#3b82f6', fontSize: '14px' }}>📍</span>
             {locationLabel}
           </div>
         )}
         {tourLastUpdatedLabel && (
-          <span style={{ color: '#a2a2a2', fontSize: '12px' }}>{tourLastUpdatedLabel}</span>
+          <span style={{ color: '#a2a2a2', fontSize: '12px', fontWeight: 500 }}>{tourLastUpdatedLabel}</span>
         )}
         <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
           <button
@@ -2409,33 +2405,32 @@ export default function ItineraryPage() {
             onClick={handleDownloadPDF}
             disabled={isDownloadingPdf}
             style={{
-              backgroundColor: '#2059ff',
-              color: '#ebf6fa',
+              backgroundColor: 'transparent',
+              color: '#111827',
               border: 'none',
-              borderRadius: '24px',
-              padding: '12px 20px',
-              fontSize: '13px',
-              fontWeight: '600',
+              borderRadius: 0,
+              padding: 0,
+              fontSize: '12px',
+              fontWeight: 500,
               cursor: isDownloadingPdf ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              opacity: isDownloadingPdf ? 0.7 : 1
+              gap: '6px',
+              opacity: isDownloadingPdf ? 0.5 : 1
             }}
           >
-            <img src={PDFIcon} alt="" style={{ width: '18px', height: '19px' }} />
+            <img src={PDFIcon} alt="" style={{ width: '14px', height: '15px', flexShrink: 0 }} />
             {isDownloadingPdf ? 'Downloading...' : 'Download PDF'}
           </button>
         </div>
       </div>
       <h1
         style={{
-          fontSize: '28px',
-          fontWeight: '700',
+          fontSize: '50px',
+          fontWeight: 500,
           color: '#111827',
-          margin: '16px 0 0 0',
-          lineHeight: '1.2'
+          margin: '50px 0 50px 0',
+          lineHeight: '1.15'
         }}
       >
         {tourTitle}
@@ -2502,6 +2497,7 @@ export default function ItineraryPage() {
         marginRight: isMobile ? '0' : 'auto',
         marginBottom: '0',
         padding: '0',
+        paddingTop: isMobile ? '0' : '70px',
         boxSizing: 'border-box'
       }}>
       {/* Hero: mobile first; desktop after desktop tour header (Figma) */}
@@ -2516,7 +2512,7 @@ export default function ItineraryPage() {
           width: isMobile ? '90%' : '100%',
           margin: isMobile ? '0 auto' : '0',
           boxSizing: 'border-box',
-          paddingTop: isMobile ? '24px' : '24px'
+          paddingTop: isMobile ? '24px' : '0'
         }}>
           {isMobile && (
             <>
@@ -2597,9 +2593,11 @@ export default function ItineraryPage() {
             </>
           )}
 
-          {/* About trip */}
+          {/* About trip — desktop: no section title; 20px medium body */}
           <div style={{ marginBottom: '40px' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 12px 0' }}>About trip</h2>
+            {isMobile && (
+              <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 12px 0' }}>About trip</h2>
+            )}
             {(() => {
               const text = tourDescription || '';
               return (
@@ -2607,7 +2605,8 @@ export default function ItineraryPage() {
                   <p
                     ref={aboutTripTextRef}
                     style={{
-                    fontSize: '14px',
+                    fontSize: isMobile ? '14px' : '20px',
+                    fontWeight: isMobile ? 400 : 500,
                     color: '#374151',
                     lineHeight: '1.5',
                     margin: '0 0 8px 0',
@@ -2625,7 +2624,12 @@ export default function ItineraryPage() {
                   {(showAboutTripToggle || isAuthorTextExpanded) && (
                     <span
                       onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
-                      style={{ fontSize: '14px', fontWeight: '600', color: '#2059ff', cursor: 'pointer' }}
+                      style={{
+                        fontSize: isMobile ? '14px' : '20px',
+                        fontWeight: 500,
+                        color: '#2059ff',
+                        cursor: 'pointer'
+                      }}
                     >
                       {isAuthorTextExpanded ? 'Show less' : 'See More..'}
                     </span>
@@ -3066,7 +3070,7 @@ export default function ItineraryPage() {
         );
       })()}
 
-      {/* About trip — for full/paid new format (like preview page), mobile & desktop */}
+      {/* About trip — for full/paid new format; desktop: no heading, 20px medium */}
       {useNewFormat && tourDescription && (
         <div style={{
           width: isMobile ? '90%' : '100%',
@@ -3074,7 +3078,9 @@ export default function ItineraryPage() {
           boxSizing: 'border-box',
           marginBottom: '40px'
         }}>
-          <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 12px 0' }}>About trip</h2>
+          {isMobile && (
+            <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 12px 0' }}>About trip</h2>
+          )}
           {(() => {
             const text = tourDescription || '';
             return (
@@ -3082,7 +3088,8 @@ export default function ItineraryPage() {
                 <p
                   ref={aboutTripTextRef}
                   style={{
-                  fontSize: '14px',
+                  fontSize: isMobile ? '14px' : '20px',
+                  fontWeight: isMobile ? 400 : 500,
                   color: '#374151',
                   lineHeight: '1.5',
                   margin: '0 0 8px 0',
@@ -3100,7 +3107,12 @@ export default function ItineraryPage() {
                 {(showAboutTripToggle || isAuthorTextExpanded) && (
                   <span
                     onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
-                    style={{ fontSize: '14px', fontWeight: '600', color: '#2059ff', cursor: 'pointer' }}
+                    style={{
+                      fontSize: isMobile ? '14px' : '20px',
+                      fontWeight: 500,
+                      color: '#2059ff',
+                      cursor: 'pointer'
+                    }}
                   >
                     {isAuthorTextExpanded ? 'Show less' : 'See More..'}
                   </span>
