@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail, checkPayment } from '../services/api';
 import { getTourById, getTourPreview } from '../modules/tours-database';
@@ -13,6 +13,7 @@ import './ItineraryPage.css';
 import './ExplorePage.css';
 import { normalizeSelfGuidedDisplay } from '../constants/pricing';
 import { buildPdfBlobFromStyledPreviewHtml } from '../utils/styledTourPdfClient';
+import { formatTourLastUpdatedLabel } from '../utils/tourLastUpdated';
 
 function getDashboardPath(role) {
   if (role === 'admin') return '/admin/dashboard';
@@ -2116,7 +2117,11 @@ export default function ItineraryPage() {
   
   // Get country for preview
   const tourCountry = draftData.country || tourData?.country || '';
-  
+  const tourLastUpdatedLabel = useMemo(
+    () => formatTourLastUpdatedLabel(tourData),
+    [tourData]
+  );
+
   // Extract location coordinates from content blocks for preview map
   const previewMapLocations = (() => {
     if (!contentBlocks || contentBlocks.length === 0) {
@@ -2158,6 +2163,284 @@ export default function ItineraryPage() {
     tourTitle,
     tourDescription
   });
+
+  const locationLabel = tourCountry || cityName;
+
+  const itineraryHeroSection = (
+      <div style={{
+        width: '100%',
+        boxSizing: 'border-box',
+        marginTop: isMobile ? 'calc(-1 * env(safe-area-inset-top, 0px))' : '0',
+        marginBottom: '0',
+        marginLeft: '0',
+        marginRight: '0',
+        padding: '0'
+      }}>
+        <div 
+          style={{
+            position: 'relative',
+            width: '100%',
+            boxSizing: 'border-box',
+            height: isMobile 
+              ? 'calc(350px + env(safe-area-inset-top, 0px))' 
+              : '400px',
+            borderRadius: '0',
+            overflow: 'hidden',
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'flex-start',
+            padding: '0'
+          }}
+          onTouchStart={(e) => {
+            if (previewOnly && !isPaid && allPreviewImages.length > 1) {
+              e.currentTarget._touchStartX = e.touches[0].clientX;
+            }
+          }}
+          onTouchEnd={(e) => {
+            if (previewOnly && !isPaid && allPreviewImages.length > 1 && e.currentTarget._touchStartX !== undefined) {
+              const diff = e.currentTarget._touchStartX - e.changedTouches[0].clientX;
+              if (Math.abs(diff) > 50) {
+                if (diff > 0 && currentSlide < allPreviewImages.length - 1) {
+                  setCurrentSlide(currentSlide + 1);
+                } else if (diff < 0 && currentSlide > 0) {
+                  setCurrentSlide(currentSlide - 1);
+                }
+              }
+              delete e.currentTarget._touchStartX;
+            }
+          }}
+        >
+          {(previewOnly && !isPaid || isMobile) && (
+            <div style={{
+              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+              backgroundImage: `url(${(previewOnly && !isPaid) ? (allPreviewImages[currentSlide] || heroImage) : heroImage})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              transition: 'background-image 0.3s ease'
+            }} />
+          )}
+
+          {isMobile && (
+            <button
+              onClick={handleBack}
+              style={{
+                position: 'absolute',
+                top: 'calc(16px + env(safe-area-inset-top, 0px))',
+                left: '16px',
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                backgroundColor: 'white',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                zIndex: 3,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                fontSize: '18px'
+              }}
+            >
+              ←
+            </button>
+          )}
+
+          {previewOnly && !isPaid && allPreviewImages.length > 1 && (
+            <div style={{
+              position: 'absolute',
+              bottom: '16px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              display: 'flex',
+              gap: '6px',
+              zIndex: 3
+            }}>
+              {allPreviewImages.map((_, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => setCurrentSlide(idx)}
+                  style={{
+                    width: idx === currentSlide ? '24px' : '6px',
+                    height: '6px',
+                    borderRadius: '3px',
+                    backgroundColor: idx === currentSlide ? 'white' : 'rgba(255,255,255,0.5)',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+          {(!previewOnly || isPaid) && !isMobile && (
+            <div style={{
+              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+              backgroundImage: `url(${heroImage})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }} />
+          )}
+        </div>
+      </div>
+  );
+
+  const desktopTourMetaAuthor = (clickable) =>
+    guideName ? (
+      <div
+        role={clickable ? 'button' : undefined}
+        tabIndex={clickable ? 0 : undefined}
+        onClick={
+          clickable
+            ? () => {
+                const el = document.getElementById('preview-author-section');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            : undefined
+        }
+        onKeyDown={
+          clickable
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  const el = document.getElementById('preview-author-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }
+            : undefined
+        }
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          cursor: clickable ? 'pointer' : 'default',
+          minWidth: 0
+        }}
+      >
+        <div
+          style={{
+            width: '44px',
+            height: '44px',
+            borderRadius: '50%',
+            backgroundColor: '#e5e7eb',
+            overflow: 'hidden',
+            flexShrink: 0
+          }}
+        >
+          {guideAvatar ? (
+            <img src={guideAvatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#9ca3af' }}>👤</div>
+          )}
+        </div>
+        <p style={{ margin: 0, fontSize: '12px', color: '#111827', lineHeight: 1.4 }}>
+          <span style={{ fontWeight: 400 }}>Author: </span>
+          <span style={{ fontWeight: 600, fontSize: '14px' }}>{guideName}</span>
+        </p>
+      </div>
+    ) : null;
+
+  const desktopPreviewTourHeader = (
+    <div style={{ width: '100%', boxSizing: 'border-box', paddingTop: '24px' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          gap: '12px 20px',
+          paddingBottom: '16px',
+          borderBottom: '1px solid #e5e7eb'
+        }}
+      >
+        {desktopTourMetaAuthor(true)}
+        {locationLabel && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#111827' }}>
+            <span style={{ color: '#3b82f6', fontSize: '14px' }}>📍</span>
+            {locationLabel}
+          </div>
+        )}
+        {tourLastUpdatedLabel && (
+          <span style={{ color: '#a2a2a2', fontSize: '12px' }}>{tourLastUpdatedLabel}</span>
+        )}
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+          <span style={{ fontSize: '20px', fontWeight: '700', color: '#2059ff' }}>{currencySymbol}{previewPdfPrice}</span>
+          <span style={{ fontSize: '13px', color: '#858586' }}>/trip</span>
+        </div>
+      </div>
+      <h1
+        style={{
+          fontSize: '28px',
+          fontWeight: '700',
+          color: '#111827',
+          margin: '16px 0 0 0',
+          lineHeight: '1.2'
+        }}
+      >
+        {tourTitle}
+      </h1>
+    </div>
+  );
+
+  const desktopFullTourHeader = (
+    <div style={{ width: '100%', boxSizing: 'border-box', paddingTop: '24px' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          gap: '12px 20px',
+          paddingBottom: '16px',
+          borderBottom: '1px solid #e5e7eb'
+        }}
+      >
+        {desktopTourMetaAuthor(false)}
+        {locationLabel && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#111827' }}>
+            <span style={{ color: '#3b82f6', fontSize: '14px' }}>📍</span>
+            {locationLabel}
+          </div>
+        )}
+        {tourLastUpdatedLabel && (
+          <span style={{ color: '#a2a2a2', fontSize: '12px' }}>{tourLastUpdatedLabel}</span>
+        )}
+        <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
+          <button
+            type="button"
+            onClick={handleDownloadPDF}
+            disabled={isDownloadingPdf}
+            style={{
+              backgroundColor: '#2059ff',
+              color: '#ebf6fa',
+              border: 'none',
+              borderRadius: '24px',
+              padding: '12px 20px',
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: isDownloadingPdf ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              opacity: isDownloadingPdf ? 0.7 : 1
+            }}
+          >
+            <img src={PDFIcon} alt="" style={{ width: '18px', height: '19px' }} />
+            {isDownloadingPdf ? 'Downloading...' : 'Download PDF'}
+          </button>
+        </div>
+      </div>
+      <h1
+        style={{
+          fontSize: '28px',
+          fontWeight: '700',
+          color: '#111827',
+          margin: '16px 0 0 0',
+          lineHeight: '1.2'
+        }}
+      >
+        {tourTitle}
+      </h1>
+    </div>
+  );
 
   return (
     <div 
@@ -2220,126 +2503,11 @@ export default function ItineraryPage() {
         padding: '0',
         boxSizing: 'border-box'
       }}>
-      {/* Hero Image Section */}
-      <div style={{
-        width: isMobile ? '100%' : '100%',
-        boxSizing: 'border-box',
-        marginTop: isMobile ? 'calc(-1 * env(safe-area-inset-top, 0px))' : '0',
-        marginBottom: '0',
-        marginLeft: '0',
-        marginRight: '0',
-        padding: '0'
-      }}>
-        <div 
-          style={{
-            position: 'relative',
-            width: '100%',
-            boxSizing: 'border-box',
-            height: isMobile 
-              ? 'calc(350px + env(safe-area-inset-top, 0px))' 
-              : '400px',
-            borderRadius: '0',
-            overflow: 'hidden',
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'flex-start',
-            padding: '0'
-          }}
-          onTouchStart={(e) => {
-            if (previewOnly && !isPaid && allPreviewImages.length > 1) {
-              e.currentTarget._touchStartX = e.touches[0].clientX;
-            }
-          }}
-          onTouchEnd={(e) => {
-            if (previewOnly && !isPaid && allPreviewImages.length > 1 && e.currentTarget._touchStartX !== undefined) {
-              const diff = e.currentTarget._touchStartX - e.changedTouches[0].clientX;
-              if (Math.abs(diff) > 50) {
-                if (diff > 0 && currentSlide < allPreviewImages.length - 1) {
-                  setCurrentSlide(currentSlide + 1);
-                } else if (diff < 0 && currentSlide > 0) {
-                  setCurrentSlide(currentSlide - 1);
-                }
-              }
-              delete e.currentTarget._touchStartX;
-            }
-          }}
-        >
-          {/* Carousel/image background — for preview mode OR mobile full mode */}
-          {(previewOnly && !isPaid || isMobile) && (
-            <div style={{
-              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-              backgroundImage: `url(${(previewOnly && !isPaid) ? (allPreviewImages[currentSlide] || heroImage) : heroImage})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              transition: 'background-image 0.3s ease'
-            }} />
-          )}
-
-          {/* Back button for mobile */}
-          {isMobile && (
-            <button
-              onClick={handleBack}
-              style={{
-                position: 'absolute',
-                top: 'calc(16px + env(safe-area-inset-top, 0px))',
-                left: '16px',
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                backgroundColor: 'white',
-                border: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                zIndex: 3,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                fontSize: '18px'
-              }}
-            >
-              ←
-            </button>
-          )}
-
-          {/* Dot indicators for preview carousel */}
-          {previewOnly && !isPaid && allPreviewImages.length > 1 && (
-            <div style={{
-              position: 'absolute',
-              bottom: '16px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              display: 'flex',
-              gap: '6px',
-              zIndex: 3
-            }}>
-              {allPreviewImages.map((_, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => setCurrentSlide(idx)}
-                  style={{
-                    width: idx === currentSlide ? '24px' : '6px',
-                    height: '6px',
-                    borderRadius: '3px',
-                    backgroundColor: idx === currentSlide ? 'white' : 'rgba(255,255,255,0.5)',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                  }}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Desktop full/paid mode: just show the image, no overlay (like preview) */}
-          {(!previewOnly || isPaid) && !isMobile && (
-            <div style={{
-              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-              backgroundImage: `url(${heroImage})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }} />
-          )}
-        </div>
-      </div>
+      {/* Hero: mobile first; desktop after desktop tour header (Figma) */}
+      {isMobile && itineraryHeroSection}
+      {!isMobile && previewOnly && !isPaid && desktopPreviewTourHeader}
+      {!isMobile && (!previewOnly || isPaid) && desktopFullTourHeader}
+      {!isMobile && itineraryHeroSection}
 
       {/* ========== PREVIEW MODE ========== */}
       {previewOnly && !isPaid ? (
@@ -2347,112 +2515,86 @@ export default function ItineraryPage() {
           width: isMobile ? '90%' : '100%',
           margin: isMobile ? '0 auto' : '0',
           boxSizing: 'border-box',
-          paddingTop: '24px'
+          paddingTop: isMobile ? '24px' : '24px'
         }}>
-          {/* Title below image */}
-          <h1 style={{
-            fontSize: isMobile ? '24px' : '28px',
-            fontWeight: '700',
-            color: '#111827',
-            margin: '0 0 8px 0',
-            lineHeight: '1.2'
-          }}>
-            {tourTitle}
-          </h1>
+          {isMobile && (
+            <>
+              {/* Title below image — mobile only; desktop uses header above hero */}
+              <h1 style={{
+                fontSize: '24px',
+                fontWeight: '700',
+                color: '#111827',
+                margin: '0 0 8px 0',
+                lineHeight: '1.2'
+              }}>
+                {tourTitle}
+              </h1>
 
-          {/* Country + Price row */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '24px'
-          }}>
-            {/* Country */}
-            {(tourCountry || cityName) && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: '#374151' }}>
-                <span style={{ color: '#3b82f6', fontSize: '15px' }}>📍</span>
-                {tourCountry ? `${tourCountry}` : cityName}
+              {/* Country + Price row */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: guideName ? '24px' : '40px'
+              }}>
+                {(tourCountry || cityName) && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: '#374151' }}>
+                    <span style={{ color: '#3b82f6', fontSize: '15px' }}>📍</span>
+                    {tourCountry ? `${tourCountry}` : cityName}
+                  </div>
+                )}
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '20px', fontWeight: '700', color: '#2059ff' }}>{currencySymbol}{previewPdfPrice}</span>
+                  <span style={{ fontSize: '13px', color: '#858586' }}>/trip</span>
+                </div>
               </div>
-            )}
-            {/* Price */}
-            <div style={{ textAlign: 'right' }}>
-              <span style={{ fontSize: '20px', fontWeight: '700', color: '#2059ff' }}>{currencySymbol}{previewPdfPrice}</span>
-              <span style={{ fontSize: '13px', color: '#858586' }}>/trip</span>
-            </div>
-          </div>
 
-          {/* Author row: avatar+info left, button right */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '43px',
-            gap: '12px'
-          }}>
-            {/* Left: Author info */}
-            {guideName && (
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => {
-                  const el = document.getElementById('preview-author-section');
-                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
+              {/* Author row — no top payment button; payment only in unlock section below */}
+              {guideName && (
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => {
                     const el = document.getElementById('preview-author-section');
                     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }
-                }}
-                style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
-              >
-                <div style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '50%',
-                  backgroundColor: '#e5e7eb',
-                  overflow: 'hidden',
-                  flexShrink: 0
-                }}>
-                  {guideAvatar ? (
-                    <img src={guideAvatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#9ca3af' }}>👤</div>
-                  )}
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      const el = document.getElementById('preview-author-section');
+                      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    cursor: 'pointer',
+                    marginBottom: '43px'
+                  }}
+                >
+                  <div style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '50%',
+                    backgroundColor: '#e5e7eb',
+                    overflow: 'hidden',
+                    flexShrink: 0
+                  }}>
+                    {guideAvatar ? (
+                      <img src={guideAvatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#9ca3af' }}>👤</div>
+                    )}
+                  </div>
+                  <div style={{ lineHeight: '1.3' }}>
+                    <div style={{ fontSize: '12px', color: '#6b7280' }}>Trip created by</div>
+                    <div style={{ fontWeight: '600', color: '#111827', fontSize: '15px' }}>{guideName}</div>
+                  </div>
                 </div>
-                <div style={{ lineHeight: '1.3' }}>
-                  <div style={{ fontSize: '12px', color: '#6b7280' }}>Trip created by</div>
-                  <div style={{ fontWeight: '600', color: '#111827', fontSize: '15px' }}>{guideName}</div>
-                </div>
-              </div>
-            )}
-
-            {/* Right: Proceed to payment button */}
-            <button
-              onClick={() => {
-                const unlockSection = document.getElementById('preview-unlock-section');
-                if (unlockSection) unlockSection.scrollIntoView({ behavior: 'smooth' });
-              }}
-              style={{
-                backgroundColor: '#2059ff',
-                color: '#ebf6fa',
-                border: 'none',
-                borderRadius: '24px',
-                padding: '12px 28px',
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                flexShrink: 0,
-                whiteSpace: 'nowrap'
-              }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#1a47cc'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#2059ff'}
-            >
-              Proceed to payment
-            </button>
-          </div>
+              )}
+            </>
+          )}
 
           {/* About trip */}
           <div style={{ marginBottom: '40px' }}>
@@ -2791,16 +2933,16 @@ export default function ItineraryPage() {
       <>
       {/* ========== FULL / PAID MODE ========== */}
 
-      {/* Title below image + Author row (like preview page) — both mobile & desktop */}
+      {/* Title + author + PDF — mobile only; desktop uses header above hero */}
+      {isMobile && (
       <div style={{ 
         width: isMobile ? '90%' : '100%', 
         margin: isMobile ? '0 auto' : '0', 
         boxSizing: 'border-box',
-        paddingTop: isMobile ? '20px' : '24px'
+        paddingTop: '20px'
       }}>
-        {/* Tour title below image */}
         <h1 style={{
-          fontSize: isMobile ? '24px' : '28px',
+          fontSize: '24px',
           fontWeight: '700',
           color: '#111827',
           margin: '0 0 8px 0',
@@ -2809,7 +2951,6 @@ export default function ItineraryPage() {
           {tourTitle}
         </h1>
 
-        {/* Country row */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -2824,7 +2965,6 @@ export default function ItineraryPage() {
           )}
         </div>
 
-        {/* Author row: avatar+info left, Download PDF right */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -2855,6 +2995,7 @@ export default function ItineraryPage() {
             </div>
           )}
           <button
+            type="button"
             onClick={handleDownloadPDF}
             disabled={isDownloadingPdf}
             style={{
@@ -2880,6 +3021,7 @@ export default function ItineraryPage() {
           </button>
         </div>
       </div>
+      )}
 
       {/* Interest Tags — only author-defined tags */}
       {(() => {

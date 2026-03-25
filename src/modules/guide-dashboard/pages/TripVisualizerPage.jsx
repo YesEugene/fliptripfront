@@ -49,6 +49,7 @@ import TextEditor from '../components/TextEditor';
 import GoogleMapsLocationSelector from '../components/GoogleMapsLocationSelector';
 import { DEFAULT_SELF_GUIDED_PRICE } from '../../../constants/pricing';
 import { buildPdfBlobFromStyledPreviewHtml } from '../../../utils/styledTourPdfClient';
+import { formatTourLastUpdatedLabel } from '../../../utils/tourLastUpdated';
 
 // Category name translations
 const CATEGORY_NAMES = {
@@ -2359,6 +2360,11 @@ export default function TripVisualizerPage() {
     }
   }, [tour?.status, lastSubmittedAt]);
 
+  const tourLastUpdatedLabel = useMemo(
+    () => formatTourLastUpdatedLabel(tour),
+    [tour]
+  );
+
   if (loading) {
     const skeletonBlock = {
       background: 'linear-gradient(90deg, #ece9e4 0%, #f3f1ed 45%, #ece9e4 100%)',
@@ -2429,6 +2435,230 @@ export default function TripVisualizerPage() {
       </div>
     );
   }
+
+  const visualizerLocationLabel = tourInfo.city?.trim() ? tourInfo.city : null;
+  const guideDisplayName = guideProfile?.name || user?.name || 'Author';
+
+  const visualizerHeroBlock = (
+        <div style={{
+          position: 'relative',
+          width: '100%',
+          height: '400px',
+          borderRadius: '16px',
+          overflow: 'hidden',
+          marginBottom: '0',
+          backgroundColor: tourInfo.preview ? 'transparent' : '#e5e7eb',
+          boxSizing: 'border-box'
+        }}>
+          {tourInfo.preview ? (
+            <div style={{
+              position: 'absolute',
+              top: 0, left: 0, right: 0, bottom: 0,
+              backgroundImage: `url(${tourInfo.preview})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }} />
+          ) : (
+            <div style={{
+              width: '100%', height: '100%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexDirection: 'column', gap: '8px', color: '#9ca3af'
+            }}>
+              <span style={{ fontSize: '48px' }}>🖼</span>
+              <span style={{ fontSize: '14px' }}>Upload a cover image in "Edit block"</span>
+            </div>
+          )}
+          
+          <button
+            type="button"
+            onClick={() => setShowTourEditor(true)}
+            style={{
+              position: 'absolute',
+              top: '16px',
+              right: '16px',
+              padding: '8px 14px',
+              backgroundColor: '#fbbf24',
+              color: '#111827',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: '600',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+              zIndex: 2,
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#f59e0b'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#fbbf24'}
+          >
+            Edit block
+          </button>
+        </div>
+  );
+
+  const desktopVisualizerTourHeader = (
+    <div style={{ width: '100%', boxSizing: 'border-box', paddingTop: '0' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          gap: '12px 20px',
+          paddingBottom: '16px',
+          borderBottom: '1px solid #e5e7eb'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+          <div
+            style={{
+              width: '44px',
+              height: '44px',
+              borderRadius: '50%',
+              backgroundColor: '#e5e7eb',
+              overflow: 'hidden',
+              flexShrink: 0
+            }}
+          >
+            {(guideProfile?.avatar || user?.avatar) ? (
+              <img src={guideProfile?.avatar || user?.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#9ca3af' }}>👤</div>
+            )}
+          </div>
+          <p style={{ margin: 0, fontSize: '12px', color: '#111827', lineHeight: 1.4 }}>
+            <span style={{ fontWeight: 400 }}>Author: </span>
+            <span style={{ fontWeight: 600, fontSize: '14px' }}>{guideDisplayName}</span>
+          </p>
+        </div>
+        {visualizerLocationLabel ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#111827' }}>
+            <span style={{ fontSize: '14px' }}>📍</span>
+            {visualizerLocationLabel}
+          </div>
+        ) : (
+          <div style={{ fontSize: '12px', color: '#9ca3af', fontStyle: 'italic' }}>📍 City</div>
+        )}
+        {tourLastUpdatedLabel && (
+          <span style={{ color: '#a2a2a2', fontSize: '12px' }}>{tourLastUpdatedLabel}</span>
+        )}
+        <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
+          <button
+            type="button"
+            style={{
+              backgroundColor: '#2059ff',
+              color: '#ebf6fa',
+              border: 'none',
+              borderRadius: '24px',
+              padding: '12px 20px',
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: 'default',
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              opacity: 0.7
+            }}
+          >
+            <img src={PDFIcon} alt="" style={{ width: '18px', height: '19px' }} />
+            Download PDF
+          </button>
+        </div>
+      </div>
+      <h1 style={{
+        fontSize: '28px',
+        fontWeight: '700',
+        color: tourInfo.title ? '#111827' : '#9ca3af',
+        margin: '16px 0 0 0',
+        lineHeight: '1.2',
+        fontStyle: tourInfo.title ? 'normal' : 'italic'
+      }}>
+        {tourInfo.title || 'Your Tour Title'}
+      </h1>
+    </div>
+  );
+
+  const mobileVisualizerTitleSection = (
+        <div style={{ paddingTop: '24px' }}>
+          <h1 style={{
+            fontSize: '28px',
+            fontWeight: '700',
+            color: tourInfo.title ? '#111827' : '#9ca3af',
+            margin: '0 0 8px 0',
+            lineHeight: '1.2',
+            fontStyle: tourInfo.title ? 'normal' : 'italic'
+          }}>
+            {tourInfo.title || 'Your Tour Title'}
+          </h1>
+
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            marginBottom: '20px'
+          }}>
+            {tourInfo.city ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: '#374151' }}>
+                <span style={{ fontSize: '15px' }}>📍</span>
+                {tourInfo.city}
+              </div>
+            ) : (
+              <div style={{ fontSize: '14px', color: '#9ca3af', fontStyle: 'italic' }}>📍 City</div>
+            )}
+          </div>
+
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '24px',
+            gap: '12px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '50%',
+                backgroundColor: '#e5e7eb',
+                overflow: 'hidden',
+                flexShrink: 0
+              }}>
+                {(guideProfile?.avatar || user?.avatar) ? (
+                  <img src={guideProfile?.avatar || user?.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#9ca3af' }}>👤</div>
+                )}
+              </div>
+              <div style={{ lineHeight: '1.3' }}>
+                <div style={{ fontSize: '12px', color: '#6b7280' }}>Trip created by</div>
+                <div style={{ fontWeight: '600', color: '#111827', fontSize: '15px' }}>{guideDisplayName}</div>
+              </div>
+            </div>
+            <button
+              type="button"
+              style={{
+                backgroundColor: '#2059ff',
+                color: '#ebf6fa',
+                border: 'none',
+                borderRadius: '24px',
+                padding: '12px 20px',
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: 'default',
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                opacity: 0.7
+              }}
+            >
+              <img src={PDFIcon} alt="PDF" style={{ width: '18px', height: '19px' }} />
+              Download PDF
+            </button>
+          </div>
+        </div>
+  );
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#ffffff' }}>
@@ -2554,142 +2784,11 @@ export default function TripVisualizerPage() {
           </div>
         )}
         
-        {/* Hero Block - Preview Image (matches frontend tour page) */}
-        <div style={{
-          position: 'relative',
-          width: '100%',
-          height: '400px',
-          borderRadius: '16px',
-          overflow: 'hidden',
-          marginBottom: '0',
-          backgroundColor: tourInfo.preview ? 'transparent' : '#e5e7eb',
-          boxSizing: 'border-box'
-        }}>
-          {tourInfo.preview ? (
-            <div style={{
-              position: 'absolute',
-              top: 0, left: 0, right: 0, bottom: 0,
-              backgroundImage: `url(${tourInfo.preview})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }} />
-          ) : (
-            <div style={{
-              width: '100%', height: '100%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexDirection: 'column', gap: '8px', color: '#9ca3af'
-            }}>
-              <span style={{ fontSize: '48px' }}>🖼</span>
-              <span style={{ fontSize: '14px' }}>Upload a cover image in "Edit block"</span>
-            </div>
-          )}
-          
-          {/* Edit block button */}
-          <button
-            onClick={() => setShowTourEditor(true)}
-            style={{
-              position: 'absolute',
-              top: '16px',
-              right: '16px',
-              padding: '8px 14px',
-              backgroundColor: '#fbbf24',
-              color: '#111827',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: '600',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-              zIndex: 2,
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#f59e0b'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#fbbf24'}
-          >
-            Edit block
-          </button>
-        </div>
-
-        {/* Title below image */}
-        <div style={{ paddingTop: '24px' }}>
-          <h1 style={{
-            fontSize: '28px',
-            fontWeight: '700',
-            color: tourInfo.title ? '#111827' : '#9ca3af',
-            margin: '0 0 8px 0',
-            lineHeight: '1.2',
-            fontStyle: tourInfo.title ? 'normal' : 'italic'
-          }}>
-            {tourInfo.title || 'Your Tour Title'}
-          </h1>
-
-          {/* City row */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            marginBottom: '20px'
-          }}>
-            {tourInfo.city ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: '#374151' }}>
-                <span style={{ fontSize: '15px' }}>📍</span>
-                {tourInfo.city}
-              </div>
-            ) : (
-              <div style={{ fontSize: '14px', color: '#9ca3af', fontStyle: 'italic' }}>📍 City</div>
-            )}
-          </div>
-
-          {/* Author row: avatar+info left, edit button right */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '24px',
-            gap: '12px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '50%',
-                backgroundColor: '#e5e7eb',
-                overflow: 'hidden',
-                flexShrink: 0
-              }}>
-                {(guideProfile?.avatar || user?.avatar) ? (
-                  <img src={guideProfile?.avatar || user?.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#9ca3af' }}>👤</div>
-                )}
-              </div>
-              <div style={{ lineHeight: '1.3' }}>
-                <div style={{ fontSize: '12px', color: '#6b7280' }}>Trip created by</div>
-                <div style={{ fontWeight: '600', color: '#111827', fontSize: '15px' }}>{guideProfile?.name || user?.name || 'Author'}</div>
-              </div>
-            </div>
-            <button
-              style={{
-                backgroundColor: '#2059ff',
-                color: '#ebf6fa',
-                border: 'none',
-                borderRadius: '24px',
-                padding: '12px 20px',
-                fontSize: '13px',
-                fontWeight: '600',
-                cursor: 'default',
-                flexShrink: 0,
-                whiteSpace: 'nowrap',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                opacity: 0.7
-              }}
-            >
-              <img src={PDFIcon} alt="PDF" style={{ width: '18px', height: '19px' }} />
-              Download PDF
-            </button>
-          </div>
-        </div>
+        {/* Hero + title: mobile = hero first (unchanged); desktop = meta + title + date, then hero (Figma) */}
+        {isMobile && visualizerHeroBlock}
+        {!isMobile && desktopVisualizerTourHeader}
+        {!isMobile && visualizerHeroBlock}
+        {isMobile && mobileVisualizerTitleSection}
 
         {/* Interest tags — only author-defined tags */}
         {Array.isArray(tourInfo.tags) && tourInfo.tags.length > 0 && (
