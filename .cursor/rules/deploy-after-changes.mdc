@@ -1,0 +1,14 @@
+---
+description: After finishing meaningful frontend changes, commit and push to main so Vercel deploys.
+alwaysApply: true
+---
+
+# Deploy immediately
+
+When you complete a task that changes application code in this repo (not only docs or local experiments), **end the session by deploying**:
+
+1. `git status` in `fliptrip-clean-frontend` (this repo root).
+2. `git add` the relevant files, `git commit` with a clear message, `git push origin main`.
+3. Do not leave the branch uncommitted unless the user explicitly asked to skip deploy.
+
+If push fails (auth, conflicts), report the error and what is left uncommitted.
