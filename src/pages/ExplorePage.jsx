@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import { getTours } from '../services/api';
 import { getCurrentUser, logout } from '../modules/auth/services/authService';
@@ -216,21 +216,24 @@ function getDashboardPath(role) {
 
 export default function ExplorePage() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const [, setSearchParams] = useSearchParams();
   const insidersScrollRef = useRef(null);
   const pillsScrollRef = useRef(null);
   const hasToursFromCacheRef = useRef(false);
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [interestNameById, setInterestNameById] = useState(new Map());
-  const selectedCities = useMemo(
-    () => normalizeCityListFromParam(searchParams.get('city') || searchParams.get('cities') || ''),
-    [searchParams]
-  );
-  const selectedTags = useMemo(
-    () => parseTagsParam(searchParams.get('tags') || searchParams.get('tag') || ''),
-    [searchParams]
-  );
+  // Use location.search in deps: React Router may reuse the same URLSearchParams instance,
+  // so [searchParams] alone does not always invalidate when the query string changes.
+  const selectedCities = useMemo(() => {
+    const p = new URLSearchParams(location.search);
+    return normalizeCityListFromParam(p.get('city') || p.get('cities') || '');
+  }, [location.search]);
+  const selectedTags = useMemo(() => {
+    const p = new URLSearchParams(location.search);
+    return parseTagsParam(p.get('tags') || p.get('tag') || '');
+  }, [location.search]);
   const [visibleCount, setVisibleCount] = useState(EXPLORE_INITIAL_VISIBLE);
   const [user, setUser] = useState(null);
 
@@ -427,7 +430,7 @@ export default function ExplorePage() {
   }, [selectedCities, selectedTags]);
 
   const toggleCity = (city) => {
-    const next = new URLSearchParams(searchParams);
+    const next = new URLSearchParams(location.search);
     const current = normalizeCityListFromParam(next.get('city') || next.get('cities') || '');
     const cities = current.includes(city)
       ? current.filter((value) => value !== city)
@@ -442,7 +445,7 @@ export default function ExplorePage() {
   };
 
   const toggleTag = (tag) => {
-    const next = new URLSearchParams(searchParams);
+    const next = new URLSearchParams(location.search);
     const current = parseTagsParam(next.get('tags') || next.get('tag') || '');
     const tags = current.includes(tag)
       ? current.filter((value) => value !== tag)
