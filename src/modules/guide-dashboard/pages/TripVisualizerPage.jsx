@@ -517,7 +517,10 @@ export default function TripVisualizerPage() {
         setTourInfo(prev => ({
           ...prev,
           city: tourObj.city?.name || prev.city,
-          title: tourObj.title || prev.title,
+          title:
+            draftData && draftData.title !== undefined
+              ? draftData.title
+              : (tourObj.title || prev.title),
           description:
             draftData && draftData.description !== undefined
               ? draftData.description
@@ -1334,7 +1337,10 @@ export default function TripVisualizerPage() {
             
             setTourInfo({
               city: data.tour.city?.name || tourInfo.city,
-              title: data.tour.title || tourInfo.title,
+              title:
+                data.tour.draft_data && data.tour.draft_data.title !== undefined
+                  ? data.tour.draft_data.title
+                  : (data.tour.title || tourInfo.title),
               description:
                 data.tour.draft_data && data.tour.draft_data.description !== undefined
                   ? data.tour.draft_data.description
