@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail, checkPayment } from '../services/api';
 import { getTourById, getTourPreview } from '../modules/tours-database';
-import { isAuthenticated, getCurrentUser, logout } from '../modules/auth/services/authService';
-import html2pdf from 'html2pdf.js';
+import { isAuthenticated, getCurrentUser, getAuthToken, logout } from '../modules/auth/services/authService';
 import PhotoGallery from '../components/PhotoGallery';
 import AvailabilityCalendar from '../components/AvailabilityCalendar';
 import BlockRenderer from '../modules/guide-dashboard/components/BlockRenderer';
@@ -1697,7 +1696,7 @@ export default function ItineraryPage() {
     try {
       const uploadedTourPdfUrl = (tourData?.draft_data?.tourPdfUrl || tourData?.tourPdfUrl || '').toString().trim();
 
-      // If author uploaded a prepared PDF, download it directly.
+      // If author uploaded or previously generated a stored PDF, download it directly.
       if (uploadedTourPdfUrl) {
         const fileNameBase = `${itinerary?.title || tourData?.title || 'FlipTrip-Tour'}`
           .replace(/[^\w\- ]+/g, '')
@@ -1731,37 +1730,79 @@ export default function ItineraryPage() {
         }
       }
 
-      // Находим элемент для конвертации в PDF
-      const element = document.querySelector('.itinerary-container');
-      if (!element) {
-        alert('Unable to find content for PDF generation');
+      // No stored PDF — generate the same styled PDF as in the guide visualizer (server-side).
+      if (!tourId) {
+        alert('Unable to download PDF: tour is not ready yet.');
         return;
       }
 
-      // Настройки PDF
-      const options = {
-        margin: 0.5,
-        filename: `FlipTrip-${itinerary?.city || 'Itinerary'}-${new Date().toISOString().slice(0, 10)}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff'
+      const API_BASE_URL =
+        import.meta.env.VITE_API_URL ||
+        import.meta.env.VITE_API_BASE_URL ||
+        'https://fliptripback.vercel.app';
+      const token = getAuthToken();
+      const emailFromUrl = searchParams.get('email');
+      const currentUser = getCurrentUser();
+      const emailForPdf = (emailFromUrl || currentUser?.email || '').toString().trim();
+
+      const resp = await fetch(`${API_BASE_URL}/api/generate-styled-tour-pdf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
-        jsPDF: { 
-          unit: 'in', 
-          format: 'letter', 
-          orientation: 'portrait' 
-        }
-      };
+        body: JSON.stringify({
+          tourId,
+          travelerDownload: true,
+          ...(emailForPdf ? { email: emailForPdf } : {}),
+          allowFallback: true
+        })
+      });
 
-      // Генерируем и скачиваем PDF
-      await html2pdf().set(options).from(element).save();
+      const data = await resp.json().catch(() => ({}));
 
+      if (resp.status === 403) {
+        alert(
+          data.error ||
+            'You do not have access to download this PDF. Sign in with the account you used to purchase, or open the link from your confirmation email.'
+        );
+        return;
+      }
+
+      if (!resp.ok || !data.success || !data.pdfUrl) {
+        throw new Error(data.error || `Could not generate PDF (${resp.status})`);
+      }
+
+      const fileNameBase = `${itinerary?.title || tourData?.title || 'FlipTrip-Tour'}`
+        .replace(/[^\w\- ]+/g, '')
+        .trim()
+        .replace(/\s+/g, '-');
+      const fileName = `${fileNameBase || 'FlipTrip-Tour'}.pdf`;
+
+      const pdfResponse = await fetch(data.pdfUrl);
+      if (!pdfResponse.ok) throw new Error(`Failed to fetch PDF file (${pdfResponse.status})`);
+      const blob = await pdfResponse.blob();
+      const objectUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(objectUrl);
+
+      setTourData((prev) => {
+        if (!prev) return prev;
+        const mergedDraft = {
+          ...(prev.draft_data && typeof prev.draft_data === 'object' ? prev.draft_data : {}),
+          tourPdfUrl: data.pdfUrl
+        };
+        if (data.template) mergedDraft.pdfTemplate = data.template;
+        return { ...prev, draft_data: mergedDraft };
+      });
     } catch (error) {
       console.error('PDF generation error:', error);
-      alert('Error generating PDF. Please try again.');
+      alert(error.message || 'Error generating PDF. Please try again.');
     } finally {
       setIsDownloadingPdf(false);
     }
