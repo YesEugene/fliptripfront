@@ -242,7 +242,7 @@ function PreviewMap({ locations }) {
         ref={mapRef}
         style={{
           width: '100%',
-          height: '250px',
+          height: '325px',
           borderRadius: '0',
           backgroundColor: '#f3f4f6'
         }}
@@ -2547,7 +2547,7 @@ export default function ItineraryPage() {
           <div id="preview-unlock-section" style={{
             backgroundColor: 'white',
             borderRadius: '0',
-            border: '1px solid #d1d5db',
+            border: '1px solid #828282',
             padding: '24px',
             marginBottom: '60px'
           }}>
