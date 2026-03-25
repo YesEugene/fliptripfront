@@ -310,6 +310,11 @@ export default function ItineraryPage() {
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
+  const tourLastUpdatedLabel = useMemo(
+    () => formatTourLastUpdatedLabel(tourData),
+    [tourData]
+  );
+
   // City images mapping
   const cityImagesMap = {
     'Paris': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&h=600&fit=crop&q=80',
@@ -2117,10 +2122,6 @@ export default function ItineraryPage() {
   
   // Get country for preview
   const tourCountry = draftData.country || tourData?.country || '';
-  const tourLastUpdatedLabel = useMemo(
-    () => formatTourLastUpdatedLabel(tourData),
-    [tourData]
-  );
 
   // Extract location coordinates from content blocks for preview map
   const previewMapLocations = (() => {
