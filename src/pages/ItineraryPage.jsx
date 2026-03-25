@@ -2354,11 +2354,26 @@ export default function ItineraryPage() {
           }}>
             {/* Left: Author info */}
             {guideName && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  const el = document.getElementById('preview-author-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    const el = document.getElementById('preview-author-section');
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+              >
                 <div style={{
                   width: '44px',
                   height: '44px',
-                  borderRadius: '0',
+                  borderRadius: '50%',
                   backgroundColor: '#e5e7eb',
                   overflow: 'hidden',
                   flexShrink: 0
@@ -2386,7 +2401,7 @@ export default function ItineraryPage() {
                 backgroundColor: '#2059ff',
                 color: '#ebf6fa',
                 border: 'none',
-                borderRadius: '0',
+                borderRadius: '24px',
                 padding: '12px 28px',
                 fontSize: '14px',
                 fontWeight: '600',
@@ -2442,7 +2457,7 @@ export default function ItineraryPage() {
 
           {/* What's Inside This Walk — 6 structured bullets */}
           <div style={{ marginBottom: '40px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' }}>What's Inside This Walk</h2>
+            <h2 style={{ fontSize: '25px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' }}>What's Inside This Walk</h2>
             <div style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
@@ -2521,7 +2536,7 @@ export default function ItineraryPage() {
           {/* Preview Map — non-clickable, shows tour locations */}
           {previewMapLocations.length > 0 && (
             <div style={{ marginBottom: '40px' }}>
-              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' }}>
+              <h3 style={{ fontSize: '25px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' }}>
                 Route overview
               </h3>
               <PreviewMap locations={previewMapLocations} />
@@ -2534,7 +2549,7 @@ export default function ItineraryPage() {
             borderRadius: '0',
             border: '1px solid #d1d5db',
             padding: '24px',
-            marginBottom: '40px'
+            marginBottom: '60px'
           }}>
             <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: '0 0 4px 0' }}>Unlock full trip</h3>
             <p style={{ fontSize: '12px', color: '#808080', margin: '0 0 20px 0' }}>
@@ -2574,7 +2589,7 @@ export default function ItineraryPage() {
               {/* Left: Price block */}
               <div style={{
                 backgroundColor: '#f5f5f6',
-                borderRadius: '0',
+                borderRadius: '10px',
                 padding: '16px 20px',
                 flex: 1,
                 display: 'flex',
@@ -2587,7 +2602,7 @@ export default function ItineraryPage() {
               {/* Right: Payment button */}
               <div style={{
                 background: 'linear-gradient(to right, #1f59ff, #1641ba)',
-                borderRadius: '0',
+                borderRadius: '10px',
                 padding: '16px 24px',
                 flex: 1,
                 display: 'flex',
@@ -2625,10 +2640,10 @@ export default function ItineraryPage() {
 
           {/* Author section */}
           {guideName && (
-            <div style={{ marginBottom: '40px' }}>
+            <div id="preview-author-section" style={{ marginBottom: '40px' }}>
               <div style={{
                 display: 'flex',
-                gap: '16px',
+                gap: '20px',
                 alignItems: 'stretch'
               }}>
                 {/* Author avatar — left */}
@@ -2674,7 +2689,7 @@ export default function ItineraryPage() {
                   fontSize: '14px',
                   color: '#374151',
                   lineHeight: '1.6',
-                  margin: '16px 0 0 0',
+                  margin: '30px 0 0 0',
                   whiteSpace: 'pre-line'
                 }}>
                   {guideBio}
@@ -2686,7 +2701,7 @@ export default function ItineraryPage() {
           {/* All trips from this author */}
           {authorOtherTours.length > 0 && (
             <div style={{ marginBottom: '40px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' }}>All trips from this author</h2>
+              <h2 style={{ fontSize: '25px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' }}>All trips from this author</h2>
               <div style={{
                 display: 'flex',
                 gap: '12px',
