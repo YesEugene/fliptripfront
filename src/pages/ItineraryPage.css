@@ -8,6 +8,8 @@
   --content-max-width: 800px;
   margin: 0;
   padding: 0;
+  /* Absorb footer bottom spacing here so margin-collapse doesn’t leave a white strip (body bg) below the footer */
+  padding-bottom: 50px;
   position: relative;
   box-sizing: border-box;
 }
@@ -652,7 +654,7 @@
 .footer-enhanced {
   text-align: center;
   margin-top: 32px;
-  margin-bottom: 50px;
+  margin-bottom: 0;
   color: #9ca3af;
   font-size: 14px;
   padding: 0;
