@@ -47,6 +47,7 @@ import { getTourAvailability, updateAvailabilitySlots } from '../services/availa
 import BlockRenderer from '../components/BlockRenderer';
 import TextEditor from '../components/TextEditor';
 import GoogleMapsLocationSelector from '../components/GoogleMapsLocationSelector';
+import { DEFAULT_SELF_GUIDED_PRICE } from '../../../constants/pricing';
 
 // Category name translations
 const CATEGORY_NAMES = {
@@ -247,7 +248,7 @@ export default function TripVisualizerPage() {
     selfGuided: true, // Default: Self-guided is always enabled by default
     withGuide: false,
     price: {
-      pdfPrice: 16,
+      pdfPrice: DEFAULT_SELF_GUIDED_PRICE,
       guidedPrice: 0,
       currency: 'USD',
       availableDates: [],
@@ -494,7 +495,7 @@ export default function TripVisualizerPage() {
           selfGuided: selfGuided,
           withGuide: withGuide,
           price: {
-            pdfPrice: loadedSettings?.price?.pdfPrice ?? tourObj.price_pdf ?? 16,
+            pdfPrice: loadedSettings?.price?.pdfPrice ?? tourObj.price_pdf ?? DEFAULT_SELF_GUIDED_PRICE,
             guidedPrice: loadedSettings?.price?.guidedPrice ?? tourObj.price_guided ?? 0,
             currency: loadedSettings?.price?.currency ?? tourObj.currency ?? 'USD',
             availableDates: loadedSettings?.price?.availableDates ?? availableDates,
@@ -1213,7 +1214,7 @@ export default function TripVisualizerPage() {
             withGuide: tourSettings.withGuide,
             selfGuided: tourSettings.selfGuided,
             price: {
-              pdfPrice: 16,
+              pdfPrice: DEFAULT_SELF_GUIDED_PRICE,
               guidedPrice: 0,
               currency: 'USD',
               availableDates: [],
@@ -1266,7 +1267,7 @@ export default function TripVisualizerPage() {
             withGuide: tourSettings.withGuide,
             selfGuided: tourSettings.selfGuided,
             price: {
-              pdfPrice: tourSettings.price.pdfPrice || 16,
+              pdfPrice: tourSettings.price.pdfPrice || DEFAULT_SELF_GUIDED_PRICE,
               guidedPrice: tourSettings.price.guidedPrice || 0,
               currency: tourSettings.price.currency || 'USD',
               availableDates: tourSettings.price.availableDates || [],
@@ -1454,7 +1455,7 @@ export default function TripVisualizerPage() {
             withGuide: tourSettings.withGuide,
             selfGuided: tourSettings.selfGuided,
             price: {
-              pdfPrice: 16,
+              pdfPrice: DEFAULT_SELF_GUIDED_PRICE,
               guidedPrice: 0,
               currency: 'USD',
               availableDates: [],
@@ -1513,7 +1514,7 @@ export default function TripVisualizerPage() {
             withGuide: tourSettings.withGuide,
             selfGuided: tourSettings.selfGuided,
             price: {
-              pdfPrice: tourSettings.price.pdfPrice || 16,
+              pdfPrice: tourSettings.price.pdfPrice || DEFAULT_SELF_GUIDED_PRICE,
               guidedPrice: tourSettings.price.guidedPrice || 0,
               currency: tourSettings.price.currency || 'USD',
               availableDates: tourSettings.price.availableDates || [],
@@ -1623,7 +1624,7 @@ export default function TripVisualizerPage() {
           withGuide: tourSettings.withGuide,
           selfGuided: tourSettings.selfGuided,
           price: {
-            pdfPrice: 16,
+            pdfPrice: DEFAULT_SELF_GUIDED_PRICE,
             guidedPrice: 0,
             currency: 'USD',
             availableDates: [],
@@ -3219,7 +3220,7 @@ export default function TripVisualizerPage() {
                   </div>
                   {tourSettings.selfGuided && (
                     <div style={{ marginLeft: '26px', color: '#6b7280', fontSize: '14px' }}>
-                      Fixed price: <strong style={{ color: '#059669' }}>${tourSettings.price.pdfPrice || 16}</strong>
+                      Fixed price: <strong style={{ color: '#059669' }}>€{tourSettings.price.pdfPrice || DEFAULT_SELF_GUIDED_PRICE}</strong>
                       <br />
                       <span style={{ fontSize: '12px' }}>Travelers can download the PDF route and explore independently</span>
                     </div>

@@ -421,7 +421,7 @@ export default function FlipTripPreviewPage() {
 
         {/* Price */}
         <div style={priceSectionStyle}>
-          <div style={priceStyle}>$16</div>
+          <div style={priceStyle}>€12</div>
           <div style={priceSubtextStyle}>One-time payment</div>
         </div>
 

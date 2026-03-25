@@ -11,6 +11,7 @@ import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import PDFIcon from '../assets/PDF.svg';
 // import SkateboardingGif from '../assets/Skateboarding.gif'; // File not found, commented out
 import './ItineraryPage.css';
+import { DEFAULT_SELF_GUIDED_PRICE, DEFAULT_TOUR_CURRENCY } from '../constants/pricing';
 
 /**
  * PreviewMap — Non-interactive Google Map for preview page
@@ -2051,8 +2052,8 @@ export default function ItineraryPage() {
   })();
   
   // Get price for preview  
-  const previewPdfPrice = tourData?.price?.pdfPrice || tourData?.price_pdf || draftData?.tourSettings?.price?.pdfPrice || 16;
-  const previewCurrency = tourData?.price?.currency || draftData?.tourSettings?.price?.currency || 'USD';
+  const previewPdfPrice = tourData?.price?.pdfPrice || tourData?.price_pdf || draftData?.tourSettings?.price?.pdfPrice || DEFAULT_SELF_GUIDED_PRICE;
+  const previewCurrency = tourData?.price?.currency || draftData?.tourSettings?.price?.currency || DEFAULT_TOUR_CURRENCY;
   const currencySymbol = previewCurrency === 'USD' ? '$' : previewCurrency === 'EUR' ? '€' : previewCurrency;
   
   // Get interests for preview display
@@ -3069,13 +3070,13 @@ export default function ItineraryPage() {
           });
           
           // Get prices
-          const pdfPrice = tourData?.price?.pdfPrice || tourData?.price_pdf || 16;
+          const pdfPrice = tourData?.price?.pdfPrice || tourData?.price_pdf || DEFAULT_SELF_GUIDED_PRICE;
           const guidedPrice = tourData?.price?.guidedPrice || tourData?.price_guided || null;
           
           // Calculate current price based on selected tour type and quantity
           const basePrice = tourType === 'with-guide' && guidedPrice ? guidedPrice : pdfPrice;
           const currentPrice = tourType === 'with-guide' ? basePrice * quantity : basePrice;
-          const currency = tourData?.price?.currency || tourData?.currency || 'USD';
+          const currency = tourData?.price?.currency || tourData?.currency || DEFAULT_TOUR_CURRENCY;
           
           console.log('💰 Price calculation:', {
             pdfPrice,
@@ -3601,9 +3602,9 @@ export default function ItineraryPage() {
                                           (tourData?.price?.guidedPrice && tourData.price.guidedPrice > 0);
                     
                     // Get prices
-                    const pdfPrice = tourData?.price?.pdfPrice || tourData?.price_pdf || 16;
+                    const pdfPrice = tourData?.price?.pdfPrice || tourData?.price_pdf || DEFAULT_SELF_GUIDED_PRICE;
                     const guidedPrice = tourData?.price?.guidedPrice || tourData?.price_guided || null;
-                    const currency = tourData?.price?.currency || tourData?.currency || 'USD';
+                    const currency = tourData?.price?.currency || tourData?.currency || DEFAULT_TOUR_CURRENCY;
                     
                     // Calculate current price based on selected tour type and quantity
                     const basePrice = tourType === 'with-guide' && guidedPrice ? guidedPrice : pdfPrice;
@@ -3913,9 +3914,9 @@ export default function ItineraryPage() {
                                     (tourData?.price?.guidedPrice && tourData.price.guidedPrice > 0);
               
               // Get prices
-              const pdfPrice = tourData?.price?.pdfPrice || tourData?.price_pdf || 16;
+              const pdfPrice = tourData?.price?.pdfPrice || tourData?.price_pdf || DEFAULT_SELF_GUIDED_PRICE;
               const guidedPrice = tourData?.price?.guidedPrice || tourData?.price_guided || null;
-              const currency = tourData?.price?.currency || tourData?.currency || 'USD';
+              const currency = tourData?.price?.currency || tourData?.currency || DEFAULT_TOUR_CURRENCY;
               
               // Calculate current price based on selected tour type and quantity
               const basePrice = tourType === 'with-guide' && guidedPrice ? guidedPrice : pdfPrice;

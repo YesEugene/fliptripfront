@@ -177,7 +177,7 @@ export default function PaymentPage() {
           Ваш персонализированный план готов к покупке
         </p>
 
-        <div style={priceStyle}>$16</div>
+        <div style={priceStyle}>€12</div>
         <div style={priceSubtextStyle}>Одноразовая оплата</div>
 
         <div style={featuresStyle}>
@@ -222,7 +222,7 @@ export default function PaymentPage() {
             }
           }}
         >
-          {loading ? 'Обработка...' : '💳 Оплатить $16'}
+          {loading ? 'Обработка...' : '💳 Оплатить €12'}
         </button>
 
         <button

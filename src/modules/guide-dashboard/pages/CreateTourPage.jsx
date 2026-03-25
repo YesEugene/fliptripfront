@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { createTour } from '../../tours-database';
 import { getCurrentUser } from '../../auth/services/authService';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
+import { DEFAULT_SELF_GUIDED_PRICE, DEFAULT_TOUR_CURRENCY } from '../../../constants/pricing';
 
 // Category name translations
 const CATEGORY_NAMES = {
@@ -72,9 +73,9 @@ export default function CreateTourPage() {
     withGuide: false, // Checkbox for "With Guide" option
     // Updated price structure
     price: {
-      pdfPrice: 16, // Fixed price for PDF format (always available)
+      pdfPrice: DEFAULT_SELF_GUIDED_PRICE, // Fixed price for PDF format (always available)
       guidedPrice: 0, // Price for guided tour (if withGuide is true)
-      currency: 'USD',
+      currency: DEFAULT_TOUR_CURRENCY,
       availableDates: [], // Available dates for guided tours
       meetingPoint: '', // Meeting point for guided tours
       meetingTime: '' // Meeting time for guided tours
@@ -1044,7 +1045,7 @@ export default function CreateTourPage() {
                   <strong style={{ fontSize: '16px' }}>Self-guided Tour (PDF) - Always Available</strong>
                 </div>
                 <div style={{ marginLeft: '28px', color: '#6b7280', fontSize: '14px' }}>
-                  Fixed price: <strong style={{ color: '#059669' }}>${formData.price.pdfPrice || 16}</strong>
+                  Fixed price: <strong style={{ color: '#059669' }}>€{formData.price.pdfPrice || DEFAULT_SELF_GUIDED_PRICE}</strong>
                   <br />
                   <span style={{ fontSize: '12px' }}>Travelers can download the PDF route and explore independently</span>
                 </div>

@@ -260,7 +260,7 @@ export default function PreviewPage() {
               fontWeight: 'bold',
               color: '#1f2937',
               marginBottom: '8px'
-            }}>$16</div>
+            }}>€12</div>
             <div style={{ color: '#6b7280', marginBottom: '24px' }}>One-time payment</div>
             
             <button
