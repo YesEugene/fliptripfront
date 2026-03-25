@@ -2176,7 +2176,10 @@ export default function ItineraryPage() {
       <div style={{
         maxWidth: '750px',
         width: '100%',
-        margin: isMobile ? '0' : '0 auto',
+        marginTop: '20px',
+        marginLeft: isMobile ? '0' : 'auto',
+        marginRight: isMobile ? '0' : 'auto',
+        marginBottom: '0',
         padding: '0',
         boxSizing: 'border-box'
       }}>
@@ -2447,7 +2450,7 @@ export default function ItineraryPage() {
             }}>
               {/* Bullet 1 — Location count (auto) */}
               <div style={{
-                backgroundColor: '#ecf6ff', borderRadius: '12px', padding: '16px',
+                backgroundColor: '#E3F0F3', borderRadius: '12px', padding: '16px',
                 minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
               }}>
                 <span style={{ fontSize: '24px', marginBottom: '8px' }}>📍</span>
@@ -2460,7 +2463,7 @@ export default function ItineraryPage() {
               
               {/* Bullet 2 — Fixed route */}
               <div style={{
-                backgroundColor: '#ecf6ff', borderRadius: '12px', padding: '16px',
+                backgroundColor: '#E3F0F3', borderRadius: '12px', padding: '16px',
                 minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
               }}>
                 <span style={{ fontSize: '24px', marginBottom: '8px' }}>🗺</span>
@@ -2470,7 +2473,7 @@ export default function ItineraryPage() {
               {/* Bullet 3 — Creative tagline (from author) */}
               {tourHighlights.text3 && (
                 <div style={{
-                  backgroundColor: '#ecf6ff', borderRadius: '12px', padding: '16px',
+                  backgroundColor: '#E3F0F3', borderRadius: '12px', padding: '16px',
                   minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
                 }}>
                   <span style={{ fontSize: '24px', marginBottom: '8px' }}>{tourHighlights.icon3 || '⚔️'}</span>
@@ -2481,7 +2484,7 @@ export default function ItineraryPage() {
               {/* Bullet 4 — Theme (from author) */}
               {tourHighlights.text4 && (
                 <div style={{
-                  backgroundColor: '#ecf6ff', borderRadius: '12px', padding: '16px',
+                  backgroundColor: '#E3F0F3', borderRadius: '12px', padding: '16px',
                   minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
                 }}>
                   <span style={{ fontSize: '24px', marginBottom: '8px' }}>{tourHighlights.icon4 || '🏛'}</span>
@@ -2492,7 +2495,7 @@ export default function ItineraryPage() {
               {/* Bullet 5 — Specific details (from author) */}
               {tourHighlights.text5 && (
                 <div style={{
-                  backgroundColor: '#ecf6ff', borderRadius: '12px', padding: '16px',
+                  backgroundColor: '#E3F0F3', borderRadius: '12px', padding: '16px',
                   minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
                 }}>
                   <span style={{ fontSize: '24px', marginBottom: '8px' }}>{tourHighlights.icon5 || '☕'}</span>
@@ -2502,7 +2505,7 @@ export default function ItineraryPage() {
               
               {/* Bullet 6 — Fixed map + PDF */}
               <div style={{
-                backgroundColor: '#ecf6ff', borderRadius: '12px', padding: '16px',
+                backgroundColor: '#E3F0F3', borderRadius: '12px', padding: '16px',
                 minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
               }}>
                 <img

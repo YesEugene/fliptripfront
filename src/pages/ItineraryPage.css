@@ -4,8 +4,8 @@
   min-height: 100vh;
   /* Match Explore (explore-page) so header & page chrome align */
   background-color: #fcfbf9;
-  /* Same CSS var as .explore-page — needed for .explore-topbar-inner max-width */
-  --content-max-width: 800px;
+  /* Align header strip with main column (750px), same as content wrapper below */
+  --content-max-width: 750px;
   margin: 0;
   padding: 0;
   position: relative;
