@@ -2403,7 +2403,7 @@ export default function ItineraryPage() {
           </div>
 
           {/* About trip */}
-          <div style={{ marginBottom: '32px' }}>
+          <div style={{ marginBottom: '40px' }}>
             <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 12px 0' }}>About trip</h2>
             {(() => {
               const text = tourDescription || '';
@@ -2441,7 +2441,7 @@ export default function ItineraryPage() {
           </div>
 
           {/* What's Inside This Walk — 6 structured bullets */}
-          <div style={{ marginBottom: '32px' }}>
+          <div style={{ marginBottom: '40px' }}>
             <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' }}>What's Inside This Walk</h2>
             <div style={{
               display: 'grid',
@@ -2520,7 +2520,7 @@ export default function ItineraryPage() {
 
           {/* Preview Map — non-clickable, shows tour locations */}
           {previewMapLocations.length > 0 && (
-            <div style={{ marginBottom: '32px' }}>
+            <div style={{ marginBottom: '40px' }}>
               <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' }}>
                 Route overview
               </h3>
@@ -2534,7 +2534,7 @@ export default function ItineraryPage() {
             borderRadius: '14px',
             border: '1px solid #d1d5db',
             padding: '24px',
-            marginBottom: '32px'
+            marginBottom: '40px'
           }}>
             <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: '0 0 4px 0' }}>Unlock full trip</h3>
             <p style={{ fontSize: '12px', color: '#808080', margin: '0 0 20px 0' }}>
@@ -2625,7 +2625,7 @@ export default function ItineraryPage() {
 
           {/* Author section */}
           {guideName && (
-            <div style={{ marginBottom: '32px' }}>
+            <div style={{ marginBottom: '40px' }}>
               <div style={{
                 display: 'flex',
                 gap: '16px',
@@ -2685,7 +2685,7 @@ export default function ItineraryPage() {
 
           {/* All trips from this author */}
           {authorOtherTours.length > 0 && (
-            <div style={{ marginBottom: '32px' }}>
+            <div style={{ marginBottom: '40px' }}>
               <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' }}>All trips from this author</h2>
               <div style={{
                 display: 'flex',
@@ -2877,7 +2877,7 @@ export default function ItineraryPage() {
           width: isMobile ? '90%' : '100%',
           margin: isMobile ? '0 auto' : '0',
           boxSizing: 'border-box',
-          marginBottom: '32px'
+          marginBottom: '40px'
         }}>
           <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 12px 0' }}>About trip</h2>
           {(() => {
