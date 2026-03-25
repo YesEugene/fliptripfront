@@ -2172,11 +2172,11 @@ export default function ItineraryPage() {
         </div>
       </header>
 
-      {/* Content Wrapper - Centers all content blocks at 750px max width */}
+      {/* Content Wrapper — 800px like Explore (.explore-page --content-max-width) */}
       <div style={{
-        maxWidth: '750px',
+        maxWidth: '800px',
         width: '100%',
-        marginTop: '20px',
+        marginTop: '0',
         marginLeft: isMobile ? '0' : 'auto',
         marginRight: isMobile ? '0' : 'auto',
         marginBottom: '0',
@@ -3721,7 +3721,7 @@ export default function ItineraryPage() {
             style={{
               marginLeft: '10px',
               marginRight: '10px',
-              maxWidth: '750px'
+              maxWidth: '800px'
             }}
           >
             <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937', marginBottom: '24px' }}>
