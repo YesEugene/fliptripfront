@@ -2444,7 +2444,7 @@ export default function TripVisualizerPage() {
           position: 'relative',
           width: '100%',
           height: '400px',
-          borderRadius: '16px',
+          borderRadius: '0',
           overflow: 'hidden',
           marginBottom: '0',
           backgroundColor: tourInfo.preview ? 'transparent' : '#e5e7eb',
@@ -2570,7 +2570,7 @@ export default function TripVisualizerPage() {
         fontSize: '50px',
         fontWeight: 500,
         color: tourInfo.title ? '#111827' : '#9ca3af',
-        margin: '50px 0 50px 0',
+        margin: '40px 0 40px 0',
         lineHeight: '1.15',
         fontStyle: tourInfo.title ? 'normal' : 'italic'
       }}>
@@ -2757,8 +2757,8 @@ export default function TripVisualizerPage() {
         </div>
       </div>
 
-      {/* Main Content — desktop: 70px below top bar */}
-      <div style={{ maxWidth: '750px', margin: '0 auto', padding: isMobile ? '40px 20px' : '70px 20px 40px' }}>
+      {/* Main Content — desktop: 60px below top bar */}
+      <div style={{ maxWidth: '750px', margin: '0 auto', padding: isMobile ? '40px 20px' : '60px 20px 40px' }}>
         {/* Admin editing indicator */}
         {isEditingOtherTour && (
           <div style={{
@@ -2788,7 +2788,7 @@ export default function TripVisualizerPage() {
         {isMobile && visualizerHeroBlock}
         {!isMobile && desktopVisualizerTourHeader}
         {!isMobile && (
-          <div style={{ marginBottom: '50px' }}>{visualizerHeroBlock}</div>
+          <div style={{ marginBottom: '40px' }}>{visualizerHeroBlock}</div>
         )}
         {isMobile && mobileVisualizerTitleSection}
 
@@ -2819,11 +2819,8 @@ export default function TripVisualizerPage() {
           </div>
         )}
 
-        {/* About trip — desktop: no section title; 20px medium body */}
+        {/* Tour description — no section title; 20px medium, black (placeholder stays gray) */}
         <div style={{ marginBottom: '32px' }}>
-          {isMobile && (
-            <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 12px 0' }}>About trip</h2>
-          )}
           {(() => {
             const isPlaceholder = !tourInfo.description;
             const text = tourInfo.description || 'This is where you describe your tour. Tell travelers what they\'ll discover, what makes this route unique, and why they should follow it.\n\nClick "Edit block" above to add your description.';
@@ -2831,9 +2828,9 @@ export default function TripVisualizerPage() {
             return (
               <>
                 <p style={{
-                  fontSize: isMobile ? '14px' : '20px',
-                  fontWeight: isMobile ? 400 : 500,
-                  color: isPlaceholder ? '#9ca3af' : '#374151',
+                  fontSize: '20px',
+                  fontWeight: 500,
+                  color: isPlaceholder ? '#9ca3af' : '#111827',
                   lineHeight: '1.5',
                   margin: '0 0 8px 0',
                   whiteSpace: 'pre-line',
@@ -2851,9 +2848,9 @@ export default function TripVisualizerPage() {
                   <span
                     onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
                     style={{
-                      fontSize: isMobile ? '14px' : '20px',
+                      fontSize: '20px',
                       fontWeight: 500,
-                      color: '#2059ff',
+                      color: '#111827',
                       cursor: 'pointer'
                     }}
                   >

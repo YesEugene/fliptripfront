@@ -2172,7 +2172,7 @@ export default function ItineraryPage() {
         width: '100%',
         boxSizing: 'border-box',
         marginTop: isMobile ? 'calc(-1 * env(safe-area-inset-top, 0px))' : '0',
-        marginBottom: isMobile ? '0' : '50px',
+        marginBottom: isMobile ? '0' : '40px',
         marginLeft: '0',
         marginRight: '0',
         padding: '0'
@@ -2368,7 +2368,7 @@ export default function ItineraryPage() {
           fontSize: '50px',
           fontWeight: 500,
           color: '#111827',
-          margin: '50px 0 50px 0',
+          margin: '40px 0 40px 0',
           lineHeight: '1.15'
         }}
       >
@@ -2429,7 +2429,7 @@ export default function ItineraryPage() {
           fontSize: '50px',
           fontWeight: 500,
           color: '#111827',
-          margin: '50px 0 50px 0',
+          margin: '40px 0 40px 0',
           lineHeight: '1.15'
         }}
       >
@@ -2497,7 +2497,7 @@ export default function ItineraryPage() {
         marginRight: isMobile ? '0' : 'auto',
         marginBottom: '0',
         padding: '0',
-        paddingTop: isMobile ? '0' : '70px',
+        paddingTop: isMobile ? '0' : '60px',
         boxSizing: 'border-box'
       }}>
       {/* Hero: mobile first; desktop after desktop tour header (Figma) */}
@@ -2593,11 +2593,8 @@ export default function ItineraryPage() {
             </>
           )}
 
-          {/* About trip — desktop: no section title; 20px medium body */}
+          {/* Tour description — no section title; 20px medium, black */}
           <div style={{ marginBottom: '40px' }}>
-            {isMobile && (
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 12px 0' }}>About trip</h2>
-            )}
             {(() => {
               const text = tourDescription || '';
               return (
@@ -2605,9 +2602,9 @@ export default function ItineraryPage() {
                   <p
                     ref={aboutTripTextRef}
                     style={{
-                    fontSize: isMobile ? '14px' : '20px',
-                    fontWeight: isMobile ? 400 : 500,
-                    color: '#374151',
+                    fontSize: '20px',
+                    fontWeight: 500,
+                    color: '#111827',
                     lineHeight: '1.5',
                     margin: '0 0 8px 0',
                     whiteSpace: 'pre-line',
@@ -2625,9 +2622,9 @@ export default function ItineraryPage() {
                     <span
                       onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
                       style={{
-                        fontSize: isMobile ? '14px' : '20px',
+                        fontSize: '20px',
                         fontWeight: 500,
-                        color: '#2059ff',
+                        color: '#111827',
                         cursor: 'pointer'
                       }}
                     >
@@ -3070,7 +3067,7 @@ export default function ItineraryPage() {
         );
       })()}
 
-      {/* About trip — for full/paid new format; desktop: no heading, 20px medium */}
+      {/* Tour description — full/paid new format; no heading; 20px medium black */}
       {useNewFormat && tourDescription && (
         <div style={{
           width: isMobile ? '90%' : '100%',
@@ -3078,9 +3075,6 @@ export default function ItineraryPage() {
           boxSizing: 'border-box',
           marginBottom: '40px'
         }}>
-          {isMobile && (
-            <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 12px 0' }}>About trip</h2>
-          )}
           {(() => {
             const text = tourDescription || '';
             return (
@@ -3088,9 +3082,9 @@ export default function ItineraryPage() {
                 <p
                   ref={aboutTripTextRef}
                   style={{
-                  fontSize: isMobile ? '14px' : '20px',
-                  fontWeight: isMobile ? 400 : 500,
-                  color: '#374151',
+                  fontSize: '20px',
+                  fontWeight: 500,
+                  color: '#111827',
                   lineHeight: '1.5',
                   margin: '0 0 8px 0',
                   whiteSpace: 'pre-line',
@@ -3108,9 +3102,9 @@ export default function ItineraryPage() {
                   <span
                     onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
                     style={{
-                      fontSize: isMobile ? '14px' : '20px',
+                      fontSize: '20px',
                       fontWeight: 500,
-                      color: '#2059ff',
+                      color: '#111827',
                       cursor: 'pointer'
                     }}
                   >
