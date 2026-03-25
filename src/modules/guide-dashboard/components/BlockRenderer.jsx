@@ -931,11 +931,20 @@ function TitleBlock({ block, onEdit }) {
   const content = block.content || {};
   const text = content.text || 'Section Title';
   const size = content.size || 'large';
-  
+  const weightKey = content.fontWeight || 'medium';
+
   const fontSizeMap = {
     small: '24px',
     medium: '32px',
     large: '48px'
+  };
+
+  const titleFontWeightMap = {
+    light: 300,
+    regular: 400,
+    medium: 500,
+    semibold: 600,
+    bold: 700
   };
 
   const [isMobileTitle, setIsMobileTitle] = useState(false);
@@ -961,7 +970,7 @@ function TitleBlock({ block, onEdit }) {
       }}>
         <h2 style={{
           fontSize: fontSizeMap[size],
-          fontWeight: 'bold',
+          fontWeight: titleFontWeightMap[weightKey] ?? titleFontWeightMap.medium,
           color: '#111827',
           margin: 0,
           lineHeight: '1.2'

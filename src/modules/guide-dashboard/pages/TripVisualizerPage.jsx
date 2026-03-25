@@ -1707,7 +1707,7 @@ export default function TripVisualizerPage() {
     let defaultContent = {};
     switch (blockType) {
       case 'title':
-        defaultContent = { text: 'New Title', size: 'large' };
+        defaultContent = { text: 'New Title', size: 'large', fontWeight: 'medium' };
         break;
       case 'text':
         defaultContent = { 
@@ -5564,6 +5564,9 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
           enableTimeField: defaultEnableTimeField
         };
       }
+      if (block.block_type === 'title') {
+        return { text: '', size: 'large', fontWeight: 'medium' };
+      }
       return {};
     }
     
@@ -5619,6 +5622,15 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
         },
         alternativeLocations: contentToNormalize.alternativeLocations || [],
         enableTimeField: savedEnableTimeField !== undefined ? savedEnableTimeField : defaultEnableTimeField
+      };
+    }
+
+    if (block.block_type === 'title') {
+      return {
+        ...contentToNormalize,
+        text: contentToNormalize.text ?? '',
+        size: contentToNormalize.size || 'large',
+        fontWeight: contentToNormalize.fontWeight || 'medium'
       };
     }
     
@@ -5696,6 +5708,29 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                 <option value="small">Small</option>
                 <option value="medium">Medium</option>
                 <option value="large">Large</option>
+              </select>
+            </div>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Font weight
+              </label>
+              <select
+                value={content.fontWeight || 'medium'}
+                onChange={(e) => setContent({ ...content, fontWeight: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <option value="light">Light</option>
+                <option value="regular">Regular</option>
+                <option value="medium">Medium</option>
+                <option value="semibold">Semibold</option>
+                <option value="bold">Bold</option>
               </select>
             </div>
           </>
