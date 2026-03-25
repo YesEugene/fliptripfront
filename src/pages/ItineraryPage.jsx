@@ -2589,16 +2589,15 @@ export default function ItineraryPage() {
 
             {/* Email input — on top */}
             <div style={{ marginBottom: '16px' }}>
-              <p style={{ fontSize: '14px', color: '#111827', margin: '0 0 8px 0' }}>Email for your itinerary</p>
               <input
                 id="preview-email-input"
                 type="email"
-                placeholder="your@email.com"
+                placeholder="Your email for your itinerary"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '14px 16px',
+                  padding: '14px 0',
                   border: 'none',
                   borderBottom: '1px solid #d1d5db',
                   borderRadius: '0',
@@ -3709,11 +3708,11 @@ export default function ItineraryPage() {
                         }}>
                           <input
                             type="email"
-                            placeholder="Enter your email"
+                            placeholder="Your email for your itinerary"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             style={{
-                              padding: '12px 16px',
+                              padding: '12px 0',
                               border: '1px solid #d1d5db',
                               borderRadius: '8px',
                               fontSize: '16px',
@@ -4021,11 +4020,11 @@ export default function ItineraryPage() {
                   }}>
                     <input
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder="Your email for your itinerary"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       style={{
-                        padding: '12px 16px',
+                        padding: '12px 0',
                         border: '1px solid #d1d5db',
                         borderRadius: '8px',
                         fontSize: '16px',
