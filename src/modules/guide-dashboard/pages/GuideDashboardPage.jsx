@@ -39,6 +39,16 @@ function extractTourCardImageFromBlocks(blocks) {
   return null;
 }
 
+/**
+ * Same rule as ItineraryPage preview: use map block pins (all route stops), else count location blocks.
+ */
+function countLocationsFromBlocks(blocks) {
+  if (!Array.isArray(blocks)) return 0;
+  const mapBlock = blocks.find((b) => b.block_type === 'map');
+  if (mapBlock?.content?.locations?.length) return mapBlock.content.locations.length;
+  return blocks.filter((b) => b.block_type === 'location').length;
+}
+
 export default function GuideDashboardPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -129,7 +139,7 @@ export default function GuideDashboardPage() {
                 const blocksData = await response.json();
                 if (blocksData.success && blocksData.blocks) {
                   const blocks = blocksData.blocks;
-                  locationCounts[tour.id] = blocks.filter((b) => b.block_type === 'location').length;
+                  locationCounts[tour.id] = countLocationsFromBlocks(blocks);
                   // Count blocks excluding 'title' (header) and 'divider'
                   const count = blocks.filter(block => 
                     block.block_type !== 'title' && block.block_type !== 'divider'
