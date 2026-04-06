@@ -351,6 +351,8 @@ export default function TripVisualizerPage() {
 
   // Tour settings block collapsed state
   const [isTourSettingsCollapsed, setIsTourSettingsCollapsed] = useState(true);
+  /** Bottom sheet: PDF / AI vs tour format */
+  const [bottomPanelTab, setBottomPanelTab] = useState('finalization');
 
   // Load availability slots when tour has guide format
   useEffect(() => {
@@ -2511,37 +2513,88 @@ export default function TripVisualizerPage() {
   /** Onboarding hint: only right after creating a tour (?newTour=1), until dismissed (stored per tour). */
   const showStep1Hint = searchParams.get('newTour') === '1' && !!tourId && !step1HintDismissed;
 
-  const visualizerHeroBlock = (
-        <div style={{
-          position: 'relative',
-          width: '100%',
-          height: '320px',
+  /** Cover image (optional) + single “Header” copy block (replaces old empty hero placeholder). */
+  const visualizerFirstBlock = (
+    <div style={{ width: '100%', marginBottom: '0' }}>
+      {tourInfo.preview ? (
+        <div
+          style={{
+            width: '100%',
+            height: '280px',
+            borderRadius: 0,
+            overflow: 'hidden',
+            marginBottom: 0,
+            border: `1px solid ${VISUALIZER_HEADER_BLOCK_BORDER}`,
+            boxSizing: 'border-box',
+            backgroundImage: `url(${tourInfo.preview})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        />
+      ) : null}
+      <div
+        style={{
+          border: `1px solid ${VISUALIZER_HEADER_BLOCK_BORDER}`,
           borderRadius: 0,
-          overflow: 'hidden',
-          marginBottom: '0',
-          backgroundColor: tourInfo.preview ? 'transparent' : VISUALIZER_PAGE_BG,
-          border: tourInfo.preview ? 'none' : `1px solid ${VISUALIZER_HEADER_BLOCK_BORDER}`,
-          boxSizing: 'border-box'
-        }}>
-          {tourInfo.preview ? (
-            <div style={{
-              position: 'absolute',
-              top: 0, left: 0, right: 0, bottom: 0,
-              backgroundImage: `url(${tourInfo.preview})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }} />
-          ) : (
-            <div style={{
-              width: '100%', height: '100%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexDirection: 'column', gap: '8px', color: '#9ca3af'
-            }}>
-              <span style={{ fontSize: '36px', opacity: 0.7 }}>🖼</span>
-              <span style={{ fontSize: '14px', fontWeight: 500 }}>Upload a cover image in Edit block</span>
-            </div>
-          )}
+          padding: '24px 28px',
+          backgroundColor: VISUALIZER_PAGE_BG,
+          boxSizing: 'border-box',
+          marginTop: tourInfo.preview ? 0 : 0,
+        }}
+      >
+        <div
+          style={{
+            fontSize: '15px',
+            fontWeight: 600,
+            color: '#6b7280',
+            marginBottom: '16px',
+          }}
+        >
+          Header
         </div>
+        {tourInfo.description?.trim() ? (
+          <p
+            style={{
+              fontSize: '18px',
+              fontWeight: 500,
+              color: '#374151',
+              lineHeight: 1.55,
+              margin: 0,
+              whiteSpace: 'pre-line',
+            }}
+          >
+            {tourInfo.description}
+          </p>
+        ) : (
+          <>
+            <p
+              style={{
+                fontSize: '18px',
+                fontWeight: 500,
+                color: '#9ca3af',
+                lineHeight: 1.55,
+                margin: '0 0 16px 0',
+                fontStyle: 'italic',
+              }}
+            >
+              {`This is where you describe your tour. Tell travelers what they'll discover, what makes this route unique, and why they should follow it.`}
+            </p>
+            <p
+              style={{
+                fontSize: '18px',
+                fontWeight: 500,
+                color: '#9ca3af',
+                lineHeight: 1.55,
+                margin: 0,
+                fontStyle: 'italic',
+              }}
+            >
+              {`Click 'Edit block' above to add your description.`}
+            </p>
+          </>
+        )}
+      </div>
+    </div>
   );
 
   const visualizerStep1HintBox = showStep1Hint ? (
@@ -2921,14 +2974,11 @@ export default function TripVisualizerPage() {
           </div>
         )}
         
-        {/* Hero + title: mobile = hero first (unchanged); desktop = meta + title + date, then hero (Figma) */}
-        {isMobile && visualizerHeroBlock}
+        {/* Desktop: meta → title row → first block. Mobile: title row → first block */}
         {!isMobile && desktopVisualizerMetaRow}
         {!isMobile && desktopVisualizerTitleRow}
-        {!isMobile && (
-          <div style={{ marginBottom: '32px' }}>{visualizerHeroBlock}</div>
-        )}
         {isMobile && mobileVisualizerTitleSection}
+        <div style={{ marginBottom: '32px' }}>{visualizerFirstBlock}</div>
 
         {/* Interest tags — only author-defined tags */}
         {Array.isArray(tourInfo.tags) && tourInfo.tags.length > 0 && (
@@ -2956,72 +3006,6 @@ export default function TripVisualizerPage() {
             })}
           </div>
         )}
-
-        {/* Tour description — full text, no collapse */}
-        <div style={{ marginBottom: '32px' }}>
-          {(() => {
-            const isPlaceholder = !tourInfo.description;
-            const line1 = 'This is where you describe your tour. Tell travelers what they\'ll discover, what makes this route unique, and why they should follow it.';
-            const line2 = 'Click \'Edit block\' above to add your description.';
-            return (
-              <div
-                style={{
-                  border: `1px solid ${VISUALIZER_HEADER_BLOCK_BORDER}`,
-                  borderRadius: 0,
-                  padding: '24px 28px',
-                  backgroundColor: VISUALIZER_PAGE_BG,
-                  boxSizing: 'border-box',
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: '15px',
-                    fontWeight: 600,
-                    color: '#6b7280',
-                    marginBottom: '24px',
-                  }}
-                >
-                  Header
-                </div>
-                {isPlaceholder ? (
-                  <>
-                    <p style={{
-                      fontSize: '18px',
-                      fontWeight: 500,
-                      color: '#9ca3af',
-                      lineHeight: 1.55,
-                      margin: '0 0 16px 0',
-                      fontStyle: 'italic',
-                    }}>
-                      {line1}
-                    </p>
-                    <p style={{
-                      fontSize: '18px',
-                      fontWeight: 500,
-                      color: '#9ca3af',
-                      lineHeight: 1.55,
-                      margin: 0,
-                      fontStyle: 'italic',
-                    }}>
-                      {line2}
-                    </p>
-                  </>
-                ) : (
-                  <p style={{
-                    fontSize: '18px',
-                    fontWeight: 500,
-                    color: '#374151',
-                    lineHeight: 1.55,
-                    margin: 0,
-                    whiteSpace: 'pre-line',
-                  }}>
-                    {tourInfo.description}
-                  </p>
-                )}
-              </div>
-            );
-          })()}
-        </div>
 
         {/* Content Blocks - Appear after author block */}
         {blocks.map((block, index) => (
@@ -3505,426 +3489,135 @@ export default function TripVisualizerPage() {
             maxHeight: 'calc(80vh - 65px)',
             overflowY: 'auto'
           }}>
-            {/* Inner container with maxWidth ~700px */}
             <div style={{
-              maxWidth: '700px',
+              maxWidth: VISUALIZER_CONTENT_MAX_WIDTH,
               width: '100%',
               margin: '0 auto',
-              padding: '0 20px'
+              padding: '0 24px',
+              boxSizing: 'border-box',
             }}>
-              <div style={{ marginBottom: '24px' }}>
+              <div
+                role="tablist"
+                aria-label="Tour submission"
+                style={{
+                  display: 'flex',
+                  gap: '0',
+                  marginBottom: '20px',
+                  borderBottom: `1px solid ${VISUALIZER_HEADER_BLOCK_BORDER}`,
+                }}
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={bottomPanelTab === 'finalization'}
+                  onClick={() => setBottomPanelTab('finalization')}
+                  style={{
+                    padding: '12px 18px',
+                    fontSize: '15px',
+                    fontWeight: bottomPanelTab === 'finalization' ? 600 : 500,
+                    color: bottomPanelTab === 'finalization' ? '#0d0d0d' : '#6b7280',
+                    background: 'none',
+                    border: 'none',
+                    borderBottom: bottomPanelTab === 'finalization' ? '2px solid #0d0d0d' : '2px solid transparent',
+                    marginBottom: '-1px',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  Tour finalization
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={bottomPanelTab === 'settings'}
+                  onClick={() => setBottomPanelTab('settings')}
+                  style={{
+                    padding: '12px 18px',
+                    fontSize: '15px',
+                    fontWeight: bottomPanelTab === 'settings' ? 600 : 500,
+                    color: bottomPanelTab === 'settings' ? '#0d0d0d' : '#6b7280',
+                    background: 'none',
+                    border: 'none',
+                    borderBottom: bottomPanelTab === 'settings' ? '2px solid #0d0d0d' : '2px solid transparent',
+                    marginBottom: '-1px',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  Tour settings
+                </button>
+              </div>
+
+              {bottomPanelTab === 'finalization' && (
+                <TourFinalizationContent
+                  tourInfo={tourInfo}
+                  tourId={tourId}
+                  tourBlocks={blocks}
+                  onChange={setTourInfo}
+                />
+              )}
+
+              {bottomPanelTab === 'settings' && (
+              <>
+              <div style={{ marginBottom: '20px' }}>
                 <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '4px' }}>
-                  Tour Settings
+                  Tour settings
                 </h2>
                 <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
-                  Complete the settings to submit your tour for moderation. Review takes up to 24 hours.
+                  Self-guided is the default format. Submit when your tour is ready for moderation (review up to 24 hours).
                 </p>
               </div>
 
-              {/* Tour Format & Pricing Section */}
               <div style={{ marginBottom: '24px' }}>
                 <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500', fontSize: '16px' }}>
-                  Tour Format & Pricing
+                  Tour format
                 </label>
-                
-                {/* Self-guided Tour (Optional Checkbox) */}
+
                 <div style={{
                   padding: '16px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
+                  border: `1px solid ${VISUALIZER_HEADER_BLOCK_BORDER}`,
+                  borderRadius: 0,
                   marginBottom: '16px',
-                  backgroundColor: tourSettings.selfGuided ? '#f0fdf4' : '#f9fafb'
+                  backgroundColor: '#f0fdf4'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
                     <input
                       type="checkbox"
-                      checked={tourSettings.selfGuided || false}
-                      onChange={(e) => {
-                        setTourSettings(prev => ({
-                          ...prev,
-                          selfGuided: e.target.checked
-                        }));
-                      }}
-                      style={{ marginRight: '8px', width: '18px', height: '18px', cursor: 'pointer' }}
+                      checked
+                      readOnly
+                      disabled
+                      style={{ marginRight: '8px', width: '18px', height: '18px', cursor: 'not-allowed', opacity: 0.9 }}
                     />
                     <strong style={{ fontSize: '16px' }}>Self-guided Tour (PDF)</strong>
                   </div>
-                  {tourSettings.selfGuided && (
-                    <div style={{ marginLeft: '26px', color: '#6b7280', fontSize: '14px' }}>
-                      Fixed price: <strong style={{ color: '#059669' }}>€{tourSettings.price.pdfPrice || DEFAULT_SELF_GUIDED_PRICE}</strong>
-                      <br />
-                      <span style={{ fontSize: '12px' }}>Travelers can download the PDF route and explore independently</span>
-                    </div>
-                  )}
+                  <div style={{ marginLeft: '26px', color: '#6b7280', fontSize: '14px' }}>
+                    Fixed price: <strong style={{ color: '#059669' }}>€{tourSettings.price.pdfPrice || DEFAULT_SELF_GUIDED_PRICE}</strong>
+                    <br />
+                    <span style={{ fontSize: '12px' }}>Travelers can download the PDF route and explore independently</span>
+                  </div>
                 </div>
 
-                {/* Guided Tour Format (Optional Checkbox) */}
                 <div style={{
                   padding: '16px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
+                  border: `1px solid ${VISUALIZER_HEADER_BLOCK_BORDER}`,
+                  borderRadius: 0,
                   marginBottom: '16px',
-                  backgroundColor: tourSettings.withGuide ? '#eff6ff' : '#f9fafb'
+                  backgroundColor: '#f9fafb',
+                  opacity: 0.85,
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
                     <input
                       type="checkbox"
-                      checked={tourSettings.withGuide || false}
-                      onChange={(e) => {
-                        setTourSettings(prev => ({
-                          ...prev,
-                          withGuide: e.target.checked
-                        }));
-                      }}
-                      style={{ marginRight: '8px', width: '18px', height: '18px', cursor: 'pointer' }}
+                      checked={false}
+                      readOnly
+                      disabled
+                      style={{ marginRight: '8px', width: '18px', height: '18px', cursor: 'not-allowed' }}
                     />
-                    <strong style={{ fontSize: '16px' }}>With Guide (Optional)</strong>
+                    <strong style={{ fontSize: '16px', color: '#6b7280' }}>With guide</strong>
                   </div>
-                  <div style={{ marginLeft: '26px', color: '#6b7280', fontSize: '13px', marginBottom: '8px' }}>
-                    Check this if you're ready to accompany travelers on this tour
+                  <div style={{ marginLeft: '26px', color: '#9ca3af', fontSize: '13px' }}>
+                    Coming soon — guided tours will be available in a future update.
                   </div>
-                  
-                  {tourSettings.withGuide && (
-                    <div style={{ marginLeft: '26px', marginTop: '12px' }}>
-                      <div style={{ marginBottom: '12px' }}>
-                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500' }}>
-                          Your Price (USD) *
-                        </label>
-                        <input
-                          type="number"
-                          value={tourSettings.price.guidedPrice || ''}
-                          onChange={(e) => setTourSettings(prev => ({
-                            ...prev,
-                            price: { ...prev.price, guidedPrice: parseFloat(e.target.value) || 0 }
-                          }))}
-                          min="0"
-                          step="0.01"
-                          required={tourSettings.withGuide}
-                          placeholder="0.00"
-                          style={{
-                            width: '100%',
-                            padding: '8px',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '6px',
-                            fontSize: '14px'
-                          }}
-                        />
-                      </div>
-
-                      <div style={{ marginBottom: '12px' }}>
-                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500' }}>
-                          Meeting Point *
-                        </label>
-                        <input
-                          type="text"
-                          value={tourSettings.price.meetingPoint || ''}
-                          onChange={(e) => setTourSettings(prev => ({
-                            ...prev,
-                            price: { ...prev.price, meetingPoint: e.target.value }
-                          }))}
-                          required={tourSettings.withGuide}
-                          placeholder="e.g., Central Station, Main Square"
-                          style={{
-                            width: '100%',
-                            padding: '8px',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '6px',
-                            fontSize: '14px'
-                          }}
-                        />
-                      </div>
-
-                      <div style={{ marginBottom: '12px' }}>
-                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500' }}>
-                          Meeting Time *
-                        </label>
-                        <input
-                          type="time"
-                          value={tourSettings.price.meetingTime || ''}
-                          onChange={(e) => setTourSettings(prev => ({
-                            ...prev,
-                            price: { ...prev.price, meetingTime: e.target.value }
-                          }))}
-                          required={tourSettings.withGuide}
-                          style={{
-                            width: '100%',
-                            padding: '8px',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '6px',
-                            fontSize: '14px'
-                          }}
-                        />
-                      </div>
-
-                      {/* Availability Calendar - Inline */}
-                      <div style={{ marginBottom: '12px' }}>
-                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>
-                          Manage Available Dates *
-                        </label>
-                        <div style={{
-                          border: '1px solid #d1d5db',
-                          borderRadius: '8px',
-                          padding: '12px',
-                          backgroundColor: '#f9fafb'
-                        }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                            <button
-                              type="button"
-                              onClick={() => setAvailabilityCalendarMonth(prev => {
-                                if (prev === 0) {
-                                  setAvailabilityCalendarYear(year => year - 1);
-                                  return 11;
-                                }
-                                return prev - 1;
-                              })}
-                              style={{
-                                padding: '4px 12px',
-                                backgroundColor: '#e5e7eb',
-                                color: '#374151',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '14px'
-                              }}
-                            >
-                              ←
-                            </button>
-                            <span style={{ fontSize: '16px', fontWeight: '600' }}>
-                              {MONTHS[availabilityCalendarMonth]} {availabilityCalendarYear}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => setAvailabilityCalendarMonth(prev => {
-                                if (prev === 11) {
-                                  setAvailabilityCalendarYear(year => year + 1);
-                                  return 0;
-                                }
-                                return prev + 1;
-                              })}
-                              style={{
-                                padding: '4px 12px',
-                                backgroundColor: '#e5e7eb',
-                                color: '#374151',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '14px'
-                              }}
-                            >
-                              →
-                            </button>
-                          </div>
-
-                          <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(7, 1fr)',
-                            gap: '4px',
-                            marginBottom: '8px'
-                          }}>
-                            {WEEKDAYS.map((day, index) => (
-                              <div key={index} style={{
-                                textAlign: 'center',
-                                fontSize: '12px',
-                                fontWeight: '500',
-                                color: '#6b7280'
-                              }}>
-                                {day}
-                              </div>
-                            ))}
-                          </div>
-
-                          {availabilityLoading ? (
-                            <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
-                              Loading...
-                            </div>
-                          ) : (
-                            <div style={{
-                              display: 'grid',
-                              gridTemplateColumns: 'repeat(7, 1fr)',
-                              gap: '4px'
-                            }}>
-                              {(() => {
-                                const days = [];
-                                const daysInMonth = getDaysInMonth(availabilityCalendarMonth, availabilityCalendarYear);
-                                const firstDay = getFirstDayOfMonth(availabilityCalendarMonth, availabilityCalendarYear);
-
-                                for (let i = 0; i < firstDay; i++) {
-                                  days.push(null);
-                                }
-
-                                for (let day = 1; day <= daysInMonth; day++) {
-                                  const date = new Date(availabilityCalendarYear, availabilityCalendarMonth, day);
-                                  days.push(date);
-                                }
-
-                                return days.map((date, index) => {
-                                  if (!date) {
-                                    return <div key={index} style={{ aspectRatio: '1', padding: '4px' }}></div>;
-                                  }
-
-                                  const today = new Date();
-                                  today.setHours(0, 0, 0, 0);
-                                  const isPast = date < today;
-                                  const dateStr = formatDateStr(date);
-                                  // Check if date is available (has slot with is_available = true and not blocked)
-                                  const slot = availabilitySlots.find(s => s.date === dateStr && s.is_available && !s.is_blocked);
-                                  const isAvailable = !!slot;
-                                  const isSelected = isDateSelected(date);
-
-                                  let backgroundColor = '#ffffff';
-                                  let color = '#111827';
-                                  let cursor = 'pointer';
-
-                                  if (isPast) {
-                                    backgroundColor = '#f3f4f6';
-                                    color = '#9ca3af';
-                                    cursor = 'not-allowed';
-                                  } else if (isSelected) {
-                                    backgroundColor = '#3b82f6';
-                                    color = 'white';
-                                  } else if (isAvailable) {
-                                    backgroundColor = '#d1fae5';
-                                    color = '#065f46';
-                                  } else {
-                                    // Empty date - not available (default white)
-                                    backgroundColor = '#ffffff';
-                                    color = '#111827';
-                                  }
-
-                                  return (
-                                    <div
-                                      key={index}
-                                      onClick={() => !isPast && handleCalendarDateClick(date.getDate())}
-                                      style={{
-                                        aspectRatio: '1',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        backgroundColor,
-                                        color,
-                                        borderRadius: '4px',
-                                        cursor: isPast ? 'not-allowed' : cursor,
-                                        fontWeight: '500',
-                                        transition: 'background-color 0.2s'
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        if (!isPast && !isSelected) {
-                                          e.target.style.backgroundColor = isAvailable ? '#a7f3d0' : '#e0e7ff';
-                                        }
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        if (!isPast && !isSelected) {
-                                          e.target.style.backgroundColor = isAvailable ? '#d1fae5' : '#ffffff';
-                                        }
-                                      }}
-                                    >
-                                      {date.getDate()}
-                                    </div>
-                                  );
-                                });
-                              })()}
-                            </div>
-                          )}
-
-                          {/* Input for number of available spots */}
-                          <div style={{ marginTop: '16px', marginBottom: '12px' }}>
-                            <label style={{ 
-                              display: 'block', 
-                              fontSize: '14px', 
-                              fontWeight: '500', 
-                              color: '#374151',
-                              marginBottom: '6px'
-                            }}>
-                              Number of available spots:
-                            </label>
-                            <input
-                              type="number"
-                              min="1"
-                              max="100"
-                              value={defaultGroupSize}
-                              onChange={(e) => setDefaultGroupSize(parseInt(e.target.value) || 1)}
-                              style={{
-                                width: '100%',
-                                padding: '8px 12px',
-                                border: '1px solid #d1d5db',
-                                borderRadius: '6px',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                              }}
-                              placeholder="Enter number of spots"
-                            />
-                          </div>
-
-                          <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
-                            <button
-                              type="button"
-                              onClick={handleMarkDatesAsAvailable}
-                              disabled={selectedCalendarDates.length === 0 || availabilityLoading || !defaultGroupSize || defaultGroupSize < 1}
-                              style={{
-                                flex: 1,
-                                padding: '8px 12px',
-                                backgroundColor: '#10b981',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '13px',
-                                opacity: (selectedCalendarDates.length === 0 || availabilityLoading || !defaultGroupSize || defaultGroupSize < 1) ? 0.6 : 1
-                              }}
-                            >
-                              Mark as Available
-                            </button>
-                            <button
-                              type="button"
-                              onClick={handleClearAvailability}
-                              disabled={selectedCalendarDates.length === 0 || availabilityLoading}
-                              style={{
-                                flex: 1,
-                                padding: '8px 12px',
-                                backgroundColor: '#6b7280',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '13px',
-                                opacity: (selectedCalendarDates.length === 0 || availabilityLoading) ? 0.6 : 1
-                              }}
-                            >
-                              Clear Availability
-                            </button>
-                          </div>
-
-                          {availabilitySlots.filter(slot => slot.is_available && !slot.is_blocked).length > 0 && (
-                            <div style={{ marginTop: '12px' }}>
-                              <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px' }}>
-                                Available dates ({availabilitySlots.filter(slot => slot.is_available && !slot.is_blocked).length}):
-                              </div>
-                              <div style={{
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: '6px'
-                              }}>
-                                {availabilitySlots
-                                  .filter(slot => slot.is_available && !slot.is_blocked)
-                                  .map((slot, idx) => (
-                                    <span key={idx} style={{
-                                      backgroundColor: '#e0e7ff',
-                                      color: '#3b82f6',
-                                      padding: '4px 8px',
-                                      borderRadius: '4px',
-                                      fontSize: '12px',
-                                      fontWeight: '500'
-                                    }}>
-                                      {new Date(slot.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} ({slot.available_spots || slot.max_group_size} spots)
-                                    </span>
-                                  ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -3971,7 +3664,7 @@ export default function TripVisualizerPage() {
                   title={!isHeaderValid()
                     ? 'Please fill in City, Title, Description, and Preview Photo'
                     : (!isTourSettingsValid()
-                      ? 'Please select at least one tour format (Self-guided or With Guide)'
+                      ? 'Tour format settings are incomplete'
                       : ((tour?.status || '').toLowerCase() === 'pending' ? 'Already submitted for moderation' : '')
                     )}
                 >
@@ -3980,6 +3673,8 @@ export default function TripVisualizerPage() {
                     : (((tour?.status || '').toLowerCase() === 'pending' || lastSubmittedAt) ? 'Submitted' : 'Submit for Moderation')}
                 </button>
               </div>
+              </>
+              )}
             </div>
           </div>
         )}
@@ -4667,27 +4362,19 @@ function HintButton({ hintKey }) {
     );
 }
 
-function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, onChange, onImageUpload, onAdjustPreviewImage, locationCount = 0, tourBlocks = [], cities = [], citySuggestions = [], showCitySuggestions = false, setCitySuggestions, setShowCitySuggestions }) {
-  const [interestsStructure, setInterestsStructure] = useState(null);
-  const [availableInterests, setAvailableInterests] = useState([]);
-  const [loadingInterests, setLoadingInterests] = useState(false);
-  const [newInterestInput, setNewInterestInput] = useState('');
-  const [interestSuggestions, setInterestSuggestions] = useState([]);
-  const [showInterestSuggestions, setShowInterestSuggestions] = useState(false);
+/** PDF + AI “Generated content” — bottom panel “Tour finalization” (was in Edit tour modal). */
+function TourFinalizationContent({ tourInfo, tourId, tourBlocks, onChange }) {
   const [generatingHighlights, setGeneratingHighlights] = useState(false);
   const [uploadingPdf, setUploadingPdf] = useState(false);
   const [generatingStyledPdf, setGeneratingStyledPdf] = useState(false);
   const [deletingStyledPdf, setDeletingStyledPdf] = useState(false);
 
-  // Generate highlights with AI
   const handleGenerateHighlights = async () => {
     setGeneratingHighlights(true);
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'https://fliptripback.vercel.app';
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      
-      console.log('🤖 Generating highlights, API URL:', `${API_BASE_URL}/api/generate-highlights`);
-      
+
       const response = await fetch(`${API_BASE_URL}/api/generate-highlights`, {
         method: 'POST',
         headers: {
@@ -4700,16 +4387,13 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
           tourDescription: tourInfo.description,
           language: 'English',
           city: tourInfo.city,
-          // Strip photos/images from blocks to avoid 413 payload too large
           blocks: tourBlocks.map(b => {
             const content = b.content || {};
             const stripped = {};
-            // Only keep text-related fields, skip photos/images/base64
             for (const [key, value] of Object.entries(content)) {
               if (key === 'photos' || key === 'photo' || key === 'image') continue;
               if (typeof value === 'string' && value.startsWith('data:image/')) continue;
               if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-                // For nested objects like mainLocation, strip photos too
                 const nestedStripped = {};
                 for (const [nk, nv] of Object.entries(value)) {
                   if (nk === 'photos' || nk === 'photo' || nk === 'image') continue;
@@ -4763,6 +4447,339 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
       setGeneratingHighlights(false);
     }
   };
+
+  const handleTourPdfUpload = async (file) => {
+    if (!file) return;
+    if (file.size > 50 * 1024 * 1024) {
+      alert('PDF is too large. Maximum file size is 50MB.');
+      return;
+    }
+
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    if (!isPdf) {
+      alert('Please upload a PDF file.');
+      return;
+    }
+
+    if (!tourId) {
+      alert('Please save the tour as draft first, then upload the PDF.');
+      return;
+    }
+
+    setUploadingPdf(true);
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+
+      const signedResp = await fetch(`${API_BASE_URL}/api/upload-tour-pdf-url`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          tourId,
+          fileName: file.name,
+          contentType: 'application/pdf',
+          fileSize: file.size
+        })
+      });
+
+      const signedData = await signedResp.json();
+      if (!signedResp.ok || !signedData?.success) {
+        throw new Error(signedData?.error || 'Failed to initialize PDF upload');
+      }
+
+      const uploadTarget = signedData.uploadUrl || signedData.signedUrl;
+      const uploadResp = await fetch(uploadTarget, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/pdf'
+        },
+        body: file
+      });
+
+      if (!uploadResp.ok) {
+        const uploadErrorText = await uploadResp.text().catch(() => '');
+        throw new Error(`Failed to upload PDF (${uploadResp.status}) ${uploadErrorText ? `- ${uploadErrorText.slice(0, 240)}` : ''}`);
+      }
+
+      onChange({ ...tourInfo, tourPdfUrl: signedData.publicUrl });
+      alert('Tour PDF uploaded successfully.');
+    } catch (error) {
+      console.error('Error uploading tour PDF:', error);
+      alert(`Failed to upload PDF: ${error.message}`);
+    } finally {
+      setUploadingPdf(false);
+    }
+  };
+
+  const handleGenerateStyledPdf = async () => {
+    if (!tourId) {
+      alert('Please save the tour as draft first, then generate styled PDF.');
+      return;
+    }
+
+    setGeneratingStyledPdf(true);
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+
+      const previewResponse = await fetch(`${API_BASE_URL}/api/generate-styled-tour-pdf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          tourId,
+          template: tourInfo.pdfTemplate || 'classic',
+          layout: tourInfo.pdfLayout || {},
+          previewHtml: true
+        })
+      });
+
+      const previewData = await previewResponse.json();
+      if (!previewResponse.ok || !previewData?.success || !previewData?.previewHtml) {
+        throw new Error(previewData?.error || 'Failed to build styled PDF HTML');
+      }
+
+      const pdfBlob = await buildPdfBlobFromStyledPreviewHtml(previewData.previewHtml);
+
+      const generatedFile = new File([pdfBlob], `styled-${Date.now()}.pdf`, {
+        type: 'application/pdf'
+      });
+
+      const signedResp = await fetch(`${API_BASE_URL}/api/upload-tour-pdf-url`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          tourId,
+          fileName: generatedFile.name,
+          contentType: 'application/pdf',
+          fileSize: generatedFile.size
+        })
+      });
+      const signedData = await signedResp.json();
+      if (!signedResp.ok || !signedData?.success) {
+        throw new Error(signedData?.error || 'Failed to initialize PDF upload');
+      }
+
+      const uploadTarget = signedData.uploadUrl || signedData.signedUrl;
+      const uploadResp = await fetch(uploadTarget, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/pdf' },
+        body: generatedFile
+      });
+      if (!uploadResp.ok) {
+        const uploadErrorText = await uploadResp.text().catch(() => '');
+        throw new Error(`Failed to upload generated PDF (${uploadResp.status}) ${uploadErrorText ? `- ${uploadErrorText.slice(0, 240)}` : ''}`);
+      }
+
+      onChange({
+        ...tourInfo,
+        tourPdfUrl: signedData.publicUrl || tourInfo.tourPdfUrl || '',
+        pdfTemplate: tourInfo.pdfTemplate || 'classic',
+        pdfLayout: tourInfo.pdfLayout || {}
+      });
+
+      if (previewData?.mapIncluded === false) {
+        alert(`PDF generated, but map was not included: ${previewData?.mapIssue || 'Map generation failed.'}`);
+      } else {
+        alert('PDF generated successfully.');
+      }
+    } catch (error) {
+      console.error('Error generating styled PDF:', error);
+      alert(`Failed to generate styled PDF: ${error.message}`);
+    } finally {
+      setGeneratingStyledPdf(false);
+    }
+  };
+
+  const handleDeleteStyledPdf = async () => {
+    if (!tourId || !tourInfo?.tourPdfUrl) return;
+    if (!window.confirm('Delete generated PDF?')) return;
+
+    setDeletingStyledPdf(true);
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/delete-tour-pdf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ tourId })
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.error || 'Failed to delete PDF');
+      }
+
+      onChange({ ...tourInfo, tourPdfUrl: '' });
+      alert('PDF deleted.');
+    } catch (error) {
+      console.error('Error deleting styled PDF:', error);
+      alert(`Failed to delete PDF: ${error.message}`);
+    } finally {
+      setDeletingStyledPdf(false);
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ border: `1px solid ${VISUALIZER_HEADER_BLOCK_BORDER}`, borderRadius: 0, padding: '16px', backgroundColor: VISUALIZER_PAGE_BG, boxSizing: 'border-box' }}>
+        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '15px' }}>
+          Tour PDF presentation
+        </label>
+        <button
+          type="button"
+          onClick={handleGenerateStyledPdf}
+          disabled={generatingStyledPdf}
+          style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: generatingStyledPdf ? '#9ca3af' : '#2563eb', color: 'white', border: 'none', borderRadius: 0, cursor: generatingStyledPdf ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500' }}
+        >
+          {generatingStyledPdf ? 'Generating PDF...' : 'Generate PDF'}
+        </button>
+        <input
+          type="file"
+          accept="application/pdf,.pdf"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) handleTourPdfUpload(file);
+            e.target.value = '';
+          }}
+          style={{ display: 'none' }}
+          id="tour-pdf-upload-panel"
+        />
+        <label htmlFor="tour-pdf-upload-panel" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: uploadingPdf ? '#9ca3af' : '#111827', color: 'white', border: 'none', borderRadius: 0, cursor: uploadingPdf ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500', marginLeft: '8px' }}>
+          {uploadingPdf ? 'Uploading PDF...' : 'Upload tour PDF'}
+        </label>
+        <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px', marginBottom: 0 }}>
+          Generate or upload a PDF (max 50MB).
+        </p>
+        {tourInfo.tourPdfUrl && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '8px' }}>
+            <a href={tourInfo.tourPdfUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '13px', color: '#2563eb' }}>
+              View PDF
+            </a>
+            <button
+              type="button"
+              onClick={handleDeleteStyledPdf}
+              disabled={deletingStyledPdf}
+              style={{ padding: '6px 10px', backgroundColor: deletingStyledPdf ? '#9ca3af' : '#ef4444', color: 'white', border: 'none', borderRadius: 0, cursor: deletingStyledPdf ? 'not-allowed' : 'pointer', fontSize: '12px', fontWeight: '500' }}
+            >
+              {deletingStyledPdf ? 'Deleting...' : 'Delete PDF'}
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div style={{ border: `1px solid ${VISUALIZER_HEADER_BLOCK_BORDER}`, borderRadius: 0, padding: '14px', backgroundColor: VISUALIZER_PAGE_BG, boxSizing: 'border-box' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '10px', flexWrap: 'wrap' }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '2px', fontWeight: '600' }}>
+              Generated content
+            </label>
+            <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
+              Three editable bullets + short homepage description.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleGenerateHighlights}
+            disabled={generatingHighlights || tourBlocks.length === 0}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              padding: '10px 14px',
+              border: 'none',
+              borderRadius: 0,
+              background: generatingHighlights ? 'linear-gradient(135deg, #a78bfa, #818cf8)' : 'linear-gradient(135deg, #8b5cf6, #6366f1)',
+              color: 'white',
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: generatingHighlights || tourBlocks.length === 0 ? 'not-allowed' : 'pointer',
+              opacity: tourBlocks.length === 0 ? 0.5 : 1
+            }}
+          >
+            {generatingHighlights ? 'Generating...' : '✨ Generate with AI'}
+          </button>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500' }}>
+                Creative tagline
+              </label>
+              <input
+                type="text"
+                value={(tourInfo.highlights || {}).text3 || ''}
+                onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), text3: e.target.value } })}
+                placeholder="What makes this tour unique?"
+                style={{ width: '100%', padding: '10px', border: '1px solid #bfdbfe', borderRadius: 0, fontSize: '14px', boxSizing: 'border-box' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500' }}>
+                Theme / vibe
+              </label>
+              <input
+                type="text"
+                value={(tourInfo.highlights || {}).text4 || ''}
+                onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), text4: e.target.value } })}
+                placeholder="What kind of experience is it?"
+                style={{ width: '100%', padding: '10px', border: '1px solid #bfdbfe', borderRadius: 0, fontSize: '14px', boxSizing: 'border-box' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500' }}>
+                What&apos;s also inside
+              </label>
+              <input
+                type="text"
+                value={(tourInfo.highlights || {}).text5 || ''}
+                onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), text5: e.target.value } })}
+                placeholder="Add one specific detail"
+                style={{ width: '100%', padding: '10px', border: '1px solid #bfdbfe', borderRadius: 0, fontSize: '14px', boxSizing: 'border-box' }}
+              />
+            </div>
+          </div>
+          <div>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500' }}>
+              Short description for homepage card
+            </label>
+            <textarea
+              value={tourInfo.shortDescription || ''}
+              onChange={(e) => onChange({ ...tourInfo, shortDescription: e.target.value.slice(0, 180) })}
+              placeholder="Two short vivid sentences for the homepage card"
+              maxLength={180}
+              rows={8}
+              style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: 0, fontSize: '14px', boxSizing: 'border-box', fontFamily: 'inherit' }}
+            />
+            <p style={{ marginTop: '4px', marginBottom: 0, fontSize: '12px', color: '#6b7280' }}>
+              {(tourInfo.shortDescription || '').length}/180 chars
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, onChange, onImageUpload, onAdjustPreviewImage, locationCount = 0, tourBlocks = [], cities = [], citySuggestions = [], showCitySuggestions = false, setCitySuggestions, setShowCitySuggestions }) {
+  const [interestsStructure, setInterestsStructure] = useState(null);
+  const [availableInterests, setAvailableInterests] = useState([]);
+  const [loadingInterests, setLoadingInterests] = useState(false);
+  const [newInterestInput, setNewInterestInput] = useState('');
+  const [interestSuggestions, setInterestSuggestions] = useState([]);
+  const [showInterestSuggestions, setShowInterestSuggestions] = useState(false);
 
   // Load interests structure
   useEffect(() => {
@@ -5048,192 +5065,6 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
     }
   };
 
-  const handleTourPdfUpload = async (file) => {
-    if (!file) return;
-    if (file.size > 50 * 1024 * 1024) {
-      alert('PDF is too large. Maximum file size is 50MB.');
-      return;
-    }
-
-    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-    if (!isPdf) {
-      alert('Please upload a PDF file.');
-      return;
-    }
-
-    if (!tourId) {
-      alert('Please save the tour as draft first, then upload the PDF.');
-      return;
-    }
-
-    setUploadingPdf(true);
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-
-      const signedResp = await fetch(`${API_BASE_URL}/api/upload-tour-pdf-url`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({
-          tourId,
-          fileName: file.name,
-          contentType: 'application/pdf',
-          fileSize: file.size
-        })
-      });
-
-      const signedData = await signedResp.json();
-      if (!signedResp.ok || !signedData?.success) {
-        throw new Error(signedData?.error || 'Failed to initialize PDF upload');
-      }
-
-      const uploadTarget = signedData.uploadUrl || signedData.signedUrl;
-      const uploadResp = await fetch(uploadTarget, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/pdf'
-        },
-        body: file
-      });
-
-      if (!uploadResp.ok) {
-        const uploadErrorText = await uploadResp.text().catch(() => '');
-        throw new Error(`Failed to upload PDF (${uploadResp.status}) ${uploadErrorText ? `- ${uploadErrorText.slice(0, 240)}` : ''}`);
-      }
-
-      onChange({ ...tourInfo, tourPdfUrl: signedData.publicUrl });
-      alert('Tour PDF uploaded successfully.');
-    } catch (error) {
-      console.error('Error uploading tour PDF:', error);
-      alert(`Failed to upload PDF: ${error.message}`);
-    } finally {
-      setUploadingPdf(false);
-    }
-  };
-
-  const handleGenerateStyledPdf = async () => {
-    if (!tourId) {
-      alert('Please save the tour as draft first, then generate styled PDF.');
-      return;
-    }
-
-    setGeneratingStyledPdf(true);
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-
-      // 1) Get HTML template from backend (same styled page used for server render).
-      const previewResponse = await fetch(`${API_BASE_URL}/api/generate-styled-tour-pdf`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({
-          tourId,
-          template: tourInfo.pdfTemplate || 'classic',
-          layout: tourInfo.pdfLayout || {},
-          previewHtml: true
-        })
-      });
-
-      const previewData = await previewResponse.json();
-      if (!previewResponse.ok || !previewData?.success || !previewData?.previewHtml) {
-        throw new Error(previewData?.error || 'Failed to build styled PDF HTML');
-      }
-
-      // 2) Render preview HTML in hidden frame and export each .ft-page to PDF (shared with itinerary page).
-      const pdfBlob = await buildPdfBlobFromStyledPreviewHtml(previewData.previewHtml);
-
-      // 3) Upload generated blob via signed URL and save tourPdfUrl.
-      const generatedFile = new File([pdfBlob], `styled-${Date.now()}.pdf`, {
-        type: 'application/pdf'
-      });
-
-      const signedResp = await fetch(`${API_BASE_URL}/api/upload-tour-pdf-url`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({
-          tourId,
-          fileName: generatedFile.name,
-          contentType: 'application/pdf',
-          fileSize: generatedFile.size
-        })
-      });
-      const signedData = await signedResp.json();
-      if (!signedResp.ok || !signedData?.success) {
-        throw new Error(signedData?.error || 'Failed to initialize PDF upload');
-      }
-
-      const uploadTarget = signedData.uploadUrl || signedData.signedUrl;
-      const uploadResp = await fetch(uploadTarget, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/pdf' },
-        body: generatedFile
-      });
-      if (!uploadResp.ok) {
-        const uploadErrorText = await uploadResp.text().catch(() => '');
-        throw new Error(`Failed to upload generated PDF (${uploadResp.status}) ${uploadErrorText ? `- ${uploadErrorText.slice(0, 240)}` : ''}`);
-      }
-
-      onChange({
-        ...tourInfo,
-        tourPdfUrl: signedData.publicUrl || tourInfo.tourPdfUrl || '',
-        pdfTemplate: tourInfo.pdfTemplate || 'classic',
-        pdfLayout: tourInfo.pdfLayout || {}
-      });
-
-      if (previewData?.mapIncluded === false) {
-        alert(`PDF generated, but map was not included: ${previewData?.mapIssue || 'Map generation failed.'}`);
-      } else {
-        alert('PDF generated successfully.');
-      }
-    } catch (error) {
-      console.error('Error generating styled PDF:', error);
-      alert(`Failed to generate styled PDF: ${error.message}`);
-    } finally {
-      setGeneratingStyledPdf(false);
-    }
-  };
-
-  const handleDeleteStyledPdf = async () => {
-    if (!tourId || !tourInfo?.tourPdfUrl) return;
-    if (!window.confirm('Delete generated PDF?')) return;
-
-    setDeletingStyledPdf(true);
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fliptripback.vercel.app';
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/delete-tour-pdf`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({ tourId })
-      });
-
-      const data = await response.json();
-      if (!response.ok || !data?.success) {
-        throw new Error(data?.error || 'Failed to delete PDF');
-      }
-
-      onChange({ ...tourInfo, tourPdfUrl: '' });
-      alert('PDF deleted.');
-    } catch (error) {
-      console.error('Error deleting styled PDF:', error);
-      alert(`Failed to delete PDF: ${error.message}`);
-    } finally {
-      setDeletingStyledPdf(false);
-    }
-  };
-
   return (
     <div style={{
       position: 'fixed',
@@ -5360,52 +5191,6 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
                 style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '16px', boxSizing: 'border-box', fontFamily: 'inherit' }}
               />
             </div>
-
-            <div style={{ marginBottom: '14px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                Tour PDF presentation
-              </label>
-              <button
-                type="button"
-                onClick={handleGenerateStyledPdf}
-                disabled={generatingStyledPdf}
-                style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: generatingStyledPdf ? '#9ca3af' : '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: generatingStyledPdf ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500' }}
-              >
-                {generatingStyledPdf ? 'Generating PDF...' : 'Generate PDF'}
-              </button>
-              <input
-                type="file"
-                accept="application/pdf,.pdf"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleTourPdfUpload(file);
-                  e.target.value = '';
-                }}
-                style={{ display: 'none' }}
-                id="tour-pdf-upload"
-              />
-              <label htmlFor="tour-pdf-upload" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: uploadingPdf ? '#9ca3af' : '#111827', color: 'white', border: 'none', borderRadius: '8px', cursor: uploadingPdf ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500', marginLeft: '8px' }}>
-                {uploadingPdf ? 'Uploading PDF...' : 'Upload tour PDF'}
-              </label>
-              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px', marginBottom: 0 }}>
-                Generate or upload a PDF (max 50MB).
-              </p>
-              {tourInfo.tourPdfUrl && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '8px' }}>
-                  <a href={tourInfo.tourPdfUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '13px', color: '#2563eb' }}>
-                    View PDF
-                  </a>
-                  <button
-                    type="button"
-                    onClick={handleDeleteStyledPdf}
-                    disabled={deletingStyledPdf}
-                    style={{ padding: '6px 10px', backgroundColor: deletingStyledPdf ? '#9ca3af' : '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: deletingStyledPdf ? 'not-allowed' : 'pointer', fontSize: '12px', fontWeight: '500' }}
-                  >
-                    {deletingStyledPdf ? 'Deleting...' : 'Delete PDF'}
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
 
           <div>
@@ -5517,97 +5302,6 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
               </div>
             </div>
 
-          </div>
-        </div>
-
-        <div style={{ marginBottom: '20px', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '14px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '2px', fontWeight: '600' }}>
-                Generated content
-              </label>
-              <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
-                Three editable bullets + short homepage description.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={handleGenerateHighlights}
-              disabled={generatingHighlights || tourBlocks.length === 0}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                padding: '10px 14px',
-                border: 'none',
-                borderRadius: '8px',
-                background: generatingHighlights ? 'linear-gradient(135deg, #a78bfa, #818cf8)' : 'linear-gradient(135deg, #8b5cf6, #6366f1)',
-                color: 'white',
-                fontSize: '13px',
-                fontWeight: '600',
-                cursor: generatingHighlights || tourBlocks.length === 0 ? 'not-allowed' : 'pointer',
-                opacity: tourBlocks.length === 0 ? 0.5 : 1
-              }}
-            >
-              {generatingHighlights ? 'Generating...' : '✨ Generate with AI'}
-            </button>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500' }}>
-                  Creative tagline
-                </label>
-                <input
-                  type="text"
-                  value={(tourInfo.highlights || {}).text3 || ''}
-                  onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), text3: e.target.value } })}
-                  placeholder="What makes this tour unique?"
-                  style={{ width: '100%', padding: '10px', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500' }}>
-                  Theme / vibe
-                </label>
-                <input
-                  type="text"
-                  value={(tourInfo.highlights || {}).text4 || ''}
-                  onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), text4: e.target.value } })}
-                  placeholder="What kind of experience is it?"
-                  style={{ width: '100%', padding: '10px', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500' }}>
-                  What's also inside
-                </label>
-                <input
-                  type="text"
-                  value={(tourInfo.highlights || {}).text5 || ''}
-                  onChange={(e) => onChange({ ...tourInfo, highlights: { ...(tourInfo.highlights || {}), text5: e.target.value } })}
-                  placeholder="Add one specific detail"
-                  style={{ width: '100%', padding: '10px', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
-                />
-              </div>
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500' }}>
-                Short description for homepage card
-              </label>
-              <textarea
-                value={tourInfo.shortDescription || ''}
-                onChange={(e) => onChange({ ...tourInfo, shortDescription: e.target.value.slice(0, 180) })}
-                placeholder="Two short vivid sentences for the homepage card"
-                maxLength={180}
-                rows={8}
-                style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box', fontFamily: 'inherit' }}
-              />
-              <p style={{ marginTop: '4px', marginBottom: 0, fontSize: '12px', color: '#6b7280' }}>
-                {(tourInfo.shortDescription || '').length}/180 chars
-              </p>
-            </div>
           </div>
         </div>
 
