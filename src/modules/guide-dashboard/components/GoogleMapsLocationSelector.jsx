@@ -237,9 +237,6 @@ const GoogleMapsLocationSelector = ({ isOpen, onClose, onSelectLocation, city })
       <div style={{
         display: 'flex',
         flexDirection: 'column',
-        height: '100%',
-        minHeight: 0,
-        maxHeight: '100vh',
         backgroundColor: 'white',
       }}>
         {/* Header */}
@@ -273,11 +270,9 @@ const GoogleMapsLocationSelector = ({ isOpen, onClose, onSelectLocation, city })
           </button>
         </div>
 
-        {/* Content */}
+        {/* Content — scroll is on VisualizerSidePanel only */}
         <div style={{
           padding: '20px',
-          overflowY: 'auto',
-          flex: 1
         }}>
           {/* Search Input */}
           <div style={{ marginBottom: '20px' }}>

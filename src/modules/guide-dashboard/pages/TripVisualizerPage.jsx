@@ -4009,8 +4009,6 @@ function ImageCropModal({ imageSrc, onClose, onCrop }) {
     <VisualizerSidePanel onClose={onClose} zIndex={2000}>
       <div style={{
         width: '100%',
-        maxHeight: 'min(90vh, 100%)',
-        overflow: 'auto',
         boxSizing: 'border-box',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -5013,8 +5011,6 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
       <style>{`@keyframes highlightSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
       <div style={{
         width: '100%',
-        maxHeight: '100vh',
-        overflowY: 'auto',
         boxSizing: 'border-box',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -5638,7 +5634,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                   placeholder="Enter text..."
                 />
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: '#6b7280', fontWeight: '500' }}>
                       First Column
@@ -6489,26 +6485,28 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
 
         return (
           <div style={{ marginBottom: '20px' }}>
-            {/* Tabs for switching between main and alternative locations */}
-            <div style={{ 
-              display: 'flex', 
-              gap: '8px', 
+            {/* Main / alternative location — vertical list; add at bottom */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
               marginBottom: '20px',
-              borderBottom: '2px solid #e5e7eb',
-              paddingBottom: '8px'
             }}>
               <button
                 type="button"
                 onClick={() => setEditingLocationIndex(null)}
                 style={{
-                  padding: '8px 16px',
-                  border: 'none',
-                  backgroundColor: editingLocationIndex === null ? '#3b82f6' : 'transparent',
-                  color: editingLocationIndex === null ? 'white' : '#6b7280',
-                  borderRadius: '8px 8px 0 0',
+                  width: '100%',
+                  padding: '10px 14px',
+                  border: editingLocationIndex === null ? 'none' : '1px solid #e5e7eb',
+                  backgroundColor: editingLocationIndex === null ? '#3b82f6' : '#f9fafb',
+                  color: editingLocationIndex === null ? 'white' : '#374151',
+                  borderRadius: '8px',
                   cursor: 'pointer',
-                  fontWeight: editingLocationIndex === null ? '600' : '400',
-                  fontSize: '14px'
+                  fontWeight: editingLocationIndex === null ? '600' : '500',
+                  fontSize: '14px',
+                  textAlign: 'left',
+                  boxSizing: 'border-box',
                 }}
               >
                 Main Location
@@ -6518,23 +6516,25 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                   key={idx}
                   style={{
                     display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    position: 'relative'
+                    alignItems: 'stretch',
+                    gap: '8px',
                   }}
                 >
                   <button
                     type="button"
                     onClick={() => setEditingLocationIndex(idx)}
                     style={{
-                      padding: '8px 16px',
-                      border: 'none',
-                      backgroundColor: editingLocationIndex === idx ? '#3b82f6' : 'transparent',
-                      color: editingLocationIndex === idx ? 'white' : '#6b7280',
-                      borderRadius: '8px 8px 0 0',
+                      flex: 1,
+                      padding: '10px 14px',
+                      border: editingLocationIndex === idx ? 'none' : '1px solid #e5e7eb',
+                      backgroundColor: editingLocationIndex === idx ? '#3b82f6' : '#f9fafb',
+                      color: editingLocationIndex === idx ? 'white' : '#374151',
+                      borderRadius: '8px',
                       cursor: 'pointer',
-                      fontWeight: editingLocationIndex === idx ? '600' : '400',
-                      fontSize: '14px'
+                      fontWeight: editingLocationIndex === idx ? '600' : '500',
+                      fontSize: '14px',
+                      textAlign: 'left',
+                      boxSizing: 'border-box',
                     }}
                   >
                     Alternative {idx + 1}
@@ -6545,35 +6545,28 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                       e.stopPropagation();
                       const newAlternatives = content.alternativeLocations.filter((_, i) => i !== idx);
                       setContent({ ...content, alternativeLocations: newAlternatives });
-                      // If we deleted the currently selected alternative, switch to main location
                       if (editingLocationIndex === idx) {
                         setEditingLocationIndex(null);
                       } else if (editingLocationIndex > idx) {
-                        // Adjust index if we deleted an alternative before the current one
                         setEditingLocationIndex(editingLocationIndex - 1);
                       }
                     }}
                     style={{
-                      padding: '4px 8px',
-                      border: 'none',
-                      backgroundColor: 'transparent',
+                      flexShrink: 0,
+                      width: '44px',
+                      padding: '0',
+                      border: '1px solid #fecaca',
+                      backgroundColor: '#fff5f5',
                       color: '#ef4444',
                       cursor: 'pointer',
-                      fontSize: '18px',
+                      fontSize: '20px',
                       lineHeight: '1',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      borderRadius: '4px',
-                      marginLeft: '4px'
+                      borderRadius: '8px',
                     }}
                     title="Delete alternative location"
-                    onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = '#fee2e2';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = 'transparent';
-                    }}
                   >
                     ×
                   </button>
@@ -6583,15 +6576,17 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                 type="button"
                 onClick={handleAddAlternativeLocation}
                 style={{
-                  padding: '8px 16px',
+                  width: '100%',
+                  marginTop: '4px',
+                  padding: '10px 14px',
                   border: 'none',
                   backgroundColor: '#10b981',
                   color: 'white',
                   borderRadius: '8px',
                   cursor: 'pointer',
-                  fontWeight: '500',
+                  fontWeight: '600',
                   fontSize: '14px',
-                  marginLeft: 'auto'
+                  boxSizing: 'border-box',
                 }}
               >
                 + Add Alternative Location
@@ -6670,15 +6665,15 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                   </button>
                 </div>
 
-                {/* Name + Address — same row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
+                {/* Name + Address — stacked for narrow side panel */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '14px' }}>
                   <input
                     type="text"
                     value={currentLocation.title || ''}
                     onChange={(e) => updateCurrentLocation({ title: e.target.value })}
                     placeholder="Name *"
                     required
-                    style={{ padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
                   />
                   <input
                     type="text"
@@ -6686,7 +6681,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                     onChange={(e) => updateCurrentLocation({ address: e.target.value })}
                     placeholder="Address *"
                     required
-                    style={{ padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
                   />
                 </div>
 
@@ -6960,8 +6955,6 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
               <div style={{
                 border: '1px solid #d1d5db',
                 borderRadius: '8px',
-                maxHeight: '400px',
-                overflowY: 'auto'
               }}>
                 {mapLocations.length === 0 ? (
                   <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>
@@ -7087,8 +7080,6 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
     <VisualizerSidePanel onClose={onClose}>
       <div style={{
         width: '100%',
-        maxHeight: '100vh',
-        overflowY: 'auto',
         boxSizing: 'border-box',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
