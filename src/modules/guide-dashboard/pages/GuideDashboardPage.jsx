@@ -3,7 +3,7 @@
  * Module: guide-dashboard
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getCurrentUser, logout } from '../../auth/services/authService';
 import { getGuideTours, deleteTour } from '../../tours-database';
@@ -49,12 +49,30 @@ function countLocationsFromBlocks(blocks) {
   return blocks.filter((b) => b.block_type === 'location').length;
 }
 
+const GUIDE_DASHBOARD_TAB_KEY = 'guideDashboardActiveTab';
+const GUIDE_TABS = ['intro', 'tours', 'profile', 'statistics'];
+
+function readStoredGuideTab() {
+  try {
+    const v = localStorage.getItem(GUIDE_DASHBOARD_TAB_KEY);
+    if (GUIDE_TABS.includes(v)) return v;
+  } catch {}
+  return 'intro';
+}
+
 export default function GuideDashboardPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('intro'); // 'intro', 'tours', 'profile', 'statistics'
+  const [activeTab, setActiveTabState] = useState(readStoredGuideTab);
+  const setActiveTab = useCallback((tab) => {
+    if (!GUIDE_TABS.includes(tab)) return;
+    setActiveTabState(tab);
+    try {
+      localStorage.setItem(GUIDE_DASHBOARD_TAB_KEY, tab);
+    } catch {}
+  }, []);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [availabilityTour, setAvailabilityTour] = useState(null); // Tour for which to manage availability
   const [tourBlockCounts, setTourBlockCounts] = useState({}); // Cache for block counts

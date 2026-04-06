@@ -54,6 +54,9 @@ import { formatTourLastUpdatedLabel } from '../../../utils/tourLastUpdated';
 /** Same as public itinerary / Explore (ItineraryPage.css `.itinerary-container`, ExplorePage) */
 const VISUALIZER_PAGE_BG = '#fcfbf9';
 
+/** Match guide dashboard content width (GuideDashboardPage.css --guide-max) */
+const VISUALIZER_CONTENT_MAX_WIDTH = 800;
+
 // Category name translations
 const CATEGORY_NAMES = {
   'active': 'Active',
@@ -150,6 +153,14 @@ export default function TripVisualizerPage() {
   const [isDeletingBlock, setIsDeletingBlock] = useState(false);
   const [lastDraftSavedAt, setLastDraftSavedAt] = useState(null);
   const [lastSubmittedAt, setLastSubmittedAt] = useState(null);
+  const [step1HintDismissed, setStep1HintDismissed] = useState(() => {
+    try {
+      if (!tourId) return true;
+      return localStorage.getItem(`visualizer_step1_hint_${tourId}`) === '1';
+    } catch {
+      return false;
+    }
+  });
 
   // Show notification message for 2 seconds
   const showNotificationMessage = (message) => {
@@ -232,6 +243,27 @@ export default function TripVisualizerPage() {
     
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
+
+  useEffect(() => {
+    if (!tourId) {
+      setStep1HintDismissed(true);
+      return;
+    }
+    try {
+      setStep1HintDismissed(localStorage.getItem(`visualizer_step1_hint_${tourId}`) === '1');
+    } catch {
+      setStep1HintDismissed(false);
+    }
+  }, [tourId]);
+
+  const dismissStep1Hint = useCallback(() => {
+    if (tourId) {
+      try {
+        localStorage.setItem(`visualizer_step1_hint_${tourId}`, '1');
+      } catch {}
+    }
+    setStep1HintDismissed(true);
+  }, [tourId]);
   const [showImageCrop, setShowImageCrop] = useState(false);
   const [imageToCrop, setImageToCrop] = useState(null);
 
@@ -2418,23 +2450,28 @@ export default function TripVisualizerPage() {
           width: '100%',
           padding: '16px 20px',
           boxSizing: 'border-box',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <img src={FlipTripLogo} alt="FlipTrip" style={{ height: '40px' }} />
-            <div style={{ ...skeletonBlock, width: '110px', height: '24px' }} />
-          </div>
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <div style={{ ...skeletonBlock, width: '70px', height: '16px' }} />
-            <div style={{ ...skeletonBlock, width: '140px', height: '36px', borderRadius: '8px' }} />
+          <div style={{
+            maxWidth: VISUALIZER_CONTENT_MAX_WIDTH,
+            margin: '0 auto',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <img src={FlipTripLogo} alt="FlipTrip" style={{ height: '40px' }} />
+              <div style={{ ...skeletonBlock, width: '110px', height: '24px' }} />
+            </div>
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+              <div style={{ ...skeletonBlock, width: '70px', height: '16px' }} />
+              <div style={{ ...skeletonBlock, width: '140px', height: '36px', borderRadius: '8px' }} />
+            </div>
           </div>
         </div>
         {/* Skeleton Content */}
-        <div style={{ maxWidth: '750px', margin: '0 auto', padding: '40px 20px' }}>
+        <div style={{ maxWidth: VISUALIZER_CONTENT_MAX_WIDTH, margin: '0 auto', padding: '40px 20px' }}>
           {/* Hero image skeleton */}
-          <div style={{ ...skeletonBlock, width: '100%', height: '400px', borderRadius: '16px', marginBottom: '20px' }} />
+          <div style={{ ...skeletonBlock, width: '100%', height: '320px', borderRadius: '12px', marginBottom: '20px' }} />
           {/* Title */}
           <div style={{ ...skeletonBlock, width: '55%', height: '28px', marginBottom: '10px' }} />
           {/* City */}
@@ -2473,11 +2510,12 @@ export default function TripVisualizerPage() {
         <div style={{
           position: 'relative',
           width: '100%',
-          height: '400px',
-          borderRadius: '0',
+          height: '320px',
+          borderRadius: '12px',
           overflow: 'hidden',
           marginBottom: '0',
-          backgroundColor: tourInfo.preview ? 'transparent' : '#e5e7eb',
+          backgroundColor: tourInfo.preview ? 'transparent' : '#f3f4f6',
+          border: tourInfo.preview ? 'none' : '1px solid #e5e7eb',
           boxSizing: 'border-box'
         }}>
           {tourInfo.preview ? (
@@ -2494,39 +2532,55 @@ export default function TripVisualizerPage() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexDirection: 'column', gap: '8px', color: '#9ca3af'
             }}>
-              <span style={{ fontSize: '48px' }}>🖼</span>
-              <span style={{ fontSize: '14px' }}>Upload a cover image in "Edit block"</span>
+              <span style={{ fontSize: '36px', opacity: 0.7 }}>🖼</span>
+              <span style={{ fontSize: '14px', fontWeight: 500 }}>Upload a cover image in Edit block</span>
             </div>
           )}
-          
-          <button
-            type="button"
-            onClick={() => setShowTourEditor(true)}
-            style={{
-              position: 'absolute',
-              top: '16px',
-              right: '16px',
-              padding: '8px 14px',
-              backgroundColor: '#fbbf24',
-              color: '#111827',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: '600',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-              zIndex: 2,
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#f59e0b'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#fbbf24'}
-          >
-            Edit block
-          </button>
         </div>
   );
 
-  const desktopVisualizerTourHeader = (
+  const visualizerStep1HintBox = !step1HintDismissed ? (
+    <div
+      style={{
+        maxWidth: '300px',
+        padding: '10px 12px',
+        backgroundColor: '#f9fafb',
+        border: '1px solid #e5e7eb',
+        borderRadius: '8px',
+        fontSize: '12px',
+        lineHeight: 1.45,
+        color: '#4b5563',
+        position: 'relative',
+        paddingRight: '28px',
+      }}
+    >
+      <strong style={{ color: '#111827' }}>Step 1.</strong>{' '}
+      Open Edit block and set your city and tour title to continue building your tour.
+      <button
+        type="button"
+        aria-label="Dismiss hint"
+        onClick={dismissStep1Hint}
+        style={{
+          position: 'absolute',
+          top: '6px',
+          right: '6px',
+          width: '22px',
+          height: '22px',
+          padding: 0,
+          border: 'none',
+          background: 'transparent',
+          color: '#9ca3af',
+          cursor: 'pointer',
+          fontSize: '18px',
+          lineHeight: 1,
+        }}
+      >
+        ×
+      </button>
+    </div>
+  ) : null;
+
+  const desktopVisualizerMetaRow = (
     <div style={{ width: '100%', boxSizing: 'border-box', paddingTop: '0' }}>
       <div
         style={{
@@ -2596,31 +2650,113 @@ export default function TripVisualizerPage() {
           </button>
         </div>
       </div>
+    </div>
+  );
+
+  const desktopVisualizerTitleRow = (
+    <div
+      style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        gap: '16px 20px',
+        marginTop: '28px',
+        marginBottom: '24px',
+      }}
+    >
       <h1 style={{
         fontSize: '50px',
         fontWeight: 500,
         color: tourInfo.title ? '#111827' : '#9ca3af',
-        margin: '40px 0 40px 0',
+        margin: 0,
         lineHeight: '1.15',
-        fontStyle: tourInfo.title ? 'normal' : 'italic'
+        fontStyle: tourInfo.title ? 'normal' : 'italic',
+        flex: '1 1 260px',
+        minWidth: 0,
       }}>
         {tourInfo.title || 'Your Tour Title'}
       </h1>
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'flex-start',
+          justifyContent: 'flex-end',
+          gap: '12px',
+          flex: '0 1 360px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setShowTourEditor(true)}
+          style={{
+            padding: '8px 14px',
+            backgroundColor: '#FFDD00',
+            color: '#111827',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: '700',
+            flexShrink: 0,
+            transition: 'background-color 0.2s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f59e0b'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#FFDD00'; }}
+        >
+          Edit block
+        </button>
+        {visualizerStep1HintBox}
+      </div>
     </div>
   );
 
   const mobileVisualizerTitleSection = (
         <div style={{ paddingTop: '24px' }}>
-          <h1 style={{
-            fontSize: '28px',
-            fontWeight: '700',
-            color: tourInfo.title ? '#111827' : '#9ca3af',
-            margin: '0 0 8px 0',
-            lineHeight: '1.2',
-            fontStyle: tourInfo.title ? 'normal' : 'italic'
-          }}>
-            {tourInfo.title || 'Your Tour Title'}
-          </h1>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'flex-start',
+              justifyContent: 'space-between',
+              gap: '12px',
+              marginBottom: '12px',
+            }}
+          >
+            <h1 style={{
+              fontSize: '28px',
+              fontWeight: '700',
+              color: tourInfo.title ? '#111827' : '#9ca3af',
+              margin: 0,
+              lineHeight: '1.2',
+              fontStyle: tourInfo.title ? 'normal' : 'italic',
+              flex: '1 1 200px',
+              minWidth: 0,
+            }}>
+              {tourInfo.title || 'Your Tour Title'}
+            </h1>
+            <button
+              type="button"
+              onClick={() => setShowTourEditor(true)}
+              style={{
+                padding: '8px 12px',
+                backgroundColor: '#FFDD00',
+                color: '#111827',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: '700',
+                flexShrink: 0,
+              }}
+            >
+              Edit block
+            </button>
+          </div>
+          {visualizerStep1HintBox ? (
+            <div style={{ marginBottom: '16px' }}>{visualizerStep1HintBox}</div>
+          ) : null}
 
           <div style={{
             display: 'flex',
@@ -2741,7 +2877,7 @@ export default function TripVisualizerPage() {
         padding: 0
       }}>
         <div style={{
-          maxWidth: '100%',
+          maxWidth: VISUALIZER_CONTENT_MAX_WIDTH,
           width: '100%',
           margin: '0 auto',
           padding: '16px 20px',
@@ -2766,20 +2902,25 @@ export default function TripVisualizerPage() {
               {user?.name || 'User'}
             </span>
             <button
+              type="button"
               onClick={handleBackToDashboard}
               style={{
                 padding: '8px 16px',
-                backgroundColor: '#6b7280',
-                color: 'white',
-                border: 'none',
+                backgroundColor: 'transparent',
+                color: '#111827',
+                border: '1px solid #111827',
                 borderRadius: '8px',
                 cursor: 'pointer',
                 fontSize: '14px',
                 fontWeight: '500',
-                transition: 'background-color 0.2s'
+                transition: 'background-color 0.2s, border-color 0.2s'
               }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#4b5563'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#6b7280'}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = '#f3f4f6';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+              }}
             >
               Back to Dashboard
             </button>
@@ -2788,7 +2929,7 @@ export default function TripVisualizerPage() {
       </div>
 
       {/* Main Content — desktop: 60px below top bar */}
-      <div style={{ maxWidth: '750px', margin: '0 auto', padding: isMobile ? '40px 20px' : '60px 20px 40px' }}>
+      <div style={{ maxWidth: VISUALIZER_CONTENT_MAX_WIDTH, margin: '0 auto', padding: isMobile ? '40px 20px' : '60px 20px 40px' }}>
         {/* Admin editing indicator */}
         {isEditingOtherTour && (
           <div style={{
@@ -2816,9 +2957,10 @@ export default function TripVisualizerPage() {
         
         {/* Hero + title: mobile = hero first (unchanged); desktop = meta + title + date, then hero (Figma) */}
         {isMobile && visualizerHeroBlock}
-        {!isMobile && desktopVisualizerTourHeader}
+        {!isMobile && desktopVisualizerMetaRow}
+        {!isMobile && desktopVisualizerTitleRow}
         {!isMobile && (
-          <div style={{ marginBottom: '40px' }}>{visualizerHeroBlock}</div>
+          <div style={{ marginBottom: '32px' }}>{visualizerHeroBlock}</div>
         )}
         {isMobile && mobileVisualizerTitleSection}
 
@@ -2855,17 +2997,39 @@ export default function TripVisualizerPage() {
             const isPlaceholder = !tourInfo.description;
             const text = tourInfo.description || 'This is where you describe your tour. Tell travelers what they\'ll discover, what makes this route unique, and why they should follow it.\n\nClick "Edit block" above to add your description.';
             return (
-              <p style={{
-                fontSize: '20px',
-                fontWeight: 500,
-                color: isPlaceholder ? '#9ca3af' : '#111827',
-                lineHeight: '1.5',
-                margin: 0,
-                whiteSpace: 'pre-line',
-                fontStyle: isPlaceholder ? 'italic' : 'normal'
-              }}>
-                {text}
-              </p>
+              <div
+                style={{
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '10px',
+                  padding: '20px 22px',
+                  backgroundColor: '#ffffff',
+                  boxSizing: 'border-box',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    letterSpacing: '0.06em',
+                    color: '#9ca3af',
+                    marginBottom: '12px',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Header
+                </div>
+                <p style={{
+                  fontSize: '18px',
+                  fontWeight: 500,
+                  color: isPlaceholder ? '#9ca3af' : '#374151',
+                  lineHeight: '1.55',
+                  margin: 0,
+                  whiteSpace: 'pre-line',
+                  fontStyle: isPlaceholder ? 'italic' : 'normal'
+                }}>
+                  {text}
+                </p>
+              </div>
             );
           })()}
         </div>
@@ -3155,7 +3319,7 @@ export default function TripVisualizerPage() {
         }}>
           {/* Inner container matching content width */}
           <div style={{
-            maxWidth: '1200px',
+            maxWidth: VISUALIZER_CONTENT_MAX_WIDTH,
             width: '100%',
             margin: '0 auto',
             padding: '0 20px',
