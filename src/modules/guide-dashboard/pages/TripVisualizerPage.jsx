@@ -45,6 +45,7 @@ import MontjuicImage from '../../../assets/Montjuïc Hill (Miradors & Paths).jpg
 import { getTourById } from '../../../services/api';
 import { getTourAvailability, updateAvailabilitySlots } from '../services/availabilityService';
 import BlockRenderer from '../components/BlockRenderer';
+import VisualizerSidePanel from '../components/VisualizerSidePanel';
 import TextEditor from '../components/TextEditor';
 import GoogleMapsLocationSelector from '../components/GoogleMapsLocationSelector';
 import { DEFAULT_SELF_GUIDED_PRICE } from '../../../constants/pricing';
@@ -4005,26 +4006,12 @@ function ImageCropModal({ imageSrc, onClose, onCrop }) {
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.7)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 2000
-    }}>
+    <VisualizerSidePanel onClose={onClose} zIndex={2000}>
       <div style={{
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        padding: '24px',
-        maxWidth: `${VISUALIZER_CONTENT_MAX_WIDTH}px`,
-        width: '90%',
-        maxHeight: '90vh',
-        overflow: 'auto'
+        width: '100%',
+        maxHeight: 'min(90vh, 100%)',
+        overflow: 'auto',
+        boxSizing: 'border-box',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h2 style={{ fontSize: '24px', fontWeight: 'bold' }}>Adjust Image Position</h2>
@@ -4142,7 +4129,7 @@ function ImageCropModal({ imageSrc, onClose, onCrop }) {
           </button>
         </div>
       </div>
-    </div>
+    </VisualizerSidePanel>
   );
 }
 
@@ -4160,33 +4147,13 @@ function BlockSelectorModal({ onClose, onSelect }) {
   ];
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      display: 'flex',
-      alignItems: 'flex-end',
-      justifyContent: 'center',
-      zIndex: 1000
-    }}
-    onClick={onClose}
-    >
-      <div 
+    <VisualizerSidePanel onClose={onClose} panelBackground="#F0F1F3">
+      <div
         style={{
-          backgroundColor: '#F0F1F3',
-          borderTopLeftRadius: '20px',
-          borderTopRightRadius: '20px',
-          padding: '24px',
           width: '100%',
-          maxWidth: '100%',
-          maxHeight: '70vh',
-          overflowY: 'auto',
-          boxShadow: '0 -4px 20px rgba(0,0,0,0.15)'
+          minHeight: '100%',
+          boxSizing: 'border-box',
         }}
-        onClick={(e) => e.stopPropagation()}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#111827' }}>Add block</h2>
@@ -4235,7 +4202,7 @@ function BlockSelectorModal({ onClose, onSelect }) {
           ))}
         </div>
       </div>
-    </div>
+    </VisualizerSidePanel>
   );
 }
 
@@ -5042,34 +5009,20 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000
-    }}>
+    <VisualizerSidePanel onClose={onClose}>
       <style>{`@keyframes highlightSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
       <div style={{
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        padding: '24px',
-        maxWidth: '1080px',
-        width: '94%',
-        maxHeight: '80vh',
-        overflowY: 'auto'
+        width: '100%',
+        maxHeight: '100vh',
+        overflowY: 'auto',
+        boxSizing: 'border-box',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '24px', fontWeight: 'bold' }}>Edit tour</h2>
           <button onClick={onClose} style={{ fontSize: '24px', background: 'none', border: 'none', cursor: 'pointer' }}>×</button>
         </div>
         
-        <div style={{ marginBottom: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+        <div style={{ marginBottom: '20px', display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
           <div>
             <div style={{ marginBottom: '14px', position: 'relative' }} className="city-autocomplete-container">
               <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
@@ -5400,7 +5353,7 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
           </button>
         </div>
       </div>
-    </div>
+    </VisualizerSidePanel>
   );
 }
 
@@ -7131,26 +7084,12 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000
-    }}>
+    <VisualizerSidePanel onClose={onClose}>
       <div style={{
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        padding: '24px',
-        maxWidth: '600px',
-        width: '90%',
-        maxHeight: '80vh',
-        overflowY: 'auto'
+        width: '100%',
+        maxHeight: '100vh',
+        overflowY: 'auto',
+        boxSizing: 'border-box',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '24px', fontWeight: 'bold' }}>Edit block: {block.block_type}</h2>
@@ -7219,7 +7158,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
           </div>
         </div>
       </div>
-    </div>
+    </VisualizerSidePanel>
   );
 }
 

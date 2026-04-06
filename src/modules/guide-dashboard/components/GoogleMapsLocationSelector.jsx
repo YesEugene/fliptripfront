@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import VisualizerSidePanel from './VisualizerSidePanel';
 
 // Get API base URL
 const getApiBaseUrl = () => {
@@ -232,28 +233,15 @@ const GoogleMapsLocationSelector = ({ isOpen, onClose, onSelectLocation, city })
   if (!isOpen) return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 10000
-    }} onClick={onClose}>
+    <VisualizerSidePanel onClose={onClose} zIndex={10000} padding={0}>
       <div style={{
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        width: '90%',
-        maxWidth: '600px',
-        maxHeight: '80vh',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
-      }} onClick={(e) => e.stopPropagation()}>
+        height: '100%',
+        minHeight: 0,
+        maxHeight: '100vh',
+        backgroundColor: 'white',
+      }}>
         {/* Header */}
         <div style={{
           padding: '20px',
@@ -474,7 +462,7 @@ const GoogleMapsLocationSelector = ({ isOpen, onClose, onSelectLocation, city })
           </button>
         </div>
       </div>
-    </div>
+    </VisualizerSidePanel>
   );
 };
 
