@@ -178,7 +178,7 @@ export default function ProfileSettingsPage() {
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 20px' }}>
+      <div style={{ maxWidth: '750px', margin: '0 auto', padding: '0 20px' }}>
         <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '24px' }}>
           Profile Settings
         </h1>

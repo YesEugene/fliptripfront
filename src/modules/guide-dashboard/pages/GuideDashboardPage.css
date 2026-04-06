@@ -1,8 +1,9 @@
 /* Guide dashboard — Figma-aligned: wide layout only here; Explore fonts via ExplorePage.css */
 
 .guide-dashboard.explore-page {
-  --content-max-width: 800px;
-  --guide-max: 800px;
+  /* Match HomePage `.home-page-wrapper` (750px) */
+  --content-max-width: 750px;
+  --guide-max: 750px;
   background: #fff;
 }
 

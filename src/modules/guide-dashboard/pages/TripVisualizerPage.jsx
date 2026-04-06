@@ -56,8 +56,14 @@ import './GuideDashboardPage.css';
 /** Same as public itinerary / Explore (ItineraryPage.css `.itinerary-container`, ExplorePage) */
 const VISUALIZER_PAGE_BG = '#fcfbf9';
 
-/** Match guide dashboard content width (GuideDashboardPage.css --guide-max) */
-const VISUALIZER_CONTENT_MAX_WIDTH = 800;
+/** Match HomePage `.home-page-wrapper` + GuideDashboardPage.css --guide-max */
+const VISUALIZER_CONTENT_MAX_WIDTH = 750;
+
+/** Hero cover height — same as ItineraryPage `itineraryHeroSection` */
+const VISUALIZER_HERO_HEIGHT = {
+  desktop: '400px',
+  mobile: 'calc(350px + env(safe-area-inset-top, 0px))',
+};
 
 /** First “Header” block border (design) */
 const VISUALIZER_HEADER_BLOCK_BORDER = '#B9B9B9';
@@ -2520,11 +2526,10 @@ export default function TripVisualizerPage() {
         <div
           style={{
             width: '100%',
-            height: '280px',
+            height: isMobile ? VISUALIZER_HERO_HEIGHT.mobile : VISUALIZER_HERO_HEIGHT.desktop,
             borderRadius: 0,
             overflow: 'hidden',
             marginBottom: 0,
-            border: `1px solid ${VISUALIZER_HEADER_BLOCK_BORDER}`,
             boxSizing: 'border-box',
             backgroundImage: `url(${tourInfo.preview})`,
             backgroundSize: 'cover',
@@ -2532,37 +2537,23 @@ export default function TripVisualizerPage() {
           }}
         />
       ) : null}
+      {/* Plain tour copy — matches public itinerary (ItineraryPage description block); no “Header” label, no bordered plate */}
       <div
         style={{
-          border: `1px solid ${VISUALIZER_HEADER_BLOCK_BORDER}`,
-          borderRadius: 0,
-          padding: '44px 40px 48px',
-          backgroundColor: VISUALIZER_PAGE_BG,
+          marginTop: tourInfo.preview ? '40px' : 0,
+          padding: 0,
           boxSizing: 'border-box',
-          marginTop: tourInfo.preview ? 0 : 0,
         }}
       >
-        <div
-          style={{
-            fontSize: '13px',
-            fontWeight: 600,
-            letterSpacing: '0.02em',
-            color: '#6b7280',
-            marginBottom: '22px',
-          }}
-        >
-          Header
-        </div>
         {tourInfo.description?.trim() ? (
           <p
             style={{
-              fontSize: '15px',
-              fontWeight: 400,
-              color: '#4b5563',
-              lineHeight: 1.7,
+              fontSize: '20px',
+              fontWeight: 500,
+              color: '#111827',
+              lineHeight: 1.5,
               margin: 0,
               whiteSpace: 'pre-line',
-              fontStyle: 'normal',
             }}
           >
             {tourInfo.description}
@@ -2571,24 +2562,22 @@ export default function TripVisualizerPage() {
           <>
             <p
               style={{
-                fontSize: '15px',
+                fontSize: '16px',
                 fontWeight: 400,
                 color: '#6b7280',
-                lineHeight: 1.7,
+                lineHeight: 1.6,
                 margin: '0 0 14px 0',
-                fontStyle: 'normal',
               }}
             >
               {`This is where you describe your tour. Tell travelers what they'll discover, what makes this route unique, and why they should follow it.`}
             </p>
             <p
               style={{
-                fontSize: '15px',
+                fontSize: '16px',
                 fontWeight: 400,
                 color: '#6b7280',
-                lineHeight: 1.7,
+                lineHeight: 1.6,
                 margin: 0,
-                fontStyle: 'normal',
               }}
             >
               {`Click 'Edit block' above to add your description.`}
@@ -2714,43 +2703,30 @@ export default function TripVisualizerPage() {
   );
 
   const desktopVisualizerTitleRow = (
-    <div
-      style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '16px 20px',
-        marginTop: '28px',
-        marginBottom: '28px',
-      }}
-    >
-      <h1 style={{
-        fontSize: '50px',
-        fontWeight: 500,
-        color: tourInfo.title ? '#111827' : '#9ca3af',
-        margin: 0,
-        lineHeight: '1.15',
-        fontStyle: tourInfo.title ? 'normal' : 'italic',
-        flex: '1 1 260px',
-        minWidth: 0,
-      }}>
-        {tourInfo.title || 'Your Tour Title'}
-      </h1>
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          gap: '12px',
-          flex: '0 1 360px',
-        }}
-      >
+    <div style={{ marginTop: '28px', marginBottom: '28px', width: '100%' }}>
+      <div style={{ position: 'relative', width: '100%' }}>
+        <h1 style={{
+          fontSize: '50px',
+          fontWeight: 500,
+          color: tourInfo.title ? '#111827' : '#9ca3af',
+          margin: 0,
+          lineHeight: '1.15',
+          fontStyle: tourInfo.title ? 'normal' : 'italic',
+          width: '100%',
+          paddingRight: '132px',
+          boxSizing: 'border-box',
+        }}>
+          {tourInfo.title || 'Your Tour Title'}
+        </h1>
         <button
           type="button"
           onClick={() => setShowTourEditor(true)}
           style={{
+            position: 'absolute',
+            right: 0,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 2,
             padding: '8px 14px',
             backgroundColor: '#FFDD00',
             color: '#111827',
@@ -2767,23 +2743,16 @@ export default function TripVisualizerPage() {
         >
           Edit block
         </button>
-        {visualizerStep1HintBox}
       </div>
+      {visualizerStep1HintBox ? (
+        <div style={{ marginTop: '12px' }}>{visualizerStep1HintBox}</div>
+      ) : null}
     </div>
   );
 
   const mobileVisualizerTitleSection = (
         <div style={{ paddingTop: '24px' }}>
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '12px',
-              marginBottom: '12px',
-            }}
-          >
+          <div style={{ position: 'relative', width: '100%', marginBottom: '12px' }}>
             <h1 style={{
               fontSize: '28px',
               fontWeight: '700',
@@ -2791,8 +2760,9 @@ export default function TripVisualizerPage() {
               margin: 0,
               lineHeight: '1.2',
               fontStyle: tourInfo.title ? 'normal' : 'italic',
-              flex: '1 1 200px',
-              minWidth: 0,
+              width: '100%',
+              paddingRight: '108px',
+              boxSizing: 'border-box',
             }}>
               {tourInfo.title || 'Your Tour Title'}
             </h1>
@@ -2800,6 +2770,11 @@ export default function TripVisualizerPage() {
               type="button"
               onClick={() => setShowTourEditor(true)}
               style={{
+                position: 'absolute',
+                right: 0,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                zIndex: 2,
                 padding: '8px 12px',
                 backgroundColor: '#FFDD00',
                 color: '#111827',
@@ -2808,7 +2783,6 @@ export default function TripVisualizerPage() {
                 cursor: 'pointer',
                 fontSize: '12px',
                 fontWeight: '700',
-                flexShrink: 0,
               }}
             >
               Edit block
@@ -4047,7 +4021,7 @@ function ImageCropModal({ imageSrc, onClose, onCrop }) {
         backgroundColor: 'white',
         borderRadius: '12px',
         padding: '24px',
-        maxWidth: '800px',
+        maxWidth: `${VISUALIZER_CONTENT_MAX_WIDTH}px`,
         width: '90%',
         maxHeight: '90vh',
         overflow: 'auto'
