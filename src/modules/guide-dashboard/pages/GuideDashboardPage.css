@@ -276,92 +276,25 @@
   margin-bottom: 0;
 }
 
-/*
- * Collage — Figma 1616:603 bounding box (relative % from Dev Mode exports).
- * Main: 256×253 @ (85.5, 0); Phone: 121×247 @ (0, 75.8); Map: 145×92 @ (219.3, 209.9); box ~365×322.
- */
-.guide-intro-collage {
-  position: relative;
-  width: 100%;
-  max-width: 365px;
-  aspect-ratio: 365 / 322;
-  margin: 0;
+/* Transparent PNGs from design — no extra box-shadow on wrappers or img */
+.guide-intro-panel-img {
   align-self: start;
+  width: 100%;
+  max-width: min(420px, 100%);
+  line-height: 0;
 }
 
-.guide-intro-collage-main {
-  position: absolute;
-  left: 23.44%;
-  top: 0;
-  width: 70.28%;
-  height: 78.5%;
-  border-radius: 20px;
-  overflow: hidden;
-  z-index: 1;
+.guide-intro-panel-img--right {
+  justify-self: end;
 }
-.guide-intro-collage-main .guide-intro-collage-img {
+
+.guide-intro-png {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
+  height: auto;
   display: block;
 }
 
-.guide-intro-collage-phone {
-  position: absolute;
-  left: 0;
-  top: 23.52%;
-  width: 33.3%;
-  height: 76.5%;
-  border-radius: 20px;
-  overflow: hidden;
-  z-index: 3;
-  box-shadow: 0 4px 16.8px 2px rgba(0, 0, 0, 0.07);
-}
-
-.guide-intro-collage-phone .guide-intro-collage-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  display: block;
-}
-
-/* Figma ellipse 11 — home indicator */
-.guide-intro-collage-home-indicator {
-  position: absolute;
-  bottom: 6.5%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
-  pointer-events: none;
-}
-
-.guide-intro-collage-map {
-  position: absolute;
-  left: 60.14%;
-  top: 65.12%;
-  width: 39.85%;
-  height: 28.4%;
-  border-radius: 20px;
-  overflow: hidden;
-  z-index: 2;
-  box-shadow: 0 4px 14.1px rgba(0, 0, 0, 0.05);
-}
-
-.guide-intro-collage-map .guide-intro-collage-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  display: block;
-}
-
-/* Authors — text left, collage right */
+/* Authors — text left, image right */
 .guide-intro-split--authors {
   align-items: center;
 }
@@ -371,22 +304,6 @@
   font-weight: 600;
   margin: 0 0 16px;
   color: #000;
-}
-
-.guide-intro-authors-visual {
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
-  align-self: center;
-  justify-self: end;
-  width: 100%;
-  max-width: 365px;
-}
-
-.guide-intro-authors-img {
-  width: 100%;
-  height: auto;
-  display: block;
 }
 
 .guide-intro-list--authors {
@@ -432,9 +349,9 @@
   max-width: 100%;
 }
 
-/* Trip Visualizer — screenshot left, copy + CTA right */
+/* Trip Visualizer — image left, copy + CTA right */
 .guide-intro-split--visualizer {
-  margin-bottom: 50px;
+  margin-bottom: 0;
 }
 
 .guide-intro-visualizer-outro {
@@ -461,79 +378,6 @@
   opacity: 0.92;
 }
 
-.guide-intro-visualizer-figure {
-  align-self: start;
-  width: 100%;
-  max-width: 380px;
-}
-
-.guide-intro-visualizer-img {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 12px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-}
-
-.guide-intro-more {
-  margin-top: 50px;
-  margin-bottom: 40px;
-}
-
-.guide-intro-more-lead {
-  font-size: 14px;
-  margin: 0 0 16px;
-  color: #333;
-}
-
-.guide-intro-dl {
-  margin: 16px 0 20px;
-}
-
-.guide-intro-dl > div {
-  margin-bottom: 18px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid #eceae6;
-}
-
-.guide-intro-dl > div:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
-.guide-intro-dl dt {
-  font-weight: 600;
-  font-size: 15px;
-  color: #000;
-  margin-bottom: 6px;
-}
-
-.guide-intro-dl dd {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.55;
-  color: #444;
-}
-
-.guide-intro-more p {
-  font-size: 14px;
-  line-height: 1.6;
-  color: #333;
-}
-
-.guide-intro-ol {
-  margin: 12px 0 0;
-  padding-left: 22px;
-  font-size: 14px;
-  line-height: 1.6;
-  color: #333;
-}
-
-.guide-intro-ol li {
-  margin-bottom: 12px;
-}
-
 @media (max-width: 720px) {
   .guide-dashboard-toolbar {
     padding-top: 48px;
@@ -555,22 +399,19 @@
     gap: 32px;
   }
 
-  .guide-intro-collage {
+  .guide-intro-panel-img {
     margin-left: auto;
     margin-right: auto;
+    max-width: min(420px, 100%);
   }
 
-  .guide-intro-split--authors .guide-intro-authors-visual {
+  .guide-intro-split--authors .guide-intro-panel-img--right {
     justify-self: center;
-    max-width: 400px;
   }
 
-  .guide-intro-split--visualizer .guide-intro-visualizer-figure {
+  .guide-intro-split--visualizer .guide-intro-panel-img {
     order: 1;
-    width: 100%;
-    max-width: 420px;
-    margin-left: auto;
-    margin-right: auto;
+    max-width: min(420px, 100%);
   }
 
   .guide-intro-split--visualizer .guide-intro-split-text {

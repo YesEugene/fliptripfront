@@ -1,13 +1,10 @@
 /**
- * Intro long-read for new tour authors (English). Layout aligned with Figma (node 1612:64).
- * Collage asset positions match Figma frame 1616:603 (main / phone / map).
+ * Intro long-read for new tour authors (English). PNGs from Imgs/Author (1–3); no extra CSS shadows.
  */
 import { Link } from 'react-router-dom';
-import introMain from '../../../assets/guide-author/intro-main.png';
-import introMap from '../../../assets/guide-author/intro-map.png';
-import introPhone from '../../../assets/guide-author/intro-phone.png';
-import introAuthorsCollage from '../../../assets/guide-author/intro-authors-collage.png';
-import introVisualizer from '../../../assets/guide-author/intro-visualizer.png';
+import imgWhatWeBuild from '../../../assets/guide-author/what-we-build.png';
+import imgAuthors from '../../../assets/guide-author/authors.png';
+import imgTripVisualizer from '../../../assets/guide-author/trip-visualizer.png';
 
 export default function GuideDashboardIntro() {
   return (
@@ -21,17 +18,8 @@ export default function GuideDashboardIntro() {
       </header>
 
       <section className="guide-intro-split">
-        <div className="guide-intro-collage" aria-hidden="true">
-          <div className="guide-intro-collage-main">
-            <img src={introMain} alt="" className="guide-intro-collage-img" />
-          </div>
-          <div className="guide-intro-collage-phone">
-            <img src={introPhone} alt="" className="guide-intro-collage-img" />
-            <span className="guide-intro-collage-home-indicator" />
-          </div>
-          <div className="guide-intro-collage-map">
-            <img src={introMap} alt="" className="guide-intro-collage-img" />
-          </div>
+        <div className="guide-intro-panel-img" aria-hidden="true">
+          <img src={imgWhatWeBuild} alt="" className="guide-intro-png" />
         </div>
         <div className="guide-intro-split-text">
           <h2 className="guide-intro-section-title">What we are building together</h2>
@@ -74,8 +62,8 @@ export default function GuideDashboardIntro() {
             </li>
           </ul>
         </div>
-        <div className="guide-intro-authors-visual" aria-hidden="true">
-          <img src={introAuthorsCollage} alt="" className="guide-intro-authors-img" />
+        <div className="guide-intro-panel-img guide-intro-panel-img--right" aria-hidden="true">
+          <img src={imgAuthors} alt="" className="guide-intro-png" />
         </div>
       </section>
 
@@ -87,8 +75,8 @@ export default function GuideDashboardIntro() {
       </section>
 
       <section className="guide-intro-split guide-intro-split--visualizer">
-        <div className="guide-intro-visualizer-figure" aria-hidden="true">
-          <img src={introVisualizer} alt="" className="guide-intro-visualizer-img" />
+        <div className="guide-intro-panel-img" aria-hidden="true">
+          <img src={imgTripVisualizer} alt="" className="guide-intro-png" />
         </div>
         <div className="guide-intro-split-text">
           <h2 className="guide-intro-section-title">The Trip Visualizer</h2>
@@ -114,73 +102,6 @@ export default function GuideDashboardIntro() {
             Create trip guide
           </Link>
         </div>
-      </section>
-
-      <section className="guide-intro-more">
-        <h2 className="guide-intro-section-title guide-intro-section-title--smallcaps">Block types you can use</h2>
-        <p className="guide-intro-more-lead">
-          These are the main building blocks in the Visualizer (labels may vary slightly in the UI):
-        </p>
-        <dl className="guide-intro-dl">
-          <div>
-            <dt>Title</dt>
-            <dd>Section headings to break the day into chapters.</dd>
-          </div>
-          <div>
-            <dt>Location</dt>
-            <dd>Stops with place details, tips, photos, and map coordinates.</dd>
-          </div>
-          <div>
-            <dt>Photo + text</dt>
-            <dd>Image with caption or short story between stops.</dd>
-          </div>
-          <div>
-            <dt>Text</dt>
-            <dd>Standalone paragraphs for context.</dd>
-          </div>
-          <div>
-            <dt>Slide</dt>
-            <dd>A short visual sequence or gallery.</dd>
-          </div>
-          <div>
-            <dt>3 columns</dt>
-            <dd>Three compact columns for quick comparisons or highlights.</dd>
-          </div>
-          <div>
-            <dt>Photo</dt>
-            <dd>Full-width image when the picture leads the section.</dd>
-          </div>
-          <div>
-            <dt>Divider</dt>
-            <dd>A visual pause between major parts of the itinerary.</dd>
-          </div>
-          <div>
-            <dt>Map</dt>
-            <dd>Route or overview map, often using your location pins.</dd>
-          </div>
-        </dl>
-        <p>
-          You do not have to use every type. Strong tours usually combine a handful of location blocks with clear
-          titles, one or two reflective text or photo blocks, and a map where it helps orientation.
-        </p>
-      </section>
-
-      <section className="guide-intro-next">
-        <h2 className="guide-intro-section-title guide-intro-section-title--smallcaps">What to do next</h2>
-        <ol className="guide-intro-ol">
-          <li>
-            Open <strong>My tours</strong> when you are ready to attach a trip to your account, or open the{' '}
-            <strong>Trip Visualizer</strong> to start drafting.
-          </li>
-          <li>
-            Complete <strong>Profile</strong> so travelers know who you are — a short bio and a clear photo build
-            trust.
-          </li>
-          <li>
-            Build the route in the Visualizer, preview often, and refine copy until someone new to the city could
-            follow your day without guessing.
-          </li>
-        </ol>
       </section>
     </article>
   );
