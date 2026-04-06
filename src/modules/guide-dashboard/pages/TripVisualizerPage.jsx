@@ -2536,7 +2536,7 @@ export default function TripVisualizerPage() {
         style={{
           border: `1px solid ${VISUALIZER_HEADER_BLOCK_BORDER}`,
           borderRadius: 0,
-          padding: '24px 28px',
+          padding: '44px 40px 48px',
           backgroundColor: VISUALIZER_PAGE_BG,
           boxSizing: 'border-box',
           marginTop: tourInfo.preview ? 0 : 0,
@@ -2544,10 +2544,11 @@ export default function TripVisualizerPage() {
       >
         <div
           style={{
-            fontSize: '15px',
+            fontSize: '13px',
             fontWeight: 600,
+            letterSpacing: '0.02em',
             color: '#6b7280',
-            marginBottom: '16px',
+            marginBottom: '22px',
           }}
         >
           Header
@@ -2555,12 +2556,13 @@ export default function TripVisualizerPage() {
         {tourInfo.description?.trim() ? (
           <p
             style={{
-              fontSize: '18px',
-              fontWeight: 500,
-              color: '#374151',
-              lineHeight: 1.55,
+              fontSize: '15px',
+              fontWeight: 400,
+              color: '#4b5563',
+              lineHeight: 1.7,
               margin: 0,
               whiteSpace: 'pre-line',
+              fontStyle: 'normal',
             }}
           >
             {tourInfo.description}
@@ -2569,24 +2571,24 @@ export default function TripVisualizerPage() {
           <>
             <p
               style={{
-                fontSize: '18px',
-                fontWeight: 500,
-                color: '#9ca3af',
-                lineHeight: 1.55,
-                margin: '0 0 16px 0',
-                fontStyle: 'italic',
+                fontSize: '15px',
+                fontWeight: 400,
+                color: '#6b7280',
+                lineHeight: 1.7,
+                margin: '0 0 14px 0',
+                fontStyle: 'normal',
               }}
             >
               {`This is where you describe your tour. Tell travelers what they'll discover, what makes this route unique, and why they should follow it.`}
             </p>
             <p
               style={{
-                fontSize: '18px',
-                fontWeight: 500,
-                color: '#9ca3af',
-                lineHeight: 1.55,
+                fontSize: '15px',
+                fontWeight: 400,
+                color: '#6b7280',
+                lineHeight: 1.7,
                 margin: 0,
-                fontStyle: 'italic',
+                fontStyle: 'normal',
               }}
             >
               {`Click 'Edit block' above to add your description.`}
@@ -2716,11 +2718,11 @@ export default function TripVisualizerPage() {
       style={{
         display: 'flex',
         flexWrap: 'wrap',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         justifyContent: 'space-between',
         gap: '16px 20px',
         marginTop: '28px',
-        marginBottom: '24px',
+        marginBottom: '28px',
       }}
     >
       <h1 style={{
@@ -2739,7 +2741,7 @@ export default function TripVisualizerPage() {
         style={{
           display: 'flex',
           flexWrap: 'wrap',
-          alignItems: 'flex-start',
+          alignItems: 'center',
           justifyContent: 'flex-end',
           gap: '12px',
           flex: '0 1 360px',
@@ -2776,7 +2778,7 @@ export default function TripVisualizerPage() {
             style={{
               display: 'flex',
               flexWrap: 'wrap',
-              alignItems: 'flex-start',
+              alignItems: 'center',
               justifyContent: 'space-between',
               gap: '12px',
               marginBottom: '12px',
