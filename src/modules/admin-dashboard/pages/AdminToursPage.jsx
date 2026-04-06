@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getTours, exportToCSV, moderateTour, deleteTours, setTourExploreWideCard, setTourExploreOrder } from '../services/adminService';
+import { getTours, exportToCSV, moderateTour, deleteTours, setTourExploreWideCard, setTourExploreOrder, generateTourSeo } from '../services/adminService';
 import { getCurrentUser } from '../../auth/services/authService';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
 
@@ -214,8 +214,13 @@ export default function AdminToursPage() {
       setModerating(true);
       console.log('Approving tour with ID:', tourId);
       await moderateTour(tourId, 'approve');
-      alert('Tour approved successfully!');
-      loadTours(); // Reload tours list
+      alert('Tour approved successfully! Generating SEO data...');
+      generateTourSeo(tourId).then(result => {
+        if (result?.success && !result?.skipped) {
+          console.log('SEO generated:', result.seo?.cleanUrl);
+        }
+      });
+      loadTours();
     } catch (err) {
       console.error('Error approving tour:', err);
       alert('Error approving tour: ' + err.message);
@@ -620,6 +625,7 @@ export default function AdminToursPage() {
                       Order
                     </th>
                   )}
+                  <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', whiteSpace: 'nowrap' }}>Sales</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Created</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Actions</th>
                 </tr>
@@ -628,7 +634,7 @@ export default function AdminToursPage() {
                 {tours.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={activeTab === 'ai-tours' ? '7' : activeTab === 'all' ? '8' : '6'}
+                      colSpan={activeTab === 'ai-tours' ? '8' : activeTab === 'all' ? '9' : '7'}
                       style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}
                     >
                       No tours found
@@ -742,6 +748,13 @@ export default function AdminToursPage() {
                           </div>
                         </td>
                       )}
+                      <td style={{ padding: '12px', textAlign: 'center', fontSize: '14px' }}>
+                        {tour.purchaseCount > 0 ? (
+                          <strong style={{ color: '#10b981', fontWeight: '600' }}>{tour.purchaseCount}</strong>
+                        ) : (
+                          <span style={{ color: '#d1d5db' }}>0</span>
+                        )}
+                      </td>
                       <td style={{ padding: '12px', color: '#6b7280', fontSize: '14px' }}>
                         {tour.created_at ? new Date(tour.created_at).toLocaleDateString() : 
                          tour.createdAt ? new Date(tour.createdAt).toLocaleDateString() : 'N/A'}

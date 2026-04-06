@@ -62,12 +62,34 @@ export default async function handler(req, res) {
 
     const tourUrls = tours
       .filter((tour) => tour?.id)
-      .map((tour) => ({
-        loc: `${siteUrl}/tour/${buildTourSlug(tour)}`,
-        lastmod: toIsoDate(tour.updated_at || tour.created_at),
-        changefreq: 'weekly',
-        priority: '0.8'
-      }));
+      .flatMap((tour) => {
+        const lastmod = toIsoDate(tour.updated_at || tour.created_at);
+        const cleanUrl = tour?.draft_data?.seo?.cleanUrl;
+
+        if (cleanUrl) {
+          return [{
+            loc: `${siteUrl}${cleanUrl}`,
+            lastmod,
+            changefreq: 'weekly',
+            priority: '0.9'
+          }];
+        }
+
+        return [
+          {
+            loc: `${siteUrl}/tour/${buildTourSlug(tour)}`,
+            lastmod,
+            changefreq: 'weekly',
+            priority: '0.8'
+          },
+          {
+            loc: `${siteUrl}/itinerary?tourId=${encodeURIComponent(tour.id)}&previewOnly=true`,
+            lastmod,
+            changefreq: 'weekly',
+            priority: '0.7'
+          }
+        ];
+      });
 
     const urls = [...staticUrls, ...tourUrls];
 

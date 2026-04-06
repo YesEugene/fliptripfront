@@ -171,6 +171,82 @@
   text-decoration: none;
 }
 
+/* ===== Dedicated Login Card ===== */
+
+.auth-login-card {
+  max-width: 420px;
+  margin: 60px auto 0;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 5px 34.6px -2px #e7e4df;
+  padding: 44px 42px 38px;
+  text-align: center;
+}
+
+.auth-login-card .auth-onboarding-logo {
+  margin-bottom: 24px;
+}
+
+.auth-login-title {
+  font-family: 'Urbanist', Inter, system-ui, sans-serif;
+  font-size: 26px;
+  font-weight: 600;
+  color: #111;
+  margin: 0 0 28px;
+  line-height: 1.2;
+}
+
+.auth-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-login-form input {
+  height: 52px;
+  border: 1px solid #c5c5c5;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-size: 15px;
+  line-height: 1.2;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.auth-login-form input:focus {
+  outline: none;
+  border-color: #507ff6;
+}
+
+.auth-login-form .auth-primary-button {
+  margin-top: 6px;
+  height: 52px;
+  border-radius: 8px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.auth-login-card .auth-switch-row {
+  margin-top: 24px;
+}
+
+.auth-login-card .auth-link-button {
+  text-decoration: underline;
+  text-decoration-color: #507ff6;
+  text-underline-offset: 2px;
+}
+
+.auth-login-error {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  background: #fee2e2;
+  color: #b91c1c;
+  text-align: left;
+}
+
 @media (max-width: 920px) {
   .auth-onboarding-card {
     border-radius: 20px;
@@ -192,5 +268,10 @@
 
   .auth-onboarding-right h2 {
     font-size: 21px;
+  }
+
+  .auth-login-card {
+    margin-top: 30px;
+    padding: 32px 24px 30px;
   }
 }

@@ -5,6 +5,7 @@ import { getTours } from '../services/api';
 import { getCurrentUser, logout } from '../modules/auth/services/authService';
 import { buildTourSlug } from '../utils/tourSlug';
 import './ExplorePage.css';
+import { updatePageMeta } from '../utils/updatePageMeta';
 
 const CITY_PILLS = ['Rome', 'Paris'];
 const EXPLORE_TOURS_CACHE_KEY = 'fliptrip_explore_tours_cache_v1';
@@ -81,11 +82,13 @@ function getTourTags(tour, interestNameById = new Map()) {
 
 function getGuideFromTour(tour) {
   if (tour?.guide?.name) {
+    const rawBio = tour.guide.bio != null ? String(tour.guide.bio).trim() : '';
     return {
       id: tour.guide.id || tour.guide_id || tour.id,
       name: tour.guide.name,
       avatar: tour.guide.avatar_url || '',
-      bio: tour.guide.bio || FALLBACK_GUIDE_BIO,
+      rawBio,
+      bio: rawBio || FALLBACK_GUIDE_BIO,
       city: tour.guide.city || tour.city || 'Paris',
       interests: tour.guide.interests || 'Culture, Food, Coffee'
     };
@@ -218,6 +221,14 @@ export default function ExplorePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    updatePageMeta({
+      title: 'Explore Cities Like a Local | FlipTrip',
+      description: 'Discover curated city walks and self-guided tours created by local insiders. Paris, Rome and more.',
+      canonicalPath: '/explore',
+    });
+  }, []);
   const insidersScrollRef = useRef(null);
   const pillsScrollRef = useRef(null);
   const hasToursFromCacheRef = useRef(false);
@@ -386,9 +397,8 @@ export default function ExplorePage() {
     });
   }, [toursWithResolvedTags, selectedCities, selectedTags]);
 
-  const displayedTours = useMemo(() => filteredTours.slice(0, visibleCount), [filteredTours, visibleCount]);
-  const orderedDisplayedTours = useMemo(() => {
-    return [...displayedTours].sort((a, b) => {
+  const sortedTours = useMemo(() => {
+    return [...filteredTours].sort((a, b) => {
       const orderA = Number.isFinite(Number(a?.draft_data?.exploreOrder))
         ? Number(a.draft_data.exploreOrder)
         : null;
@@ -402,7 +412,9 @@ export default function ExplorePage() {
       const dateB = new Date(b.createdAt || b.created_at || 0).getTime();
       return dateB - dateA;
     });
-  }, [displayedTours]);
+  }, [filteredTours]);
+  const displayedTours = useMemo(() => sortedTours.slice(0, visibleCount), [sortedTours, visibleCount]);
+  const orderedDisplayedTours = displayedTours;
   const exploreLayoutItems = useMemo(() => {
     const items = [];
     let segment = [];
@@ -464,7 +476,13 @@ export default function ExplorePage() {
     const unique = new Map();
     tours.forEach((tour) => {
       const guide = getGuideFromTour(tour);
-      if (guide && !unique.has(guide.id)) unique.set(guide.id, guide);
+      if (!guide) return;
+      const prev = unique.get(guide.id);
+      if (!prev) {
+        unique.set(guide.id, guide);
+        return;
+      }
+      if (guide.rawBio.length > prev.rawBio.length) unique.set(guide.id, guide);
     });
     return Array.from(unique.values());
   }, [tours]);
@@ -693,7 +711,9 @@ export default function ExplorePage() {
                 </div>
                 <div className="insider-right">
                   <h3>{insider.name}</h3>
-                  <p>{insider.bio}</p>
+                  <div className="insider-bio-scroll">
+                    <p>{insider.bio}</p>
+                  </div>
                 </div>
               </article>
             ))}

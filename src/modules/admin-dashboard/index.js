@@ -7,6 +7,7 @@ export { default as AdminLocationsPage } from './pages/AdminLocationsPage';
 export { default as AdminToursPage } from './pages/AdminToursPage';
 export { default as AdminUsersPage } from './pages/AdminUsersPage';
 export { default as AdminLoginPage } from './pages/AdminLoginPage';
+export { default as AdminRevenuePage } from './pages/AdminRevenuePage';
 
 export * from './services/adminService';
 

@@ -4,6 +4,162 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { PhotoCarousel, FullscreenPhotoViewer } from './PhotoCarousel';
+import LocationIcon from '../../../assets/Location.svg';
+import PhotoTextIcon from '../../../assets/Photo + text.svg';
+import TextBlockIcon from '../../../assets/Text Block.svg';
+import SlideTypeIcon from '../../../assets/Slide type.svg';
+import ThreeColumnsIcon from '../../../assets/3 columns.svg';
+import PhotoIcon from '../../../assets/Photo.svg';
+import DividerIcon from '../../../assets/Devider.svg';
+
+/** Same width as Location block — selector graphics include their own shadow. */
+const PLACEHOLDER_ICON_WIDTH = 168;
+
+/** Matches public itinerary page (ItineraryPage.css `.itinerary-container`) — divider hover strip must not show as white */
+const PAGE_BG_BEIGE = '#fcfbf9';
+
+const PLACEHOLDER_EDIT_BUTTON_STYLE = {
+  border: 'none',
+  background: 'none',
+  padding: 0,
+  margin: 0,
+  color: '#2563eb',
+  textDecoration: 'underline',
+  cursor: 'pointer',
+  font: 'inherit',
+  fontSize: 'inherit',
+  fontWeight: 500,
+  display: 'inline'
+};
+
+/** Matches BlockSelectorModal — `intro` is the body copy before “Click Edit block…”. */
+const BLOCK_PLACEHOLDER_META = {
+  location: {
+    label: 'Location block',
+    intro:
+      'Use this block to feature a specific place, attraction, restaurant, or any location you want to highlight in your tour. The location you add will appear on the tour map automatically.',
+    icon: LocationIcon
+  },
+  photo_text: {
+    label: 'Photo + Text',
+    intro:
+      'Use this block to place a photo next to a short caption or reflection. It helps readers connect a visual moment with your story, tip, or recommendation in one glance.',
+    icon: PhotoTextIcon
+  },
+  text: {
+    label: 'Text Block',
+    intro:
+      'Use this block for narrative text that sets the mood or explains how the tour should be experienced. You can write in one wide column or split the text into two columns side by side.',
+    icon: TextBlockIcon
+  },
+  slide: {
+    label: 'Slide type',
+    intro:
+      'Use this block for a bold title, a full-width image, and a short description underneath. It works well for a highlight moment, a chapter break, or a key stop on your route.',
+    icon: SlideTypeIcon
+  },
+  '3columns': {
+    label: '3 columns',
+    intro:
+      'Use this block to show three items in a row—photos, short captions, or both. It is ideal for comparing options, listing small highlights, or presenting a set of related places.',
+    icon: ThreeColumnsIcon
+  },
+  photo: {
+    label: 'Photo',
+    intro:
+      'Use this block for one or more photos with an optional caption. Choose a layout that fits the page—a single image, a gallery strip, or a full-width ribbon for atmosphere and detail.',
+    icon: PhotoIcon
+  },
+  divider: {
+    label: 'Divider',
+    intro:
+      'Use this block to add a subtle horizontal line between sections of your tour. It gives readers a clear pause when you move from one theme, area, or part of the day to the next.',
+    icon: DividerIcon
+  }
+};
+
+function getBlockPlaceholderMeta(blockType) {
+  return BLOCK_PLACEHOLDER_META[blockType] || {
+    label: blockType || 'Block',
+    intro: 'Use this block to add content to your tour.',
+    icon: TextBlockIcon
+  };
+}
+
+/** Empty-state card: intro + Click Edit block to add details; airy layout; icon matches Location width. */
+function BlockPlaceholderPlate({ title, intro, onEdit, block, iconSrc, iconWidth = PLACEHOLDER_ICON_WIDTH }) {
+  const description = (
+    <>
+      {intro}{' '}
+      {onEdit ? (
+        <>
+          Click{' '}
+          <button
+            type="button"
+            aria-label="Edit block"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(block);
+            }}
+            style={{
+              ...PLACEHOLDER_EDIT_BUTTON_STYLE,
+              cursor: 'pointer'
+            }}
+          >
+            Edit block
+          </button>{' '}
+          to add details.
+        </>
+      ) : (
+        <>Use &quot;Edit block&quot; in the toolbar when you are ready.</>
+      )}
+    </>
+  );
+
+  return (
+    <div
+      style={{
+        padding: '24px 28px',
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '28px',
+        backgroundColor: '#ffffff',
+        border: '1px solid #d1d5db',
+        borderRadius: '14px',
+        boxSizing: 'border-box'
+      }}
+    >
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: '17px',
+            fontWeight: 600,
+            color: '#111827',
+            marginBottom: '12px',
+            lineHeight: 1.35,
+            letterSpacing: '-0.01em'
+          }}
+        >
+          {title}
+        </div>
+        <div style={{ fontSize: '15px', color: '#4b5563', lineHeight: 1.65, margin: 0 }}>
+          {description}
+        </div>
+      </div>
+      <img
+        src={iconSrc}
+        alt=""
+        style={{
+          width: `${iconWidth}px`,
+          height: 'auto',
+          flexShrink: 0,
+          borderRadius: '12px',
+          display: 'block'
+        }}
+      />
+    </div>
+  );
+}
 
 /**
  * Check if URL is a Google Places Photo API URL (billable on every load!).
@@ -360,6 +516,21 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
     : descriptionText;
   const hasLongDescription = descriptionText.length > 360;
 
+  if (isEmptyLocation) {
+    const meta = getBlockPlaceholderMeta('location');
+    return (
+      <div style={{ marginBottom: isMobile ? '10px' : '32px', padding: '0' }}>
+        <BlockPlaceholderPlate
+          title={meta.label}
+          intro={meta.intro}
+          onEdit={onEdit}
+          block={block}
+          iconSrc={meta.icon}
+        />
+      </div>
+    );
+  }
+
   return (
     <div style={{ 
       marginBottom: isMobile ? '10px' : '32px',
@@ -591,7 +762,7 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
               fontSize: '24px', 
               fontWeight: 'bold', 
               marginBottom: '12px',
-              color: isEmptyLocation ? '#9ca3af' : '#111827',
+              color: mainLocation.title ? '#111827' : '#9ca3af',
               lineHeight: '1.2'
             }}>
               {mainLocation.title ? (
@@ -647,7 +818,7 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
             
             {/* Address - show placeholder when empty */}
             <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ color: isEmptyLocation ? '#9ca3af' : '#ef4444', fontSize: '16px' }}>📍</span>
+              <span style={{ color: mainLocation.address ? '#ef4444' : '#9ca3af', fontSize: '16px' }}>📍</span>
               {mainLocation.address ? (
                 <a 
                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mainLocation.address)}`}
@@ -708,81 +879,40 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
       </div>
       </div>
 
-      {/* Description - show placeholder hint when empty */}
-      {(mainLocation.description || isEmptyLocation) && (
+      {/* Description */}
+      {mainLocation.description && (
         <div style={{ marginBottom: '14px' }}>
-          {mainLocation.description ? (
-            <div>
-              <p
-                style={{
-                  fontSize: '16px',
-                  lineHeight: '1.6',
-                  color: '#374151',
-                  margin: 0,
-                  whiteSpace: 'pre-wrap'
-                }}
-              >
-                {isDescriptionExpanded || !hasLongDescription ? descriptionText : collapsedDescription}{' '}
-                {hasLongDescription && (
-                  <button
-                    type="button"
-                    onClick={() => setIsDescriptionExpanded(prev => !prev)}
-                    style={{
-                      border: 'none',
-                      background: 'none',
-                      color: '#6b7280',
-                      textDecoration: 'underline',
-                      cursor: 'pointer',
-                      fontSize: '16px',
-                      lineHeight: '1.6',
-                      padding: 0
-                    }}
-                  >
-                    {isDescriptionExpanded ? 'Read less' : 'Read more'}
-                  </button>
-                )}
-              </p>
-            </div>
-          ) : (
-            <div style={{ color: '#64748b' }}>
-              <p style={{ 
-                fontSize: '15px', 
-                lineHeight: '1.6', 
-                marginBottom: '16px',
-                margin: 0
-              }}>
-                Use this block to feature a specific place, attraction, restaurant, or any location you want to highlight in your tour. Click <strong>"Edit block"</strong> to add details.
-              </p>
-              <div style={{
-                backgroundColor: '#f1f5f9',
-                borderRadius: '12px',
-                padding: '16px',
-                marginTop: '16px'
-              }}>
-                <p style={{ 
-                  fontSize: '14px', 
-                  fontWeight: '500',
-                  marginBottom: '8px',
-                  margin: 0,
-                  marginBottom: '8px'
-                }}>
-                  💡 You can add:
-                </p>
-                <ul style={{ 
-                  fontSize: '14px', 
-                  margin: 0,
-                  paddingLeft: '20px',
-                  lineHeight: '1.8'
-                }}>
-                  <li>Location name and address</li>
-                  <li>Photos (upload or search via Google Maps)</li>
-                  <li>Description and your personal recommendations</li>
-                  <li>Price range and approximate cost</li>
-                  <li>Alternative locations for the same time slot</li>
-                </ul>
-              </div>
-            </div>
-          )}
+          <div>
+            <p
+              style={{
+                fontSize: '16px',
+                lineHeight: '1.6',
+                color: '#374151',
+                margin: 0,
+                whiteSpace: 'pre-wrap'
+              }}
+            >
+              {isDescriptionExpanded || !hasLongDescription ? descriptionText : collapsedDescription}{' '}
+              {hasLongDescription && (
+                <button
+                  type="button"
+                  onClick={() => setIsDescriptionExpanded(prev => !prev)}
+                  style={{
+                    border: 'none',
+                    background: 'none',
+                    color: '#6b7280',
+                    textDecoration: 'underline',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    lineHeight: '1.6',
+                    padding: 0
+                  }}
+                >
+                  {isDescriptionExpanded ? 'Read less' : 'Read more'}
+                </button>
+              )}
+            </p>
+          </div>
         </div>
       )}
 
@@ -825,7 +955,7 @@ function LocationBlock({ block, onEdit, onSwitchLocation }) {
             marginBottom: '12px',
             color: '#111827'
           }}>
-            Author also recommends
+            Alternative
           </h4>
           <div style={{
             display: 'grid',
@@ -1047,17 +1177,16 @@ function PhotoTextBlock({ block, onEdit }) {
 
   // Placeholder when block is empty
   if (isPlaceholder && !currentPhoto && !text) {
+    const meta = getBlockPlaceholderMeta('photo_text');
     return (
       <div style={{ marginBottom: isMobile ? '10px' : '32px', padding: '0' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '16px' : '32px', alignItems: 'flex-start' }}>
-          <div style={{ width: '100%', aspectRatio: '1', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '14px' }}>
-            🖼 Photo
-          </div>
-          <div style={{ color: '#9ca3af', fontSize: '15px', lineHeight: '1.6', fontStyle: 'italic' }}>
-            <p style={{ margin: '0 0 8px 0' }}>Use this block to combine a photo with text side by side.</p>
-            <p style={{ margin: 0 }}>Click <strong>"Edit block"</strong> to upload a photo and write your text.</p>
-          </div>
-        </div>
+        <BlockPlaceholderPlate
+          title={meta.label}
+          intro={meta.intro}
+          onEdit={onEdit}
+          block={block}
+          iconSrc={meta.icon}
+        />
       </div>
     );
   }
@@ -1324,17 +1453,16 @@ function TextBlock({ block, onEdit }) {
     
     // Placeholder when both columns are empty
     if (isPlaceholder && !column1 && !column2) {
+      const meta = getBlockPlaceholderMeta('text');
       return (
         <div style={{ marginBottom: isMobile ? '10px' : '32px', padding: isMobile ? '0 10px' : '0' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '24px' : '32px' }}>
-            <div style={{ color: '#9ca3af', fontSize: '15px', lineHeight: '1.6', fontStyle: 'italic', padding: '16px', backgroundColor: '#f9fafb', borderRadius: '12px' }}>
-              <p style={{ margin: 0 }}>Left column text. Share your story, tips, or insights here.</p>
-            </div>
-            <div style={{ color: '#9ca3af', fontSize: '15px', lineHeight: '1.6', fontStyle: 'italic', padding: '16px', backgroundColor: '#f9fafb', borderRadius: '12px' }}>
-              <p style={{ margin: 0 }}>Right column text. Continue your narrative or add complementary content.</p>
-            </div>
-          </div>
-          <p style={{ color: '#9ca3af', fontSize: '13px', fontStyle: 'italic', marginTop: '12px' }}>Click <strong>"Edit block"</strong> to add your text.</p>
+          <BlockPlaceholderPlate
+            title={meta.label}
+            intro={meta.intro}
+            onEdit={onEdit}
+            block={block}
+            iconSrc={meta.icon}
+          />
         </div>
       );
     }
@@ -1423,12 +1551,16 @@ function TextBlock({ block, onEdit }) {
 
   // Placeholder for empty single-column text
   if ((isPlaceholder || textIsEmpty) && !text) {
+    const meta = getBlockPlaceholderMeta('text');
     return (
       <div style={{ marginBottom: isMobile ? '10px' : '32px', padding: '0' }}>
-        <div style={{ color: '#9ca3af', fontSize: '15px', lineHeight: '1.6', fontStyle: 'italic', padding: '16px', backgroundColor: '#f9fafb', borderRadius: '12px' }}>
-          <p style={{ margin: '0 0 8px 0' }}>Use this block to add descriptive text to your tour.</p>
-          <p style={{ margin: 0 }}>Click <strong>"Edit block"</strong> to write your content.</p>
-        </div>
+        <BlockPlaceholderPlate
+          title={meta.label}
+          intro={meta.intro}
+          onEdit={onEdit}
+          block={block}
+          iconSrc={meta.icon}
+        />
       </div>
     );
   }
@@ -1538,22 +1670,16 @@ function SlideBlock({ block, onEdit }) {
 
   // Placeholder when block is empty
   if (isPlaceholder && !currentPhoto && !title && !text) {
+    const meta = getBlockPlaceholderMeta('slide');
     return (
       <div style={{ marginBottom: isMobileSlide ? '10px' : '32px', padding: '0' }}>
-        <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '12px', color: '#9ca3af', fontStyle: 'italic' }}>
-          Slide Title
-        </h3>
-        <div style={{
-          width: '100%', height: photoHeight, backgroundColor: '#f3f4f6',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', marginBottom: '12px',
-          flexDirection: 'column', gap: '8px'
-        }}>
-          <span style={{ fontSize: '32px' }}>🖼</span>
-          <span style={{ fontSize: '14px' }}>Upload a photo</span>
-        </div>
-        <p style={{ color: '#9ca3af', fontSize: '15px', lineHeight: '1.6', fontStyle: 'italic', margin: 0 }}>
-          Use this block for a full-width photo with a title and description. Great for highlighting key moments or locations. Click <strong>"Edit block"</strong> to add content.
-        </p>
+        <BlockPlaceholderPlate
+          title={meta.label}
+          intro={meta.intro}
+          onEdit={onEdit}
+          block={block}
+          iconSrc={meta.icon}
+        />
       </div>
     );
   }
@@ -1598,35 +1724,36 @@ function SlideBlock({ block, onEdit }) {
                 }}
                 draggable={false}
               />
+              {/* Dots indicator — bottom-left corner inside the photo */}
+              {photos.length > 1 && (
+                <div style={{
+                  position: 'absolute',
+                  bottom: '10px',
+                  left: '12px',
+                  display: 'flex',
+                  gap: '6px',
+                  zIndex: 2
+                }}>
+                  {photos.map((_, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        width: index === currentPhotoIndex ? '24px' : '8px',
+                        height: '8px',
+                        borderRadius: '4px',
+                        backgroundColor: index === currentPhotoIndex ? '#fff' : 'rgba(255,255,255,0.5)',
+                        transition: 'all 0.3s ease',
+                        cursor: 'pointer'
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCurrentPhotoIndex(index);
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-            
-            {/* Dots indicator */}
-            {photos.length > 1 && (
-              <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                gap: '6px',
-                marginBottom: '12px'
-              }}>
-                {photos.map((_, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      width: index === currentPhotoIndex ? '24px' : '8px',
-                      height: '8px',
-                      borderRadius: '4px',
-                      backgroundColor: index === currentPhotoIndex ? '#3b82f6' : '#d1d5db',
-                      transition: 'all 0.3s ease',
-                      cursor: 'pointer'
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCurrentPhotoIndex(index);
-                    }}
-                  />
-                ))}
-              </div>
-            )}
           </>
         ) : (
           <div style={{
@@ -1712,21 +1839,16 @@ function ThreeColumnsBlock({ block, onEdit }) {
   // Placeholder when all columns are empty
   const allEmpty = isPlaceholder || columns.every(col => !col.photo && !col.text);
   if (allEmpty) {
+    const meta = getBlockPlaceholderMeta('3columns');
     return (
       <div style={{ marginBottom: isMobile ? '10px' : '32px', padding: '0' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '24px' }}>
-          {[1, 2, 3].map(n => (
-            <div key={n}>
-              <div style={{ width: '100%', height: '150px', backgroundColor: '#f3f4f6', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '14px' }}>
-                🖼 Photo {n}
-              </div>
-              <p style={{ color: '#9ca3af', fontSize: '14px', lineHeight: '1.6', margin: 0, fontStyle: 'italic' }}>Column {n} text</p>
-            </div>
-          ))}
-        </div>
-        <p style={{ color: '#9ca3af', fontSize: '13px', fontStyle: 'italic', marginTop: '12px' }}>
-          Use this block to display three items side by side — photos with captions or short texts. Click <strong>"Edit block"</strong> to add content.
-        </p>
+        <BlockPlaceholderPlate
+          title={meta.label}
+          intro={meta.intro}
+          onEdit={onEdit}
+          block={block}
+          iconSrc={meta.icon}
+        />
       </div>
     );
   }
@@ -1879,39 +2001,39 @@ function ThreeColumnsBlock({ block, onEdit }) {
   );
 }
 
-// Photo Block
+// Photo Block — layout: container (full column width) | gallery (peek next) | fullBleed (viewport width)
 function PhotoBlock({ block, onEdit }) {
   const content = block.content || {};
   const isPlaceholder = content.isPlaceholder || false;
-  const photos = asArray(content.photos || content.photo);
+  const rawPhotos = asArray(content.photos || content.photo);
+  const validPhotos = useMemo(() => {
+    return rawPhotos
+      .filter((p) => p && typeof p === 'string' && (p.startsWith('http') || p.startsWith('data:image/')))
+      .map(refreshPhotoUrl)
+      .filter(Boolean);
+  }, [rawPhotos]);
   const caption = content.caption || '';
-  
-  // Debug logging
-  console.log('📸 PhotoBlock - Content:', {
-    hasContent: !!content,
-    hasPhotos: !!content.photos,
-    hasPhoto: !!content.photo,
-    photosCount: photos.length,
-    photos: photos,
-    caption: caption
-  });
+  const layout = content.layout || 'container';
+
   const [isMobilePhoto, setIsMobilePhoto] = useState(false);
   const [fullscreenPhotos, setFullscreenPhotos] = useState(null);
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [desktopPhotoIndex, setDesktopPhotoIndex] = useState(0);
+  const desktopRibbonRef = useRef(null);
 
   useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobilePhoto(window.innerWidth < 768);
-    };
-    
+    const checkScreenSize = () => setIsMobilePhoto(window.innerWidth < 768);
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
-    
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  // Handle photo click - open fullscreen viewer
+  useEffect(() => {
+    setCurrentPhotoIndex((i) => Math.min(i, Math.max(0, validPhotos.length - 1)));
+    setDesktopPhotoIndex((i) => Math.min(i, Math.max(0, validPhotos.length - 1)));
+  }, [validPhotos.length, block.id]);
+
   const handlePhotoClick = (photosArray, index) => {
     if (photosArray.length > 0) {
       setFullscreenPhotos(photosArray);
@@ -1919,7 +2041,6 @@ function PhotoBlock({ block, onEdit }) {
     }
   };
 
-  // Swipe handlers for photo carousel
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
   const minSwipeDistance = 50;
@@ -1935,138 +2056,290 @@ function PhotoBlock({ block, onEdit }) {
 
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe && currentPhotoIndex < photos.length - 1) {
-      setCurrentPhotoIndex(currentPhotoIndex + 1);
-    }
-    if (isRightSwipe && currentPhotoIndex > 0) {
-      setCurrentPhotoIndex(currentPhotoIndex - 1);
-    }
+    setCurrentPhotoIndex((idx) => {
+      if (isLeftSwipe && idx < validPhotos.length - 1) return idx + 1;
+      if (isRightSwipe && idx > 0) return idx - 1;
+      return idx;
+    });
   };
 
-  // Fixed height: 400px (desktop) / 190px (mobile) - 750px × 400px on desktop
   const photoHeight = isMobilePhoto ? '190px' : '400px';
-  const currentPhoto = photos[currentPhotoIndex] || photos[0];
+  const slideWidth = 0.75;
+  const gapPx = 8;
+  const currentPhoto = validPhotos[currentPhotoIndex];
 
-  // Placeholder when block is empty
-  if ((isPlaceholder || photos.length === 0) && !currentPhoto) {
+  if ((isPlaceholder || validPhotos.length === 0) && !currentPhoto) {
+    const meta = getBlockPlaceholderMeta('photo');
     return (
       <div style={{ marginBottom: isMobilePhoto ? '10px' : '32px', padding: '0' }}>
-        <div style={{
-          width: '100%', height: photoHeight, backgroundColor: '#f3f4f6',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af',
-          flexDirection: 'column', gap: '8px', marginBottom: '12px'
-        }}>
-          <span style={{ fontSize: '32px' }}>🖼</span>
-          <span style={{ fontSize: '14px' }}>Upload a photo</span>
-        </div>
-        <p style={{ color: '#9ca3af', fontSize: '13px', fontStyle: 'italic', margin: 0 }}>
-          Use this block for a full-width photo with an optional caption. Click <strong>"Edit block"</strong> to upload.
-        </p>
+        <BlockPlaceholderPlate
+          title={meta.label}
+          intro={meta.intro}
+          onEdit={onEdit}
+          block={block}
+          iconSrc={meta.icon}
+        />
       </div>
     );
   }
 
+  const fullBleedBreakout = {
+    width: '100vw',
+    maxWidth: '100vw',
+    marginLeft: 'calc(50% - 50vw)',
+    marginRight: 'calc(50% - 50vw)',
+    position: 'relative',
+    left: 0
+  };
+
+  const renderDots = (count, activeIndex, onSelect) => {
+    if (count <= 1) return null;
+    return (
+      <div style={{
+        position: 'absolute',
+        left: '12px',
+        bottom: '12px',
+        display: 'flex',
+        gap: '10px',
+        zIndex: 2
+      }}>
+        {Array.from({ length: count }, (_, index) => (
+          <button
+            key={index}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect(index);
+            }}
+            style={{
+              width: index === activeIndex ? '22px' : '6px',
+              height: '6px',
+              borderRadius: index === activeIndex ? '9999px' : '50%',
+              border: 'none',
+              backgroundColor: '#ffffff',
+              opacity: index === activeIndex ? 1 : 0.9,
+              cursor: 'pointer',
+              padding: 0
+            }}
+            aria-label={`Go to photo ${index + 1}`}
+          />
+        ))}
+      </div>
+    );
+  };
+
+  const renderGalleryRibbon = () => (
+    <div style={{ position: 'relative' }}>
+      <div
+        ref={desktopRibbonRef}
+        onScroll={(e) => {
+          const containerWidth = e.currentTarget.clientWidth;
+          const itemWidth = containerWidth * slideWidth + gapPx;
+          const nextIndex = Math.round(e.currentTarget.scrollLeft / itemWidth);
+          const clamped = Math.max(0, Math.min(nextIndex, validPhotos.length - 1));
+          if (clamped !== desktopPhotoIndex) setDesktopPhotoIndex(clamped);
+        }}
+        style={{
+          width: '100%',
+          overflowX: 'auto',
+          overflowY: 'hidden',
+          display: 'flex',
+          gap: `${gapPx}px`,
+          WebkitOverflowScrolling: 'touch',
+          scrollSnapType: 'x mandatory'
+        }}
+      >
+        {validPhotos.map((photo, index) => (
+          <div
+            key={index}
+            role="presentation"
+            onClick={() => handlePhotoClick(validPhotos, index)}
+            style={{
+              flex: `0 0 ${slideWidth * 100}%`,
+              height: photoHeight,
+              scrollSnapAlign: 'start',
+              cursor: 'pointer',
+              backgroundColor: '#e5e7eb',
+              overflow: 'hidden'
+            }}
+          >
+            <img
+              src={photo}
+              alt=""
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center',
+                display: 'block',
+                pointerEvents: 'none',
+                userSelect: 'none'
+              }}
+              draggable={false}
+              loading={index === 0 ? 'eager' : 'lazy'}
+            />
+          </div>
+        ))}
+      </div>
+      {renderDots(validPhotos.length, desktopPhotoIndex, (index) => {
+        setDesktopPhotoIndex(index);
+        if (!desktopRibbonRef.current) return;
+        const containerWidth = desktopRibbonRef.current.clientWidth;
+        const itemWidth = containerWidth * slideWidth + gapPx;
+        desktopRibbonRef.current.scrollTo({ left: index * itemWidth, behavior: 'smooth' });
+      })}
+    </div>
+  );
+
+  /** Full viewport width: horizontal strip, natural aspect ratios (fixed height, width auto), scroll. */
+  const renderFullBleedRibbon = () => (
+    <div style={{ position: 'relative' }}>
+      <div
+        ref={desktopRibbonRef}
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          const target = el.scrollLeft + el.clientWidth / 2;
+          let best = 0;
+          let bestDist = Infinity;
+          for (let i = 0; i < el.children.length; i++) {
+            const child = el.children[i];
+            const left = child.offsetLeft;
+            const center = left + child.offsetWidth / 2;
+            const dist = Math.abs(center - target);
+            if (dist < bestDist) {
+              bestDist = dist;
+              best = i;
+            }
+          }
+          const clamped = Math.max(0, Math.min(best, validPhotos.length - 1));
+          if (clamped !== desktopPhotoIndex) setDesktopPhotoIndex(clamped);
+        }}
+        style={{
+          width: '100%',
+          overflowX: 'auto',
+          overflowY: 'hidden',
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'stretch',
+          gap: `${gapPx}px`,
+          WebkitOverflowScrolling: 'touch',
+          scrollSnapType: 'x mandatory',
+          scrollbarGutter: 'stable'
+        }}
+      >
+        {validPhotos.map((photo, index) => (
+          <div
+            key={index}
+            role="presentation"
+            onClick={() => handlePhotoClick(validPhotos, index)}
+            style={{
+              flex: '0 0 auto',
+              height: photoHeight,
+              scrollSnapAlign: 'start',
+              cursor: 'pointer',
+              backgroundColor: '#e5e7eb',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <img
+              src={photo}
+              alt=""
+              style={{
+                height: '100%',
+                width: 'auto',
+                maxWidth: 'none',
+                objectFit: 'contain',
+                display: 'block',
+                pointerEvents: 'none',
+                userSelect: 'none'
+              }}
+              draggable={false}
+              loading={index === 0 ? 'eager' : 'lazy'}
+            />
+          </div>
+        ))}
+      </div>
+      {renderDots(validPhotos.length, desktopPhotoIndex, (index) => {
+        setDesktopPhotoIndex(index);
+        const el = desktopRibbonRef.current;
+        if (!el) return;
+        const child = el.children[index];
+        if (!child) return;
+        el.scrollTo({ left: child.offsetLeft, behavior: 'smooth' });
+      })}
+    </div>
+  );
+
+  const renderContainerStrip = () => (
+    <div
+      style={{
+        width: '100%',
+        height: photoHeight,
+        overflow: 'hidden',
+        position: 'relative',
+        cursor: 'pointer',
+        marginBottom: caption ? '12px' : 0
+      }}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      onClick={() => handlePhotoClick(validPhotos, currentPhotoIndex)}
+    >
+      <img
+        src={currentPhoto}
+        alt=""
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center',
+          userSelect: 'none',
+          pointerEvents: 'none'
+        }}
+        draggable={false}
+      />
+      {renderDots(validPhotos.length, currentPhotoIndex, setCurrentPhotoIndex)}
+    </div>
+  );
+
+  const mediaBlock =
+    layout === 'gallery'
+      ? renderGalleryRibbon()
+      : layout === 'fullBleed'
+        ? renderFullBleedRibbon()
+        : renderContainerStrip();
+
   return (
-    <div style={{ 
+    <div style={{
       marginBottom: isMobilePhoto ? '10px' : '32px',
       padding: '0'
     }}>
-      <div style={{
-        padding: '0'
-      }}>
-        {currentPhoto ? (
-        <>
-          <div
-            style={{
-              width: '100%',
-              height: photoHeight,
-              overflow: 'hidden',
-              position: 'relative',
-              cursor: 'pointer',
-              marginBottom: caption ? '12px' : 0
-            }}
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-            onClick={() => handlePhotoClick(photos, currentPhotoIndex)}
-          >
-            <img 
-              src={currentPhoto} 
-              alt="Content" 
-              style={{ 
-                width: '100%', 
-                height: '100%', 
-                objectFit: 'cover',
-                objectPosition: 'center',
-                userSelect: 'none',
-                pointerEvents: 'none'
-              }}
-              draggable={false}
-            />
-          </div>
-          
-          {/* Dots indicator */}
-          {photos.length > 1 && (
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: '6px',
-              marginBottom: caption ? '12px' : 0
-            }}>
-              {photos.map((_, index) => (
-                <div
-                  key={index}
-                  style={{
-                    width: index === currentPhotoIndex ? '24px' : '8px',
-                    height: '8px',
-                    borderRadius: '4px',
-                    backgroundColor: index === currentPhotoIndex ? '#3b82f6' : '#d1d5db',
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer'
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCurrentPhotoIndex(index);
-                  }}
-                />
-              ))}
-            </div>
-          )}
-          
-          {caption && (
-            <p style={{ 
-              color: '#6b7280', 
-              fontSize: '14px', 
-              fontStyle: 'italic',
-              textAlign: 'center',
-              margin: 0,
-              lineHeight: '1.6',
-              whiteSpace: 'pre-line'
-            }}>
-              {caption}
-            </p>
-          )}
-        </>
-      ) : (
-        <div style={{
-          width: '100%',
-          height: photoHeight,
-          backgroundColor: '#e5e7eb',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#9ca3af'
-        }}>
-          No photo
-        </div>
-      )}
+      <div style={{ padding: '0' }}>
+        {layout === 'fullBleed' ? (
+          <div style={fullBleedBreakout}>{mediaBlock}</div>
+        ) : (
+          mediaBlock
+        )}
+        {caption ? (
+          <p style={{
+            color: '#6b7280',
+            fontSize: '14px',
+            fontStyle: 'italic',
+            textAlign: 'center',
+            margin: layout === 'gallery' || layout === 'fullBleed' ? '12px 0 0 0' : 0,
+            lineHeight: '1.6',
+            whiteSpace: 'pre-line'
+          }}>
+            {caption}
+          </p>
+        ) : null}
+      </div>
 
-      {/* Fullscreen Photo Viewer */}
       {fullscreenPhotos && (
         <FullscreenPhotoViewer
           photos={fullscreenPhotos}
@@ -2077,7 +2350,6 @@ function PhotoBlock({ block, onEdit }) {
           }}
         />
       )}
-      </div>
     </div>
   );
 }
@@ -2105,6 +2377,27 @@ function DividerBlock({ block, onEdit }) {
     dotted: 'dotted'
   };
 
+  const lineStyle = borderStyleMap[style] || 'solid';
+
+  // No visible line — extra vertical space between blocks (toolbar still targets this block).
+  if (style === 'transparent') {
+    const spacerH = isMobileDivider ? '20px' : '32px';
+    return (
+      <div style={{
+        marginBottom: isMobileDivider ? '10px' : '32px',
+        padding: '0'
+      }}>
+        <div
+          aria-hidden
+          style={{
+            height: spacerH,
+            minHeight: spacerH
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div style={{ 
       marginBottom: isMobileDivider ? '10px' : '32px',
@@ -2116,17 +2409,17 @@ function DividerBlock({ block, onEdit }) {
         <div style={{ position: 'relative' }}>
       <hr style={{
         border: 'none',
-        borderTop: `1px ${borderStyleMap[style]} #e5e7eb`,
+        borderTop: `1px ${lineStyle} #b0b5be`,
         margin: 0
       }} />
-      {/* Invisible white area below the line for easier hover interaction */}
+      {/* Hit area below the line for easier hover interaction — same bg as itinerary page */}
       <div style={{
         position: 'absolute',
         top: '1px',
         left: 0,
         right: 0,
         height: '30px',
-        backgroundColor: 'white',
+        backgroundColor: PAGE_BG_BEIGE,
         pointerEvents: 'auto',
         zIndex: 0
       }} />
@@ -2547,13 +2840,13 @@ function MapBlock({ block, onEdit, allBlocks = [] }) {
       }}>
         <div style={{ fontSize: '24px', marginBottom: '12px' }}>⚠️</div>
         <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>
-          Ошибка загрузки карты
+          Map loading error
         </div>
         <div style={{ fontSize: '14px', color: '#991b1b', marginBottom: '16px' }}>
           {error}
         </div>
         <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '16px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '8px' }}>
-          <strong>Решение:</strong> Убедитесь, что переменная окружения <code>VITE_GOOGLE_MAPS_KEY</code> настроена в Vercel и содержит действительный ключ Google Maps API.
+          <strong>Fix:</strong> Make sure the <code>VITE_GOOGLE_MAPS_KEY</code> environment variable is set in Vercel with a valid Google Maps API key.
         </div>
       </div>
     );

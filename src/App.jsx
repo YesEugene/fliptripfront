@@ -1,14 +1,14 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
-import FlipTripPreviewPage from './pages/FlipTripPreviewPage';
 import PaymentPage from './pages/PaymentPage';
-import SuccessPage from './pages/SuccessPage';
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import ItineraryPage from './pages/ItineraryPage';
-import ExampleTripPage from './pages/ExampleTripPage';
 import ExplorePage from './pages/ExplorePage';
+import NotFoundPage from './pages/NotFoundPage';
 import AboutPage from './pages/AboutPage';
 import TourRedirectPage from './pages/TourRedirectPage';
+import CleanUrlRedirectPage from './pages/CleanUrlRedirectPage';
 import AuthOnboardingPage from './modules/auth/pages/AuthOnboardingPage';
 
 // Auth Module
@@ -22,13 +22,15 @@ import { GuideDashboardPage, CreateTourPage, ProfileSettingsPage, TripVisualizer
 // EditTourPage removed - editing now done in Trip Visualizer
 
 // Admin Dashboard Module
-import { AdminDashboardPage, AdminLocationsPage, AdminToursPage, AdminUsersPage, AdminLoginPage } from './modules/admin-dashboard';
+import { AdminDashboardPage, AdminLocationsPage, AdminToursPage, AdminUsersPage, AdminLoginPage, AdminRevenuePage } from './modules/admin-dashboard';
 
+import { Analytics } from '@vercel/analytics/react';
 import './index.css';
 
 function App() {
   return (
     <Router>
+      <Analytics />
       <div className="App">
         <Routes>
           {/* Public Routes */}
@@ -37,13 +39,11 @@ function App() {
           {/* Legacy home kept for rollback/reference only. No links point here. */}
           <Route path="/_internal/legacy-home-2026" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
-          <Route path="/preview" element={<FlipTripPreviewPage />} />
           <Route path="/payment" element={<PaymentPage />} />
-          <Route path="/success" element={<SuccessPage />} />
-          <Route path="/success.html" element={<SuccessPage />} />
+          <Route path="/payment-success" element={<PaymentSuccessPage />} />
           <Route path="/itinerary" element={<ItineraryPage />} />
           <Route path="/tour/:slug" element={<TourRedirectPage />} />
-          <Route path="/example/:city" element={<ExampleTripPage />} />
+          <Route path="/tours/:city/:slug" element={<CleanUrlRedirectPage />} />
           <Route path="/join" element={<AuthOnboardingPage />} />
           <Route path="/become-local" element={<AuthOnboardingPage />} />
           
@@ -140,8 +140,16 @@ function App() {
               </ProtectedRoute>
             } 
           />
+          <Route 
+            path="/admin/revenue" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminRevenuePage />
+              </ProtectedRoute>
+            } 
+          />
           
-          <Route path="*" element={<ExplorePage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </div>
     </Router>

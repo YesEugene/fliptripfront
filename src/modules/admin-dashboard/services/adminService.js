@@ -662,3 +662,65 @@ export function exportToCSV(data, filename) {
   document.body.removeChild(link);
 }
 
+/**
+ * Generate SEO metadata for a tour via AI (fire-and-forget safe)
+ */
+export async function syncStripeBookings() {
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/api/admin-sync-stripe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || data.error || 'Sync failed');
+    }
+    return data;
+  } catch (error) {
+    console.error('Sync stripe error:', error);
+    throw error;
+  }
+}
+
+export async function getBookings() {
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/api/admin-bookings`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || data.error || 'Error fetching bookings');
+    }
+    return data.bookings;
+  } catch (error) {
+    console.error('Get bookings error:', error);
+    throw error;
+  }
+}
+
+export async function generateTourSeo(tourId) {
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/api/generate-seo`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ tourId })
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      console.warn('SEO generation issue:', data.message || data.error);
+    }
+    return data;
+  } catch (error) {
+    console.warn('SEO generation failed (non-critical):', error.message);
+    return { success: false, error: error.message };
+  }
+}
+

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
 import { login, requestRegistrationCode, verifyRegistrationCode } from '../services/authService';
@@ -48,11 +48,23 @@ export default function AuthOnboardingPage() {
   const defaultGuideTab = location.pathname === '/become-local' || requestedTab === 'guide';
 
   const [activeTab, setActiveTab] = useState(defaultGuideTab ? 'guide' : 'traveler');
-  const [authMode, setAuthMode] = useState(requestedMode === 'login' ? 'login' : 'register'); // register | login
-  const [step, setStep] = useState('form'); // form | verify
+  const [authMode, setAuthMode] = useState(requestedMode === 'login' ? 'login' : 'register');
+  const [step, setStep] = useState('form');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  useEffect(() => {
+    const nextMode = requestedMode === 'login' ? 'login' : 'register';
+    setAuthMode(nextMode);
+    setStep('form');
+    setError('');
+    setSuccess('');
+    if (!requestedMode) {
+      const nextTab = location.pathname === '/become-local' || requestedTab === 'guide' ? 'guide' : 'traveler';
+      setActiveTab(nextTab);
+    }
+  }, [location.search, location.pathname]);
 
   const [registerForm, setRegisterForm] = useState({
     name: '',
@@ -131,6 +143,46 @@ export default function AuthOnboardingPage() {
     }
   };
 
+  if (authMode === 'login') {
+    return (
+      <div className="auth-onboarding-page">
+        <div className="auth-login-card">
+          <img src={FlipTripLogo} alt="FlipTrip" className="auth-onboarding-logo" />
+          <h1 className="auth-login-title">Login to FlipTrip</h1>
+
+          {error && <div className="auth-login-error">{error}</div>}
+
+          <form className="auth-login-form" onSubmit={handleLogin}>
+            <input
+              type="email"
+              placeholder="Your email"
+              value={loginForm.email}
+              onChange={(e) => setLoginForm((prev) => ({ ...prev, email: e.target.value }))}
+              required
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={loginForm.password}
+              onChange={(e) => setLoginForm((prev) => ({ ...prev, password: e.target.value }))}
+              required
+            />
+            <button type="submit" className="auth-primary-button" disabled={loading}>
+              {loading ? 'Logging in...' : 'Login'}
+            </button>
+          </form>
+
+          <div className="auth-switch-row">
+            <span>No account yet?</span>{' '}
+            <Link to="/join?tab=traveler" className="auth-link-button">
+              Create account
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="auth-onboarding-page">
       <div className="auth-onboarding-card">
@@ -158,7 +210,7 @@ export default function AuthOnboardingPage() {
             {error && <div className="auth-error">{error}</div>}
             {success && <div className="auth-success">{success}</div>}
 
-            {authMode === 'register' && step === 'form' && (
+            {step === 'form' && (
               <form className="auth-form" onSubmit={handleRequestCode}>
                 <input
                   type="text"
@@ -188,7 +240,7 @@ export default function AuthOnboardingPage() {
               </form>
             )}
 
-            {authMode === 'register' && step === 'verify' && (
+            {step === 'verify' && (
               <form className="auth-form" onSubmit={handleVerifyCode}>
                 <input
                   type="text"
@@ -211,53 +263,12 @@ export default function AuthOnboardingPage() {
               </form>
             )}
 
-            {authMode === 'login' && (
-              <form className="auth-form" onSubmit={handleLogin}>
-                <input
-                  type="email"
-                  placeholder="Your email"
-                  value={loginForm.email}
-                  onChange={(e) => setLoginForm((prev) => ({ ...prev, email: e.target.value }))}
-                  required
-                />
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={loginForm.password}
-                  onChange={(e) => setLoginForm((prev) => ({ ...prev, password: e.target.value }))}
-                  required
-                />
-                <button type="submit" className="auth-primary-button" disabled={loading}>
-                  {loading ? 'Logging in...' : 'Login'}
-                </button>
-              </form>
-            )}
-
             <div className="auth-switch-row">
-              {authMode === 'register' ? (
-                <>
-                  <span>Already have an account?</span>{' '}
-                  <button type="button" onClick={() => { setAuthMode('login'); setStep('form'); setError(''); }} className="auth-link-button">
-                    Login
-                  </button>
-                </>
-              ) : (
-                <>
-                  <span>No account yet?</span>{' '}
-                  <button type="button" onClick={() => { setAuthMode('register'); setError(''); }} className="auth-link-button">
-                    Create account
-                  </button>
-                </>
-              )}
+              <span>Already have an account?</span>{' '}
+              <Link to="/join?tab=traveler&mode=login" className="auth-link-button">
+                Login
+              </Link>
             </div>
-
-            {authMode === 'login' && requestedMode !== 'login' && (
-              <div className="auth-switch-row auth-switch-back">
-                <Link to={activeTab === 'guide' ? '/become-local' : '/join?tab=traveler'} className="auth-back-link">
-                  Back to onboarding
-                </Link>
-              </div>
-            )}
           </div>
 
           <div className="auth-onboarding-right">

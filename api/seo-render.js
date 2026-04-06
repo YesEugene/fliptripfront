@@ -80,34 +80,44 @@ async function fetchJson(url) {
   return response.json();
 }
 
-function buildPageHtml({ title, description, canonicalPath, bodyHtml, jsonLd, ogImage, pageType = 'website', noindex = false, tourId = '' }) {
+function buildPageHtml({ title, description, canonicalPath, bodyHtml, jsonLd, ogImage, pageType = 'website', noindex = false, tourId = '', alternateUrls = [], ogTitle, ogDescription }) {
   const siteUrl = normalizeSiteUrl();
   const canonical = `${siteUrl}${canonicalPath}`;
   const safeTitle = escapeHtml(title);
   const safeDescription = escapeHtml(description);
+  const safeOgTitle = escapeHtml(ogTitle || title);
+  const safeOgDescription = escapeHtml(ogDescription || description);
   const safeOgImage = escapeHtml(getOgImageUrl(ogImage, tourId));
   const robots = noindex ? 'noindex,follow,max-image-preview:large' : 'index,follow,max-image-preview:large';
+  const altLinks = alternateUrls.map((u) => `    <link rel="alternate" href="${escapeHtml(u)}" />`).join('\n');
 
   return `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <link rel="icon" href="${siteUrl}/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="${siteUrl}/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="96x96" href="${siteUrl}/favicon-96x96.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="${siteUrl}/apple-touch-icon.png" />
+    <link rel="manifest" href="${siteUrl}/site.webmanifest" />
+    <meta name="theme-color" content="#fcfbf9" />
     <title>${safeTitle}</title>
     <meta name="description" content="${safeDescription}" />
     <meta name="robots" content="${robots}" />
     <link rel="canonical" href="${canonical}" />
+${altLinks}
     <meta property="og:type" content="${escapeHtml(pageType)}" />
     <meta property="og:site_name" content="FlipTrip" />
     <meta property="og:locale" content="en_US" />
-    <meta property="og:title" content="${safeTitle}" />
-    <meta property="og:description" content="${safeDescription}" />
+    <meta property="og:title" content="${safeOgTitle}" />
+    <meta property="og:description" content="${safeOgDescription}" />
     <meta property="og:url" content="${canonical}" />
     <meta property="og:image" content="${safeOgImage}" />
     <meta name="twitter:image" content="${safeOgImage}" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="${safeTitle}" />
-    <meta name="twitter:description" content="${safeDescription}" />
+    <meta name="twitter:title" content="${safeOgTitle}" />
+    <meta name="twitter:description" content="${safeOgDescription}" />
     ${jsonLd ? `<script type="application/ld+json">${jsonLd}</script>` : ''}
   </head>
   <body>
@@ -137,10 +147,12 @@ function renderExploreSeo(tours = []) {
       const tourTitle = tour?.title || 'Tour';
       const tourSlug = buildTourSlug(tour);
       const desc = getTourDescription(tour);
+      const itineraryUrl = `/itinerary?tourId=${encodeURIComponent(tour.id)}&previewOnly=true`;
       return `<article>
   <h2><a href="/tour/${escapeHtml(tourSlug)}">${escapeHtml(tourTitle)}</a></h2>
   <p><strong>${escapeHtml(cityName)}</strong></p>
   <p>${escapeHtml(desc)}</p>
+  <p><a href="${escapeHtml(itineraryUrl)}">View full tour</a></p>
 </article>`;
     })
     .join('\n');
@@ -163,7 +175,13 @@ function renderExploreSeo(tours = []) {
           '@type': 'ListItem',
           position: index + 1,
           url: `${siteUrl}/tour/${buildTourSlug(tour)}`,
-          name: tour.title || 'Tour'
+          name: tour.title || 'Tour',
+          item: {
+            '@type': 'TouristTrip',
+            url: `${siteUrl}/tour/${buildTourSlug(tour)}`,
+            name: tour.title || 'Tour',
+            sameAs: `${siteUrl}/itinerary?tourId=${encodeURIComponent(tour.id)}&previewOnly=true`
+          }
         }))
       },
       {
@@ -226,15 +244,22 @@ function renderHomeSeo() {
 
 function renderTourSeo(tourId, tour) {
   const siteUrl = normalizeSiteUrl();
-  const tourTitle = tour?.title || 'FlipTrip Tour';
-  const description = stripHtml(getTourDescription(tour)).slice(0, 220);
+  const seo = tour?.draft_data?.seo || {};
+  const hasSeo = !!seo.title;
+  const tourTitle = tour?.draft_data?.title || tour?.title || 'FlipTrip Tour';
+  const fallbackDescription = stripHtml(getTourDescription(tour)).slice(0, 220);
   const cityName = tour?.city?.name || tour?.city || '';
   const tourSlug = buildTourSlug({ ...tour, id: tourId });
-  const canonicalPath = `/tour/${tourSlug}`;
+  const canonicalPath = seo.cleanUrl || `/tour/${tourSlug}`;
   const openPath = `/itinerary?tourId=${encodeURIComponent(tourId)}&previewOnly=true`;
+  const legacyTourPath = `/tour/${tourSlug}`;
   const previewImage = tour?.draft_data?.previewOriginal || tour?.preview_media_url || '';
   const guideName = tour?.guide?.name || 'Local insider';
   const relatedByAuthor = Array.isArray(tour?.authorOtherTours) ? tour.authorOtherTours.slice(0, 3) : [];
+  const h2Text = seo.h2 || '';
+
+  const pageTitle = hasSeo ? seo.title : `${tourTitle}${cityName ? ` in ${cityName}` : ''} | FlipTrip`;
+  const pageDescription = hasSeo ? seo.metaDescription : fallbackDescription;
 
   const relatedLinks = relatedByAuthor
     .map((relatedTour) => {
@@ -252,59 +277,77 @@ function renderTourSeo(tourId, tour) {
 </nav>
 <article>
   <h1>${escapeHtml(tourTitle)}</h1>
+  ${h2Text ? `<h2>${escapeHtml(h2Text)}</h2>` : ''}
   ${cityName ? `<p><strong>${escapeHtml(cityName)}</strong></p>` : ''}
   <p><strong>Guide:</strong> ${escapeHtml(guideName)}</p>
-  <p>${escapeHtml(description)}</p>
+  <p>${escapeHtml(pageDescription)}</p>
   <p><a href="${escapeHtml(openPath)}">Open tour preview</a></p>
   ${relatedLinks ? `<section><h2>More by this local</h2><ul>${relatedLinks}</ul></section>` : ''}
 </article>`;
 
-  const jsonLd = JSON.stringify({
-    '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'TouristTrip',
-        '@id': `${siteUrl}${canonicalPath}#trip`,
-        name: tourTitle,
-        description,
-        image: getOgImageUrl(previewImage, tourId),
-        url: `${siteUrl}${canonicalPath}`,
-        provider: {
-          '@type': 'Organization',
-          name: 'FlipTrip'
+  const alternateUrls = [`${siteUrl}${openPath}`];
+  if (seo.cleanUrl && seo.cleanUrl !== legacyTourPath) {
+    alternateUrls.push(`${siteUrl}${legacyTourPath}`);
+  }
+
+  let jsonLdStr;
+  if (hasSeo && seo.schema) {
+    const schemaWithBreadcrumb = {
+      '@context': 'https://schema.org',
+      '@graph': [
+        seo.schema,
+        {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteUrl}/` },
+            { '@type': 'ListItem', position: 2, name: 'Explore', item: `${siteUrl}/explore` },
+            { '@type': 'ListItem', position: 3, name: tourTitle, item: `${siteUrl}${canonicalPath}` }
+          ]
+        }
+      ]
+    };
+    jsonLdStr = JSON.stringify(schemaWithBreadcrumb);
+  } else {
+    jsonLdStr = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'TouristTrip',
+          '@id': `${siteUrl}${canonicalPath}#trip`,
+          name: tourTitle,
+          description: pageDescription,
+          image: getOgImageUrl(previewImage, tourId),
+          url: `${siteUrl}${canonicalPath}`,
+          sameAs: `${siteUrl}${openPath}`,
+          provider: { '@type': 'Organization', name: 'FlipTrip' },
+          touristType: 'Independent travelers',
+          itinerary: cityName ? { '@type': 'Place', name: cityName } : undefined
         },
-        touristType: 'Independent travelers',
-        itinerary: cityName
-          ? {
-              '@type': 'Place',
-              name: cityName
-            }
-          : undefined
-      },
-      {
-        '@type': 'Person',
-        name: guideName
-      },
-      {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteUrl}/` },
-          { '@type': 'ListItem', position: 2, name: 'Explore', item: `${siteUrl}/explore` },
-          { '@type': 'ListItem', position: 3, name: tourTitle, item: `${siteUrl}${canonicalPath}` }
-        ]
-      }
-    ]
-  });
+        { '@type': 'Person', name: guideName },
+        {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteUrl}/` },
+            { '@type': 'ListItem', position: 2, name: 'Explore', item: `${siteUrl}/explore` },
+            { '@type': 'ListItem', position: 3, name: tourTitle, item: `${siteUrl}${canonicalPath}` }
+          ]
+        }
+      ]
+    });
+  }
 
   return buildPageHtml({
-    title: `${tourTitle}${cityName ? ` in ${cityName}` : ''} | FlipTrip`,
-    description,
+    title: pageTitle,
+    description: pageDescription,
     canonicalPath,
     bodyHtml,
-    jsonLd,
+    jsonLd: jsonLdStr,
     ogImage: previewImage,
-    pageType: 'article',
-    tourId
+    pageType: hasSeo ? (seo.ogType || 'product') : 'article',
+    tourId,
+    alternateUrls,
+    ogTitle: hasSeo ? seo.ogTitle : undefined,
+    ogDescription: hasSeo ? seo.ogDescription : undefined
   });
 }
 
@@ -353,6 +396,29 @@ export default async function handler(req, res) {
 
       // Render full SEO HTML directly (canonical → /tour/slug to avoid duplicate indexing)
       return res.status(200).send(renderTourSeo(tourId, tour));
+    }
+
+    if (route === 'tours-clean') {
+      const city = String(req.query.city || '').trim();
+      const slug = String(req.query.slug || '').trim();
+      const cleanPath = `/tours/${city}/${slug}`;
+
+      const allData = await fetchJson(`${apiBaseUrl}/api/tours?status=approved&limit=50&summary=0`);
+      const allTours = Array.isArray(allData?.tours) ? allData.tours : [];
+      const matched = allTours.find(t => t?.draft_data?.seo?.cleanUrl === cleanPath);
+
+      if (!matched) {
+        return res.status(404).send(
+          buildPageHtml({
+            title: 'Tour not found | FlipTrip',
+            description: 'The requested tour was not found.',
+            canonicalPath: '/explore',
+            bodyHtml: '<h1>Tour not found</h1>',
+            noindex: true
+          })
+        );
+      }
+      return res.status(200).send(renderTourSeo(matched.id, matched));
     }
 
     if (route === 'tour') {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { track } from '@vercel/analytics';
 import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import { generateItinerary, generateSmartItinerary, generateSmartItineraryV2, generateCreativeItinerary, generateRealPlacesItinerary, generatePDF, sendEmail, checkPayment } from '../services/api';
 import { getTourById, getTourPreview } from '../modules/tours-database';
@@ -25,7 +26,7 @@ function getDashboardPath(role) {
  * PreviewMap — Non-interactive Google Map for preview page
  * Shows location markers without zoom, pan, or click interactions
  */
-function PreviewMap({ locations }) {
+const PreviewMap = React.memo(function PreviewMap({ locations }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -92,9 +93,11 @@ function PreviewMap({ locations }) {
           center: initialCenter,
           zoom: 13,
           mapTypeId: 'roadmap',
-          disableDefaultUI: true,
-          gestureHandling: 'none',
-          zoomControl: false,
+          disableDefaultUI: false,
+          gestureHandling: 'greedy',
+          draggable: true,
+          scrollwheel: true,
+          zoomControl: true,
           mapTypeControl: false,
           scaleControl: false,
           streetViewControl: false,
@@ -234,32 +237,25 @@ function PreviewMap({ locations }) {
   if (mapError) return null; // Silently fail
 
   return (
-    <div style={{
-      borderRadius: '0',
-      overflow: 'hidden',
-      position: 'relative'
-    }}>
-      <div
-        ref={mapRef}
-        style={{
-          width: '100%',
-          height: '325px',
-          borderRadius: '0',
-          backgroundColor: '#f3f4f6'
-        }}
-      />
-      {/* Invisible overlay to block all interactions */}
-      <div style={{
-        position: 'absolute',
-        top: 0, left: 0, right: 0, bottom: 0,
-        zIndex: 1,
-        cursor: 'default'
-      }} />
-    </div>
+    <div
+      ref={mapRef}
+      style={{
+        width: '100%',
+        height: '325px',
+        borderRadius: '12px',
+        backgroundColor: '#f3f4f6'
+      }}
+    />
   );
-}
+}, (prev, next) => {
+  if (prev.locations.length !== next.locations.length) return false;
+  return prev.locations.every((loc, i) => {
+    const n = next.locations[i];
+    return loc.lat === n.lat && loc.lng === n.lng && loc.title === n.title && loc.address === n.address;
+  });
+});
 
-export default function ItineraryPage() {
+export default function ItineraryPage({ cleanUrlTourId, cleanUrlPreviewOnly }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -290,9 +286,6 @@ export default function ItineraryPage() {
       )
     );
   };
-  const [isAuthorTextExpanded, setIsAuthorTextExpanded] = useState(false); // Author text expand/collapse state
-  const [showAboutTripToggle, setShowAboutTripToggle] = useState(false);
-  const aboutTripTextRef = useRef(null);
   const [currentSlide, setCurrentSlide] = useState(0); // Image carousel current slide index
   const [isMobile, setIsMobile] = useState(false); // Mobile detection
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
@@ -431,11 +424,11 @@ export default function ItineraryPage() {
   const isExample = location.state?.isExample;
   const exampleItinerary = location.state?.itinerary;
   
-  // Extract URL parameters
-  const tourIdFromUrl = searchParams.get('tourId');
+  // Extract URL parameters — clean URL prop takes priority over search params
+  const tourIdFromUrl = cleanUrlTourId || searchParams.get('tourId');
   // Use tourId from URL or from state (state takes priority if set)
   const tourId = tourIdState || tourIdFromUrl;
-  const previewOnly = searchParams.get('previewOnly') === 'true';
+  const previewOnly = cleanUrlPreviewOnly || searchParams.get('previewOnly') === 'true';
   const isFullPlan = searchParams.get('full') === 'true';
 
   // Update tourId state when URL changes
@@ -481,36 +474,6 @@ export default function ItineraryPage() {
     budget: searchParams.get('budget') || null // null if not specified, not default to '500'
   };
 
-  // Source text for "About trip" collapse/expand logic.
-  // Keep this above early returns so hooks order stays stable across renders.
-  const aboutDraftData = tourData?.draft_data || {};
-  const aboutTripSourceText = useNewFormat
-    ? (aboutDraftData.description || tourData?.description || '')
-    : (itinerary?.subtitle || generateFallbackSubtitle(formData));
-
-  useEffect(() => {
-    setIsAuthorTextExpanded(false);
-  }, [aboutTripSourceText]);
-
-  useEffect(() => {
-    const measure = () => {
-      // Keep the toggle visible while expanded so user can collapse back
-      if (isAuthorTextExpanded) return;
-      const el = aboutTripTextRef.current;
-      if (!el) {
-        setShowAboutTripToggle(false);
-        return;
-      }
-      setShowAboutTripToggle(el.scrollHeight > el.clientHeight + 1);
-    };
-
-    const rafId = window.requestAnimationFrame(measure);
-    window.addEventListener('resize', measure);
-    return () => {
-      window.cancelAnimationFrame(rafId);
-      window.removeEventListener('resize', measure);
-    };
-  }, [aboutTripSourceText, useNewFormat, previewOnly, isPaid, isAuthorTextExpanded, isMobile]);
   
   console.log('🔍 Extracted formData from URL:', {
     city: formData.city,
@@ -523,10 +486,21 @@ export default function ItineraryPage() {
     budget: formData.budget
   });
 
+  /** Prefer draft_data.city (Visualizer free-text) over tours.city_id join — see TripVisualizer / tours-update draft save */
+  const getTourCityDisplayName = (tour) => {
+    if (!tour) return 'Unknown City';
+    const draft = tour.draft_data || {};
+    const fromDraft = draft.city != null && String(draft.city).trim() !== '' ? String(draft.city).trim() : '';
+    if (fromDraft) return fromDraft;
+    const c = tour.city;
+    if (typeof c === 'string' && c.trim()) return c.trim();
+    return c?.name || 'Unknown City';
+  };
+
   // Calculate tour tags from tour data (budget, interests, etc.)
   const calculateTourTags = (tour) => {
     const tags = {
-      city: typeof tour.city === 'string' ? tour.city : tour.city?.name || 'Unknown City',
+      city: getTourCityDisplayName(tour),
       date: formData.date || new Date().toISOString().slice(0, 10),
       audience: null, // Not shown for tours from DB
       budget: null,
@@ -705,8 +679,8 @@ export default function ItineraryPage() {
 
   // Build minimal itinerary header from tour object (works with both preview & full tour)
   const buildItineraryHeader = (tour, tourIdParam) => {
-    const cityName = typeof tour.city === 'string' ? tour.city : tour.city?.name || 'Unknown City';
     const draftData = tour.draft_data || {};
+    const cityName = getTourCityDisplayName(tour);
     return {
       title: draftData.title || tour.title || 'Tour',
       subtitle: draftData.description || tour.description || `Explore ${cityName} with this curated tour`,
@@ -913,8 +887,8 @@ export default function ItineraryPage() {
         });
       }
       
-      // Extract city name
-      const cityName = typeof tour.city === 'string' ? tour.city : tour.city?.name || 'Unknown City';
+      // Extract city name (draft free-text wins over city_id for display)
+      const cityName = getTourCityDisplayName(tour);
       
       // Check if tour uses new format (contentBlocks) or old format (daily_plan)
       // For new format tours, daily_plan might be empty, which is OK
@@ -1253,16 +1227,13 @@ export default function ItineraryPage() {
 
   useEffect(() => {
     if (isExample && exampleItinerary) {
-      // Use example data directly
       setItinerary(exampleItinerary);
       setLoading(false);
       setBlocksLoading(false);
     } else if (tourId) {
-      // Load tour from database
       loadTourFromDatabase(tourId, previewOnly, isFullPlan);
     } else {
-      // Generate new itinerary
-      generateItineraryData();
+      navigate('/', { replace: true });
     }
   }, [isExample, exampleItinerary, tourId, previewOnly, isFullPlan, isPaid]);
 
@@ -1286,6 +1257,30 @@ export default function ItineraryPage() {
     trackedTourViewsRef.current.add(tourId);
     console.log('📊 GTM event pushed:', { event: 'view_tour', tour_name: resolvedTourName, tour_id: tourId });
   }, [tourId, tourData, itinerary]);
+
+  useEffect(() => {
+    const dd = tourData?.draft_data || {};
+    const title = dd.title || tourData?.title || '';
+    if (!title || title === 'Barcelona') return;
+    const seo = dd.seo || {};
+    const city = tourData ? (dd.city || (typeof tourData.city === 'string' ? tourData.city : tourData.city?.name) || '') : '';
+    if (seo.title) {
+      document.title = seo.title;
+    } else {
+      document.title = `${title}${city ? ` in ${city}` : ''} | FlipTrip`;
+    }
+
+    // Replace browser URL with clean URL only for preview pages (not after payment)
+    const cleanUrl = seo.cleanUrl;
+    const isOnCleanUrl = window.location.pathname.startsWith('/tours/');
+    const hasPaymentParams = new URLSearchParams(window.location.search).has('session_id') ||
+                             new URLSearchParams(window.location.search).has('paid') ||
+                             new URLSearchParams(window.location.search).get('full') === 'true';
+    const isPreviewPage = previewOnly && !isPaid && !hasPaymentParams;
+    if (cleanUrl && !isOnCleanUrl && isPreviewPage) {
+      window.history.replaceState({}, '', cleanUrl);
+    }
+  }, [tourData]);
 
   const generateItineraryData = async () => {
     try {
@@ -1650,18 +1645,28 @@ export default function ItineraryPage() {
         finalTourId 
       });
       
+      let loggedInUserId = null;
+      try {
+        const stored = localStorage.getItem('user');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          loggedInUserId = parsed.id || null;
+        }
+      } catch {}
+
       const checkoutData = {
         email: email,
         itineraryId: finalTourId || null,
-        tourId: finalTourId, // Use finalTourId for database tours
+        tourId: finalTourId,
         city: itinerary.city || formData.city || 'Unknown',
-        audience: itinerary.tags?.audience || formData.audience || null, // Can be null for DB tours
+        audience: itinerary.tags?.audience || formData.audience || null,
         interests: (itinerary.tags?.interests || formData.interests || []).join(','),
         date: itinerary.date || formData.date || new Date().toISOString().slice(0, 10),
         budget: itinerary.tags?.budget || itinerary.budget || formData.budget || null,
-        tourType: tourType, // 'self-guided' or 'with-guide'
-        selectedDate: tourType === 'with-guide' ? selectedDate : null, // Only if with-guide
-        quantity: tourType === 'with-guide' ? quantity : 1 // Number of spots for guided tours
+        tourType: tourType,
+        selectedDate: tourType === 'with-guide' ? selectedDate : null,
+        quantity: tourType === 'with-guide' ? quantity : 1,
+        loggedInUserId: loggedInUserId,
       };
       
       console.log('💳 Checkout data prepared:', checkoutData);
@@ -1685,6 +1690,12 @@ export default function ItineraryPage() {
       // Redirect to Stripe Checkout
       const checkoutUrl = data.sessionUrl || data.url;
       if (checkoutUrl) {
+        const dd = tourData?.draft_data || {};
+        track('checkout_started', {
+          tourId: tourId || '',
+          tourTitle: dd.title || tourData?.title || '',
+          tourType: tourType || 'self-guided',
+        });
         console.log('✅ Redirecting to Stripe Checkout:', checkoutUrl);
         window.location.href = checkoutUrl;
       } else {
@@ -2056,7 +2067,7 @@ export default function ItineraryPage() {
                            tourData?.preview || 
                            itinerary?.preview_media_url || 
                            null;
-  const cityName = itinerary?.tags?.city || formData.city || tourData?.city?.name || (typeof tourData?.city === 'string' ? tourData.city : null) || 'Barcelona';
+  const cityName = (draftData.city && String(draftData.city).trim()) || itinerary?.tags?.city || formData.city || tourData?.city?.name || (typeof tourData?.city === 'string' ? tourData.city : null) || 'Barcelona';
   const cityImage = getCityImage(cityName);
   const heroImage = tourPreviewImage || cityImage; // Use tour preview if available, otherwise city image
   
@@ -2077,7 +2088,16 @@ export default function ItineraryPage() {
   const tourDescription = useNewFormat 
     ? (draftData.description || tourData?.description || '') 
     : (itinerary?.subtitle || generateFallbackSubtitle(formData));
-  
+  // Same text priority as after load, so description layout does not swap while blocks are loading
+  const descriptionToShow = (() => {
+    const fromDraft = (draftData.description || tourData?.description || '').trim();
+    if (fromDraft) return fromDraft;
+    if (useNewFormat) return '';
+    return (itinerary?.subtitle || generateFallbackSubtitle(formData) || '').trim();
+  })();
+
+  const tourShortDescription = (draftData.shortDescription || '').trim();
+
   // Get gallery images from draft_data for preview carousel
   const previewGalleryImages = draftData.previewImages || [];
   // Build all carousel images: cover first, then gallery
@@ -2085,8 +2105,12 @@ export default function ItineraryPage() {
 
   // Get highlights from draft_data for preview page (new object format)
   const tourHighlightsRaw = draftData.highlights || {};
-  // Count location blocks for auto-generated bullet #1
-  const previewLocationCount = contentBlocks.filter(b => b.block_type === 'location').length;
+  // Count locations: prefer the map block's location list (includes alternatives), fall back to counting location blocks
+  const previewLocationCount = (() => {
+    const mapBlock = contentBlocks.find(b => b.block_type === 'map');
+    if (mapBlock?.content?.locations?.length) return mapBlock.content.locations.length;
+    return contentBlocks.filter(b => b.block_type === 'location').length;
+  })();
   // Build 6 structured highlights for preview
   const tourHighlights = (() => {
     // Handle old array format
@@ -2125,30 +2149,22 @@ export default function ItineraryPage() {
 
   // Extract location coordinates from content blocks for preview map
   const previewMapLocations = (() => {
-    if (!contentBlocks || contentBlocks.length === 0) {
-      console.log('🗺️ PreviewMap: No content blocks available');
-      return [];
-    }
-    const locationBlocks = contentBlocks.filter(b => b.block_type === 'location');
-    console.log('🗺️ PreviewMap: Found', locationBlocks.length, 'location blocks');
-    const locs = locationBlocks
+    if (!contentBlocks || contentBlocks.length === 0) return [];
+    return contentBlocks
+      .filter(b => b.block_type === 'location')
       .map(b => {
         const content = b.content || {};
         const loc = content.mainLocation || content;
         const title = loc.title || loc.name || 'Location';
-        console.log('🗺️ PreviewMap: Block', b.id, 'content keys:', Object.keys(content), 'loc:', { lat: loc.lat, lng: loc.lng, address: loc.address, title });
         if (loc.lat && loc.lng) {
           return { lat: Number(loc.lat), lng: Number(loc.lng), title };
         }
-        // Fallback: include address for geocoding if no coordinates
         if (loc.address) {
           return { address: loc.address, title };
         }
         return null;
       })
       .filter(Boolean);
-    console.log('🗺️ PreviewMap: Final locations:', locs);
-    return locs;
   })();
   
   // Debug logging for author display
@@ -2368,12 +2384,17 @@ export default function ItineraryPage() {
           fontSize: '50px',
           fontWeight: 500,
           color: '#111827',
-          margin: '40px 0 40px 0',
+          margin: '40px 0 16px 0',
           lineHeight: '1.15'
         }}
       >
         {tourTitle}
       </h1>
+      {tourShortDescription && (
+        <p style={{ fontSize: '18px', color: '#6b7280', margin: '0 0 32px 0', lineHeight: '1.5' }}>
+          {tourShortDescription}
+        </p>
+      )}
     </div>
   );
 
@@ -2429,12 +2450,17 @@ export default function ItineraryPage() {
           fontSize: '50px',
           fontWeight: 500,
           color: '#111827',
-          margin: '40px 0 40px 0',
+          margin: '40px 0 16px 0',
           lineHeight: '1.15'
         }}
       >
         {tourTitle}
       </h1>
+      {tourShortDescription && (
+        <p style={{ fontSize: '18px', color: '#6b7280', margin: '0 0 32px 0', lineHeight: '1.5' }}>
+          {tourShortDescription}
+        </p>
+      )}
     </div>
   );
 
@@ -2526,6 +2552,11 @@ export default function ItineraryPage() {
               }}>
                 {tourTitle}
               </h1>
+              {tourShortDescription && (
+                <p style={{ fontSize: '15px', color: '#6b7280', margin: '0 0 12px 0', lineHeight: '1.45' }}>
+                  {tourShortDescription}
+                </p>
+              )}
 
               {/* Country + Price row */}
               <div style={{
@@ -2593,47 +2624,20 @@ export default function ItineraryPage() {
             </>
           )}
 
-          {/* Tour description — no section title; 20px medium, black */}
+          {/* Tour description — full text, no collapse */}
           <div style={{ marginBottom: '40px' }}>
-            {(() => {
-              const text = tourDescription || '';
-              return (
-                <>
-                  <p
-                    ref={aboutTripTextRef}
-                    style={{
-                    fontSize: '20px',
-                    fontWeight: 500,
-                    color: '#111827',
-                    lineHeight: '1.5',
-                    margin: '0 0 8px 0',
-                    whiteSpace: 'pre-line',
-                    ...(!isAuthorTextExpanded ? {
-                      display: '-webkit-box',
-                      WebkitLineClamp: 6,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden'
-                    } : {})
-                  }}
-                  >
-                    {text}
-                  </p>
-                  {(showAboutTripToggle || isAuthorTextExpanded) && (
-                    <span
-                      onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
-                      style={{
-                        fontSize: '20px',
-                        fontWeight: 500,
-                        color: '#111827',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {isAuthorTextExpanded ? 'Show less' : 'See More..'}
-                    </span>
-                  )}
-                </>
-              );
-            })()}
+            <p
+              style={{
+                fontSize: '20px',
+                fontWeight: 500,
+                color: '#111827',
+                lineHeight: '1.5',
+                margin: 0,
+                whiteSpace: 'pre-line'
+              }}
+            >
+              {tourDescription || ''}
+            </p>
           </div>
 
           {/* What's Inside This Walk — 6 structured bullets */}
@@ -2715,14 +2719,24 @@ export default function ItineraryPage() {
           </div>
 
           {/* Preview Map — non-clickable, shows tour locations */}
-          {previewMapLocations.length > 0 && (
+          {previewMapLocations.length > 0 ? (
             <div style={{ marginBottom: '40px' }}>
               <h3 style={{ fontSize: '25px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' }}>
                 Route overview
               </h3>
               <PreviewMap locations={previewMapLocations} />
             </div>
-          )}
+          ) : blocksLoading && previewOnly && tourId ? (
+            <div style={{ marginBottom: '40px' }}>
+              <h3 style={{ fontSize: '25px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' }}>
+                Route overview
+              </h3>
+              <div
+                className="itinerary-skeleton-pulse"
+                style={{ width: '100%', height: '340px', borderRadius: '12px' }}
+              />
+            </div>
+          ) : null}
 
           {/* Unlock full trip section */}
           <div id="preview-unlock-section" style={{
@@ -2732,9 +2746,9 @@ export default function ItineraryPage() {
             padding: '24px',
             marginBottom: '60px'
           }}>
-            <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: '0 0 4px 0' }}>Unlock full trip</h3>
+            <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: '0 0 4px 0' }}>See {itinerary?.city || 'the city'} through the eyes of a local</h3>
             <p style={{ fontSize: '12px', color: '#808080', margin: '0 0 20px 0' }}>
-              Get access to all locations and detailed daily plan.
+              Unlock the full itinerary{guideName ? ` by ${guideName}` : ''} with an interactive map, hidden locations, and a timed daily plan.
             </p>
 
             {/* Email input — on top */}
@@ -2952,6 +2966,11 @@ export default function ItineraryPage() {
         }}>
           {tourTitle}
         </h1>
+        {tourShortDescription && (
+          <p style={{ fontSize: '15px', color: '#6b7280', margin: '0 0 12px 0', lineHeight: '1.45' }}>
+            {tourShortDescription}
+          </p>
+        )}
 
         <div style={{
           display: 'flex',
@@ -3067,59 +3086,32 @@ export default function ItineraryPage() {
         );
       })()}
 
-      {/* Tour description — full/paid new format; no heading; 20px medium black */}
-      {useNewFormat && tourDescription && (
+      {/* Tour description — full text, no collapse */}
+      {descriptionToShow && (useNewFormat || (blocksLoading && tourId)) && (
         <div style={{
           width: isMobile ? '90%' : '100%',
           margin: isMobile ? '0 auto' : '0',
           boxSizing: 'border-box',
           marginBottom: '40px'
         }}>
-          {(() => {
-            const text = tourDescription || '';
-            return (
-              <>
-                <p
-                  ref={aboutTripTextRef}
-                  style={{
-                  fontSize: '20px',
-                  fontWeight: 500,
-                  color: '#111827',
-                  lineHeight: '1.5',
-                  margin: '0 0 8px 0',
-                  whiteSpace: 'pre-line',
-                  ...(!isAuthorTextExpanded ? {
-                    display: '-webkit-box',
-                    WebkitLineClamp: 6,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden'
-                  } : {})
-                }}
-                >
-                  {text}
-                </p>
-                {(showAboutTripToggle || isAuthorTextExpanded) && (
-                  <span
-                    onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
-                    style={{
-                      fontSize: '20px',
-                      fontWeight: 500,
-                      color: '#111827',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {isAuthorTextExpanded ? 'Show less' : 'See More..'}
-                  </span>
-                )}
-              </>
-            );
-          })()}
+          <p
+            style={{
+              fontSize: '20px',
+              fontWeight: 500,
+              color: '#111827',
+              lineHeight: '1.5',
+              margin: 0,
+              whiteSpace: 'pre-line'
+            }}
+          >
+            {descriptionToShow}
+          </p>
         </div>
       )}
 
       <div className="content-section" style={{ padding: '0 !important', paddingLeft: '0 !important', paddingRight: '0 !important' }}>
         {/* Subtitle Card - Description only - Show only if using old format */}
-        {!useNewFormat && (
+        {!useNewFormat && !(blocksLoading && tourId) && (
           <div className="enhanced-card">
             <p 
               className={`subtitle ${!isSubtitleExpanded ? 'subtitle-collapsed' : ''}`}
@@ -3648,8 +3640,28 @@ export default function ItineraryPage() {
           );
         })()}
 
+        {blocksLoading && tourId && (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '32px 0 48px',
+            }}
+          >
+            <img
+              src="/fliptrip-loading.gif"
+              alt="Loading tour..."
+              style={{ width: 56, height: 56 }}
+            />
+          </div>
+        )}
+
         {/* Content Blocks - New Format (using BlockRenderer) */}
-        {useNewFormat && (
+        {useNewFormat && !blocksLoading && (
           <div style={{ 
             width: isMobile ? '90%' : 'calc(100% + 40px)',
             boxSizing: 'border-box',
@@ -3819,14 +3831,14 @@ export default function ItineraryPage() {
                           gap: '8px'
                         }}>
                           <span>🔒</span>
-                          <span>Unlock Full Itinerary</span>
+                          <span>See {itinerary?.city || 'the city'} through the eyes of a local</span>
                         </h4>
                         <p style={{
                           fontSize: '12px',
                           color: '#6b7280',
                           marginBottom: '20px'
                         }}>
-                          Get access to all locations and detailed daily plan.
+                          Unlock the full itinerary{guideName ? ` by ${guideName}` : ''} with an interactive map, hidden locations, and a timed daily plan.
                         </p>
                         
                         <div style={{
@@ -3880,7 +3892,7 @@ export default function ItineraryPage() {
                             disabled={processingPayment || !email || (tourType === 'with-guide' && !selectedDate)}
                             style={{
                               padding: '12px 24px',
-                              backgroundColor: processingPayment || !email || (tourType === 'with-guide' && (!selectedDate || !quantity || quantity < 1)) ? '#9ca3af' : '#3b82f6',
+                              backgroundColor: processingPayment ? '#2563eb' : (!email || (tourType === 'with-guide' && (!selectedDate || !quantity || quantity < 1)) ? '#9ca3af' : '#3b82f6'),
                               color: 'white',
                               border: 'none',
                               borderRadius: '8px',
@@ -3888,7 +3900,11 @@ export default function ItineraryPage() {
                               fontWeight: '600',
                               cursor: processingPayment || !email || (tourType === 'with-guide' && (!selectedDate || !quantity || quantity < 1)) ? 'not-allowed' : 'pointer',
                               width: '100%',
-                              transition: 'background-color 0.2s'
+                              transition: 'background-color 0.2s',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '8px',
                             }}
                             onMouseEnter={(e) => {
                               if (!processingPayment && email && !(tourType === 'with-guide' && (!selectedDate || !quantity || quantity < 1))) {
@@ -3901,7 +3917,14 @@ export default function ItineraryPage() {
                               }
                             }}
                           >
-                            {processingPayment ? 'Processing...' : 'Proceed to payment'}
+                            {processingPayment && (
+                              <span style={{
+                                width: '18px', height: '18px', border: '2px solid rgba(255,255,255,0.3)',
+                                borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block',
+                                animation: 'spin 0.7s linear infinite', flexShrink: 0,
+                              }} />
+                            )}
+                            {processingPayment ? 'Redirecting to payment...' : 'Proceed to payment'}
                           </button>
                         </div>
                           </div>
@@ -3916,7 +3939,7 @@ export default function ItineraryPage() {
         )}
 
         {/* Itinerary Plan - Old Format (backward compatibility) */}
-        {!useNewFormat && (
+        {!useNewFormat && !(blocksLoading && tourId) && (
           <div 
             className="enhanced-card"
             style={{
@@ -4131,14 +4154,14 @@ export default function ItineraryPage() {
                     gap: '8px'
                   }}>
                     <span>🔒</span>
-                    <span>Unlock Full Itinerary</span>
+                    <span>See {itinerary?.city || 'the city'} through the eyes of a local</span>
                   </h4>
                   <p style={{
                     fontSize: '12px',
                     color: '#6b7280',
                     marginBottom: '20px'
                   }}>
-                    Get access to all locations and detailed daily plan.
+                    Unlock the full itinerary{guideName ? ` by ${guideName}` : ''} with an interactive map, hidden locations, and a timed daily plan.
                   </p>
                   
                   <div style={{
@@ -4192,7 +4215,7 @@ export default function ItineraryPage() {
                       disabled={processingPayment || !email || (tourType === 'with-guide' && !selectedDate)}
                       style={{
                         padding: '12px 24px',
-                        backgroundColor: processingPayment || !email || (tourType === 'with-guide' && (!selectedDate || !quantity || quantity < 1)) ? '#9ca3af' : '#3b82f6',
+                        backgroundColor: processingPayment ? '#2563eb' : (!email || (tourType === 'with-guide' && (!selectedDate || !quantity || quantity < 1)) ? '#9ca3af' : '#3b82f6'),
                         color: 'white',
                         border: 'none',
                         borderRadius: '8px',
@@ -4200,7 +4223,11 @@ export default function ItineraryPage() {
                         fontWeight: '600',
                         cursor: processingPayment || !email || (tourType === 'with-guide' && (!selectedDate || !quantity || quantity < 1)) ? 'not-allowed' : 'pointer',
                         width: '100%',
-                        transition: 'background-color 0.2s'
+                        transition: 'background-color 0.2s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
                       }}
                       onMouseEnter={(e) => {
                         if (!processingPayment && email && !(tourType === 'with-guide' && (!selectedDate || !quantity || quantity < 1))) {
@@ -4213,7 +4240,14 @@ export default function ItineraryPage() {
                         }
                       }}
                     >
-                      {processingPayment ? 'Processing...' : 'Proceed to payment'}
+                      {processingPayment && (
+                        <span style={{
+                          width: '18px', height: '18px', border: '2px solid rgba(255,255,255,0.3)',
+                          borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block',
+                          animation: 'spin 0.7s linear infinite', flexShrink: 0,
+                        }} />
+                      )}
+                      {processingPayment ? 'Redirecting to payment...' : 'Proceed to payment'}
                     </button>
                   </div>
                     </div>

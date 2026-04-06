@@ -31,10 +31,22 @@ export async function buildPdfBlobFromStyledPreviewHtml(previewHtml) {
       ))
     );
 
-    const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
-      import('html2canvas'),
-      import('jspdf')
-    ]);
+    let html2canvas, jsPDF;
+    try {
+      [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf')
+      ]);
+    } catch (importErr) {
+      if (!sessionStorage.getItem('_pdf_reload')) {
+        sessionStorage.setItem('_pdf_reload', '1');
+        window.location.reload();
+        return new Promise(() => {});
+      }
+      sessionStorage.removeItem('_pdf_reload');
+      throw new Error('Failed to load PDF libraries after reload. Please clear your browser cache and try again.');
+    }
+    sessionStorage.removeItem('_pdf_reload');
 
     const pageNodes = Array.from(iframeDoc.querySelectorAll('.ft-page'));
     const nodesToRender = pageNodes.length > 0 ? pageNodes : [iframeDoc.body];

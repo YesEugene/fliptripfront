@@ -51,6 +51,9 @@ import { DEFAULT_SELF_GUIDED_PRICE } from '../../../constants/pricing';
 import { buildPdfBlobFromStyledPreviewHtml } from '../../../utils/styledTourPdfClient';
 import { formatTourLastUpdatedLabel } from '../../../utils/tourLastUpdated';
 
+/** Same as public itinerary / Explore (ItineraryPage.css `.itinerary-container`, ExplorePage) */
+const VISUALIZER_PAGE_BG = '#fcfbf9';
+
 // Category name translations
 const CATEGORY_NAMES = {
   'active': 'Active',
@@ -89,6 +92,27 @@ function AnimatedProgressText({ label }) {
   return <>{label}{'.'.repeat(dotCount)}</>;
 }
 
+/** Merge a newly created block into local state without refetching all blocks (matches server order_index shift). */
+function insertBlockIntoBlocksList(prevBlocks, newBlock, insertOrderIndex) {
+  const mapBlock = prevBlocks.find(b => b.block_type === 'map') || null;
+  const nonMap = prevBlocks.filter(b => b.block_type !== 'map');
+  const bumped = nonMap.map((b) => {
+    const oi = b.order_index ?? 0;
+    if (oi >= insertOrderIndex) {
+      return { ...b, order_index: oi + 1 };
+    }
+    return b;
+  });
+  const combined = [...bumped, newBlock];
+  const sortedNonMap = combined.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+  if (!mapBlock) return sortedNonMap;
+  return [...sortedNonMap, { ...mapBlock, order_index: sortedNonMap.length }].sort((a, b) => {
+    if (a.block_type === 'map' && b.block_type !== 'map') return 1;
+    if (b.block_type === 'map' && a.block_type !== 'map') return -1;
+    return (a.order_index || 0) - (b.order_index || 0);
+  });
+}
+
 export default function TripVisualizerPage() {
   const navigate = useNavigate();
   const { tourId } = useParams();
@@ -112,11 +136,12 @@ export default function TripVisualizerPage() {
   const [insertAfterBlockId, setInsertAfterBlockId] = useState(null); // For adding block after specific block
   const [editingBlock, setEditingBlock] = useState(null);
   const [showTourEditor, setShowTourEditor] = useState(false);
-  const [isAuthorTextExpanded, setIsAuthorTextExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showLocationSelector, setShowLocationSelector] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
   const [showNotification, setShowNotification] = useState(false);
+  const [layoutBusy, setLayoutBusy] = useState(false);
+  const [layoutBusyMessage, setLayoutBusyMessage] = useState('');
   const [isRefreshingPhotos, setIsRefreshingPhotos] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isSubmittingForModeration, setIsSubmittingForModeration] = useState(false);
@@ -517,7 +542,9 @@ export default function TripVisualizerPage() {
         // Draft tours store description in draft_data; top-level tour.description may be stale until submit.
         setTourInfo(prev => ({
           ...prev,
-          city: tourObj.city?.name || prev.city,
+          city: (draftData?.city && String(draftData.city).trim())
+            ? String(draftData.city).trim()
+            : (tourObj.city?.name || prev.city),
           title:
             draftData && draftData.title !== undefined
               ? draftData.title
@@ -1678,16 +1705,23 @@ export default function TripVisualizerPage() {
 
   // Handle adding a new block after a specific block
   const handleAddBlockAfter = (afterBlockId) => {
+    if (layoutBusy) return;
     setInsertAfterBlockId(afterBlockId);
     setShowBlockSelector(true);
   };
 
   const handleAddBlock = async (blockType) => {
+    if (layoutBusy) return;
     console.log('Adding block:', blockType, 'insertAfterBlockId:', insertAfterBlockId);
-    
+
+    setLayoutBusyMessage('Creating block');
+    setLayoutBusy(true);
+
     // Automatically create tour if it doesn't exist
     const currentTourId = tourId || await ensureTourExists();
     if (!currentTourId) {
+      setLayoutBusy(false);
+      setLayoutBusyMessage('');
       setShowBlockSelector(false);
       setInsertAfterBlockId(null);
       return;
@@ -1746,9 +1780,10 @@ export default function TripVisualizerPage() {
         };
         break;
       case 'photo':
-        defaultContent = { 
-          photo: null, 
+        defaultContent = {
+          photos: [],
           caption: '',
+          layout: 'container',
           isPlaceholder: true
         };
         break;
@@ -1784,11 +1819,16 @@ export default function TripVisualizerPage() {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       if (!token) {
+        setLayoutBusy(false);
+        setLayoutBusyMessage('');
         alert('Please log in to create blocks');
         setShowBlockSelector(false);
         setInsertAfterBlockId(null);
         return;
       }
+
+      // Close picker immediately so the top progress bar is visible during the request
+      setShowBlockSelector(false);
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks`, {
         method: 'POST',
@@ -1808,6 +1848,8 @@ export default function TripVisualizerPage() {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
         console.error('❌ Create block error:', errorData, 'Status:', response.status);
         alert(errorData.error || `Failed to create block (${response.status})`);
+        setLayoutBusy(false);
+        setLayoutBusyMessage('');
         setShowBlockSelector(false);
         setInsertAfterBlockId(null);
         return;
@@ -1819,40 +1861,11 @@ export default function TripVisualizerPage() {
         const newBlockId = data.block.id;
         setLastDraftSavedAt(null);
 
-        // Reload canonical block order from backend (it already shifts order_index atomically).
-        try {
-          const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-          const blocksResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/tour-content-blocks?tourId=${currentTourId}`, {
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-          });
-          if (blocksResponse.ok) {
-            const blocksData = await blocksResponse.json();
-            if (blocksData.success && blocksData.blocks) {
-              const sortedReloaded = blocksData.blocks.sort((a, b) => {
-                if (a.block_type === 'map' && b.block_type !== 'map') return 1;
-                if (b.block_type === 'map' && a.block_type !== 'map') return -1;
-                const byOrder = (a.order_index || 0) - (b.order_index || 0);
-                if (byOrder !== 0) return byOrder;
-                const byCreated = new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
-                if (byCreated !== 0) return byCreated;
-                return String(a.id || '').localeCompare(String(b.id || ''));
-              });
-              setBlocks(sortedReloaded);
-            }
-          }
-        } catch (reloadErr) {
-          console.warn('⚠️ Failed to reload blocks after create, using local fallback:', reloadErr);
-          setBlocks(prev => [...prev, data.block].sort((a, b) => {
-            if (a.block_type === 'map' && b.block_type !== 'map') return 1;
-            if (b.block_type === 'map' && a.block_type !== 'map') return -1;
-            return (a.order_index || 0) - (b.order_index || 0);
-          }));
-        }
-        
-        // Close selector
-        setShowBlockSelector(false);
+        setBlocks(prev => insertBlockIntoBlocksList(prev, data.block, newOrderIndex));
         setInsertAfterBlockId(null);
-        
+        setLayoutBusy(false);
+        setLayoutBusyMessage('');
+
         // Smooth scroll to the new block after a short delay
         setTimeout(() => {
           const newBlockElement = document.querySelector(`[data-block-id="${newBlockId}"]`);
@@ -1868,12 +1881,16 @@ export default function TripVisualizerPage() {
         }, 100);
       } else {
         alert(data.error || 'Failed to create block');
+        setLayoutBusy(false);
+        setLayoutBusyMessage('');
         setShowBlockSelector(false);
         setInsertAfterBlockId(null);
       }
     } catch (error) {
       console.error('Error creating block:', error);
       alert('Error creating block. Please try again.');
+      setLayoutBusy(false);
+      setLayoutBusyMessage('');
       setShowBlockSelector(false);
       setInsertAfterBlockId(null);
     }
@@ -2207,6 +2224,7 @@ export default function TripVisualizerPage() {
   };
 
   const handleMoveBlock = async (blockId, direction) => {
+    if (layoutBusy) return;
     console.log('Moving block:', blockId, direction);
 
     const nonMapBlocks = blocks.filter(b => b.block_type !== 'map');
@@ -2238,16 +2256,30 @@ export default function TripVisualizerPage() {
       ? [...normalizedNonMap, { ...mapBlock, order_index: normalizedNonMap.length }]
       : normalizedNonMap;
 
+    const sortedNext = normalizedAll.sort((a, b) => {
+      if (a.block_type === 'map' && b.block_type !== 'map') return 1;
+      if (b.block_type === 'map' && a.block_type !== 'map') return -1;
+      return (a.order_index || 0) - (b.order_index || 0);
+    });
+
+    const snapshot = JSON.parse(JSON.stringify(blocks));
+    setLayoutBusyMessage('Saving order');
+    setLayoutBusy(true);
+    setBlocks(sortedNext);
+
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       if (!token) {
+        setBlocks(snapshot);
+        setLayoutBusy(false);
+        setLayoutBusyMessage('');
         alert('Please log in to move blocks');
         return;
       }
 
       // Persist only changed blocks
-      const previousById = new Map(blocks.map(b => [b.id, b]));
-      const blocksToUpdate = normalizedAll.filter(b => {
+      const previousById = new Map(snapshot.map(b => [b.id, b]));
+      const blocksToUpdate = sortedNext.filter(b => {
         const prev = previousById.get(b.id);
         return (prev?.order_index ?? null) !== (b.order_index ?? null);
       });
@@ -2273,21 +2305,19 @@ export default function TripVisualizerPage() {
       const allGood = payloads.every(p => p.success);
 
       if (!allGood) {
+        setBlocks(snapshot);
         alert('Failed to move block. Please try again.');
         return;
       }
 
-      setBlocks(
-        normalizedAll.sort((a, b) => {
-          if (a.block_type === 'map' && b.block_type !== 'map') return 1;
-          if (b.block_type === 'map' && a.block_type !== 'map') return -1;
-          return (a.order_index || 0) - (b.order_index || 0);
-        })
-      );
       setLastDraftSavedAt(null);
     } catch (error) {
       console.error('Error moving block:', error);
+      setBlocks(snapshot);
       alert('Error moving block. Please try again.');
+    } finally {
+      setLayoutBusy(false);
+      setLayoutBusyMessage('');
     }
   };
 
@@ -2373,7 +2403,7 @@ export default function TripVisualizerPage() {
       borderRadius: '6px',
     };
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#ffffff' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: VISUALIZER_PAGE_BG }}>
         <style>{`
           @keyframes visualizer-shimmer {
             0% { background-position: 100% 0; }
@@ -2382,7 +2412,7 @@ export default function TripVisualizerPage() {
         `}</style>
         {/* Skeleton Header */}
         <div style={{
-          backgroundColor: 'white',
+          backgroundColor: VISUALIZER_PAGE_BG,
           borderBottom: '1px solid #e5e7eb',
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
           width: '100%',
@@ -2661,7 +2691,7 @@ export default function TripVisualizerPage() {
   );
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#ffffff' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: VISUALIZER_PAGE_BG }}>
       <style>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }
@@ -2703,7 +2733,7 @@ export default function TripVisualizerPage() {
       )}
       {/* Header */}
       <div style={{
-        backgroundColor: 'white',
+        backgroundColor: VISUALIZER_PAGE_BG,
         borderBottom: '1px solid #e5e7eb',
         boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
         width: '100%',
@@ -2819,45 +2849,23 @@ export default function TripVisualizerPage() {
           </div>
         )}
 
-        {/* Tour description — no section title; 20px medium, black (placeholder stays gray) */}
+        {/* Tour description — full text, no collapse */}
         <div style={{ marginBottom: '32px' }}>
           {(() => {
             const isPlaceholder = !tourInfo.description;
             const text = tourInfo.description || 'This is where you describe your tour. Tell travelers what they\'ll discover, what makes this route unique, and why they should follow it.\n\nClick "Edit block" above to add your description.';
-            const isLong = text.length > 400 && !isPlaceholder;
             return (
-              <>
-                <p style={{
-                  fontSize: '20px',
-                  fontWeight: 500,
-                  color: isPlaceholder ? '#9ca3af' : '#111827',
-                  lineHeight: '1.5',
-                  margin: '0 0 8px 0',
-                  whiteSpace: 'pre-line',
-                  fontStyle: isPlaceholder ? 'italic' : 'normal',
-                  ...(isLong && !isAuthorTextExpanded ? {
-                    display: '-webkit-box',
-                    WebkitLineClamp: 6,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden'
-                  } : {})
-                }}>
-                  {text}
-                </p>
-                {isLong && (
-                  <span
-                    onClick={() => setIsAuthorTextExpanded(!isAuthorTextExpanded)}
-                    style={{
-                      fontSize: '20px',
-                      fontWeight: 500,
-                      color: '#111827',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {isAuthorTextExpanded ? 'Show less' : 'See More..'}
-                  </span>
-                )}
-              </>
+              <p style={{
+                fontSize: '20px',
+                fontWeight: 500,
+                color: isPlaceholder ? '#9ca3af' : '#111827',
+                lineHeight: '1.5',
+                margin: 0,
+                whiteSpace: 'pre-line',
+                fontStyle: isPlaceholder ? 'italic' : 'normal'
+              }}>
+                {text}
+              </p>
             );
           })()}
         </div>
@@ -2898,7 +2906,7 @@ export default function TripVisualizerPage() {
                 alignItems: 'center',
                 justifyContent: 'flex-end',
                 gap: '8px',
-                backgroundColor: 'white',
+                backgroundColor: VISUALIZER_PAGE_BG,
                 padding: '8px',
                 borderRadius: '10px',
                 boxShadow: '0px 1px 19px 0px rgba(0, 0, 0, 0.21)'
@@ -2909,18 +2917,18 @@ export default function TripVisualizerPage() {
                 <>
                   <button
                     onClick={() => handleMoveBlock(block.id, 'up')}
-                    disabled={index === 0}
+                    disabled={index === 0 || layoutBusy}
                     style={{
                       width: '30px',
                       height: '30px',
-                      backgroundColor: index === 0 ? '#e5e7eb' : '#3E85FC',
+                      backgroundColor: (index === 0 || layoutBusy) ? '#e5e7eb' : '#3E85FC',
                       color: 'white',
                       border: 'none',
                       borderRadius: '5px',
-                      cursor: index === 0 ? 'not-allowed' : 'pointer',
+                      cursor: (index === 0 || layoutBusy) ? 'not-allowed' : 'pointer',
                       fontSize: '16px',
                       fontWeight: '500',
-                      opacity: index === 0 ? 0.5 : 1,
+                      opacity: (index === 0 || layoutBusy) ? 0.5 : 1,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -2932,18 +2940,18 @@ export default function TripVisualizerPage() {
                   </button>
                   <button
                     onClick={() => handleMoveBlock(block.id, 'down')}
-                    disabled={index === blocks.length - 1 || (blocks[index + 1] && blocks[index + 1].block_type === 'map')}
+                    disabled={layoutBusy || index === blocks.length - 1 || (blocks[index + 1] && blocks[index + 1].block_type === 'map')}
                     style={{
                       width: '30px',
                       height: '30px',
-                      backgroundColor: (index === blocks.length - 1 || (blocks[index + 1] && blocks[index + 1].block_type === 'map')) ? '#e5e7eb' : '#3E85FC',
+                      backgroundColor: (layoutBusy || index === blocks.length - 1 || (blocks[index + 1] && blocks[index + 1].block_type === 'map')) ? '#e5e7eb' : '#3E85FC',
                       color: 'white',
                       border: 'none',
                       borderRadius: '5px',
-                      cursor: (index === blocks.length - 1 || (blocks[index + 1] && blocks[index + 1].block_type === 'map')) ? 'not-allowed' : 'pointer',
+                      cursor: (layoutBusy || index === blocks.length - 1 || (blocks[index + 1] && blocks[index + 1].block_type === 'map')) ? 'not-allowed' : 'pointer',
                       fontSize: '16px',
                       fontWeight: '500',
-                      opacity: (index === blocks.length - 1 || (blocks[index + 1] && blocks[index + 1].block_type === 'map')) ? 0.5 : 1,
+                      opacity: (layoutBusy || index === blocks.length - 1 || (blocks[index + 1] && blocks[index + 1].block_type === 'map')) ? 0.5 : 1,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -2959,14 +2967,15 @@ export default function TripVisualizerPage() {
               {block.block_type !== 'map' && (
                 <button
                   onClick={() => handleAddBlockAfter(block.id)}
+                  disabled={layoutBusy}
                   style={{
                     width: '30px',
                     height: '30px',
-                    backgroundColor: '#FFDD00',
+                    backgroundColor: layoutBusy ? '#e5e7eb' : '#FFDD00',
                     color: '#111827',
                     border: 'none',
                     borderRadius: '5px',
-                    cursor: 'pointer',
+                    cursor: layoutBusy ? 'not-allowed' : 'pointer',
                     fontSize: '18px',
                     fontWeight: '600',
                     display: 'flex',
@@ -3054,8 +3063,52 @@ export default function TripVisualizerPage() {
         <div style={{ height: isTourSettingsCollapsed ? (isMobile ? `calc(115px + env(safe-area-inset-bottom, 0px))` : '65px') : '80vh' }} />
       </div>
 
+      {/* In-progress: block create / reorder (minimal bar + spinner) */}
+      {layoutBusy && (
+        <>
+          <style>{'@keyframes tripVizLayoutSpin { to { transform: rotate(360deg); } }'}</style>
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              minHeight: '28px',
+              backgroundColor: '#dbeafe',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              zIndex: 1002,
+              padding: '4px 12px',
+              boxSizing: 'border-box',
+              borderBottom: '1px solid #bfdbfe'
+            }}
+          >
+            <span
+              aria-hidden
+              style={{
+                width: '14px',
+                height: '14px',
+                border: '2px solid #2563eb',
+                borderTopColor: 'transparent',
+                borderRadius: '50%',
+                animation: 'tripVizLayoutSpin 0.65s linear infinite',
+                display: 'inline-block',
+                flexShrink: 0
+              }}
+            />
+            <span style={{ fontSize: '14px', color: '#1e3a8a', fontWeight: 500 }}>
+              <AnimatedProgressText label={layoutBusyMessage} />
+            </span>
+          </div>
+        </>
+      )}
+
       {/* Notification Banner - fixed to top of browser */}
-      {showNotification && (
+      {showNotification && !layoutBusy && (
         <div style={{
           position: 'fixed',
           top: 0,
@@ -3094,7 +3147,7 @@ export default function TripVisualizerPage() {
         <div style={{
           width: '100%',
           height: isMobile ? '115px' : '65px',
-          backgroundColor: 'white',
+          backgroundColor: VISUALIZER_PAGE_BG,
           boxShadow: '0px -20px 18.4px 0px rgba(0, 0, 0, 0.04)',
           display: 'flex',
           alignItems: 'center',
@@ -3124,15 +3177,17 @@ export default function TripVisualizerPage() {
             }}>
               {/* Add New Block button */}
               <button
-                onClick={() => setShowBlockSelector(true)}
+                type="button"
+                onClick={() => !layoutBusy && setShowBlockSelector(true)}
+                disabled={layoutBusy}
                 style={{
                   width: isMobile ? '50%' : '145px',
                   height: '40px',
-                  backgroundColor: '#FFDD00',
+                  backgroundColor: layoutBusy ? '#e5e7eb' : '#FFDD00',
                   color: '#111827',
                   border: 'none',
                   borderRadius: '10px',
-                  cursor: 'pointer',
+                  cursor: layoutBusy ? 'not-allowed' : 'pointer',
                   fontSize: '14px',
                   fontWeight: '600',
                   display: 'flex',
@@ -3140,12 +3195,15 @@ export default function TripVisualizerPage() {
                   justifyContent: 'center',
                   gap: '8px',
                   transition: 'all 0.2s',
-                  flex: isMobile ? '1' : '0 0 auto'
+                  flex: isMobile ? '1' : '0 0 auto',
+                  opacity: layoutBusy ? 0.75 : 1
                 }}
                 onMouseEnter={(e) => {
+                  if (layoutBusy) return;
                   e.target.style.backgroundColor = '#f59e0b';
                 }}
                 onMouseLeave={(e) => {
+                  if (layoutBusy) return;
                   e.target.style.backgroundColor = '#FFDD00';
                 }}
               >
@@ -3289,7 +3347,7 @@ export default function TripVisualizerPage() {
         {/* Tour Settings Block - Collapsible */}
         {!isTourSettingsCollapsed && (
           <div style={{
-            backgroundColor: 'white',
+            backgroundColor: VISUALIZER_PAGE_BG,
             padding: '24px 0',
             maxHeight: 'calc(80vh - 65px)',
             overflowY: 'auto'
@@ -5091,20 +5149,10 @@ function TourEditorModal({ tourInfo, tourId, onClose, onSave, isSaving = false, 
                     setShowCitySuggestions(true);
                   }
                 }}
-                onBlur={(e) => {
+                onBlur={() => {
+                  // Do not clear free-typed cities: list is a hint only (many places are not in DB)
                   setTimeout(() => {
-                    const currentValue = e.target.value;
-                    if (currentValue && citySuggestions && citySuggestions.length > 0) {
-                      const isValid = citySuggestions.some(c =>
-                        (typeof c === 'string' ? c : c.name) === currentValue ||
-                        (typeof c === 'string' ? c : (c.displayName || c.name)) === currentValue
-                      );
-                      if (!isValid && currentValue.length > 0) {
-                        onChange({ ...tourInfo, city: '' });
-                        if (setCitySuggestions) setCitySuggestions([]);
-                        if (setShowCitySuggestions) setShowCitySuggestions(false);
-                      }
-                    }
+                    if (setShowCitySuggestions) setShowCitySuggestions(false);
                   }, 200);
                 }}
                 style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '16px', boxSizing: 'border-box' }}
@@ -5567,6 +5615,9 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
       if (block.block_type === 'title') {
         return { text: '', size: 'large', fontWeight: 'medium' };
       }
+      if (block.block_type === 'photo') {
+        return { photos: [], caption: '', layout: 'container', isPlaceholder: true };
+      }
       return {};
     }
     
@@ -5631,6 +5682,18 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
         text: contentToNormalize.text ?? '',
         size: contentToNormalize.size || 'large',
         fontWeight: contentToNormalize.fontWeight || 'medium'
+      };
+    }
+
+    if (block.block_type === 'photo') {
+      const raw = contentToNormalize.photos || (contentToNormalize.photo ? [contentToNormalize.photo] : []);
+      const photosArr = Array.isArray(raw) ? raw.filter(Boolean) : [];
+      return {
+        ...contentToNormalize,
+        photos: photosArr,
+        photo: undefined,
+        caption: contentToNormalize.caption || '',
+        layout: contentToNormalize.layout || 'container'
       };
     }
     
@@ -6026,68 +6089,33 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
           <>
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Layout
+              </label>
+              <select
+                value={content.layout || 'container'}
+                onChange={(e) => setContent({ ...content, layout: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <option value="container">Full width of content column</option>
+                <option value="gallery">Gallery (next photo peeks in)</option>
+                <option value="fullBleed">Full screen width (scroll, natural proportions)</option>
+              </select>
+              <p style={{ fontSize: '12px', color: '#6b7280', margin: '8px 0 0 0' }}>
+                Gallery matches the location strip (fixed slide width, next photo peeks). Full screen width spans the viewport edge to edge with a horizontal scroll row: each photo keeps its aspect ratio and sits one after another.
+              </p>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
                 Photos *
               </label>
-              
-              {/* Photo preview carousel */}
-              <div style={{
-                width: '100%',
-                height: '200px',
-                border: '2px dashed #d1d5db',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '12px',
-                backgroundColor: '#f9fafb',
-                overflow: 'hidden',
-                position: 'relative'
-              }}>
-                {(() => {
-                  const photos = content.photos || (content.photo ? [content.photo] : []);
-                  if (photos.length > 0) {
-                    const currentPhoto = photos[0];
-                    return (
-                      <>
-                        <img 
-                          src={currentPhoto} 
-                          alt="Preview" 
-                          style={{ 
-                            maxWidth: '100%', 
-                            maxHeight: '100%', 
-                            objectFit: 'contain' 
-                          }} 
-                        />
-                        {photos.length > 1 && (
-                          <div style={{
-                            position: 'absolute',
-                            bottom: '8px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            display: 'flex',
-                            gap: '4px'
-                          }}>
-                            {photos.map((_, index) => (
-                              <div
-                                key={index}
-                                style={{
-                                  width: index === 0 ? '20px' : '6px',
-                                  height: '6px',
-                                  borderRadius: '3px',
-                                  backgroundColor: index === 0 ? '#3b82f6' : '#d1d5db',
-                                  transition: 'all 0.3s ease'
-                                }}
-                              />
-                            ))}
-                          </div>
-                        )}
-                      </>
-                    );
-                  }
-                  return <span style={{ color: '#6b7280' }}>No photos selected</span>;
-                })()}
-              </div>
-              
               <input
                 type="file"
                 accept="image/*"
@@ -6095,21 +6123,19 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                 onChange={async (e) => {
                   const files = Array.from(e.target.files || []);
                   if (files.length > 0 && onImageUpload) {
-                    // Upload all files
-                    const uploadPromises = files.map(file => 
+                    const uploadPromises = files.map(file =>
                       new Promise((resolve) => {
                         onImageUpload(file, (base64) => {
                           resolve(base64);
                         });
                       })
                     );
-                    
                     const uploadedPhotos = await Promise.all(uploadPromises);
                     const existingPhotos = content.photos || (content.photo ? [content.photo] : []);
-                    setContent({ 
-                      ...content, 
+                    setContent({
+                      ...content,
                       photos: [...existingPhotos, ...uploadedPhotos],
-                      photo: undefined // Remove old single photo field
+                      photo: undefined
                     });
                   }
                 }}
@@ -6134,21 +6160,123 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
               >
                 Add photos
               </label>
-              
-              {/* Remove photos button */}
+
+              {(() => {
+                const photos = content.photos || (content.photo ? [content.photo] : []);
+                if (photos.length === 0) return null;
+                const movePhoto = (fromIndex, toIndex) => {
+                  if (toIndex < 0 || toIndex >= photos.length) return;
+                  const updated = [...photos];
+                  const [moved] = updated.splice(fromIndex, 1);
+                  updated.splice(toIndex, 0, moved);
+                  setContent({ ...content, photos: updated, photo: undefined });
+                };
+                const removePhotoAt = (indexToRemove) => {
+                  const updated = photos.filter((_, idx) => idx !== indexToRemove);
+                  setContent({ ...content, photos: updated, photo: undefined });
+                };
+                return (
+                  <div style={{
+                    marginBottom: '12px',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(118px, 1fr))',
+                    gap: '10px'
+                  }}>
+                    {photos.map((photo, index) => (
+                      <div
+                        key={`${index}-${photo?.slice?.(0, 30) || 'p'}`}
+                        style={{
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          padding: '6px',
+                          backgroundColor: '#fff'
+                        }}
+                      >
+                        <img
+                          src={refreshPhotoUrl(photo)}
+                          alt={`Photo ${index + 1}`}
+                          style={{
+                            width: '100%',
+                            height: '72px',
+                            borderRadius: '6px',
+                            objectFit: 'cover',
+                            marginBottom: '6px'
+                          }}
+                        />
+                        <div style={{
+                          fontSize: '11px',
+                          color: '#6b7280',
+                          marginBottom: '6px',
+                          textAlign: 'center',
+                          fontWeight: index === 0 ? '600' : '400'
+                        }}>
+                          {index === 0 ? '1 (cover)' : index + 1}
+                        </div>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <button
+                            type="button"
+                            onClick={() => movePhoto(index, index - 1)}
+                            disabled={index === 0}
+                            style={{
+                              flex: 1,
+                              border: '1px solid #d1d5db',
+                              borderRadius: '6px',
+                              backgroundColor: index === 0 ? '#f3f4f6' : '#fff',
+                              color: index === 0 ? '#9ca3af' : '#111827',
+                              cursor: index === 0 ? 'not-allowed' : 'pointer',
+                              fontSize: '11px',
+                              padding: '4px 0'
+                            }}
+                          >
+                            ←
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => movePhoto(index, index + 1)}
+                            disabled={index === photos.length - 1}
+                            style={{
+                              flex: 1,
+                              border: '1px solid #d1d5db',
+                              borderRadius: '6px',
+                              backgroundColor: index === photos.length - 1 ? '#f3f4f6' : '#fff',
+                              color: index === photos.length - 1 ? '#9ca3af' : '#111827',
+                              cursor: index === photos.length - 1 ? 'not-allowed' : 'pointer',
+                              fontSize: '11px',
+                              padding: '4px 0'
+                            }}
+                          >
+                            →
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removePhotoAt(index)}
+                            style={{
+                              flex: 1,
+                              border: '1px solid #fecaca',
+                              borderRadius: '6px',
+                              backgroundColor: '#fff5f5',
+                              color: '#dc2626',
+                              cursor: 'pointer',
+                              fontSize: '11px',
+                              padding: '4px 0'
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+
               {(() => {
                 const photos = content.photos || (content.photo ? [content.photo] : []);
                 if (photos.length > 0) {
                   return (
                     <button
                       type="button"
-                      onClick={() => {
-                        setContent({ 
-                          ...content, 
-                          photos: [],
-                          photo: undefined
-                        });
-                      }}
+                      onClick={() => setContent({ ...content, photos: [], photo: undefined })}
                       style={{
                         display: 'inline-block',
                         padding: '10px 20px',
@@ -6168,9 +6296,9 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                 }
                 return null;
               })()}
-              
+
               <p style={{ fontSize: '12px', color: '#6b7280', margin: '4px 0 0 0' }}>
-                JPG, PNG or GIF. Max size 5MB per image. You can select multiple photos at once.
+                JPG, PNG or GIF. Max size 5MB per image. You can select multiple photos at once. The first photo is the cover.
               </p>
             </div>
             <div style={{ marginBottom: '20px' }}>
@@ -6220,66 +6348,6 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
                 Photos
               </label>
-              
-              {/* Photo preview carousel */}
-              <div style={{
-                width: '100%',
-                height: '200px',
-                border: '2px dashed #d1d5db',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '12px',
-                backgroundColor: '#f9fafb',
-                overflow: 'hidden',
-                position: 'relative'
-              }}>
-                {(() => {
-                  const photos = content.photos || (content.photo ? [content.photo] : []);
-                  if (photos.length > 0) {
-                    const currentPhoto = photos[0];
-                    return (
-                      <>
-                        <img 
-                          src={currentPhoto} 
-                          alt="Preview" 
-                          style={{ 
-                            maxWidth: '100%', 
-                            maxHeight: '100%', 
-                            objectFit: 'contain' 
-                          }} 
-                        />
-                        {photos.length > 1 && (
-                          <div style={{
-                            position: 'absolute',
-                            bottom: '8px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            display: 'flex',
-                            gap: '4px'
-                          }}>
-                            {photos.map((_, index) => (
-                              <div
-                                key={index}
-                                style={{
-                                  width: index === 0 ? '20px' : '6px',
-                                  height: '6px',
-                                  borderRadius: '3px',
-                                  backgroundColor: index === 0 ? '#3b82f6' : '#d1d5db',
-                                  transition: 'all 0.3s ease'
-                                }}
-                              />
-                            ))}
-                          </div>
-                        )}
-                      </>
-                    );
-                  }
-                  return <span style={{ color: '#6b7280' }}>No photos selected</span>;
-                })()}
-              </div>
-              
               <input
                 type="file"
                 accept="image/*"
@@ -6287,21 +6355,19 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                 onChange={async (e) => {
                   const files = Array.from(e.target.files || []);
                   if (files.length > 0 && onImageUpload) {
-                    // Upload all files
-                    const uploadPromises = files.map(file => 
+                    const uploadPromises = files.map(file =>
                       new Promise((resolve) => {
                         onImageUpload(file, (base64) => {
                           resolve(base64);
                         });
                       })
                     );
-                    
                     const uploadedPhotos = await Promise.all(uploadPromises);
                     const existingPhotos = content.photos || (content.photo ? [content.photo] : []);
-                    setContent({ 
-                      ...content, 
+                    setContent({
+                      ...content,
                       photos: [...existingPhotos, ...uploadedPhotos],
-                      photo: undefined // Remove old single photo field
+                      photo: undefined
                     });
                   }
                 }}
@@ -6326,21 +6392,123 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
               >
                 Add photos
               </label>
-              
-              {/* Remove photos button */}
+
+              {(() => {
+                const photos = content.photos || (content.photo ? [content.photo] : []);
+                if (photos.length === 0) return null;
+                const movePhoto = (fromIndex, toIndex) => {
+                  if (toIndex < 0 || toIndex >= photos.length) return;
+                  const updated = [...photos];
+                  const [moved] = updated.splice(fromIndex, 1);
+                  updated.splice(toIndex, 0, moved);
+                  setContent({ ...content, photos: updated, photo: undefined });
+                };
+                const removePhotoAt = (indexToRemove) => {
+                  const updated = photos.filter((_, idx) => idx !== indexToRemove);
+                  setContent({ ...content, photos: updated, photo: undefined });
+                };
+                return (
+                  <div style={{
+                    marginBottom: '12px',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(118px, 1fr))',
+                    gap: '10px'
+                  }}>
+                    {photos.map((photo, index) => (
+                      <div
+                        key={`${index}-${photo?.slice?.(0, 30) || 'p'}`}
+                        style={{
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          padding: '6px',
+                          backgroundColor: '#fff'
+                        }}
+                      >
+                        <img
+                          src={refreshPhotoUrl(photo)}
+                          alt={`Photo ${index + 1}`}
+                          style={{
+                            width: '100%',
+                            height: '72px',
+                            borderRadius: '6px',
+                            objectFit: 'cover',
+                            marginBottom: '6px'
+                          }}
+                        />
+                        <div style={{
+                          fontSize: '11px',
+                          color: '#6b7280',
+                          marginBottom: '6px',
+                          textAlign: 'center',
+                          fontWeight: index === 0 ? '600' : '400'
+                        }}>
+                          {index === 0 ? '1 (cover)' : index + 1}
+                        </div>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <button
+                            type="button"
+                            onClick={() => movePhoto(index, index - 1)}
+                            disabled={index === 0}
+                            style={{
+                              flex: 1,
+                              border: '1px solid #d1d5db',
+                              borderRadius: '6px',
+                              backgroundColor: index === 0 ? '#f3f4f6' : '#fff',
+                              color: index === 0 ? '#9ca3af' : '#111827',
+                              cursor: index === 0 ? 'not-allowed' : 'pointer',
+                              fontSize: '11px',
+                              padding: '4px 0'
+                            }}
+                          >
+                            ←
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => movePhoto(index, index + 1)}
+                            disabled={index === photos.length - 1}
+                            style={{
+                              flex: 1,
+                              border: '1px solid #d1d5db',
+                              borderRadius: '6px',
+                              backgroundColor: index === photos.length - 1 ? '#f3f4f6' : '#fff',
+                              color: index === photos.length - 1 ? '#9ca3af' : '#111827',
+                              cursor: index === photos.length - 1 ? 'not-allowed' : 'pointer',
+                              fontSize: '11px',
+                              padding: '4px 0'
+                            }}
+                          >
+                            →
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removePhotoAt(index)}
+                            style={{
+                              flex: 1,
+                              border: '1px solid #fecaca',
+                              borderRadius: '6px',
+                              backgroundColor: '#fff5f5',
+                              color: '#dc2626',
+                              cursor: 'pointer',
+                              fontSize: '11px',
+                              padding: '4px 0'
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+
               {(() => {
                 const photos = content.photos || (content.photo ? [content.photo] : []);
                 if (photos.length > 0) {
                   return (
                     <button
                       type="button"
-                      onClick={() => {
-                        setContent({ 
-                          ...content, 
-                          photos: [],
-                          photo: undefined
-                        });
-                      }}
+                      onClick={() => setContent({ ...content, photos: [], photo: undefined })}
                       style={{
                         display: 'inline-block',
                         padding: '10px 20px',
@@ -6360,7 +6528,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                 }
                 return null;
               })()}
-              
+
               <p style={{ fontSize: '12px', color: '#6b7280', margin: '4px 0 0 0' }}>
                 JPG, PNG or GIF. Max size 5MB per image. You can select multiple photos at once.
               </p>
@@ -6494,6 +6662,7 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
               <option value="solid">Solid</option>
               <option value="dashed">Dashed</option>
               <option value="dotted">Dotted</option>
+              <option value="transparent">Transparent (spacing only)</option>
             </select>
           </div>
         );
@@ -6656,446 +6825,197 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
             {/* Location Editor Form */}
             {currentLocation && (
               <>
-                {/* Time for location with On/Off toggle */}
-                <div style={{ marginBottom: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', fontWeight: '500' }}>
-                      Time for location
-                      <HintButton hintKey="timeForLocation" />
-                    </label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <label style={{ fontWeight: '500', fontSize: '14px' }}>On/Off</label>
-                      <div style={{ display: 'flex', gap: '4px' }}>
-                        <input
-                          type="checkbox"
-                          checked={content.enableTimeField || false}
-                          onChange={(e) => {
-                            const enableTime = e.target.checked;
-                            // Save preference to localStorage for future blocks
-                            localStorage.setItem('locationBlock_enableTimeField', enableTime.toString());
-                            
-                            // If enabling time for main location, apply main location time to all alternatives
-                            if (enableTime && editingLocationIndex === null && content.mainLocation?.time) {
-                              const updatedAlternatives = content.alternativeLocations.map(alt => ({
-                                ...alt,
-                                time: alt.time || content.mainLocation.time
-                              }));
-                              setContent({ 
-                                ...content, 
-                                enableTimeField: enableTime,
-                                alternativeLocations: updatedAlternatives
-                              });
-                            } else {
-                              setContent({ ...content, enableTimeField: enableTime });
-                            }
-                          }}
-                          style={{
-                            width: '20px',
-                            height: '20px',
-                            cursor: 'pointer'
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
+                {/* Time for location — inline row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', fontWeight: '500', fontSize: '14px', whiteSpace: 'nowrap' }}>
+                    Time
+                    <HintButton hintKey="timeForLocation" />
+                  </label>
+                  <input
+                    type="checkbox"
+                    checked={content.enableTimeField || false}
+                    onChange={(e) => {
+                      const enableTime = e.target.checked;
+                      localStorage.setItem('locationBlock_enableTimeField', enableTime.toString());
+                      if (enableTime && editingLocationIndex === null && content.mainLocation?.time) {
+                        const updatedAlternatives = content.alternativeLocations.map(alt => ({
+                          ...alt,
+                          time: alt.time || content.mainLocation.time
+                        }));
+                        setContent({ ...content, enableTimeField: enableTime, alternativeLocations: updatedAlternatives });
+                      } else {
+                        setContent({ ...content, enableTimeField: enableTime });
+                      }
+                    }}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer', flexShrink: 0 }}
+                  />
                   {content.enableTimeField && (
                     <input
                       type="text"
                       value={currentLocation.time || ''}
                       onChange={(e) => {
                         const newTime = e.target.value;
-                        // If updating main location time and time field is enabled, apply to alternatives that don't have custom time
                         if (editingLocationIndex === null && content.enableTimeField) {
                           const updatedAlternatives = content.alternativeLocations.map(alt => {
-                            // Only apply main location time if alternative doesn't have its own time
-                            // We check if time is empty or matches the old main location time (meaning it was synced)
                             const oldMainTime = content.mainLocation?.time || '';
                             const shouldSync = !alt.time || alt.time === oldMainTime;
-                            return {
-                              ...alt,
-                              time: shouldSync ? newTime : alt.time
-                            };
+                            return { ...alt, time: shouldSync ? newTime : alt.time };
                           });
-                          setContent({ 
-                            ...content, 
-                            mainLocation: { ...content.mainLocation, time: newTime },
-                            alternativeLocations: updatedAlternatives
-                          });
+                          setContent({ ...content, mainLocation: { ...content.mainLocation, time: newTime }, alternativeLocations: updatedAlternatives });
                         } else {
-                          // For alternative locations, just update the current one
                           updateCurrentLocation({ time: newTime });
                         }
                       }}
-                      placeholder="09:00 - 12:00 or leave empty"
+                      placeholder="09:00 – 12:00"
                       style={{
-                        width: '100%',
-                        padding: '12px',
+                        flex: 1,
+                        padding: '8px 10px',
                         border: '1px solid #d1d5db',
                         borderRadius: '8px',
-                        fontSize: '16px',
+                        fontSize: '14px',
                         boxSizing: 'border-box'
                       }}
                     />
                   )}
                 </div>
 
-                {/* Location Name and Address */}
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
+                {/* Location label + Find on Google Maps — same row */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', fontWeight: '500', fontSize: '14px' }}>
                     Location
                     <HintButton hintKey="locationName" />
                   </label>
                   <button
                     type="button"
                     onClick={() => onOpenLocationSelector && onOpenLocationSelector(editingLocationIndex)}
-                    style={{ 
-                      color: '#3b82f6', 
-                      textDecoration: 'underline',
-                      fontSize: '14px',
-                      marginBottom: '8px',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: 0,
-                      fontFamily: 'inherit'
-                    }}
+                    style={{ color: '#3b82f6', textDecoration: 'underline', fontSize: '13px', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}
                   >
                     Find on Google Maps
                   </button>
+                </div>
+
+                {/* Name + Address — same row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
                   <input
                     type="text"
                     value={currentLocation.title || ''}
                     onChange={(e) => updateCurrentLocation({ title: e.target.value })}
-                    placeholder="Location Name *"
+                    placeholder="Name *"
                     required
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '8px',
-                      fontSize: '16px',
-                      marginBottom: '12px',
-                      boxSizing: 'border-box'
-                    }}
+                    style={{ padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
                   />
-                  
                   <input
                     type="text"
                     value={currentLocation.address || ''}
                     onChange={(e) => updateCurrentLocation({ address: e.target.value })}
                     placeholder="Address *"
                     required
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '8px',
-                      fontSize: '16px',
-                      boxSizing: 'border-box'
-                    }}
+                    style={{ padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
                   />
                 </div>
 
-                {/* Add Photos of Location */}
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
-                    Photos of Location
-                    <HintButton hintKey="locationPhoto" />
-                  </label>
-
-                  {/* Smaller photo preview: first photo is the cover in user itinerary */}
-                  <div style={{
-                    width: '100%',
-                    maxWidth: '640px',
-                    height: '180px',
-                    border: '2px dashed #d1d5db',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: '12px',
-                    backgroundColor: '#f9fafb',
-                    overflow: 'hidden',
-                    position: 'relative'
-                  }}>
-                    {(() => {
-                      const photos = currentLocation.photos || (currentLocation.photo ? [currentLocation.photo] : []);
-                      if (photos.length > 0) {
-                        const currentPhoto = refreshPhotoUrl(photos[0]); // first photo is primary
+                {/* Photos — label + buttons on one row, thumbnails below */}
+                <div style={{ marginBottom: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', fontWeight: '500', fontSize: '14px' }}>
+                      Photos
+                      <HintButton hintKey="locationPhoto" />
+                    </label>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={async (e) => {
+                          const files = Array.from(e.target.files || []);
+                          if (files.length > 0 && onImageUpload) {
+                            const uploadPromises = files.map(file =>
+                              new Promise((resolve) => { onImageUpload(file, (base64) => { resolve(base64); }); })
+                            );
+                            const uploadedPhotos = await Promise.all(uploadPromises);
+                            const existingPhotos = currentLocation.photos || (currentLocation.photo ? [currentLocation.photo] : []);
+                            updateCurrentLocation({ photos: [...existingPhotos, ...uploadedPhotos], photo: undefined });
+                          }
+                        }}
+                        style={{ display: 'none' }}
+                        id={`location-photos-upload-${block.id}-${editingLocationIndex === null ? 'main' : editingLocationIndex}`}
+                      />
+                      <label
+                        htmlFor={`location-photos-upload-${block.id}-${editingLocationIndex === null ? 'main' : editingLocationIndex}`}
+                        style={{ padding: '6px 14px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}
+                      >
+                        Add photos
+                      </label>
+                      {(() => {
+                        const photos = currentLocation.photos || (currentLocation.photo ? [currentLocation.photo] : []);
+                        if (photos.length === 0) return null;
                         return (
-                          <>
-                            <img 
-                              src={currentPhoto} 
-                              alt="Location preview" 
-                              style={{ 
-                                width: '100%', 
-                                height: '100%', 
-                                objectFit: 'cover',
-                                objectPosition: 'center'
-                              }} 
-                            />
-                            <div style={{
-                              position: 'absolute',
-                              top: '8px',
-                              left: '8px',
-                              backgroundColor: 'rgba(17, 24, 39, 0.75)',
-                              color: '#fff',
-                              fontSize: '12px',
-                              padding: '3px 8px',
-                              borderRadius: '999px'
-                            }}>
-                              Cover photo
-                            </div>
-                            {photos.length > 1 && (
-                              <div style={{
-                                position: 'absolute',
-                                bottom: '8px',
-                                left: '50%',
-                                transform: 'translateX(-50%)',
-                                display: 'flex',
-                                gap: '4px'
-                              }}>
-                                {photos.map((_, index) => (
-                                  <div
-                                    key={index}
-                                    style={{
-                                      width: index === 0 ? '20px' : '6px',
-                                      height: '6px',
-                                      borderRadius: '3px',
-                                      backgroundColor: index === 0 ? '#3b82f6' : '#d1d5db',
-                                      transition: 'all 0.3s ease'
-                                    }}
-                                  />
-                                ))}
-                              </div>
-                            )}
-                          </>
+                          <button
+                            type="button"
+                            onClick={() => updateCurrentLocation({ photos: [], photo: undefined })}
+                            style={{ padding: '6px 14px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}
+                          >
+                            Remove all
+                          </button>
                         );
-                      }
-                      return <span style={{ color: '#6b7280' }}>No photos selected</span>;
-                    })()}
+                      })()}
+                    </div>
                   </div>
 
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={async (e) => {
-                      const files = Array.from(e.target.files || []);
-                      if (files.length > 0 && onImageUpload) {
-                        // Upload all files
-                        const uploadPromises = files.map(file => 
-                          new Promise((resolve) => {
-                            onImageUpload(file, (base64) => {
-                              resolve(base64);
-                            });
-                          })
-                        );
-                        
-                        const uploadedPhotos = await Promise.all(uploadPromises);
-                        const existingPhotos = currentLocation.photos || (currentLocation.photo ? [currentLocation.photo] : []);
-                        updateCurrentLocation({ 
-                          photos: [...existingPhotos, ...uploadedPhotos],
-                          photo: undefined // Remove old single photo field
-                        });
-                      }
-                    }}
-                    style={{ display: 'none' }}
-                    id={`location-photos-upload-${block.id}-${editingLocationIndex === null ? 'main' : editingLocationIndex}`}
-                  />
-                  <label
-                    htmlFor={`location-photos-upload-${block.id}-${editingLocationIndex === null ? 'main' : editingLocationIndex}`}
-                    style={{
-                      display: 'inline-block',
-                      padding: '10px 20px',
-                      backgroundColor: '#3b82f6',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      marginBottom: '8px',
-                      marginRight: '8px'
-                    }}
-                  >
-                    Add photos
-                  </label>
-
-                  {/* Per-photo controls for order + delete */}
                   {(() => {
                     const photos = currentLocation.photos || (currentLocation.photo ? [currentLocation.photo] : []);
                     if (photos.length === 0) return null;
-
                     const movePhoto = (fromIndex, toIndex) => {
                       if (toIndex < 0 || toIndex >= photos.length) return;
                       const updated = [...photos];
                       const [moved] = updated.splice(fromIndex, 1);
                       updated.splice(toIndex, 0, moved);
-                      updateCurrentLocation({
-                        photos: updated,
-                        photo: undefined
-                      });
+                      updateCurrentLocation({ photos: updated, photo: undefined });
                     };
-
                     const removePhotoAt = (indexToRemove) => {
                       const updated = photos.filter((_, idx) => idx !== indexToRemove);
-                      updateCurrentLocation({
-                        photos: updated,
-                        photo: undefined
-                      });
+                      updateCurrentLocation({ photos: updated, photo: undefined });
                     };
-
                     return (
-                      <div style={{
-                        marginBottom: '12px',
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(118px, 1fr))',
-                        gap: '10px'
-                      }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '8px' }}>
                         {photos.map((photo, index) => (
-                          <div
-                            key={`${index}-${photo?.slice?.(0, 30) || 'photo'}`}
-                            style={{
-                              border: '1px solid #e5e7eb',
-                              borderRadius: '8px',
-                              padding: '6px',
-                              backgroundColor: '#fff'
-                            }}
-                          >
-                            <img
-                              src={refreshPhotoUrl(photo)}
-                              alt={`Location photo ${index + 1}`}
-                              style={{
-                                width: '100%',
-                                height: '72px',
-                                borderRadius: '6px',
-                                objectFit: 'cover',
-                                marginBottom: '6px'
-                              }}
-                            />
-                            <div style={{
-                              fontSize: '11px',
-                              color: '#6b7280',
-                              marginBottom: '6px',
-                              textAlign: 'center',
-                              fontWeight: index === 0 ? '600' : '400'
-                            }}>
+                          <div key={`${index}-${photo?.slice?.(0, 30) || 'photo'}`} style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '5px', backgroundColor: '#fff' }}>
+                            <img src={refreshPhotoUrl(photo)} alt={`Photo ${index + 1}`} style={{ width: '100%', height: '60px', borderRadius: '5px', objectFit: 'cover', marginBottom: '4px' }} />
+                            <div style={{ fontSize: '10px', color: '#6b7280', marginBottom: '4px', textAlign: 'center', fontWeight: index === 0 ? '600' : '400' }}>
                               {index === 0 ? '1 (cover)' : index + 1}
                             </div>
-                            <div style={{ display: 'flex', gap: '4px' }}>
-                              <button
-                                type="button"
-                                onClick={() => movePhoto(index, index - 1)}
-                                disabled={index === 0}
-                                style={{
-                                  flex: 1,
-                                  border: '1px solid #d1d5db',
-                                  borderRadius: '6px',
-                                  backgroundColor: index === 0 ? '#f3f4f6' : '#fff',
-                                  color: index === 0 ? '#9ca3af' : '#111827',
-                                  cursor: index === 0 ? 'not-allowed' : 'pointer',
-                                  fontSize: '11px',
-                                  padding: '4px 0'
-                                }}
-                              >
-                                ←
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => movePhoto(index, index + 1)}
-                                disabled={index === photos.length - 1}
-                                style={{
-                                  flex: 1,
-                                  border: '1px solid #d1d5db',
-                                  borderRadius: '6px',
-                                  backgroundColor: index === photos.length - 1 ? '#f3f4f6' : '#fff',
-                                  color: index === photos.length - 1 ? '#9ca3af' : '#111827',
-                                  cursor: index === photos.length - 1 ? 'not-allowed' : 'pointer',
-                                  fontSize: '11px',
-                                  padding: '4px 0'
-                                }}
-                              >
-                                →
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => removePhotoAt(index)}
-                                style={{
-                                  flex: 1,
-                                  border: '1px solid #fecaca',
-                                  borderRadius: '6px',
-                                  backgroundColor: '#fff5f5',
-                                  color: '#dc2626',
-                                  cursor: 'pointer',
-                                  fontSize: '11px',
-                                  padding: '4px 0'
-                                }}
-                              >
-                                ✕
-                              </button>
+                            <div style={{ display: 'flex', gap: '3px' }}>
+                              <button type="button" onClick={() => movePhoto(index, index - 1)} disabled={index === 0}
+                                style={{ flex: 1, border: '1px solid #d1d5db', borderRadius: '5px', backgroundColor: index === 0 ? '#f3f4f6' : '#fff', color: index === 0 ? '#9ca3af' : '#111827', cursor: index === 0 ? 'not-allowed' : 'pointer', fontSize: '10px', padding: '3px 0' }}>←</button>
+                              <button type="button" onClick={() => movePhoto(index, index + 1)} disabled={index === photos.length - 1}
+                                style={{ flex: 1, border: '1px solid #d1d5db', borderRadius: '5px', backgroundColor: index === photos.length - 1 ? '#f3f4f6' : '#fff', color: index === photos.length - 1 ? '#9ca3af' : '#111827', cursor: index === photos.length - 1 ? 'not-allowed' : 'pointer', fontSize: '10px', padding: '3px 0' }}>→</button>
+                              <button type="button" onClick={() => removePhotoAt(index)}
+                                style={{ flex: 1, border: '1px solid #fecaca', borderRadius: '5px', backgroundColor: '#fff5f5', color: '#dc2626', cursor: 'pointer', fontSize: '10px', padding: '3px 0' }}>✕</button>
                             </div>
                           </div>
                         ))}
                       </div>
                     );
                   })()}
-
-                  {/* Remove photos button */}
-                  {(() => {
-                    const photos = currentLocation.photos || (currentLocation.photo ? [currentLocation.photo] : []);
-                    if (photos.length > 0) {
-                      return (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            updateCurrentLocation({ 
-                              photos: [],
-                              photo: undefined
-                            });
-                          }}
-                          style={{
-                            display: 'inline-block',
-                            padding: '10px 20px',
-                            backgroundColor: '#ef4444',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            marginBottom: '8px'
-                          }}
-                        >
-                          Remove all photos
-                        </button>
-                      );
-                    }
-                    return null;
-                  })()}
-
-                  <p style={{ fontSize: '12px', color: '#6b7280', margin: '4px 0 0 0' }}>
-                    JPG, PNG or GIF. Max size 5MB per image. You can select multiple photos at once. The first photo is used as the main cover.
-                  </p>
                 </div>
 
                 {/* Location Description */}
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
-                    Location Description
+                <div style={{ marginBottom: '14px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>
+                    Description
                     <HintButton hintKey="locationDescription" />
                   </label>
                   <textarea
                     value={currentLocation.description || ''}
                     onChange={(e) => updateCurrentLocation({ description: e.target.value })}
                     placeholder="Describe this location..."
-                    rows={4}
+                    rows={3}
                     style={{
                       width: '100%',
-                      padding: '12px',
+                      padding: '8px 10px',
                       border: '1px solid #d1d5db',
                       borderRadius: '8px',
-                      fontSize: '16px',
+                      fontSize: '14px',
                       resize: 'vertical',
                       boxSizing: 'border-box',
                       fontFamily: 'inherit'
@@ -7104,22 +7024,22 @@ function BlockEditorModal({ block, onClose, onSave, onDelete, onImageUpload, onO
                 </div>
 
                 {/* Recommendations */}
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontWeight: '500' }}>
+                <div style={{ marginBottom: '14px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>
                     Recommendation
                     <HintButton hintKey="locationRecommendation" />
                   </label>
                   <textarea
                     value={currentLocation.recommendations || ''}
                     onChange={(e) => updateCurrentLocation({ recommendations: e.target.value })}
-                    placeholder="Recommendations (tips, best time to visit, what to try, etc.)"
-                    rows={4}
+                    placeholder="Tips, best time to visit, what to try…"
+                    rows={3}
                     style={{
                       width: '100%',
-                      padding: '12px',
+                      padding: '8px 10px',
                       border: '1px solid #d1d5db',
                       borderRadius: '8px',
-                      fontSize: '16px',
+                      fontSize: '14px',
                       resize: 'vertical',
                       boxSizing: 'border-box',
                       fontFamily: 'inherit'

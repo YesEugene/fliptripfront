@@ -10,13 +10,16 @@ import { getGuideTours, deleteTour } from '../../tours-database';
 import { getGuideProfile, updateGuideProfile } from '../../../modules/guide-profile';
 import AvailabilityManager from '../components/AvailabilityManager';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
+import GuideDashboardIntro from './GuideDashboardIntro';
+import '../../../pages/ExplorePage.css';
+import './GuideDashboardPage.css';
 
 export default function GuideDashboardPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('tours'); // 'tours', 'profile', 'statistics'
+  const [activeTab, setActiveTab] = useState('intro'); // 'intro', 'tours', 'profile', 'statistics'
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [availabilityTour, setAvailabilityTour] = useState(null); // Tour for which to manage availability
   const [tourBlockCounts, setTourBlockCounts] = useState({}); // Cache for block counts
@@ -327,39 +330,6 @@ export default function GuideDashboardPage() {
     return 0;
   };
 
-  // Helper function to get location count from tour structure
-  const getLocationCount = (tour) => {
-    // Count locations from daily_plan structure
-    if (tour.daily_plan && Array.isArray(tour.daily_plan)) {
-      let locationCount = 0;
-      tour.daily_plan.forEach(day => {
-        if (day.blocks && Array.isArray(day.blocks)) {
-          day.blocks.forEach(block => {
-            if (block.items && Array.isArray(block.items)) {
-              locationCount += block.items.length;
-            }
-          });
-        }
-      });
-      return locationCount;
-    }
-    // Try to get from tour_days structure (if API returns it)
-    if (tour.tour_days && Array.isArray(tour.tour_days)) {
-      let locationCount = 0;
-      tour.tour_days.forEach(day => {
-        if (day.tour_blocks && Array.isArray(day.tour_blocks)) {
-          day.tour_blocks.forEach(block => {
-            if (block.tour_items && Array.isArray(block.tour_items)) {
-              locationCount += block.tour_items.length;
-            }
-          });
-        }
-      });
-      return locationCount;
-    }
-    return 0;
-  };
-
   // Helper function to format duration (same logic as homepage)
   // If tour is 1 day, show hours. If more than 1 day, show days.
   const formatDuration = (tour) => {
@@ -420,184 +390,80 @@ export default function GuideDashboardPage() {
     return <div>Loading...</div>;
   }
 
+  const displayName = user.name || 'User';
+  const avatarSrc = profileData?.avatar ? String(profileData.avatar).trim() : '';
+
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-      {/* Header - Full width */}
-      <div style={{
-        backgroundColor: 'white',
-        borderBottom: '1px solid #e5e7eb',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        width: '100%',
-        margin: 0,
-        padding: 0
-      }}>
-        <div style={{
-          maxWidth: '100%',
-          width: '100%',
-          margin: '0 auto',
-          padding: '16px 20px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          boxSizing: 'border-box'
-        }}>
-          <Link to="/" style={{ textDecoration: 'none' }}>
-            <img src={FlipTripLogo} alt="FlipTrip" style={{ height: '40px' }} />
+    <main className="explore-page guide-dashboard">
+      <header className="guide-dashboard-header">
+        <div className="guide-dashboard-header-inner">
+          <Link to="/" className="explore-logo-link" aria-label="FlipTrip home">
+            <img src={FlipTripLogo} alt="FlipTrip" className="explore-logo" />
           </Link>
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <span style={{ color: '#374151', fontSize: '16px', fontWeight: '500' }}>
-              {user.name || 'User'}
-            </span>
-            <button
-              onClick={handleLogout}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#ef4444',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '500',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#dc2626'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#ef4444'}
-            >
+          <h1 className="guide-dashboard-header-title">Guide dashboard</h1>
+          <div className="guide-dashboard-header-user">
+            {avatarSrc ? (
+              <img src={avatarSrc} alt="" className="guide-dashboard-avatar" />
+            ) : (
+              <span className="guide-dashboard-avatar-fallback" aria-hidden>
+                {displayName.trim().charAt(0).toUpperCase() || '?'}
+              </span>
+            )}
+            <span className="guide-dashboard-user">{displayName}</span>
+            <button type="button" className="guide-dashboard-logout" onClick={handleLogout}>
               Logout
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Content */}
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 20px', width: '100%' }}>
-        {/* Title */}
-        <h1 style={{ 
-          fontSize: '32px', 
-          fontWeight: 'bold', 
-          color: '#111827',
-          marginBottom: '24px'
-        }}>
-          Guide dashboard
-        </h1>
-
-        {/* Tabs */}
-        <div style={{ 
-          display: 'flex', 
-          gap: '8px', 
-          marginBottom: '24px',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          <button
-            onClick={() => setActiveTab('tours')}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: activeTab === 'tours' ? '#111827' : 'white',
-              color: activeTab === 'tours' ? 'white' : '#111827',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '16px',
-              fontWeight: '500',
-              transition: 'all 0.2s',
-              boxShadow: activeTab === 'tours' ? 'none' : '0 1px 2px rgba(0,0,0,0.1)'
-            }}
-            onMouseEnter={(e) => {
-              if (activeTab !== 'tours') {
-                e.target.style.backgroundColor = '#f3f4f6';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeTab !== 'tours') {
-                e.target.style.backgroundColor = 'white';
-              }
-            }}
-          >
-            My tours
-          </button>
-          <button
-            onClick={() => setActiveTab('profile')}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: activeTab === 'profile' ? '#111827' : 'white',
-              color: activeTab === 'profile' ? 'white' : '#111827',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '16px',
-              fontWeight: '500',
-              transition: 'all 0.2s',
-              boxShadow: activeTab === 'profile' ? 'none' : '0 1px 2px rgba(0,0,0,0.1)'
-            }}
-            onMouseEnter={(e) => {
-              if (activeTab !== 'profile') {
-                e.target.style.backgroundColor = '#f3f4f6';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeTab !== 'profile') {
-                e.target.style.backgroundColor = 'white';
-              }
-            }}
-          >
-            Profile
-          </button>
-          <button
-            onClick={() => setActiveTab('statistics')}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: activeTab === 'statistics' ? '#111827' : 'white',
-              color: activeTab === 'statistics' ? 'white' : '#111827',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '16px',
-              fontWeight: '500',
-              transition: 'all 0.2s',
-              boxShadow: activeTab === 'statistics' ? 'none' : '0 1px 2px rgba(0,0,0,0.1)'
-            }}
-            onMouseEnter={(e) => {
-              if (activeTab !== 'statistics') {
-                e.target.style.backgroundColor = '#f3f4f6';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeTab !== 'statistics') {
-                e.target.style.backgroundColor = 'white';
-              }
-            }}
-          >
-            Statistics
-          </button>
+      <div className="guide-dashboard-main">
+        <div className="guide-dashboard-toolbar">
+          <div className="guide-dashboard-tabs" role="tablist" aria-label="Dashboard sections">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'intro'}
+              className={`guide-dashboard-tab${activeTab === 'intro' ? ' guide-dashboard-tab--active' : ''}`}
+              onClick={() => setActiveTab('intro')}
+            >
+              Intro
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'tours'}
+              className={`guide-dashboard-tab${activeTab === 'tours' ? ' guide-dashboard-tab--active' : ''}`}
+              onClick={() => setActiveTab('tours')}
+            >
+              My tours
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'profile'}
+              className={`guide-dashboard-tab${activeTab === 'profile' ? ' guide-dashboard-tab--active' : ''}`}
+              onClick={() => setActiveTab('profile')}
+            >
+              Profile
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'statistics'}
+              className={`guide-dashboard-tab${activeTab === 'statistics' ? ' guide-dashboard-tab--active' : ''}`}
+              onClick={() => setActiveTab('statistics')}
+            >
+              Statistics
+            </button>
           </div>
-          
-          {/* Action buttons - visible only on My tours tab */}
-          {activeTab === 'tours' && (
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+
+          {(activeTab === 'tours' || activeTab === 'intro') && (
+            <div className="guide-dashboard-actions">
               <button
+                type="button"
+                className="guide-dashboard-btn-visualizer"
                 onClick={() => navigate('/guide/tours/visualizer')}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#10b981',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: '500',
-                  transition: 'all 0.2s',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#059669';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = '#10b981';
-                }}
               >
                 Trip Visualizer
               </button>
@@ -605,19 +471,16 @@ export default function GuideDashboardPage() {
           )}
         </div>
 
+        {activeTab === 'intro' && (
+          <div className="guide-dashboard-intro-wrap">
+            <GuideDashboardIntro />
+          </div>
+        )}
+
         {/* Tab Content */}
         {activeTab === 'tours' && (
           <>
-            {/* Total tours count */}
-            <div style={{ marginBottom: '20px' }}>
-              <p style={{ 
-                color: '#6b7280', 
-                fontSize: '16px',
-                margin: 0
-              }}>
-                Total tours: {tours.length}
-              </p>
-            </div>
+            <p className="guide-dashboard-muted">Total tours: {tours.length}</p>
 
             {/* Tours Grid */}
             {loading ? (
@@ -629,31 +492,14 @@ export default function GuideDashboardPage() {
                 Loading...
               </div>
             ) : tours.length === 0 ? (
-              <div style={{ 
-                backgroundColor: 'white',
-                borderRadius: '12px',
-                padding: '40px',
-                textAlign: 'center',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-              }}>
-                <p style={{ color: '#6b7280', fontSize: '16px', marginBottom: '20px' }}>
+              <div className="guide-dashboard-card" style={{ textAlign: 'center', padding: '40px 24px' }}>
+                <p style={{ color: '#555', fontSize: '16px', marginBottom: '20px' }}>
                   No tours yet. Create your first tour!
                 </p>
                 <Link
                   to="/guide/tours/visualizer"
-                  style={{
-                    display: 'inline-block',
-                    padding: '12px 24px',
-                    backgroundColor: '#10b981',
-                    color: 'white',
-                    borderRadius: '8px',
-                    textDecoration: 'none',
-                    fontWeight: '600',
-                    fontSize: '16px',
-                    transition: 'background-color 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = '#10b981'}
+                  className="guide-dashboard-btn-visualizer"
+                  style={{ display: 'inline-block', textDecoration: 'none' }}
                 >
                   Trip Visualizer
                 </Link>
@@ -666,22 +512,19 @@ export default function GuideDashboardPage() {
                 marginBottom: '32px'
               }}>
                 {tours.map((tour) => {
-                  const locationCount = getLocationCount(tour);
                   return (
                     <div 
                       key={tour.id} 
+                      className="guide-dashboard-card"
                       style={{
-                        backgroundColor: 'white',
-                        borderRadius: '12px',
                         padding: '20px',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                         transition: 'box-shadow 0.2s',
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '16px'
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)'}
-                      onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)'}
+                      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.06)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'none'; }}
                     >
                       {/* Tour Title */}
                       <h3 style={{ 
@@ -750,17 +593,18 @@ export default function GuideDashboardPage() {
                             flex: 1,
                             minWidth: '80px',
                             padding: '10px 16px',
-                            backgroundColor: '#10b981',
+                            backgroundColor: '#1c1c1b',
                             color: 'white',
-                            borderRadius: '8px',
+                            borderRadius: '0',
                             textDecoration: 'none',
-                            fontSize: '14px',
-                            fontWeight: '500',
+                            fontSize: '13px',
+                            fontWeight: '600',
                             textAlign: 'center',
-                            transition: 'background-color 0.2s'
+                            transition: 'opacity 0.2s',
+                            fontFamily: "'Urbanist', Inter, system-ui, sans-serif"
                           }}
-                          onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
-                          onMouseLeave={(e) => e.target.style.backgroundColor = '#10b981'}
+                          onMouseEnter={(e) => { e.target.style.opacity = '0.88'; }}
+                          onMouseLeave={(e) => { e.target.style.opacity = '1'; }}
                         >
                           View
                         </Link>
@@ -770,17 +614,25 @@ export default function GuideDashboardPage() {
                             flex: 1,
                             minWidth: '80px',
                             padding: '10px 16px',
-                            backgroundColor: '#3b82f6',
-                            color: 'white',
-                            borderRadius: '8px',
+                            backgroundColor: 'transparent',
+                            color: '#1c1c1b',
+                            border: '1px solid #1c1c1b',
+                            borderRadius: '0',
                             textDecoration: 'none',
-                            fontSize: '14px',
-                            fontWeight: '500',
+                            fontSize: '13px',
+                            fontWeight: '600',
                             textAlign: 'center',
-                            transition: 'background-color 0.2s'
+                            transition: 'background 0.2s, color 0.2s',
+                            fontFamily: "'Urbanist', Inter, system-ui, sans-serif"
                           }}
-                          onMouseEnter={(e) => e.target.style.backgroundColor = '#2563eb'}
-                          onMouseLeave={(e) => e.target.style.backgroundColor = '#3b82f6'}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = '#1c1c1b';
+                            e.target.style.color = '#fff';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = 'transparent';
+                            e.target.style.color = '#1c1c1b';
+                          }}
                         >
                           Edit
                         </Link>
@@ -1595,6 +1447,13 @@ export default function GuideDashboardPage() {
         )}
       </div>
 
+      <footer className="explore-footer">
+        <img src={FlipTripLogo} alt="FlipTrip" className="explore-footer-logo" />
+        <Link to="/about" style={{ color: 'inherit', textDecoration: 'inherit' }}><h4>About project</h4></Link>
+        <Link to="/become-local" style={{ color: 'inherit', textDecoration: 'inherit' }}><h4>Locals</h4></Link>
+        <span>© flip-trip 2026</span>
+      </footer>
+
       {/* Availability Manager Modal */}
       {availabilityTour && (
         <AvailabilityManager
@@ -1602,6 +1461,6 @@ export default function GuideDashboardPage() {
           onClose={() => setAvailabilityTour(null)}
         />
       )}
-    </div>
+    </main>
   );
 }

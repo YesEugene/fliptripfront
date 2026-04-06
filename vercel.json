@@ -118,6 +118,17 @@
       ],
       "destination": "/api/seo-render?route=tour&slug=:slug"
     },
+    {
+      "source": "/tours/:city/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Gg]ooglebot|[Gg]oogle-[Ii]nspection[Tt]ool|[Gg]oogle[Oo]ther|[Aa]ds[Bb]ot-[Gg]oogle|[Aa]pi[sS]-[Gg]oogle|[Mm]ediapartners-[Gg]oogle|[Bb]ingbot|[Yy]andex|[Bb]aiduspider|[Dd]uck[Dd]uck[Bb]ot|[Ss]lurp|facebookexternalhit|[Ff]acebot|[Tt]witterbot|[Ll]inked[Ii]n[Bb]ot|[Rr]ogerbot|[Aa]pplebot|[Ww]hats[Aa]pp|[Tt]elegram[Bb]ot|[Dd]iscord[Bb]ot|[Cc]rawler|[Ss]pider|[Bb]ot).*"
+        }
+      ],
+      "destination": "/api/seo-render?route=tours-clean&city=:city&slug=:slug"
+    },
     { "source": "/(.*)", "destination": "/_spa.html" }
   ]
 }

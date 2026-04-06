@@ -322,36 +322,54 @@ export default function AdminDashboardPage() {
               </Link>
 
               {/* Revenue Card */}
-              <div style={{
-            backgroundColor: 'white',
-            padding: '28px',
-            borderRadius: '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: '20px'
-          }}>
-            <div style={{ fontSize: '20px', lineHeight: '1' }}>💰</div>
-            <div style={{ flex: 1 }}>
-              <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '10px', color: '#1f2937', lineHeight: '1.3' }}>
-                Revenue
-              </h3>
-              <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '16px', lineHeight: '1.5' }}>
-                Making money is awesome
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ fontSize: '15px', color: '#374151', lineHeight: '1.5' }}>
-                  Total revenue: <strong style={{ color: '#10b981', fontSize: '18px', fontWeight: '600' }}>${(stats.revenue?.total || 0).toFixed(2)}</strong>
+              <Link
+                to="/admin/revenue"
+                style={{
+                  backgroundColor: 'white',
+                  padding: '28px',
+                  borderRadius: '12px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                  border: '2px solid transparent',
+                  transition: 'all 0.2s',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#3b82f6';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'transparent';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                }}
+              >
+                <div style={{ fontSize: '20px', lineHeight: '1' }}>💰</div>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '10px', color: '#1f2937', lineHeight: '1.3' }}>
+                    Revenue
+                  </h3>
+                  <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '16px', lineHeight: '1.5' }}>
+                    View all purchases and revenue
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ fontSize: '15px', color: '#374151', lineHeight: '1.5' }}>
+                      Total revenue: <strong style={{ color: '#10b981', fontSize: '18px', fontWeight: '600' }}>€{(stats.revenue?.total || 0).toFixed(2)}</strong>
+                    </div>
+                    <div style={{ fontSize: '15px', color: '#374151', lineHeight: '1.5' }}>
+                      Total PDF sales: <strong style={{ color: '#8b5cf6', fontWeight: '600' }}>€{(stats.revenue?.pdf || 0).toFixed(2)}</strong> ({stats.sales?.pdf || 0} sales)
+                    </div>
+                    <div style={{ fontSize: '15px', color: '#374151', lineHeight: '1.5' }}>
+                      Total guided sales: <strong style={{ color: '#3b82f6', fontWeight: '600' }}>€{(stats.revenue?.guided || 0).toFixed(2)}</strong> ({stats.sales?.guided || 0} sales)
+                    </div>
+                  </div>
                 </div>
-                <div style={{ fontSize: '15px', color: '#374151', lineHeight: '1.5' }}>
-                  Total PDF sales: <strong style={{ color: '#8b5cf6', fontWeight: '600' }}>${(stats.revenue?.pdf || 0).toFixed(2)}</strong> ({stats.sales?.pdf || 0} sales)
-                </div>
-                <div style={{ fontSize: '15px', color: '#374151', lineHeight: '1.5' }}>
-                  Total guided sales: <strong style={{ color: '#3b82f6', fontWeight: '600' }}>${(stats.revenue?.guided || 0).toFixed(2)}</strong> ({stats.sales?.guided || 0} sales)
-                </div>
-              </div>
-            </div>
-          </div>
+              </Link>
         </div>
 
         {/* Statistics Row 3: Additional Stats */}
