@@ -89,11 +89,11 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 16px;
   margin-bottom: 50px;
   min-height: 44px;
-  padding: 0 4px;
+  padding: 0;
   box-sizing: border-box;
 }
 
@@ -388,7 +388,7 @@
     position: static;
     transform: none;
     width: 100%;
-    justify-content: center;
+    justify-content: flex-start;
     margin-top: 12px;
   }
 }
