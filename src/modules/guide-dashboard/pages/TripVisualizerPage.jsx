@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams, useLocation, Link } from 'react-router-dom';
 import { getCurrentUser } from '../../auth/services/authService';
 
 /**
@@ -50,12 +50,17 @@ import GoogleMapsLocationSelector from '../components/GoogleMapsLocationSelector
 import { DEFAULT_SELF_GUIDED_PRICE } from '../../../constants/pricing';
 import { buildPdfBlobFromStyledPreviewHtml } from '../../../utils/styledTourPdfClient';
 import { formatTourLastUpdatedLabel } from '../../../utils/tourLastUpdated';
+import '../../../pages/ExplorePage.css';
+import './GuideDashboardPage.css';
 
 /** Same as public itinerary / Explore (ItineraryPage.css `.itinerary-container`, ExplorePage) */
 const VISUALIZER_PAGE_BG = '#fcfbf9';
 
 /** Match guide dashboard content width (GuideDashboardPage.css --guide-max) */
 const VISUALIZER_CONTENT_MAX_WIDTH = 800;
+
+/** First “Header” block border (design) */
+const VISUALIZER_HEADER_BLOCK_BORDER = '#B9B9B9';
 
 // Category name translations
 const CATEGORY_NAMES = {
@@ -122,8 +127,10 @@ export default function TripVisualizerPage() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const visualizerPathWithQuery = useCallback(
-    (id) => {
-      const q = searchParams.toString();
+    (id, options = {}) => {
+      const params = new URLSearchParams(searchParams);
+      if (options.newTour) params.set('newTour', '1');
+      const q = params.toString();
       return `/guide/tours/visualizer/${id}${q ? `?${q}` : ''}`;
     },
     [searchParams]
@@ -263,7 +270,13 @@ export default function TripVisualizerPage() {
       } catch {}
     }
     setStep1HintDismissed(true);
-  }, [tourId]);
+    if (tourId) {
+      const params = new URLSearchParams(searchParams);
+      params.delete('newTour');
+      const q = params.toString();
+      navigate(`/guide/tours/visualizer/${tourId}${q ? `?${q}` : ''}`, { replace: true });
+    }
+  }, [tourId, navigate, searchParams]);
   const [showImageCrop, setShowImageCrop] = useState(false);
   const [imageToCrop, setImageToCrop] = useState(null);
 
@@ -1305,7 +1318,7 @@ export default function TripVisualizerPage() {
         if (data.success && data.tour) {
           // Update URL with new tour ID
           const newTourId = data.tour.id;
-          navigate(visualizerPathWithQuery(newTourId), { replace: true });
+          navigate(visualizerPathWithQuery(newTourId, { newTour: true }), { replace: true });
           setTour(data.tour);
           // Update tourId in state by reloading tour
           await loadTour(newTourId);
@@ -1721,7 +1734,7 @@ export default function TripVisualizerPage() {
       if (data.success && data.tour) {
         const newTourId = data.tour.id;
         // Update URL with new tour ID
-        navigate(visualizerPathWithQuery(newTourId), { replace: true });
+        navigate(visualizerPathWithQuery(newTourId, { newTour: true }), { replace: true });
         setTour(data.tour);
         return newTourId;
       } else {
@@ -2442,36 +2455,23 @@ export default function TripVisualizerPage() {
             100% { background-position: -100% 0; }
           }
         `}</style>
-        {/* Skeleton Header */}
-        <div style={{
-          backgroundColor: VISUALIZER_PAGE_BG,
-          borderBottom: '1px solid #e5e7eb',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          width: '100%',
-          padding: '16px 20px',
-          boxSizing: 'border-box',
-        }}>
-          <div style={{
-            maxWidth: VISUALIZER_CONTENT_MAX_WIDTH,
-            margin: '0 auto',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <img src={FlipTripLogo} alt="FlipTrip" style={{ height: '40px' }} />
-              <div style={{ ...skeletonBlock, width: '110px', height: '24px' }} />
+        <header className="guide-dashboard-header">
+          <div className="guide-dashboard-header-inner" style={{ maxWidth: VISUALIZER_CONTENT_MAX_WIDTH }}>
+            <div style={{ ...skeletonBlock, width: '88px', height: '32px' }} />
+            <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+              <div style={{ ...skeletonBlock, width: '90px', height: '16px' }} />
             </div>
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <div style={{ ...skeletonBlock, width: '70px', height: '16px' }} />
-              <div style={{ ...skeletonBlock, width: '140px', height: '36px', borderRadius: '8px' }} />
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexShrink: 0 }}>
+              <div style={{ ...skeletonBlock, width: '28px', height: '28px', borderRadius: '50%' }} />
+              <div style={{ ...skeletonBlock, width: '52px', height: '12px' }} />
+              <div style={{ ...skeletonBlock, width: '110px', height: '28px', borderRadius: 0 }} />
             </div>
           </div>
-        </div>
+        </header>
         {/* Skeleton Content */}
         <div style={{ maxWidth: VISUALIZER_CONTENT_MAX_WIDTH, margin: '0 auto', padding: '40px 20px' }}>
           {/* Hero image skeleton */}
-          <div style={{ ...skeletonBlock, width: '100%', height: '320px', borderRadius: '12px', marginBottom: '20px' }} />
+          <div style={{ ...skeletonBlock, width: '100%', height: '320px', borderRadius: 0, marginBottom: '20px' }} />
           {/* Title */}
           <div style={{ ...skeletonBlock, width: '55%', height: '28px', marginBottom: '10px' }} />
           {/* City */}
@@ -2505,17 +2505,22 @@ export default function TripVisualizerPage() {
 
   const visualizerLocationLabel = tourInfo.city?.trim() ? tourInfo.city : null;
   const guideDisplayName = guideProfile?.name || user?.name || 'Author';
+  const headerDisplayName = (user?.name || 'User').trim();
+  const headerAvatarSrc = (guideProfile?.avatar && String(guideProfile.avatar).trim()) || (user?.avatar && String(user.avatar).trim()) || '';
+
+  /** Onboarding hint: only right after creating a tour (?newTour=1), until dismissed (stored per tour). */
+  const showStep1Hint = searchParams.get('newTour') === '1' && !!tourId && !step1HintDismissed;
 
   const visualizerHeroBlock = (
         <div style={{
           position: 'relative',
           width: '100%',
           height: '320px',
-          borderRadius: '12px',
+          borderRadius: 0,
           overflow: 'hidden',
           marginBottom: '0',
-          backgroundColor: tourInfo.preview ? 'transparent' : '#f3f4f6',
-          border: tourInfo.preview ? 'none' : '1px solid #e5e7eb',
+          backgroundColor: tourInfo.preview ? 'transparent' : VISUALIZER_PAGE_BG,
+          border: tourInfo.preview ? 'none' : `1px solid ${VISUALIZER_HEADER_BLOCK_BORDER}`,
           boxSizing: 'border-box'
         }}>
           {tourInfo.preview ? (
@@ -2539,14 +2544,14 @@ export default function TripVisualizerPage() {
         </div>
   );
 
-  const visualizerStep1HintBox = !step1HintDismissed ? (
+  const visualizerStep1HintBox = showStep1Hint ? (
     <div
       style={{
         maxWidth: '300px',
         padding: '10px 12px',
-        backgroundColor: '#f9fafb',
-        border: '1px solid #e5e7eb',
-        borderRadius: '8px',
+        backgroundColor: VISUALIZER_PAGE_BG,
+        border: `1px solid ${VISUALIZER_HEADER_BLOCK_BORDER}`,
+        borderRadius: 0,
         fontSize: '12px',
         lineHeight: 1.45,
         color: '#4b5563',
@@ -2695,7 +2700,7 @@ export default function TripVisualizerPage() {
             backgroundColor: '#FFDD00',
             color: '#111827',
             border: 'none',
-            borderRadius: '8px',
+            borderRadius: 0,
             cursor: 'pointer',
             fontSize: '13px',
             fontWeight: '700',
@@ -2744,7 +2749,7 @@ export default function TripVisualizerPage() {
                 backgroundColor: '#FFDD00',
                 color: '#111827',
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: 0,
                 cursor: 'pointer',
                 fontSize: '12px',
                 fontWeight: '700',
@@ -2867,69 +2872,30 @@ export default function TripVisualizerPage() {
           </div>
         </div>
       )}
-      {/* Header */}
-      <div style={{
-        backgroundColor: VISUALIZER_PAGE_BG,
-        borderBottom: '1px solid #e5e7eb',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        width: '100%',
-        margin: 0,
-        padding: 0
-      }}>
-        <div style={{
-          maxWidth: VISUALIZER_CONTENT_MAX_WIDTH,
-          width: '100%',
-          margin: '0 auto',
-          padding: '16px 20px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          boxSizing: 'border-box'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <img 
-              src={FlipTripLogo} 
-              alt="FlipTrip" 
-              style={{ height: '40px', cursor: 'pointer' }}
-              onClick={() => navigate('/')}
-            />
-            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: '#111827' }}>
-              Visualizer
-            </h1>
-          </div>
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <span style={{ color: '#374151', fontSize: '16px', fontWeight: '500' }}>
-              {user?.name || 'User'}
-            </span>
-            <button
-              type="button"
-              onClick={handleBackToDashboard}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: 'transparent',
-                color: '#111827',
-                border: '1px solid #111827',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '500',
-                transition: 'background-color 0.2s, border-color 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = '#f3f4f6';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = 'transparent';
-              }}
-            >
+      <header className="guide-dashboard-header">
+        <div className="guide-dashboard-header-inner" style={{ maxWidth: VISUALIZER_CONTENT_MAX_WIDTH }}>
+          <Link to="/" className="explore-logo-link" aria-label="FlipTrip home">
+            <img src={FlipTripLogo} alt="FlipTrip" className="explore-logo" />
+          </Link>
+          <h1 className="guide-dashboard-header-title">Visualizer</h1>
+          <div className="guide-dashboard-header-user">
+            {headerAvatarSrc ? (
+              <img src={headerAvatarSrc} alt="" className="guide-dashboard-avatar" />
+            ) : (
+              <span className="guide-dashboard-avatar-fallback" aria-hidden>
+                {headerDisplayName.charAt(0).toUpperCase() || '?'}
+              </span>
+            )}
+            <span className="guide-dashboard-user">{headerDisplayName}</span>
+            <button type="button" className="guide-dashboard-logout" onClick={handleBackToDashboard}>
               Back to Dashboard
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Main Content — desktop: 60px below top bar */}
-      <div style={{ maxWidth: VISUALIZER_CONTENT_MAX_WIDTH, margin: '0 auto', padding: isMobile ? '40px 20px' : '60px 20px 40px' }}>
+      <div style={{ maxWidth: VISUALIZER_CONTENT_MAX_WIDTH, margin: '0 auto', padding: isMobile ? '40px 20px' : '60px 24px 40px', boxSizing: 'border-box' }}>
         {/* Admin editing indicator */}
         {isEditingOtherTour && (
           <div style={{
@@ -2977,7 +2943,7 @@ export default function TripVisualizerPage() {
                   padding: '0 12px',
                   backgroundColor: 'white',
                   color: '#111827',
-                  borderRadius: '10px',
+                  borderRadius: 0,
                   fontSize: '12px',
                   fontWeight: '500',
                   display: 'flex',
@@ -2995,40 +2961,63 @@ export default function TripVisualizerPage() {
         <div style={{ marginBottom: '32px' }}>
           {(() => {
             const isPlaceholder = !tourInfo.description;
-            const text = tourInfo.description || 'This is where you describe your tour. Tell travelers what they\'ll discover, what makes this route unique, and why they should follow it.\n\nClick "Edit block" above to add your description.';
+            const line1 = 'This is where you describe your tour. Tell travelers what they\'ll discover, what makes this route unique, and why they should follow it.';
+            const line2 = 'Click \'Edit block\' above to add your description.';
             return (
               <div
                 style={{
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '10px',
-                  padding: '20px 22px',
-                  backgroundColor: '#ffffff',
+                  border: `1px solid ${VISUALIZER_HEADER_BLOCK_BORDER}`,
+                  borderRadius: 0,
+                  padding: '24px 28px',
+                  backgroundColor: VISUALIZER_PAGE_BG,
                   boxSizing: 'border-box',
                 }}
               >
                 <div
                   style={{
-                    fontSize: '11px',
+                    fontSize: '15px',
                     fontWeight: 600,
-                    letterSpacing: '0.06em',
-                    color: '#9ca3af',
-                    marginBottom: '12px',
-                    textTransform: 'uppercase',
+                    color: '#6b7280',
+                    marginBottom: '24px',
                   }}
                 >
                   Header
                 </div>
-                <p style={{
-                  fontSize: '18px',
-                  fontWeight: 500,
-                  color: isPlaceholder ? '#9ca3af' : '#374151',
-                  lineHeight: '1.55',
-                  margin: 0,
-                  whiteSpace: 'pre-line',
-                  fontStyle: isPlaceholder ? 'italic' : 'normal'
-                }}>
-                  {text}
-                </p>
+                {isPlaceholder ? (
+                  <>
+                    <p style={{
+                      fontSize: '18px',
+                      fontWeight: 500,
+                      color: '#9ca3af',
+                      lineHeight: 1.55,
+                      margin: '0 0 16px 0',
+                      fontStyle: 'italic',
+                    }}>
+                      {line1}
+                    </p>
+                    <p style={{
+                      fontSize: '18px',
+                      fontWeight: 500,
+                      color: '#9ca3af',
+                      lineHeight: 1.55,
+                      margin: 0,
+                      fontStyle: 'italic',
+                    }}>
+                      {line2}
+                    </p>
+                  </>
+                ) : (
+                  <p style={{
+                    fontSize: '18px',
+                    fontWeight: 500,
+                    color: '#374151',
+                    lineHeight: 1.55,
+                    margin: 0,
+                    whiteSpace: 'pre-line',
+                  }}>
+                    {tourInfo.description}
+                  </p>
+                )}
               </div>
             );
           })()}
@@ -3072,7 +3061,7 @@ export default function TripVisualizerPage() {
                 gap: '8px',
                 backgroundColor: VISUALIZER_PAGE_BG,
                 padding: '8px',
-                borderRadius: '10px',
+                borderRadius: 0,
                 boxShadow: '0px 1px 19px 0px rgba(0, 0, 0, 0.21)'
               }}
             >
@@ -3088,7 +3077,7 @@ export default function TripVisualizerPage() {
                       backgroundColor: (index === 0 || layoutBusy) ? '#e5e7eb' : '#3E85FC',
                       color: 'white',
                       border: 'none',
-                      borderRadius: '5px',
+                      borderRadius: 0,
                       cursor: (index === 0 || layoutBusy) ? 'not-allowed' : 'pointer',
                       fontSize: '16px',
                       fontWeight: '500',
@@ -3111,7 +3100,7 @@ export default function TripVisualizerPage() {
                       backgroundColor: (layoutBusy || index === blocks.length - 1 || (blocks[index + 1] && blocks[index + 1].block_type === 'map')) ? '#e5e7eb' : '#3E85FC',
                       color: 'white',
                       border: 'none',
-                      borderRadius: '5px',
+                      borderRadius: 0,
                       cursor: (layoutBusy || index === blocks.length - 1 || (blocks[index + 1] && blocks[index + 1].block_type === 'map')) ? 'not-allowed' : 'pointer',
                       fontSize: '16px',
                       fontWeight: '500',
@@ -3138,7 +3127,7 @@ export default function TripVisualizerPage() {
                     backgroundColor: layoutBusy ? '#e5e7eb' : '#FFDD00',
                     color: '#111827',
                     border: 'none',
-                    borderRadius: '5px',
+                    borderRadius: 0,
                     cursor: layoutBusy ? 'not-allowed' : 'pointer',
                     fontSize: '18px',
                     fontWeight: '600',
@@ -3160,7 +3149,7 @@ export default function TripVisualizerPage() {
                   backgroundColor: '#10b981',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '10px',
+                  borderRadius: 0,
                   cursor: 'pointer',
                   fontSize: '13px',
                   fontWeight: '500',
@@ -3181,7 +3170,7 @@ export default function TripVisualizerPage() {
                   backgroundColor: '#FFDD00',
                   color: '#111827',
                   border: 'none',
-                  borderRadius: '10px',
+                  borderRadius: 0,
                   cursor: 'pointer',
                   fontSize: '13px',
                   fontWeight: '500',
@@ -3206,7 +3195,7 @@ export default function TripVisualizerPage() {
                   backgroundColor: '#F66969',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '10px',
+                  borderRadius: 0,
                   cursor: 'pointer',
                   fontSize: '13px',
                   fontWeight: '500',
@@ -3350,7 +3339,7 @@ export default function TripVisualizerPage() {
                   backgroundColor: layoutBusy ? '#e5e7eb' : '#FFDD00',
                   color: '#111827',
                   border: 'none',
-                  borderRadius: '10px',
+                  borderRadius: 0,
                   cursor: layoutBusy ? 'not-allowed' : 'pointer',
                   fontSize: '14px',
                   fontWeight: '600',
@@ -3386,7 +3375,7 @@ export default function TripVisualizerPage() {
                     backgroundColor: isRefreshingPhotos ? '#dbeafe' : '#eff6ff',
                     color: '#2563eb',
                     border: '1px solid #93c5fd',
-                    borderRadius: '10px',
+                    borderRadius: 0,
                     cursor: isRefreshingPhotos ? 'wait' : 'pointer',
                     fontSize: '13px',
                     fontWeight: '500',
@@ -3415,7 +3404,7 @@ export default function TripVisualizerPage() {
                     : (lastDraftSavedAt ? '#d1fae5' : '#E9EBEF'),
                   color: '#111827',
                   border: 'none',
-                  borderRadius: '10px',
+                  borderRadius: 0,
                   cursor: (!isSavingDraft && !isSubmittingForModeration) ? 'pointer' : 'not-allowed',
                   fontSize: '14px',
                   fontWeight: '600',
@@ -3449,7 +3438,7 @@ export default function TripVisualizerPage() {
                   backgroundColor: 'white',
                   color: '#111827',
                   border: '1px solid #D5D7DC',
-                  borderRadius: '10px',
+                  borderRadius: 0,
                   cursor: 'pointer',
                   fontSize: '14px',
                   fontWeight: '600',
@@ -3482,7 +3471,7 @@ export default function TripVisualizerPage() {
                   backgroundColor: 'white',
                   color: '#111827',
                   border: '1px solid #D5D7DC',
-                  borderRadius: '10px',
+                  borderRadius: 0,
                   cursor: 'pointer',
                   fontSize: '14px',
                   fontWeight: '600',
