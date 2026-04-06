@@ -6,6 +6,8 @@ import { Link } from 'react-router-dom';
 import introMain from '../../../assets/guide-author/intro-main.png';
 import introMap from '../../../assets/guide-author/intro-map.png';
 import introPhone from '../../../assets/guide-author/intro-phone.png';
+import introAuthorsCollage from '../../../assets/guide-author/intro-authors-collage.png';
+import introVisualizer from '../../../assets/guide-author/intro-visualizer.png';
 
 export default function GuideDashboardIntro() {
   return (
@@ -45,69 +47,48 @@ export default function GuideDashboardIntro() {
         </div>
       </section>
 
-      <section className="guide-intro-authors">
-        <h2 className="guide-intro-section-title">The authors we are looking for</h2>
-        <p className="guide-intro-authors-sub">We work best with people who:</p>
-        <ul className="guide-intro-list guide-intro-list--authors">
-          <li>
-            <strong>Know the city beyond the postcard</strong>
-            <span> — backstreets, small museums, lunch spots, and the logic of how to move between them in a day.</span>
-          </li>
-          <li>
-            <strong>Can explain why a place matters</strong>
-            <span> — a sentence of context beats a paragraph of generic history. We want your angle.</span>
-          </li>
-          <li>
-            <strong>Respect the traveler&apos;s time</strong>
-            <span> — realistic pacing, clear order, no filler stops that only exist to lengthen the route.</span>
-          </li>
-          <li>
-            <strong>Are willing to iterate</strong>
-            <span>
-              {' '}
-              — first drafts are fine; we care that you refine structure, copy, and map pins until the trip is easy to
-              follow.
-            </span>
-          </li>
-        </ul>
+      <section className="guide-intro-split guide-intro-split--authors">
+        <div className="guide-intro-split-text">
+          <h2 className="guide-intro-section-title">The authors we are looking for</h2>
+          <p className="guide-intro-authors-sub">We work best with people who:</p>
+          <ul className="guide-intro-list guide-intro-list--authors">
+            <li>
+              <strong>Know the city beyond the postcard</strong>
+              <span> — backstreets, small museums, lunch spots, and the logic of how to move between them in a day.</span>
+            </li>
+            <li>
+              <strong>Can explain why a place matters</strong>
+              <span> — a sentence of context beats a paragraph of generic history. We want your angle.</span>
+            </li>
+            <li>
+              <strong>Respect the traveler&apos;s time</strong>
+              <span> — realistic pacing, clear order, no filler stops that only exist to lengthen the route.</span>
+            </li>
+            <li>
+              <strong>Are willing to iterate</strong>
+              <span>
+                {' '}
+                — first drafts are fine; we care that you refine structure, copy, and map pins until the trip is easy
+                to follow.
+              </span>
+            </li>
+          </ul>
+        </div>
+        <div className="guide-intro-authors-visual" aria-hidden="true">
+          <img src={introAuthorsCollage} alt="" className="guide-intro-authors-img" />
+        </div>
+      </section>
+
+      <section className="guide-intro-quote-section" aria-label="Note for authors">
         <blockquote className="guide-intro-quote">
-          You do not need to be a professional guide. You do need to be specific, structured, and genuinely excited
-          to share how you would spend a day.
+          You do not need to be a professional guide. You do need to be specific, structured, and genuinely excited to
+          share how you would spend a day.
         </blockquote>
       </section>
 
       <section className="guide-intro-split guide-intro-split--visualizer">
-        <div className="guide-intro-blocks-demo" aria-hidden="true">
-          <div className="guide-intro-blocks-toolbar">
-            <span className="guide-intro-blocks-tool">↕</span>
-            <span className="guide-intro-blocks-tool">+</span>
-            <span className="guide-intro-blocks-tool">Make a copy</span>
-            <span className="guide-intro-blocks-tool">Edit block</span>
-            <span className="guide-intro-blocks-tool">Delete</span>
-          </div>
-          <div className="guide-intro-blocks-stack">
-            <div className="guide-intro-block-card guide-intro-block-card--title">
-              <span>Title</span>
-            </div>
-            <p className="guide-intro-block-plus">+</p>
-            <div className="guide-intro-block-card guide-intro-block-card--location">
-              <span>Location</span>
-            </div>
-            <p className="guide-intro-block-plus">+</p>
-            <div className="guide-intro-block-card guide-intro-block-card--columns">
-              <span>3 columns</span>
-              <div className="guide-intro-block-columns-inner">
-                <span /><span /><span />
-              </div>
-            </div>
-            <p className="guide-intro-block-plus">+</p>
-            <div className="guide-intro-block-card guide-intro-block-card--text">
-              <span>Text Block</span>
-              <div className="guide-intro-block-lines">
-                <span /><span /><span /><span />
-              </div>
-            </div>
-          </div>
+        <div className="guide-intro-visualizer-figure" aria-hidden="true">
+          <img src={introVisualizer} alt="" className="guide-intro-visualizer-img" />
         </div>
         <div className="guide-intro-split-text">
           <h2 className="guide-intro-section-title">The Trip Visualizer</h2>
@@ -130,7 +111,7 @@ export default function GuideDashboardIntro() {
             Instead of a thousand words, try building a tour once — you will see how the pieces fit. Welcome aboard.
           </p>
           <Link to="/guide/tours/visualizer" className="guide-intro-cta">
-            Create your trip guide
+            Create trip guide
           </Link>
         </div>
       </section>
@@ -188,7 +169,7 @@ export default function GuideDashboardIntro() {
         <h2 className="guide-intro-section-title guide-intro-section-title--smallcaps">What to do next</h2>
         <ol className="guide-intro-ol">
           <li>
-            Open <strong>My tours</strong> when you are ready to attach a trip to your account, or open{' '}
+            Open <strong>My tours</strong> when you are ready to attach a trip to your account, or open the{' '}
             <strong>Trip Visualizer</strong> to start drafting.
           </li>
           <li>

@@ -465,7 +465,7 @@ export default function GuideDashboardPage() {
                 className="guide-dashboard-btn-visualizer"
                 onClick={() => navigate('/guide/tours/visualizer')}
               >
-                Trip Visualizer
+                Create trip guide
               </button>
             </div>
           )}
@@ -501,7 +501,7 @@ export default function GuideDashboardPage() {
                   className="guide-dashboard-btn-visualizer"
                   style={{ display: 'inline-block', textDecoration: 'none' }}
                 >
-                  Trip Visualizer
+                  Create trip guide
                 </Link>
               </div>
             ) : (
