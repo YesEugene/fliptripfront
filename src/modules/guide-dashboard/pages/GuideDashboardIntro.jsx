@@ -1,9 +1,11 @@
 /**
- * Intro long-read for new tour authors (English). Layout aligned with Figma guide dashboard.
+ * Intro long-read for new tour authors (English). Layout aligned with Figma (node 1612:64).
+ * Collage asset positions match Figma frame 1616:603 (main / phone / map).
  */
 import { Link } from 'react-router-dom';
-import BarcelonaHero from '../../../assets/Barcelona-example.png';
-import MontjuicImage from '../../../assets/Montjuïc Hill (Miradors & Paths).jpg';
+import introMain from '../../../assets/guide-author/intro-main.png';
+import introMap from '../../../assets/guide-author/intro-map.png';
+import introPhone from '../../../assets/guide-author/intro-phone.png';
 
 export default function GuideDashboardIntro() {
   return (
@@ -19,29 +21,22 @@ export default function GuideDashboardIntro() {
       <section className="guide-intro-split">
         <div className="guide-intro-collage" aria-hidden="true">
           <div className="guide-intro-collage-main">
-            <img src={BarcelonaHero} alt="" className="guide-intro-collage-photo" />
+            <img src={introMain} alt="" className="guide-intro-collage-img" />
           </div>
           <div className="guide-intro-collage-phone">
-            <div className="guide-intro-phone-frame">
-              <div className="guide-intro-phone-notch" />
-              <p className="guide-intro-phone-title">Back in time: a perfect date</p>
-              <span className="guide-intro-phone-pill">Download PDF</span>
-            </div>
+            <img src={introPhone} alt="" className="guide-intro-collage-img" />
+            <span className="guide-intro-collage-home-indicator" />
           </div>
           <div className="guide-intro-collage-map">
-            <img src={MontjuicImage} alt="" className="guide-intro-map-thumb" />
-            <div className="guide-intro-map-pins">
-              <span className="guide-intro-map-pin">1</span>
-              <span className="guide-intro-map-pin">2</span>
-            </div>
+            <img src={introMap} alt="" className="guide-intro-collage-img" />
           </div>
         </div>
         <div className="guide-intro-split-text">
           <h2 className="guide-intro-section-title">What we are building together</h2>
           <p>
-            FlipTrip is a place for <strong>curated, self-guided day trips</strong> that feel personal — like a
-            walk you would plan for a friend who only has one day. We are not looking for encyclopaedic lists of
-            sights. We want routes with a point of view: your neighbourhoods, your timing, your reasons to stop.
+            FlipTrip is a place for curated, self-guided day trips that feel personal, like a walk you would plan for a
+            friend who only has one day. We are not looking for encyclopaedic lists of sights. We want routes with a
+            point of view: your neighbourhoods, your timing, your reasons to stop.
           </p>
           <p>
             Travelers get a clear itinerary they can open on their phone, follow on a map, and optionally download
@@ -70,8 +65,8 @@ export default function GuideDashboardIntro() {
             <strong>Are willing to iterate</strong>
             <span>
               {' '}
-              — first drafts are fine; we care that you refine structure, copy, and map pins until the trip is easy
-              to follow.
+              — first drafts are fine; we care that you refine structure, copy, and map pins until the trip is easy to
+              follow.
             </span>
           </li>
         </ul>
@@ -86,8 +81,8 @@ export default function GuideDashboardIntro() {
           <div className="guide-intro-blocks-toolbar">
             <span className="guide-intro-blocks-tool">↕</span>
             <span className="guide-intro-blocks-tool">+</span>
-            <span className="guide-intro-blocks-tool">Copy</span>
-            <span className="guide-intro-blocks-tool">Edit</span>
+            <span className="guide-intro-blocks-tool">Make a copy</span>
+            <span className="guide-intro-blocks-tool">Edit block</span>
             <span className="guide-intro-blocks-tool">Delete</span>
           </div>
           <div className="guide-intro-blocks-stack">
@@ -107,7 +102,7 @@ export default function GuideDashboardIntro() {
             </div>
             <p className="guide-intro-block-plus">+</p>
             <div className="guide-intro-block-card guide-intro-block-card--text">
-              <span>Text block</span>
+              <span>Text Block</span>
               <div className="guide-intro-block-lines">
                 <span /><span /><span /><span />
               </div>

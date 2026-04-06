@@ -200,9 +200,10 @@
   color: #0d0d0d;
 }
 
-/* ——— Intro longread ——— */
+/* ——— Intro longread (Figma 1612:64 — Inter, sizes from Dev Mode) ——— */
 .guide-intro {
   max-width: 100%;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 .guide-intro-hero {
@@ -224,7 +225,7 @@
   font-weight: 500;
   color: #000;
   margin: 0;
-  max-width: 720px;
+  max-width: 698px;
 }
 
 .guide-intro-section-title {
@@ -263,108 +264,89 @@
   margin-bottom: 0;
 }
 
-/* Collage */
+/*
+ * Collage — Figma 1616:603 bounding box (relative % from Dev Mode exports).
+ * Main: 256×253 @ (85.5, 0); Phone: 121×247 @ (0, 75.8); Map: 145×92 @ (219.3, 209.9); box ~365×322.
+ */
 .guide-intro-collage {
   position: relative;
-  min-height: 280px;
-  border-radius: 20px;
-  overflow: visible;
+  width: 100%;
+  max-width: 365px;
+  aspect-ratio: 365 / 322;
+  margin: 0;
+  align-self: start;
 }
 
 .guide-intro-collage-main {
+  position: absolute;
+  left: 23.44%;
+  top: 0;
+  width: 70.28%;
+  height: 78.5%;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 4px 17px rgba(0, 0, 0, 0.07);
+  z-index: 1;
 }
-
-.guide-intro-collage-photo {
+.guide-intro-collage-main .guide-intro-collage-img {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
   display: block;
-  vertical-align: middle;
 }
 
 .guide-intro-collage-phone {
   position: absolute;
   left: 0;
-  bottom: 0;
-  width: 38%;
-  max-width: 130px;
-  transform: translateY(8%);
-  z-index: 2;
-}
-
-.guide-intro-phone-frame {
-  background: #fff;
+  top: 23.52%;
+  width: 33.3%;
+  height: 76.5%;
   border-radius: 20px;
-  padding: 12px 10px 14px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-  font-size: 10px;
+  overflow: hidden;
+  z-index: 3;
+  box-shadow: 0 4px 16.8px 2px rgba(0, 0, 0, 0.07);
 }
 
-.guide-intro-phone-notch {
-  width: 36px;
-  height: 5px;
-  background: #ddd;
-  border-radius: 999px;
-  margin: 0 auto 10px;
+.guide-intro-collage-phone .guide-intro-collage-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
 }
 
-.guide-intro-phone-title {
-  margin: 0 0 8px;
-  font-weight: 600;
-  font-size: 11px;
-  line-height: 1.25;
-  color: #111;
-}
-
-.guide-intro-phone-pill {
-  display: inline-block;
-  font-size: 9px;
-  padding: 4px 8px;
-  background: #1c1c1b;
-  color: #fff;
-  border-radius: 999px;
+/* Figma ellipse 11 — home indicator */
+.guide-intro-collage-home-indicator {
+  position: absolute;
+  bottom: 6.5%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+  pointer-events: none;
 }
 
 .guide-intro-collage-map {
   position: absolute;
-  right: 0;
-  bottom: 12%;
-  width: 42%;
-  max-width: 220px;
-  border-radius: 9px;
+  left: 60.14%;
+  top: 65.12%;
+  width: 39.85%;
+  height: 28.4%;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 4px 11px rgba(0, 0, 0, 0.12);
-  z-index: 1;
+  z-index: 2;
+  box-shadow: 0 4px 14.1px rgba(0, 0, 0, 0.05);
 }
 
-.guide-intro-map-thumb {
+.guide-intro-collage-map .guide-intro-collage-img {
   width: 100%;
-  height: 72px;
+  height: 100%;
   object-fit: cover;
+  object-position: center;
   display: block;
-}
-
-.guide-intro-map-pins {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  display: flex;
-  gap: 6px;
-}
-
-.guide-intro-map-pin {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #ea4335;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* Authors */
@@ -435,12 +417,13 @@
   display: inline-block;
   margin-top: 20px;
   padding: 14px 28px;
-  background: var(--guide-cta-green);
+  background: #3e85fc;
   color: #fff !important;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   text-decoration: none;
-  border-radius: 10px;
+  border-radius: 0;
+  font-family: 'Inter', system-ui, sans-serif;
   transition: opacity 0.15s;
 }
 
@@ -619,6 +602,11 @@
   .guide-intro-split {
     grid-template-columns: 1fr;
     gap: 32px;
+  }
+
+  .guide-intro-collage {
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .guide-intro-split--visualizer .guide-intro-blocks-demo {
