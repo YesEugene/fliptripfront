@@ -14,6 +14,31 @@ import GuideDashboardIntro from './GuideDashboardIntro';
 import '../../../pages/ExplorePage.css';
 import './GuideDashboardPage.css';
 
+/** First suitable image URL from visualizer blocks for dashboard card (fallback if preview_media_url empty). */
+function extractTourCardImageFromBlocks(blocks) {
+  if (!Array.isArray(blocks)) return null;
+  const sorted = [...blocks].sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+  for (const b of sorted) {
+    const c = b.content || {};
+    if (b.block_type === 'photo' || b.block_type === 'photo_text') {
+      const ph = c.photos || c.photo;
+      const arr = Array.isArray(ph) ? ph : ph ? [ph] : [];
+      const u = arr.find((x) => x && typeof x === 'string' && x.trim());
+      if (u) return u.trim();
+    }
+  }
+  for (const b of sorted) {
+    if (b.block_type !== 'location') continue;
+    const c = b.content || {};
+    const main = c.mainLocation || (Array.isArray(c.locations) && c.locations[0]) || c;
+    const photos = main?.photos || (main?.photo ? [main.photo] : []);
+    const arr = Array.isArray(photos) ? photos : [];
+    const u = arr.find((x) => x && typeof x === 'string' && x.trim());
+    if (u) return u.trim();
+  }
+  return null;
+}
+
 export default function GuideDashboardPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -23,6 +48,8 @@ export default function GuideDashboardPage() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [availabilityTour, setAvailabilityTour] = useState(null); // Tour for which to manage availability
   const [tourBlockCounts, setTourBlockCounts] = useState({}); // Cache for block counts
+  const [tourLocationCounts, setTourLocationCounts] = useState({});
+  const [tourCardImages, setTourCardImages] = useState({});
   
   // Profile state
   const [profileLoading, setProfileLoading] = useState(true);
@@ -81,9 +108,13 @@ export default function GuideDashboardPage() {
         const toursList = data.tours || [];
         setTours(toursList);
         
-        // Load block counts for each tour
+        // Load block counts, location counts, and card image (preview URL or first block image)
         const blockCounts = {};
+        const locationCounts = {};
+        const cardImages = {};
         for (const tour of toursList) {
+          const previewUrl =
+            (tour.preview_media_url && String(tour.preview_media_url).trim()) || null;
           try {
             const token = localStorage.getItem('authToken');
             if (token && tour.id) {
@@ -97,21 +128,40 @@ export default function GuideDashboardPage() {
               if (response && response.ok) {
                 const blocksData = await response.json();
                 if (blocksData.success && blocksData.blocks) {
+                  const blocks = blocksData.blocks;
+                  locationCounts[tour.id] = blocks.filter((b) => b.block_type === 'location').length;
                   // Count blocks excluding 'title' (header) and 'divider'
-                  const count = blocksData.blocks.filter(block => 
+                  const count = blocks.filter(block => 
                     block.block_type !== 'title' && block.block_type !== 'divider'
                   ).length;
                   // Add 1 for header block (hero block with image)
                   blockCounts[tour.id] = count + 1;
+                  cardImages[tour.id] = previewUrl || extractTourCardImageFromBlocks(blocks);
+                } else {
+                  locationCounts[tour.id] = 0;
+                  blockCounts[tour.id] = 0;
+                  cardImages[tour.id] = previewUrl;
                 }
+              } else {
+                locationCounts[tour.id] = 0;
+                blockCounts[tour.id] = 0;
+                cardImages[tour.id] = previewUrl;
               }
+            } else {
+              locationCounts[tour.id] = 0;
+              blockCounts[tour.id] = 0;
+              cardImages[tour.id] = previewUrl;
             }
           } catch (error) {
             console.warn(`Could not load blocks for tour ${tour.id}:`, error);
             blockCounts[tour.id] = 0;
+            locationCounts[tour.id] = 0;
+            cardImages[tour.id] = previewUrl;
           }
         }
         setTourBlockCounts(blockCounts);
+        setTourLocationCounts(locationCounts);
+        setTourCardImages(cardImages);
       }
     } catch (error) {
       console.error('Error loading guide tours:', error);
@@ -517,15 +567,55 @@ export default function GuideDashboardPage() {
                       key={tour.id} 
                       className="guide-dashboard-card"
                       style={{
-                        padding: '20px',
+                        padding: '0',
                         transition: 'box-shadow 0.2s',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '16px'
+                        gap: '0',
+                        overflow: 'hidden'
                       }}
                       onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.06)'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'none'; }}
                     >
+                      {/* Cover image (preview from tour or first block photo) */}
+                      <div
+                        style={{
+                          width: '100%',
+                          aspectRatio: '16 / 10',
+                          background: '#f3f4f6',
+                          overflow: 'hidden'
+                        }}
+                      >
+                        {tourCardImages[tour.id] ? (
+                          <img
+                            src={tourCardImages[tour.id]}
+                            alt=""
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              display: 'block'
+                            }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#9ca3af',
+                              fontSize: '13px',
+                              fontFamily: "'Urbanist', Inter, system-ui, sans-serif"
+                            }}
+                          >
+                            No cover image
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       {/* Tour Title */}
                       <h3 style={{ 
                         fontSize: '18px', 
@@ -562,19 +652,8 @@ export default function GuideDashboardPage() {
                           fontSize: '14px',
                           margin: 0
                         }}>
-                          <strong style={{ color: '#111827' }}>Views:</strong> {tour.views || 0}
-                        </p>
-                        <p style={{ 
-                          color: '#6b7280', 
-                          fontSize: '14px',
-                          margin: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}>
-                          <strong style={{ color: '#111827' }}>Rating:</strong> 
-                          <span style={{ color: '#fbbf24' }}>★</span>
-                          <span>4.5</span>
+                          <strong style={{ color: '#111827' }}>Locations:</strong>{' '}
+                          {tourLocationCounts[tour.id] ?? 0}
                         </p>
                       </div>
 
@@ -689,6 +768,7 @@ export default function GuideDashboardPage() {
                             </button>
                           ) : null;
                         })()}
+                      </div>
                       </div>
                     </div>
                   );
