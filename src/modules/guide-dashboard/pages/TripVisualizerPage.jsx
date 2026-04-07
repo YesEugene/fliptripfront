@@ -37,10 +37,10 @@ import SlideTypeIcon from '../../../assets/Slide type.svg';
 import ThreeColumnsIcon from '../../../assets/3 columns.svg';
 import PhotoIcon from '../../../assets/Photo.svg';
 import DividerIcon from '../../../assets/Devider.svg';
-import BarcelonaExampleImage from '../../../assets/Barcelona-example.png';
-import SantAntoniMarketImage from '../../../assets/Sant Antoni Market.jpg';
+import BarcelonaExampleImage from '../../../assets/Barcelona-example.webp';
+import SantAntoniMarketImage from '../../../assets/Sant Antoni Market.webp';
 import ElRavalImage from '../../../assets/El Raval Backstreets.webp';
-import MontjuicImage from '../../../assets/Montjuïc Hill (Miradors & Paths).jpg';
+import MontjuicImage from '../../../assets/Montjuïc Hill (Miradors & Paths).webp';
 // Default block images removed — blocks now use empty placeholders
 import { getTourById } from '../../../services/api';
 import { getTourAvailability, updateAvailabilitySlots } from '../services/availabilityService';

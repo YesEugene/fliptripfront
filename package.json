@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && mv dist/index.html dist/_spa.html",
+    "optimize:images": "node scripts/optimize-images.mjs",
+    "build": "npm run optimize:images && vite build && mv dist/index.html dist/_spa.html",
     "lint": "eslint .",
     "preview": "vite preview",
-    "vercel-build": "vite build && mv dist/index.html dist/_spa.html"
+    "vercel-build": "npm run optimize:images && vite build && mv dist/index.html dist/_spa.html"
   },
   "dependencies": {
     "@tailwindcss/forms": "^0.5.10",
@@ -31,6 +32,7 @@
     "eslint": "^9.33.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
-    "globals": "^16.3.0"
+    "globals": "^16.3.0",
+    "sharp": "^0.34.5"
   }
 }

@@ -47,7 +47,7 @@ const EXPLORE_TESTIMONIALS_ROW_A = [
   {
     id: 't2',
     type: 'image',
-    src: EXPLORE_T_PREVIEW('back-in-time-paris.png'),
+    src: EXPLORE_T_PREVIEW('back-in-time-paris.webp'),
     alt: 'Back in Time: a perfect date in Paris, tour preview image',
   },
   {
@@ -69,7 +69,7 @@ const EXPLORE_TESTIMONIALS_ROW_A = [
   {
     id: 't5',
     type: 'image',
-    src: EXPLORE_T_PREVIEW('me-myself-paris.png'),
+    src: EXPLORE_T_PREVIEW('me-myself-paris.webp'),
     alt: 'Me, myself and Paris tour preview image',
   },
   {
@@ -91,7 +91,7 @@ const EXPLORE_TESTIMONIALS_ROW_A = [
   {
     id: 't8',
     type: 'image',
-    src: EXPLORE_T_PREVIEW('rome-from-above.png'),
+    src: EXPLORE_T_PREVIEW('rome-from-above.webp'),
     alt: 'Rome from above tour preview image',
   },
 ];
@@ -100,7 +100,7 @@ const EXPLORE_TESTIMONIALS_ROW_B = [
   {
     id: 'b1',
     type: 'image',
-    src: EXPLORE_T_PREVIEW('medieval-rome.jpg'),
+    src: EXPLORE_T_PREVIEW('medieval-rome.webp'),
     alt: 'Medieval Rome tour preview image',
   },
   {
@@ -152,7 +152,7 @@ const EXPLORE_TESTIMONIALS_ROW_B = [
   {
     id: 'b8',
     type: 'image',
-    src: EXPLORE_T_PREVIEW('underground-rome.jpg'),
+    src: EXPLORE_T_PREVIEW('underground-rome.webp'),
     alt: 'Underground Rome tour preview image',
   },
 ];

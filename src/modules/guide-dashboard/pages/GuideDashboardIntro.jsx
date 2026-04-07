@@ -2,9 +2,9 @@
  * Intro long-read for new tour authors (English). PNGs from Imgs/Author (1–3); no extra CSS shadows.
  */
 import { Link } from 'react-router-dom';
-import imgWhatWeBuild from '../../../assets/guide-author/what-we-build.png';
-import imgAuthors from '../../../assets/guide-author/authors.png';
-import imgTripVisualizer from '../../../assets/guide-author/trip-visualizer.png';
+import imgWhatWeBuild from '../../../assets/guide-author/what-we-build.webp';
+import imgAuthors from '../../../assets/guide-author/authors.webp';
+import imgTripVisualizer from '../../../assets/guide-author/trip-visualizer.webp';
 
 export default function GuideDashboardIntro() {
   return (

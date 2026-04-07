@@ -9,9 +9,9 @@ import AvailabilityCalendar from '../components/AvailabilityCalendar';
 import BlockRenderer from '../modules/guide-dashboard/components/BlockRenderer';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import PDFIcon from '../assets/PDF.svg';
-import tourStatTime from '../assets/tour-stat-time.png';
-import tourStatDistance from '../assets/tour-stat-distance.png';
-import tourStatBudget from '../assets/tour-stat-budget.png';
+import tourStatTime from '../assets/tour-stat-time.webp';
+import tourStatDistance from '../assets/tour-stat-distance.webp';
+import tourStatBudget from '../assets/tour-stat-budget.webp';
 // import SkateboardingGif from '../assets/Skateboarding.gif'; // File not found, commented out
 import './ItineraryPage.css';
 import './ExplorePage.css';
