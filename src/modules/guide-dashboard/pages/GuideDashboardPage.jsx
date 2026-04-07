@@ -1558,7 +1558,7 @@ export default function GuideDashboardPage() {
       <footer className="explore-footer">
         <img src={FlipTripLogo} alt="FlipTrip" className="explore-footer-logo" />
         <Link to="/about" style={{ color: 'inherit', textDecoration: 'inherit' }}><h4>About project</h4></Link>
-        <Link to="/become-local" style={{ color: 'inherit', textDecoration: 'inherit' }}><h4>Locals</h4></Link>
+        <Link to="/contact" style={{ color: 'inherit', textDecoration: 'inherit' }}><h4>Contact us</h4></Link>
         <span>© flip-trip 2026</span>
       </footer>
 

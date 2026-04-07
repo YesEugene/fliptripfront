@@ -55,6 +55,7 @@ export default async function handler(req, res) {
     const staticUrls = [
       { loc: `${siteUrl}/`, changefreq: 'daily', priority: '1.0' },
       { loc: `${siteUrl}/about`, changefreq: 'monthly', priority: '0.8' },
+      { loc: `${siteUrl}/contact`, changefreq: 'monthly', priority: '0.75' },
       { loc: `${siteUrl}/join`, changefreq: 'monthly', priority: '0.7' },
       { loc: `${siteUrl}/become-local`, changefreq: 'monthly', priority: '0.7' }
     ];
@@ -122,6 +123,11 @@ ${urls
     <loc>${xmlEscape(`${siteUrl}/about`)}</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${xmlEscape(`${siteUrl}/contact`)}</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
   </url>
   <url>
     <loc>${xmlEscape(`${siteUrl}/join`)}</loc>

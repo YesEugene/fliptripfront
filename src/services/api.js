@@ -317,4 +317,18 @@ export const getTourById = async (tourId) => {
   }
 };
 
+export const CONTACT_REASON_OPTIONS = [
+  'Need help',
+  'Interested in partnership',
+  'Providing feedback',
+  'Guide or creator inquiry',
+  'Press inquiry',
+  'General inquiry / other'
+];
+
+export const submitContactForm = async (payload) => {
+  const response = await api.post('/api/contact-form', payload);
+  return response.data;
+};
+
 export default api;

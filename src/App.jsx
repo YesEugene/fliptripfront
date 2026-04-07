@@ -11,6 +11,7 @@ const PaymentSuccessPage = lazy(() => import('./pages/PaymentSuccessPage'));
 const ItineraryPage = lazy(() => import('./pages/ItineraryPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
 const TourRedirectPage = lazy(() => import('./pages/TourRedirectPage'));
 const CleanUrlRedirectPage = lazy(() => import('./pages/CleanUrlRedirectPage'));
 const AuthOnboardingPage = lazy(() => import('./modules/auth/pages/AuthOnboardingPage'));
@@ -51,6 +52,7 @@ function App() {
             {/* Legacy home kept for rollback/reference only. No links point here. */}
             <Route path="/_internal/legacy-home-2026" element={<HomePage />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
             <Route path="/payment" element={<PaymentPage />} />
             <Route path="/payment-success" element={<PaymentSuccessPage />} />
             <Route path="/itinerary" element={<ItineraryPage />} />
