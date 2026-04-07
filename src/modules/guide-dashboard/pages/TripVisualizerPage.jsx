@@ -28,7 +28,6 @@ function isSafeVisualizerReturnPath(path) {
 }
 import { getGuideProfile } from '../../../modules/guide-profile';
 import FlipTripLogo from '../../../assets/FlipTripLogo.svg';
-import PDFIcon from '../../../assets/PDF.svg';
 import LocationIcon from '../../../assets/Location.svg';
 import TitleIcon from '../../../assets/Title.svg';
 import PhotoTextIcon from '../../../assets/Photo + text.svg';
@@ -2708,25 +2707,24 @@ export default function TripVisualizerPage() {
         <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
           <button
             type="button"
+            onClick={() => setShowTourEditor(true)}
             style={{
-              backgroundColor: 'transparent',
+              padding: '8px 14px',
+              backgroundColor: '#FFDD00',
               color: '#111827',
               border: 'none',
               borderRadius: 0,
-              padding: 0,
-              fontSize: '12px',
-              fontWeight: 500,
-              cursor: 'default',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: '700',
               flexShrink: 0,
               whiteSpace: 'nowrap',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              opacity: 0.85
+              transition: 'background-color 0.2s',
             }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f59e0b'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#FFDD00'; }}
           >
-            <img src={PDFIcon} alt="" style={{ width: '14px', height: '15px', flexShrink: 0 }} />
-            Download PDF
+            Edit block
           </button>
         </div>
       </div>
@@ -2735,7 +2733,7 @@ export default function TripVisualizerPage() {
 
   const desktopVisualizerTitleRow = (
     <div style={{ marginTop: '28px', marginBottom: '28px', width: '100%' }}>
-      <div style={{ position: 'relative', width: '100%' }}>
+      <div style={{ width: '100%' }}>
         <h1 style={{
           fontSize: '50px',
           fontWeight: 500,
@@ -2744,36 +2742,10 @@ export default function TripVisualizerPage() {
           lineHeight: '1.15',
           fontStyle: tourInfo.title ? 'normal' : 'italic',
           width: '100%',
-          paddingRight: '132px',
           boxSizing: 'border-box',
         }}>
           {tourInfo.title || 'Your Tour Title'}
         </h1>
-        <button
-          type="button"
-          onClick={() => setShowTourEditor(true)}
-          style={{
-            position: 'absolute',
-            right: 0,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            zIndex: 2,
-            padding: '8px 14px',
-            backgroundColor: '#FFDD00',
-            color: '#111827',
-            border: 'none',
-            borderRadius: 0,
-            cursor: 'pointer',
-            fontSize: '13px',
-            fontWeight: '700',
-            flexShrink: 0,
-            transition: 'background-color 0.2s',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f59e0b'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#FFDD00'; }}
-        >
-          Edit block
-        </button>
       </div>
       {visualizerStep1HintBox ? (
         <div style={{ marginTop: '12px' }}>{visualizerStep1HintBox}</div>
@@ -2783,7 +2755,7 @@ export default function TripVisualizerPage() {
 
   const mobileVisualizerTitleSection = (
         <div style={{ paddingTop: '24px' }}>
-          <div style={{ position: 'relative', width: '100%', marginBottom: '12px' }}>
+          <div style={{ width: '100%', marginBottom: '12px' }}>
             <h1 style={{
               fontSize: '28px',
               fontWeight: '700',
@@ -2792,32 +2764,10 @@ export default function TripVisualizerPage() {
               lineHeight: '1.2',
               fontStyle: tourInfo.title ? 'normal' : 'italic',
               width: '100%',
-              paddingRight: '108px',
               boxSizing: 'border-box',
             }}>
               {tourInfo.title || 'Your Tour Title'}
             </h1>
-            <button
-              type="button"
-              onClick={() => setShowTourEditor(true)}
-              style={{
-                position: 'absolute',
-                right: 0,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                zIndex: 2,
-                padding: '8px 12px',
-                backgroundColor: '#FFDD00',
-                color: '#111827',
-                border: 'none',
-                borderRadius: 0,
-                cursor: 'pointer',
-                fontSize: '12px',
-                fontWeight: '700',
-              }}
-            >
-              Edit block
-            </button>
           </div>
           {visualizerStep1HintBox ? (
             <div style={{ marginBottom: '16px' }}>{visualizerStep1HintBox}</div>
@@ -2867,25 +2817,21 @@ export default function TripVisualizerPage() {
             </div>
             <button
               type="button"
+              onClick={() => setShowTourEditor(true)}
               style={{
-                backgroundColor: '#2059ff',
-                color: '#ebf6fa',
+                padding: '8px 14px',
+                backgroundColor: '#FFDD00',
+                color: '#111827',
                 border: 'none',
-                borderRadius: '24px',
-                padding: '12px 20px',
-                fontSize: '13px',
-                fontWeight: '600',
-                cursor: 'default',
+                borderRadius: 0,
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: '700',
                 flexShrink: 0,
                 whiteSpace: 'nowrap',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                opacity: 0.7
               }}
             >
-              <img src={PDFIcon} alt="PDF" style={{ width: '18px', height: '19px' }} />
-              Download PDF
+              Edit block
             </button>
           </div>
         </div>
