@@ -122,7 +122,7 @@ const EXPLORE_TESTIMONIALS_ROW_B = [
   {
     id: 'b4',
     type: 'image',
-    src: EXPLORE_T_PREVIEW('roman-paris-one-day.jpg'),
+    src: EXPLORE_T_PREVIEW('roman-paris-one-day.webp'),
     alt: 'Roman Paris in One Day tour preview image',
   },
   {
