@@ -66,12 +66,14 @@ export default function ContactPage() {
         </div>
       </header>
 
-      <div className="contact-shell">
-        <h1 className="contact-heading">Contact us.</h1>
+      <section className="contact-hero" aria-labelledby="contact-heading">
+        <h1 id="contact-heading" className="contact-title">Contact us</h1>
         <p className="contact-lead">
           Questions about tours, partnerships, or the project — send us a note and we&apos;ll get back to you.
         </p>
+      </section>
 
+      <div className="contact-shell">
         {status === 'success' ? (
           <div className="contact-success" role="status">
             <p className="contact-success-title">Message sent</p>
@@ -80,74 +82,81 @@ export default function ContactPage() {
           </div>
         ) : (
           <form className="contact-form" onSubmit={onSubmit} noValidate>
-            <label className="contact-label" htmlFor="contact-name">Name</label>
-            <input
-              id="contact-name"
-              name="name"
-              type="text"
-              autoComplete="name"
-              className="contact-input"
-              value={form.name}
-              onChange={onChange}
-              required
-              disabled={status === 'sending'}
-            />
+            <div className="contact-form-grid">
+              <div className="contact-field">
+                <label className="contact-label" htmlFor="contact-name">First name</label>
+                <input
+                  id="contact-name"
+                  name="name"
+                  type="text"
+                  autoComplete="given-name"
+                  className="contact-input"
+                  value={form.name}
+                  onChange={onChange}
+                  required
+                  disabled={status === 'sending'}
+                />
+              </div>
+              <div className="contact-field">
+                <label className="contact-label" htmlFor="contact-email">Email</label>
+                <input
+                  id="contact-email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  className="contact-input"
+                  value={form.email}
+                  onChange={onChange}
+                  required
+                  disabled={status === 'sending'}
+                />
+              </div>
+              <div className="contact-field">
+                <label className="contact-label" htmlFor="contact-company">Company name &amp; title</label>
+                <input
+                  id="contact-company"
+                  name="company"
+                  type="text"
+                  autoComplete="organization-title"
+                  className="contact-input"
+                  value={form.company}
+                  onChange={onChange}
+                  disabled={status === 'sending'}
+                />
+              </div>
+              <div className="contact-field">
+                <label className="contact-label" htmlFor="contact-reason">Reason for reaching out</label>
+                <select
+                  id="contact-reason"
+                  name="reason"
+                  className="contact-input contact-select"
+                  value={form.reason}
+                  onChange={onChange}
+                  required
+                  disabled={status === 'sending'}
+                >
+                  <option value="" disabled>Select an option</option>
+                  {CONTACT_REASON_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="contact-field contact-field-span2">
+                <label className="contact-label" htmlFor="contact-message">Message</label>
+                <textarea
+                  id="contact-message"
+                  name="message"
+                  className="contact-input contact-textarea"
+                  rows={6}
+                  placeholder="Tell us more"
+                  value={form.message}
+                  onChange={onChange}
+                  required
+                  disabled={status === 'sending'}
+                />
+              </div>
+            </div>
 
-            <label className="contact-label" htmlFor="contact-email">Email</label>
-            <input
-              id="contact-email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              className="contact-input"
-              value={form.email}
-              onChange={onChange}
-              required
-              disabled={status === 'sending'}
-            />
-
-            <label className="contact-label" htmlFor="contact-company">Company</label>
-            <input
-              id="contact-company"
-              name="company"
-              type="text"
-              autoComplete="organization"
-              className="contact-input"
-              value={form.company}
-              onChange={onChange}
-              disabled={status === 'sending'}
-            />
-
-            <label className="contact-label" htmlFor="contact-reason">Reason for reaching out</label>
-            <select
-              id="contact-reason"
-              name="reason"
-              className="contact-input contact-select"
-              value={form.reason}
-              onChange={onChange}
-              required
-              disabled={status === 'sending'}
-            >
-              <option value="" disabled>Select an option</option>
-              {CONTACT_REASON_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
-
-            <label className="contact-label" htmlFor="contact-message">Message</label>
-            <textarea
-              id="contact-message"
-              name="message"
-              className="contact-input contact-textarea"
-              rows={6}
-              placeholder="Tell us more…"
-              value={form.message}
-              onChange={onChange}
-              required
-              disabled={status === 'sending'}
-            />
-
-            {/* Honeypot — leave hidden */}
             <input
               type="text"
               name="website"
@@ -162,7 +171,7 @@ export default function ContactPage() {
             {errorMsg ? <p className="contact-error" role="alert">{errorMsg}</p> : null}
 
             <button type="submit" className="contact-submit" disabled={status === 'sending'}>
-              {status === 'sending' ? 'Sending…' : 'Send'}
+              {status === 'sending' ? 'Sending…' : 'Send message'}
             </button>
           </form>
         )}
