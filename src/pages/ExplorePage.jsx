@@ -8,7 +8,7 @@ import './ExplorePage.css';
 import { updatePageMeta } from '../utils/updatePageMeta';
 
 const CITY_PILLS = ['Rome', 'Paris'];
-const EXPLORE_TOURS_CACHE_KEY = 'fliptrip_explore_tours_cache_v1';
+const EXPLORE_TOURS_CACHE_KEY = 'fliptrip_explore_tours_cache_v2';
 
 /** Query ?city=Rome or ?city=Paris,Rome — case-insensitive; only known CITY_PILLS are kept */
 function normalizeCityListFromParam(raw) {
@@ -284,13 +284,24 @@ function getGuideFromTour(tour) {
   return null;
 }
 
-function mergeToursById(primary = [], secondary = []) {
+/** Same id: later items win. Pass (stale, fresh) so API data overwrites cache. */
+function mergeToursById(staleList = [], freshList = []) {
   const map = new Map();
-  [...primary, ...secondary].forEach((tour) => {
+  [...staleList, ...freshList].forEach((tour) => {
     const key = String(tour?.id || '');
     if (key) map.set(key, tour);
   });
   return Array.from(map.values());
+}
+
+function mergeGuidePreferRicher(a, b) {
+  if (!b && !a) return null;
+  if (!a) return b;
+  if (!b) return a;
+  const merged = { ...a, ...b };
+  const len = (g) => String(g?.bio ?? '').trim().length;
+  if (len(a) > len(b) && a.bio) merged.bio = a.bio;
+  return merged;
 }
 
 function mergeToursPreserveOrder(current = [], incoming = []) {
@@ -299,7 +310,9 @@ function mergeToursPreserveOrder(current = [], incoming = []) {
   const merged = current.map((tour) => {
     const key = String(tour?.id || '');
     const next = incomingById.get(key);
-    return next ? { ...tour, ...next } : tour;
+    if (!next) return tour;
+    const guide = mergeGuidePreferRicher(tour.guide, next.guide);
+    return { ...tour, ...next, ...(guide ? { guide } : {}) };
   });
   incoming.forEach((tour) => {
     const key = String(tour?.id || '');
@@ -517,7 +530,7 @@ export default function ExplorePage() {
         });
         const firstTours = (firstBatch?.success && Array.isArray(firstBatch.tours)) ? firstBatch.tours : [];
         if (!cancelled && firstTours.length > 0) {
-          setTours((prev) => mergeToursById(firstTours, prev));
+          setTours((prev) => mergeToursById(prev, firstTours));
           setLoading(false);
           hasToursFromCacheRef.current = true;
         }
