@@ -162,8 +162,8 @@ function renderExploreSeo(tours = []) {
     '@graph': [
       {
         '@type': 'WebPage',
-        '@id': `${siteUrl}/explore`,
-        url: `${siteUrl}/explore`,
+        '@id': `${siteUrl}/`,
+        url: `${siteUrl}/`,
         name: 'Explore Cities Like a Local | FlipTrip',
         isPartOf: { '@id': `${siteUrl}/#website` },
         inLanguage: 'en'
@@ -187,8 +187,7 @@ function renderExploreSeo(tours = []) {
       {
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteUrl}/` },
-          { '@type': 'ListItem', position: 2, name: 'Explore', item: `${siteUrl}/explore` }
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteUrl}/` }
         ]
       }
     ]
@@ -197,7 +196,7 @@ function renderExploreSeo(tours = []) {
   return buildPageHtml({
     title: 'Explore Cities Like a Local | FlipTrip',
     description: 'Discover curated city walks and self-guided tours created by local insiders.',
-    canonicalPath: '/explore',
+    canonicalPath: '/',
     bodyHtml: `<nav aria-label="Breadcrumb"><a href="/">Home</a> / <span>Explore</span></nav><h1>Explore cities. Like a local.</h1>${listItems || '<p>Tours are being prepared.</p>'}`,
     jsonLd,
     ogImage: tours[0]?.draft_data?.previewOriginal || tours[0]?.preview_media_url || DEFAULT_OG_IMAGE,
@@ -236,7 +235,7 @@ function renderHomeSeo() {
     bodyHtml: `<h1>FlipTrip — Curated City Routes by Local Insiders</h1>
 <p>Explore cities like a local. Skip the tourist traps — discover curated day trips created by people who actually live and breathe the city.</p>
 <p>Whether it's hidden courtyards of Paris or ancient layers beneath Rome, these are the places locals recommend to their friends.</p>
-<nav><a href="/explore">Explore all tours</a></nav>`,
+<nav><a href="/">Explore all tours</a></nav>`,
     jsonLd,
     ogImage: DEFAULT_OG_IMAGE
   });
@@ -273,7 +272,7 @@ function renderTourSeo(tourId, tour) {
 
   const bodyHtml = `
 <nav aria-label="Breadcrumb">
-  <a href="/">Home</a> / <a href="/explore">Explore</a> / <span>${escapeHtml(tourTitle)}</span>
+  <a href="/">Home</a> / <a href="/">Explore</a> / <span>${escapeHtml(tourTitle)}</span>
 </nav>
 <article>
   <h1>${escapeHtml(tourTitle)}</h1>
@@ -300,7 +299,7 @@ function renderTourSeo(tourId, tour) {
           '@type': 'BreadcrumbList',
           itemListElement: [
             { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteUrl}/` },
-            { '@type': 'ListItem', position: 2, name: 'Explore', item: `${siteUrl}/explore` },
+            { '@type': 'ListItem', position: 2, name: 'Explore', item: `${siteUrl}/` },
             { '@type': 'ListItem', position: 3, name: tourTitle, item: `${siteUrl}${canonicalPath}` }
           ]
         }
@@ -328,7 +327,7 @@ function renderTourSeo(tourId, tour) {
           '@type': 'BreadcrumbList',
           itemListElement: [
             { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteUrl}/` },
-            { '@type': 'ListItem', position: 2, name: 'Explore', item: `${siteUrl}/explore` },
+            { '@type': 'ListItem', position: 2, name: 'Explore', item: `${siteUrl}/` },
             { '@type': 'ListItem', position: 3, name: tourTitle, item: `${siteUrl}${canonicalPath}` }
           ]
         }
@@ -372,7 +371,7 @@ export default async function handler(req, res) {
           buildPageHtml({
             title: 'Tour preview | FlipTrip',
             description: 'Open curated city routes by local insiders.',
-            canonicalPath: '/explore',
+            canonicalPath: '/',
             bodyHtml: '<h1>FlipTrip tour preview</h1><p>Select a tour to continue.</p>',
             noindex: true
           })
@@ -387,7 +386,7 @@ export default async function handler(req, res) {
           buildPageHtml({
             title: 'Tour not found | FlipTrip',
             description: 'The requested tour was not found.',
-            canonicalPath: '/explore',
+            canonicalPath: '/',
             bodyHtml: '<h1>Tour not found</h1>',
             noindex: true
           })
@@ -412,7 +411,7 @@ export default async function handler(req, res) {
           buildPageHtml({
             title: 'Tour not found | FlipTrip',
             description: 'The requested tour was not found.',
-            canonicalPath: '/explore',
+            canonicalPath: '/',
             bodyHtml: '<h1>Tour not found</h1>',
             noindex: true
           })
@@ -430,7 +429,7 @@ export default async function handler(req, res) {
           buildPageHtml({
             title: 'Tour not found | FlipTrip',
             description: 'The requested tour was not found.',
-            canonicalPath: '/explore',
+            canonicalPath: '/',
             bodyHtml: '<h1>Tour not found</h1>',
             noindex: true
           })
@@ -444,7 +443,7 @@ export default async function handler(req, res) {
           buildPageHtml({
             title: 'Tour not found | FlipTrip',
             description: 'The requested tour was not found.',
-            canonicalPath: '/explore',
+            canonicalPath: '/',
             bodyHtml: '<h1>Tour not found</h1>',
             noindex: true
           })
@@ -462,7 +461,7 @@ export default async function handler(req, res) {
         buildPageHtml({
           title: 'FlipTrip',
           description: 'Tour page is temporarily unavailable. Please try again.',
-          canonicalPath: '/explore',
+          canonicalPath: '/',
           bodyHtml: '<h1>Temporarily unavailable</h1><p>Please try again shortly.</p>',
           noindex: true
         })
@@ -473,7 +472,7 @@ export default async function handler(req, res) {
         buildPageHtml({
           title: 'Explore Cities Like a Local | FlipTrip',
           description: 'Discover curated city walks and self-guided tours created by local insiders.',
-          canonicalPath: '/explore',
+          canonicalPath: '/',
           bodyHtml: '<h1>Explore cities. Like a local.</h1><p>Please try again shortly.</p>',
           noindex: true
         })

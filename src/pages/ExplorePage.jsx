@@ -31,6 +31,194 @@ const EXPLORE_INITIAL_BATCH = 60;
 /** How many tour cards show before "More Trips" */
 const EXPLORE_INITIAL_VISIBLE = 7;
 
+/** Local preview art from /public/imgs/Preview (tour marketing assets) */
+const EXPLORE_T_PREVIEW = (file) => `${import.meta.env.BASE_URL}imgs/Preview/${file}`;
+
+/** Fictional traveler reviews; Paris / Rome (mixed length; some stress full-day flow, no research rabbit holes, curated stops) */
+const EXPLORE_TESTIMONIALS_ROW_A = [
+  {
+    id: 't1',
+    type: 'text',
+    name: 'Claire H.',
+    city: 'Paris',
+    quote:
+      'I am the person who opens twelve tabs before breakfast on vacation. This time the day was already sketched: where to start, when to eat, what to see before the light goes flat. We moved from morning coffee to last drink without me once typing best bakery near me. The stops felt chosen by someone who lives here, not copied from the same three blog posts.',
+  },
+  {
+    id: 't2',
+    type: 'image',
+    src: EXPLORE_T_PREVIEW('back-in-time-paris.png'),
+    alt: 'Back in Time: a perfect date in Paris, tour preview image',
+  },
+  {
+    id: 't3',
+    type: 'text',
+    name: 'Daniel R.',
+    city: 'Rome',
+    quote:
+      'Landed exhausted. Still made it out before sunset. Small win.',
+  },
+  {
+    id: 't4',
+    type: 'text',
+    name: 'Sofia M.',
+    city: 'Paris',
+    quote:
+      'Lunch landed exactly when we needed it. Sounds tiny until you travel with people who get hangry.',
+  },
+  {
+    id: 't5',
+    type: 'image',
+    src: EXPLORE_T_PREVIEW('me-myself-paris.png'),
+    alt: 'Me, myself and Paris tour preview image',
+  },
+  {
+    id: 't6',
+    type: 'text',
+    name: 'Ethan W.',
+    city: 'Rome',
+    quote:
+      'Rome is too much history per square foot. What helped was the arc of the day: high view first, then down into the mess, then food, then a slower evening block. I was not falling down Google Maps every twenty minutes deciding if we had time for one more thing. That alone saved my marriage to my phone.',
+  },
+  {
+    id: 't7',
+    type: 'text',
+    name: 'Julia K.',
+    city: 'Paris',
+    quote:
+      'Tiny gallery, strong coffee, nobody talking at me through headphones. Fine by me.',
+  },
+  {
+    id: 't8',
+    type: 'image',
+    src: EXPLORE_T_PREVIEW('rome-from-above.png'),
+    alt: 'Rome from above tour preview image',
+  },
+];
+
+const EXPLORE_TESTIMONIALS_ROW_B = [
+  {
+    id: 'b1',
+    type: 'image',
+    src: EXPLORE_T_PREVIEW('medieval-rome.jpg'),
+    alt: 'Medieval Rome tour preview image',
+  },
+  {
+    id: 'b2',
+    type: 'text',
+    name: 'Marco L.',
+    city: 'Rome',
+    quote:
+      'I grew up here. When friends visit I still send them down under the street first. They come back with too many photos and fewer dumb questions about what to do next.',
+  },
+  {
+    id: 'b3',
+    type: 'text',
+    name: 'Priya N.',
+    city: 'Paris',
+    quote:
+      'The sell for me was not a checklist of famous names. It was that the whole day had a rhythm. Cooler stuff earlier, slower legs after lunch, something small and pretty before dinner. I stopped half-writing an itinerary on the train because the shape was already there. The corners felt picked, not shrugged at.',
+  },
+  {
+    id: 'b4',
+    type: 'image',
+    src: EXPLORE_T_PREVIEW('roman-paris-one-day.jpg'),
+    alt: 'Roman Paris in One Day tour preview image',
+  },
+  {
+    id: 'b5',
+    type: 'text',
+    name: 'Tomás V.',
+    city: 'Rome',
+    quote:
+      'She tracked dessert. I wanted ruins. We both got our thing.',
+  },
+  {
+    id: 'b6',
+    type: 'text',
+    name: 'Amélie F.',
+    city: 'Paris',
+    quote:
+      'Family from Lyon again. I used the silly sword-fight route so I was not inventing Paris from scratch at 8 a.m. while they watched.',
+  },
+  {
+    id: 'b7',
+    type: 'text',
+    name: 'Nina G.',
+    city: 'Paris',
+    quote:
+      'Anniversary. We wanted cute without negotiating every hour. From first coffee to last glass it felt like one continuous day someone else had already stress-tested. We argued about nothing important.',
+  },
+  {
+    id: 'b8',
+    type: 'image',
+    src: EXPLORE_T_PREVIEW('underground-rome.jpg'),
+    alt: 'Underground Rome tour preview image',
+  },
+];
+
+function ExploreTestimonialStars() {
+  return (
+    <div className="explore-testimonial-stars" aria-hidden="true">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <svg key={i} className="explore-testimonial-star" viewBox="0 0 24 24" focusable="false">
+          <path d="M12 2.5l2.8 6.1 6.7.6-5.1 4.4 1.5 6.5L12 17.9 6.1 20.1l1.5-6.5L2.5 9.2l6.7-.6L12 2.5z" />
+        </svg>
+      ))}
+    </div>
+  );
+}
+
+function ExploreTestimonialCard({ item }) {
+  if (item.type === 'image') {
+    return (
+      <article className="explore-testimonial-card explore-testimonial-card--image">
+        <img src={item.src} alt={item.alt} loading="lazy" decoding="async" />
+      </article>
+    );
+  }
+
+  return (
+    <article className="explore-testimonial-card explore-testimonial-card--text">
+      <div className="explore-testimonial-card-top">
+        <div className="explore-testimonial-author">
+          <span className="explore-testimonial-avatar" aria-hidden="true">
+            {getInitials(item.name)}
+          </span>
+          <span className="explore-testimonial-name">{item.name}</span>
+        </div>
+        <ExploreTestimonialStars />
+      </div>
+      <p className="explore-testimonial-quote">{item.quote}</p>
+      <span className="explore-testimonial-city">{item.city}</span>
+    </article>
+  );
+}
+
+function ExploreTestimonialsMarquee({ direction, items }) {
+  return (
+    <div
+      className={`explore-marquee-outer ${direction === 'right' ? 'explore-marquee-outer--right' : ''}`}
+      role="presentation"
+    >
+      <div className="explore-marquee-inner">
+        <div className="explore-marquee-track">
+          <div className="explore-marquee-group">
+            {items.map((item) => (
+              <ExploreTestimonialCard key={item.id} item={item} />
+            ))}
+          </div>
+          <div className="explore-marquee-group" aria-hidden="true">
+            {items.map((item) => (
+              <ExploreTestimonialCard key={`${item.id}-dup`} item={item} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?w=1200&h=1600&fit=crop&q=80&auto=format';
 const FALLBACK_GUIDE_BIO = 'Local creator sharing authentic city routes, hidden places, and personal recommendations.';
 const UUID_LIKE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -226,7 +414,7 @@ export default function ExplorePage() {
     updatePageMeta({
       title: 'Explore Cities Like a Local | FlipTrip',
       description: 'Discover curated city walks and self-guided tours created by local insiders. Paris, Rome and more.',
-      canonicalPath: '/explore',
+      canonicalPath: '/',
     });
   }, []);
   const insidersScrollRef = useRef(null);
@@ -704,13 +892,13 @@ export default function ExplorePage() {
                       {getInitials(insider.name)}
                     </div>
                   )}
+                </div>
+                <div className="insider-right">
+                  <h3>{insider.name}</h3>
                   <div className="insider-meta">
                     <div><strong>City:</strong> {insider.city || 'Paris'}</div>
                     <div><strong>Interests:</strong> {insider.interests || 'Culture, Food, Art'}</div>
                   </div>
-                </div>
-                <div className="insider-right">
-                  <h3>{insider.name}</h3>
                   <div className="insider-bio-scroll">
                     <p>{insider.bio}</p>
                   </div>
@@ -728,6 +916,19 @@ export default function ExplorePage() {
             </button>
           </div>
         )}
+      </section>
+
+      <section className="explore-testimonials" aria-labelledby="explore-testimonials-heading">
+        <p className="explore-testimonials-overline">Travelers who chose FlipTrip</p>
+        <h2 id="explore-testimonials-heading" className="explore-testimonials-title">
+          <span className="explore-testimonials-title-line explore-testimonials-title-base">Travelers rave about</span>
+          <span className="explore-testimonials-title-line explore-testimonials-accent">these walks</span>
+        </h2>
+        <p className="explore-testimonials-sub">
+          Real itineraries from Paris and Rome, with crowd-tested routes and stops locals actually use.
+        </p>
+        <ExploreTestimonialsMarquee direction="left" items={EXPLORE_TESTIMONIALS_ROW_A} />
+        <ExploreTestimonialsMarquee direction="right" items={EXPLORE_TESTIMONIALS_ROW_B} />
       </section>
 
       <footer className="explore-footer">

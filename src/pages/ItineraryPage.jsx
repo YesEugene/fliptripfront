@@ -9,6 +9,9 @@ import AvailabilityCalendar from '../components/AvailabilityCalendar';
 import BlockRenderer from '../modules/guide-dashboard/components/BlockRenderer';
 import FlipTripLogo from '../assets/FlipTripLogo.svg';
 import PDFIcon from '../assets/PDF.svg';
+import tourStatTime from '../assets/tour-stat-time.png';
+import tourStatDistance from '../assets/tour-stat-distance.png';
+import tourStatBudget from '../assets/tour-stat-budget.png';
 // import SkateboardingGif from '../assets/Skateboarding.gif'; // File not found, commented out
 import './ItineraryPage.css';
 import './ExplorePage.css';
@@ -20,6 +23,137 @@ function getDashboardPath(role) {
   if (role === 'admin') return '/admin/dashboard';
   if (role === 'guide') return '/guide/dashboard';
   return '/user/dashboard';
+}
+
+/** draft_data.tourQuickStats — same shape as TripVisualizerPage */
+function mergeTourQuickStats(raw) {
+  const d = raw && typeof raw === 'object' ? raw : {};
+  return {
+    durationValue: String(d.durationValue ?? ''),
+    durationCaption: String(d.durationCaption ?? ''),
+    distanceValue: String(d.distanceValue ?? ''),
+    distanceCaption: String(d.distanceCaption ?? ''),
+    budgetValue: String(d.budgetValue ?? ''),
+    budgetCaption: String(d.budgetCaption ?? ''),
+  };
+}
+
+/** Supabase JSONB is usually an object; guard against stringified draft_data */
+function parseDraftDataBlob(raw) {
+  if (raw == null) return {};
+  if (typeof raw === 'string') {
+    try {
+      const p = JSON.parse(raw);
+      return p && typeof p === 'object' ? p : {};
+    } catch {
+      return {};
+    }
+  }
+  return typeof raw === 'object' ? raw : {};
+}
+
+function tourQuickStatsFromDraft(draft) {
+  const d = parseDraftDataBlob(draft);
+  const raw = d.tourQuickStats ?? d.tour_quick_stats;
+  return mergeTourQuickStats(raw);
+}
+
+function isTourQuickStatsStripVisible(draft) {
+  const q = tourQuickStatsFromDraft(draft);
+  return [q.durationValue, q.distanceValue, q.budgetValue].some((v) => (v || '').trim().length > 0);
+}
+
+/** Fixed sub-labels on public preview (not editable in dashboard) */
+const TOUR_QUICK_STAT_LABELS = {
+  duration: 'Walking tour',
+  distance: 'Total route distance',
+  budget: 'Estimated budget',
+};
+
+function TourQuickStatsStrip({ draftData, widthStyle }) {
+  const q = tourQuickStatsFromDraft(draftData);
+  const cols = [
+    {
+      key: 'duration',
+      icon: tourStatTime,
+      alt: 'Duration',
+      value: q.durationValue,
+    },
+    {
+      key: 'distance',
+      icon: tourStatDistance,
+      alt: 'Distance',
+      value: q.distanceValue,
+    },
+    {
+      key: 'budget',
+      icon: tourStatBudget,
+      alt: 'Budget',
+      value: q.budgetValue,
+    },
+  ].filter((c) => (c.value || '').trim().length > 0);
+  if (cols.length === 0) return null;
+  return (
+    <div
+      style={{
+        ...widthStyle,
+        marginTop: '60px',
+        marginBottom: '60px',
+        display: 'flex',
+        alignItems: 'stretch',
+        justifyContent: 'center',
+        gap: 0,
+      }}
+    >
+      {cols.map((col, i) => (
+        <React.Fragment key={col.key}>
+          {i > 0 ? (
+            <div
+              aria-hidden
+              style={{
+                width: '1px',
+                flexShrink: 0,
+                alignSelf: 'stretch',
+                backgroundColor: '#e5e7eb',
+              }}
+            />
+          ) : null}
+          <div
+            style={{
+              flex: '1 1 0',
+              minWidth: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              padding: '0 12px',
+              boxSizing: 'border-box',
+              justifyContent: 'flex-start',
+            }}
+          >
+            <img
+              src={col.icon}
+              alt=""
+              style={{
+                height: '28px',
+                width: 'auto',
+                maxWidth: '34px',
+                objectFit: 'contain',
+                marginBottom: '10px',
+                flexShrink: 0,
+              }}
+            />
+            <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3', marginBottom: '4px' }}>
+              {(col.value || '').trim()}
+            </div>
+            <div style={{ fontSize: '12px', fontWeight: 400, color: '#6b7280', lineHeight: '1.35' }}>
+              {TOUR_QUICK_STAT_LABELS[col.key]}
+            </div>
+          </div>
+        </React.Fragment>
+      ))}
+    </div>
+  );
 }
 
 /**
@@ -2625,7 +2759,7 @@ export default function ItineraryPage({ cleanUrlTourId, cleanUrlPreviewOnly }) {
           )}
 
           {/* Tour description — full text, no collapse */}
-          <div style={{ marginBottom: '40px' }}>
+          <div style={{ marginBottom: isTourQuickStatsStripVisible(draftData) ? 0 : '40px' }}>
             <p
               style={{
                 fontSize: '20px',
@@ -2639,6 +2773,15 @@ export default function ItineraryPage({ cleanUrlTourId, cleanUrlPreviewOnly }) {
               {tourDescription || ''}
             </p>
           </div>
+
+          <TourQuickStatsStrip
+            draftData={draftData}
+            widthStyle={{
+              width: isMobile ? '90%' : '100%',
+              margin: isMobile ? '0 auto' : '0',
+              boxSizing: 'border-box',
+            }}
+          />
 
           {/* What's Inside This Walk — 6 structured bullets */}
           <div style={{ marginBottom: '40px' }}>
@@ -3092,7 +3235,7 @@ export default function ItineraryPage({ cleanUrlTourId, cleanUrlPreviewOnly }) {
           width: isMobile ? '90%' : '100%',
           margin: isMobile ? '0 auto' : '0',
           boxSizing: 'border-box',
-          marginBottom: '40px'
+          marginBottom: isTourQuickStatsStripVisible(draftData) ? 0 : '40px'
         }}>
           <p
             style={{
@@ -3108,6 +3251,15 @@ export default function ItineraryPage({ cleanUrlTourId, cleanUrlPreviewOnly }) {
           </p>
         </div>
       )}
+
+      <TourQuickStatsStrip
+        draftData={draftData}
+        widthStyle={{
+          width: isMobile ? '90%' : '100%',
+          margin: isMobile ? '0 auto' : '0',
+          boxSizing: 'border-box',
+        }}
+      />
 
       <div className="content-section" style={{ padding: '0 !important', paddingLeft: '0 !important', paddingRight: '0 !important' }}>
         {/* Subtitle Card - Description only - Show only if using old format */}

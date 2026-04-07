@@ -46,7 +46,7 @@ export default async function handler(req, res) {
       success: true,
       checkedAt: new Date().toISOString(),
       siteUrl,
-      indexedRoutes: ['/', '/explore', '/tour/:slug'],
+      indexedRoutes: ['/', '/tour/:slug'],
       noindexRoutes: ['/admin/*', '/guide/*', '/profile/*', '/login', '/register', '/payment', '/success'],
       approvedToursCount: tours.length,
       sampleCanonicalUrls: sample

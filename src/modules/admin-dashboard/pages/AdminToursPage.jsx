@@ -705,7 +705,7 @@ export default function AdminToursPage() {
                             checked={Boolean(tour.exploreWideCard)}
                             disabled={savingWideTourId === tour.id}
                             onChange={(e) => handleToggleExploreWide(tour.id, e.target.checked)}
-                            title="Show this tour as full-width card on /explore"
+                            title="Show this tour as full-width card on the homepage"
                             style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                           />
                         </td>

@@ -69,6 +69,28 @@ const VISUALIZER_HERO_HEIGHT = {
 /** First “Header” block border (design) */
 const VISUALIZER_HEADER_BLOCK_BORDER = '#B9B9B9';
 
+/** Preview strip: duration / distance / budget (draft_data.tourQuickStats) */
+const DEFAULT_TOUR_QUICK_STATS = {
+  durationValue: '',
+  durationCaption: '',
+  distanceValue: '',
+  distanceCaption: '',
+  budgetValue: '',
+  budgetCaption: '',
+};
+
+function mergeTourQuickStats(raw) {
+  const d = raw && typeof raw === 'object' ? raw : {};
+  return {
+    durationValue: String(d.durationValue ?? ''),
+    durationCaption: String(d.durationCaption ?? ''),
+    distanceValue: String(d.distanceValue ?? ''),
+    distanceCaption: String(d.distanceCaption ?? ''),
+    budgetValue: String(d.budgetValue ?? ''),
+    budgetCaption: String(d.budgetCaption ?? ''),
+  };
+}
+
 // Category name translations
 const CATEGORY_NAMES = {
   'active': 'Active',
@@ -304,7 +326,8 @@ export default function TripVisualizerPage() {
       includeHighlights: true
     },
     tags: [], // Tags/interests for the tour
-    highlights: {} // "What's Inside This Walk" structured: {icon3, text3, icon4, text4, icon5, text5}
+    highlights: {}, // "What's Inside This Walk" structured: {icon3, text3, icon4, text4, icon5, text5}
+    tourQuickStats: { ...DEFAULT_TOUR_QUICK_STATS },
   });
 
   // Normalize legacy/malformed values coming from older tours to prevent runtime crashes.
@@ -509,7 +532,8 @@ export default function TripVisualizerPage() {
               return obj;
             }
             return h || {};
-          })() // "What's Inside This Walk" structured highlights
+          })(), // "What's Inside This Walk" structured highlights
+          tourQuickStats: mergeTourQuickStats(draftData?.tourQuickStats),
         });
 
         // Load tour settings
@@ -621,7 +645,8 @@ export default function TripVisualizerPage() {
             ? interestIds
             : (normalizeStringArray(loadedSettings?.tags).length > 0
               ? normalizeStringArray(loadedSettings?.tags)
-              : normalizeStringArray(prev.tags))
+              : normalizeStringArray(prev.tags)),
+          tourQuickStats: mergeTourQuickStats(draftData?.tourQuickStats ?? prev.tourQuickStats),
         }));
       }
 
@@ -1294,6 +1319,7 @@ export default function TripVisualizerPage() {
             tourPdfUrl: tourInfo.tourPdfUrl || '', // Optional uploaded tour presentation PDF
             pdfTemplate: tourInfo.pdfTemplate || 'classic',
             pdfLayout: tourInfo.pdfLayout || {},
+            tourQuickStats: tourInfo.tourQuickStats || { ...DEFAULT_TOUR_QUICK_STATS },
             meta: {
               interests: [],
               audience: 'him',
@@ -1373,7 +1399,8 @@ export default function TripVisualizerPage() {
             previewImages: tourInfo.previewImages || [], // Gallery images for preview carousel
             tourPdfUrl: tourInfo.tourPdfUrl || '', // Optional uploaded tour presentation PDF
             pdfTemplate: tourInfo.pdfTemplate || 'classic',
-            pdfLayout: tourInfo.pdfLayout || {}
+            pdfLayout: tourInfo.pdfLayout || {},
+            tourQuickStats: tourInfo.tourQuickStats || { ...DEFAULT_TOUR_QUICK_STATS },
           })
         });
         
@@ -1435,6 +1462,7 @@ export default function TripVisualizerPage() {
               pdfTemplate: tourInfo.pdfTemplate || 'classic',
               pdfLayout: tourInfo.pdfLayout || {},
               highlights: tourInfo.highlights || {},
+              tourQuickStats: tourInfo.tourQuickStats || { ...DEFAULT_TOUR_QUICK_STATS },
               tags: interestIds.length > 0 ? interestIds : tourInfo.tags // Update interests from server response, fallback to current if empty
             });
             // Reload blocks after saving tour to ensure they're up to date
@@ -1541,6 +1569,7 @@ export default function TripVisualizerPage() {
             tourPdfUrl: tourInfo.tourPdfUrl || '', // Optional uploaded tour presentation PDF
             pdfTemplate: tourInfo.pdfTemplate || 'classic',
             pdfLayout: tourInfo.pdfLayout || {},
+            tourQuickStats: tourInfo.tourQuickStats || { ...DEFAULT_TOUR_QUICK_STATS },
             meta: {
               interests: [],
               audience: 'him',
@@ -1626,7 +1655,8 @@ export default function TripVisualizerPage() {
             previewImages: tourInfo.previewImages || [], // Gallery images for preview carousel
             tourPdfUrl: tourInfo.tourPdfUrl || '', // Optional uploaded tour presentation PDF
             pdfTemplate: tourInfo.pdfTemplate || 'classic',
-            pdfLayout: tourInfo.pdfLayout || {}
+            pdfLayout: tourInfo.pdfLayout || {},
+            tourQuickStats: tourInfo.tourQuickStats || { ...DEFAULT_TOUR_QUICK_STATS },
           })
         });
 
@@ -4572,55 +4602,135 @@ function TourFinalizationContent({ tourInfo, tourId, tourBlocks, onChange }) {
     }
   };
 
+  const quick = mergeTourQuickStats(tourInfo.tourQuickStats);
+  /** Functional update so rapid edits / multiple fields don’t clobber each other */
+  const setQuick = (patch) =>
+    onChange((prev) => ({
+      ...prev,
+      tourQuickStats: mergeTourQuickStats({
+        ...mergeTourQuickStats(prev.tourQuickStats),
+        ...patch,
+      }),
+    }));
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div style={{ border: `1px solid ${VISUALIZER_HEADER_BLOCK_BORDER}`, borderRadius: 0, padding: '16px', backgroundColor: VISUALIZER_PAGE_BG, boxSizing: 'border-box' }}>
-        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '15px' }}>
-          Tour PDF presentation
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '60px' }}>
+      <div style={{ padding: '0', backgroundColor: 'transparent', boxSizing: 'border-box' }}>
+        <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', fontSize: '15px' }}>
+          Tour at a glance
         </label>
-        <button
-          type="button"
-          onClick={handleGenerateStyledPdf}
-          disabled={generatingStyledPdf}
-          style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: generatingStyledPdf ? '#9ca3af' : '#2563eb', color: 'white', border: 'none', borderRadius: 0, cursor: generatingStyledPdf ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500' }}
-        >
-          {generatingStyledPdf ? 'Generating PDF...' : 'Generate PDF'}
-        </button>
-        <input
-          type="file"
-          accept="application/pdf,.pdf"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleTourPdfUpload(file);
-            e.target.value = '';
-          }}
-          style={{ display: 'none' }}
-          id="tour-pdf-upload-panel"
-        />
-        <label htmlFor="tour-pdf-upload-panel" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: uploadingPdf ? '#9ca3af' : '#111827', color: 'white', border: 'none', borderRadius: 0, cursor: uploadingPdf ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500', marginLeft: '8px' }}>
-          {uploadingPdf ? 'Uploading PDF...' : 'Upload tour PDF'}
-        </label>
-        <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px', marginBottom: 0 }}>
-          Generate or upload a PDF (max 50MB).
+        <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 12px 0' }}>
+          Optional. Shown on the public tour preview between the description and &quot;What&apos;s Inside This Walk&quot; when at least one value is filled. Sub-labels on the site are fixed (Walking tour, Total route distance, Estimated budget).
         </p>
-        {tourInfo.tourPdfUrl && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '8px' }}>
-            <a href={tourInfo.tourPdfUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '13px', color: '#2563eb' }}>
-              View PDF
-            </a>
-            <button
-              type="button"
-              onClick={handleDeleteStyledPdf}
-              disabled={deletingStyledPdf}
-              style={{ padding: '6px 10px', backgroundColor: deletingStyledPdf ? '#9ca3af' : '#ef4444', color: 'white', border: 'none', borderRadius: 0, cursor: deletingStyledPdf ? 'not-allowed' : 'pointer', fontSize: '12px', fontWeight: '500' }}
-            >
-              {deletingStyledPdf ? 'Deleting...' : 'Delete PDF'}
-            </button>
-          </div>
-        )}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+            gap: '14px',
+          }}
+        >
+          {[
+            {
+              title: 'Time',
+              valueKey: 'durationValue',
+              valuePh: '~8 hours',
+            },
+            {
+              title: 'Distance',
+              valueKey: 'distanceValue',
+              valuePh: '23.3 km',
+            },
+            {
+              title: 'Budget',
+              valueKey: 'budgetValue',
+              valuePh: '€100–200',
+            },
+          ].map((col) => (
+            <div key={col.title} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <span style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>{col.title}</span>
+              <input
+                type="text"
+                value={quick[col.valueKey] || ''}
+                onChange={(e) => setQuick({ [col.valueKey]: e.target.value })}
+                placeholder={col.valuePh}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: 0,
+                  fontSize: '14px',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div style={{ border: `1px solid ${VISUALIZER_HEADER_BLOCK_BORDER}`, borderRadius: 0, padding: '14px', backgroundColor: VISUALIZER_PAGE_BG, boxSizing: 'border-box' }}>
+      <div style={{ padding: '0', backgroundColor: 'transparent', boxSizing: 'border-box' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: '10px 14px',
+            marginBottom: '10px',
+          }}
+        >
+          <span style={{ fontWeight: '600', fontSize: '15px', color: '#111827' }}>Tour PDF presentation</span>
+          <span style={{ fontSize: '13px', color: '#6b7280', lineHeight: '1.4' }}>
+            Generate or upload a PDF (max 50MB).
+          </span>
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <button
+            type="button"
+            onClick={handleGenerateStyledPdf}
+            disabled={generatingStyledPdf}
+            style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: generatingStyledPdf ? '#9ca3af' : '#2563eb', color: 'white', border: 'none', borderRadius: 0, cursor: generatingStyledPdf ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500' }}
+          >
+            {generatingStyledPdf ? 'Generating PDF...' : 'Generate PDF'}
+          </button>
+          {tourInfo.tourPdfUrl ? (
+            <>
+              <a href={tourInfo.tourPdfUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '13px', color: '#2563eb', padding: '8px 4px', whiteSpace: 'nowrap' }}>
+                View PDF
+              </a>
+              <button
+                type="button"
+                onClick={handleDeleteStyledPdf}
+                disabled={deletingStyledPdf}
+                style={{ padding: '8px 12px', backgroundColor: deletingStyledPdf ? '#9ca3af' : '#ef4444', color: 'white', border: 'none', borderRadius: 0, cursor: deletingStyledPdf ? 'not-allowed' : 'pointer', fontSize: '12px', fontWeight: '500' }}
+              >
+                {deletingStyledPdf ? 'Deleting...' : 'Delete PDF'}
+              </button>
+            </>
+          ) : null}
+          <input
+            type="file"
+            accept="application/pdf,.pdf"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleTourPdfUpload(file);
+              e.target.value = '';
+            }}
+            style={{ display: 'none' }}
+            id="tour-pdf-upload-panel"
+          />
+          <label htmlFor="tour-pdf-upload-panel" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: uploadingPdf ? '#9ca3af' : '#111827', color: 'white', border: 'none', borderRadius: 0, cursor: uploadingPdf ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500' }}>
+            {uploadingPdf ? 'Uploading PDF...' : 'Upload tour PDF'}
+          </label>
+        </div>
+      </div>
+
+      <div style={{ padding: '0', backgroundColor: 'transparent', boxSizing: 'border-box' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '10px', flexWrap: 'wrap' }}>
           <div>
             <label style={{ display: 'block', marginBottom: '2px', fontWeight: '600' }}>

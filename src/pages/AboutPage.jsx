@@ -12,7 +12,7 @@ export default function AboutPage() {
           <Link to="/" className="about-logo-link" aria-label="FlipTrip home">
             <img src={FlipTripLogo} alt="FlipTrip" className="about-logo" />
           </Link>
-          <Link to="/explore" className="about-back-link">
+          <Link to="/" className="about-back-link">
             Explore tours →
           </Link>
         </div>
@@ -178,7 +178,7 @@ export default function AboutPage() {
           <p>
             Skip the tourist traps. Follow the locals.
           </p>
-          <Link to="/explore" className="about-cta-btn about-cta-btn-light">
+          <Link to="/" className="about-cta-btn about-cta-btn-light">
             Browse tours in Paris & Rome
           </Link>
         </div>
