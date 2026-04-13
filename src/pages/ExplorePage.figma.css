@@ -1,0 +1,2041 @@
+/* /explore (snapshot) — Figma YES file: desktop 1635:223, mobile 1651:892. Scoped to .explore-page--figma only. */
+
+@font-face {
+  font-family: 'TikTok Sans';
+  src: url('/fonts/tiktok/TikTokSans-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TikTok Sans';
+  src: url('/fonts/tiktok/TikTokSans-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TikTok Sans';
+  src: url('/fonts/tiktok/TikTokSans-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TikTok Sans';
+  src: url('/fonts/tiktok/TikTokSans-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TikTok Sans';
+  src: url('/fonts/tiktok/TikTokSans-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TikTok Sans';
+  src: url('/fonts/tiktok/TikTokSans-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 28pt SemiExpanded optical masters — только для крупных заголовков секций (см. --figma-font-heading) */
+@font-face {
+  font-family: 'TikTok Sans SemiExpanded';
+  src: url('/fonts/tiktok/TikTokSans_28pt_SemiExpanded-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TikTok Sans SemiExpanded';
+  src: url('/fonts/tiktok/TikTokSans_28pt_SemiExpanded-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TikTok Sans SemiExpanded';
+  src: url('/fonts/tiktok/TikTokSans_28pt_SemiExpanded-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TikTok Sans SemiExpanded';
+  src: url('/fonts/tiktok/TikTokSans_28pt_SemiExpanded-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TikTok Sans SemiExpanded';
+  src: url('/fonts/tiktok/TikTokSans_28pt_SemiExpanded-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TikTok Sans SemiExpanded';
+  src: url('/fonts/tiktok/TikTokSans_28pt_SemiExpanded-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TikTok Sans SemiExpanded';
+  src: url('/fonts/tiktok/TikTokSans_28pt_SemiExpanded-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+.explore-page--figma {
+  --figma-bg: #fef9ef;
+  --figma-green: #1c5127;
+  --figma-orange: #f07720;
+  --figma-cream: #fdfaef;
+  --figma-cream-2: #fcf9ef;
+  --figma-body-brown: #543d20;
+  --figma-title-dark: #040404;
+  --figma-testimonial-bg: #f4eee1;
+  --figma-footer: #232323;
+  --figma-max: 1512px;
+  --figma-pad: 20px;
+  --figma-gap: 14px;
+  --figma-tour-grid-gap-h: 20px;
+  --figma-tour-grid-gap-v: 30px;
+  --figma-city-pill-h: 34px;
+  --figma-city-pill-fs: 13px;
+  --figma-city-pill-radius: 19px;
+  --figma-city-pill-pad-x: 15px;
+  --figma-font: 'TikTok Sans', system-ui, sans-serif;
+  /* TikTok Sans SemiExpanded — только секционные h2 и герой h1; не буллиты/карточки */
+  --figma-font-heading: 'TikTok Sans SemiExpanded', 'TikTok Sans', system-ui, sans-serif;
+  --figma-hero-title: 70pt;
+  --figma-section-gap: 120px;
+  --figma-after-heading: 60px;
+  /* Отступ подзаголовка / блока текста от заголовка секции */
+  --figma-heading-subgap: 40px;
+  /* Секционные h2 (What about, Pick path, Insiders, Testimonials): 50pt; маркер ▲ — тот же кегль */
+  --figma-section-heading: 50pt;
+  /* Те же заголовки на мобилке (max-width: 900px) */
+  --figma-section-heading-mobile: 40pt;
+  --figma-tour-media-h: clamp(280px, 32vw, 436px);
+  /* Hero: same gap from viewport→header and header→hero image (halved for tighter header) */
+  --figma-hero-header-pad: 12px;
+  --figma-radius: 6px;
+  background: var(--figma-bg);
+  color: var(--figma-title-dark);
+  font-family: var(--figma-font);
+}
+
+.explore-page--figma .explore-figma-max {
+  max-width: var(--figma-max);
+  margin: 0 auto;
+  padding: 0 var(--figma-pad);
+  box-sizing: border-box;
+}
+
+.explore-page--figma .explore-figma-grid-6 {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--figma-gap);
+  align-items: start;
+}
+
+.explore-page--figma .explore-figma-span-2 {
+  grid-column: span 2;
+}
+
+.explore-page--figma .explore-figma-span-4 {
+  grid-column: span 4;
+}
+
+.explore-page--figma .explore-figma-span-full {
+  grid-column: 1 / -1;
+}
+
+/* --- Hero (logo + auth above media, not overlaid) --- */
+.explore-page--figma .explore-figma-hero {
+  position: relative;
+  margin-bottom: var(--figma-section-gap);
+  padding-top: var(--figma-hero-header-pad);
+  box-sizing: border-box;
+}
+
+.explore-page--figma .explore-figma-hero-shell-outer {
+  margin-top: var(--figma-hero-header-pad);
+}
+
+.explore-page--figma .explore-figma-hero-topbar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.explore-page--figma .explore-figma-hero-topbar .explore-logo {
+  width: clamp(72px, 12vw, 108px);
+  height: auto;
+  filter: none;
+}
+
+.explore-page--figma .explore-figma-hero-topbar .explore-logo-link picture {
+  display: block;
+  line-height: 0;
+}
+
+.explore-page--figma .explore-figma-hero-topbar .explore-logo--figma-v2 {
+  display: block;
+}
+
+.explore-page--figma .explore-figma-hero-auth {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.explore-page--figma .explore-figma-btn-become {
+  border: 1px solid var(--figma-green);
+  background: transparent;
+  color: var(--figma-green);
+  border-radius: var(--figma-radius);
+  height: 44px;
+  padding: 0 18px;
+  font-family: Inter, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.explore-page--figma .explore-figma-btn-login {
+  border: none;
+  background: var(--figma-green);
+  color: var(--figma-cream-2);
+  border-radius: var(--figma-radius);
+  height: 44px;
+  padding: 0 20px;
+  font-family: Inter, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+@media (min-width: 901px) {
+  .explore-page--figma .explore-figma-hero-topbar {
+    align-items: center;
+  }
+
+  .explore-page--figma .explore-figma-hero-topbar .explore-logo--figma-v2 {
+    width: 107px;
+    height: 66px;
+    max-width: none;
+    object-fit: contain;
+  }
+
+  .explore-page--figma .explore-figma-hero-auth {
+    gap: 8px;
+  }
+
+  .explore-page--figma .explore-figma-btn-become,
+  .explore-page--figma .explore-figma-btn-login {
+    height: 32px;
+    padding: 0 12px;
+    border-radius: var(--figma-radius);
+    font-size: 12px;
+    font-weight: 600;
+  }
+}
+
+.explore-page--figma .explore-figma-hero-shell {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border-radius: var(--figma-radius);
+  overflow: hidden;
+  min-height: max(280px, 70vh);
+  background: #1a1a1a;
+  /* Ширина блока = ширина видео: по ней решаем одна строка заголовка или перенос */
+  container-type: inline-size;
+  container-name: explore-hero;
+}
+
+.explore-page--figma .explore-figma-hero-media {
+  position: absolute;
+  inset: 0;
+}
+
+.explore-page--figma .explore-figma-hero-media video,
+.explore-page--figma .explore-figma-hero-media .explore-figma-hero-fallback {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.explore-page--figma .explore-figma-hero-fallback {
+  background-size: cover;
+  background-position: center;
+}
+
+.explore-page--figma .explore-figma-hero-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.15) 40%, rgba(0, 0, 0, 0.55) 100%);
+  pointer-events: none;
+}
+
+/* Hero: заголовок+подзаголовок — единый блок; кнопка по вертикали по центру промежутка между подзаголовком и низом медиа */
+.explore-page--figma .explore-figma-hero-center {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: max(280px, 70vh);
+  padding: 0 clamp(20px, 4vw, 48px) 30px;
+  box-sizing: border-box;
+}
+
+.explore-page--figma .explore-figma-hero-headlines {
+  position: relative;
+  flex: 0 0 auto;
+  width: min(100%, calc(100% - clamp(32px, 6vw, 80px)));
+  max-width: 1100px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.explore-page--figma .explore-figma-hero-cta-wrap {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+}
+
+.explore-page--figma .explore-figma-hero-headlines h1,
+.explore-page--figma .explore-figma-hero-headlines p {
+  pointer-events: auto;
+}
+
+.explore-page--figma .explore-figma-hero-headlines h1 {
+  margin: 0;
+}
+
+.explore-page--figma .explore-figma-hero-headlines p {
+  margin: 16px 0 0;
+}
+
+.explore-page--figma .explore-figma-hero-center .explore-figma-hero-headlines h1 {
+  font-family: var(--figma-font-heading);
+  font-weight: 800;
+  font-size: 40pt;
+  line-height: 1.05;
+  color: var(--figma-cream);
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.explore-page--figma .explore-figma-hero-center .explore-figma-hero-headlines p {
+  font-family: var(--figma-font);
+  font-weight: 600; /* semibold */
+  font-size: clamp(14px, 3.5vw, 20px);
+  line-height: 1.4;
+  color: var(--figma-cream);
+  max-width: min(52ch, 100%);
+}
+
+@media (min-width: 901px) {
+  .explore-page--figma .explore-figma-hero-center .explore-figma-hero-headlines h1 {
+    font-size: var(--figma-hero-title);
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  .explore-page--figma .explore-figma-hero-center .explore-figma-hero-headlines p {
+    font-size: 20px;
+    white-space: normal;
+  }
+
+  /* Десктоп: заголовок+подзаголовок — единый блок по вертикали по центру героя; кнопка — по центру зоны под текстом */
+  .explore-page--figma .explore-figma-hero-center::before {
+    content: '';
+    display: block;
+    flex: 1 1 0;
+    min-height: 0;
+    width: 100%;
+  }
+}
+
+/* Десктоп + широкий hero: заголовок 70pt в одну строку; узкий блок видео — перенос */
+@media (min-width: 901px) {
+  @container explore-hero (min-width: 65rem) {
+    .explore-page--figma .explore-figma-hero-center .explore-figma-hero-headlines h1 {
+      white-space: nowrap;
+      overflow-wrap: normal;
+    }
+  }
+}
+
+/* --- Snapshot mobile hero: картинка от верха без отступа, логотип поверх, auth в бургере --- */
+.explore-page--figma .explore-figma-hero-mobile-bar {
+  display: none;
+}
+
+.explore-page--figma .explore-figma-burger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: none;
+  border-radius: var(--figma-radius);
+  background: rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.explore-page--figma .explore-figma-burger-lines {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--figma-cream);
+  border-radius: 1px;
+  box-shadow: 0 -7px 0 var(--figma-cream), 0 7px 0 var(--figma-cream);
+}
+
+.explore-page--figma .explore-figma-hero-mobile-logo-link {
+  display: flex;
+  justify-content: center;
+  justify-self: center;
+  grid-column: 2;
+  line-height: 0;
+}
+
+.explore-page--figma .explore-figma-hero-mobile-bar .explore-figma-burger {
+  grid-column: 3;
+  justify-self: end;
+}
+
+.explore-page--figma .explore-figma-hero-mobile-bar .explore-figma-burger-spacer {
+  grid-column: 1;
+}
+
+.explore-page--figma .explore-figma-hero-mobile-logo-link .explore-logo--figma-v2 {
+  width: clamp(72px, 28vw, 107px);
+  height: auto;
+  max-height: 52px;
+  object-fit: contain;
+}
+
+.explore-page--figma .explore-figma-burger-spacer {
+  grid-column: 1;
+  width: 48px;
+  height: 48px;
+}
+
+/* Бургер-меню: только на узких экранах */
+.explore-page--figma .explore-figma-nav-modal {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .explore-page--figma .explore-figma-nav-modal {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    pointer-events: none;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+  }
+
+  .explore-page--figma .explore-figma-nav-modal.is-open {
+    pointer-events: auto;
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .explore-page--figma .explore-figma-nav-backdrop {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: rgba(0, 0, 0, 0.45);
+    cursor: pointer;
+  }
+
+  .explore-page--figma .explore-figma-nav-drawer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(320px, 88vw);
+    max-width: 100%;
+    padding: 20px 20px 32px;
+    background: var(--figma-bg);
+    box-sizing: border-box;
+    overflow-y: auto;
+    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.18);
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+  }
+
+  .explore-page--figma .explore-figma-nav-modal.is-open .explore-figma-nav-drawer {
+    transform: translateX(0);
+  }
+
+  .explore-page--figma .explore-figma-nav-drawer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(28, 81, 39, 0.15);
+  }
+
+  .explore-page--figma .explore-figma-nav-drawer-title {
+    margin: 0;
+    font-family: var(--figma-font);
+    font-weight: 600;
+    font-size: 20px;
+    color: var(--figma-green);
+  }
+
+  .explore-page--figma .explore-figma-nav-close {
+    width: 44px;
+    height: 44px;
+    border: none;
+    background: transparent;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--figma-title-dark);
+    cursor: pointer;
+    border-radius: var(--figma-radius);
+  }
+
+  .explore-page--figma .explore-figma-hero-auth--drawer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .explore-page--figma .explore-figma-hero-auth--drawer .explore-figma-btn-become,
+  .explore-page--figma .explore-figma-hero-auth--drawer .explore-figma-btn-login {
+    width: 100%;
+    height: 48px;
+    justify-content: center;
+  }
+
+  .explore-page--figma .explore-figma-nav-drawer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+  }
+
+  .explore-page--figma .explore-figma-nav-drawer-links a {
+    display: block;
+    width: 100%;
+    padding: 14px 0;
+    font-family: var(--figma-font);
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 1.35;
+    color: var(--figma-title-dark);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    box-sizing: border-box;
+  }
+
+  .explore-page--figma .explore-figma-nav-drawer-email {
+    color: var(--figma-orange) !important;
+    text-decoration: underline;
+    margin-top: 8px;
+    border-bottom: none;
+  }
+}
+
+@media (min-width: 901px) {
+  .explore-page--figma .explore-figma-nav-modal {
+    display: none !important;
+  }
+}
+
+.explore-page--figma .explore-figma-hero-cta-wrap .explore-figma-btn-cta-solid {
+  position: relative;
+  z-index: 3;
+  margin: 0;
+}
+
+.explore-page--figma .explore-figma-btn-cta-solid {
+  border: none;
+  background: var(--figma-orange);
+  color: var(--figma-bg);
+  border-radius: var(--figma-radius);
+  height: clamp(48px, 5vw, 71px);
+  min-width: 200px;
+  padding: 0 28px;
+  font-family: Inter, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: clamp(16px, 1.3vw, 20px);
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+@media (min-width: 901px) {
+  /* Hero CTA: −30% vs former 212×70 */
+  .explore-page--figma .explore-figma-hero-cta-wrap .explore-figma-btn-cta-solid {
+    width: 148px;
+    height: 49px;
+    min-width: 148px;
+    min-height: 49px;
+    padding: 0 12px;
+    font-size: 12px;
+  }
+}
+
+/* --- What is it all about: col1 = ▲; cols3–6 = заголовок + фичи; cols1–2 = подзаголовок и €12-буллиты (слева с ▲) --- */
+.explore-page--figma .explore-figma-about {
+  margin: 0 0 var(--figma-section-gap);
+}
+
+.explore-page--figma .explore-figma-about-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--figma-gap);
+  align-items: start;
+}
+
+/* Desktop: row1 — ▲ в col1, заголовок с col3; row2 — текст+pricing в col1–2, сетка фич с col3 */
+.explore-page--figma .explore-figma-about-grid--split {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  column-gap: var(--figma-gap);
+  row-gap: var(--figma-heading-subgap);
+}
+
+/* ▲ по вертикали — по центру первой строки заголовка (высота строки = 1lh) */
+.explore-page--figma .explore-figma-about-grid--split > .explore-figma-about-marker-cell {
+  align-self: start;
+  align-items: center;
+  height: 1lh;
+  font-size: var(--figma-section-heading);
+  line-height: 1.05;
+}
+
+.explore-page--figma .explore-figma-about-grid--split > .explore-figma-about-marker-cell .explore-figma-marker {
+  margin-top: 0;
+}
+
+.explore-page--figma .explore-figma-about-marker-cell {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+}
+
+.explore-page--figma .explore-figma-about-marker-cell .explore-figma-marker {
+  width: clamp(18px, 2.2vw, 24px);
+  height: clamp(18px, 2.2vw, 24px);
+}
+
+.explore-page--figma .explore-figma-about-heading-cell {
+  grid-column: 3 / -1;
+  grid-row: 1;
+  align-self: start;
+  min-width: 0;
+}
+
+.explore-page--figma .explore-figma-about-left-body {
+  grid-column: 1 / 3;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  min-width: 0;
+}
+
+.explore-page--figma .explore-figma-about-left-body-inner {
+  width: 80%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/*
+ * Pick your path: 2:4 колонки (как 2/6 и 4/6), левая — flex-контейнер на всю высоту ряда,
+ * внутри sticky-блок с align-self: flex-start (иначе position:sticky часто «не липнет»).
+ */
+.explore-page--figma .explore-figma-pick-path-main-row {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 4fr);
+  column-gap: var(--figma-gap);
+  row-gap: 0;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.explore-page--figma .explore-figma-pick-path-main-row .explore-figma-about-left-body {
+  /* Сброс grid-column/grid-row от внешней 6-колоночной сетки: иначе 1/3 во 2-колоночном ряду = на всю ширину */
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 0;
+  min-width: 0;
+  align-self: stretch;
+}
+
+.explore-page--figma .explore-figma-pick-path-main-row .explore-figma-about-features-cell {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+@media (min-width: 901px) {
+  .explore-page--figma .explore-figma-about-grid--pick-path {
+    align-items: stretch;
+  }
+
+  .explore-page--figma .explore-figma-about-grid--pick-path > .explore-figma-about-marker-cell,
+  .explore-page--figma .explore-figma-about-grid--pick-path > .explore-figma-about-heading-cell {
+    align-self: start;
+  }
+
+  .explore-page--figma .explore-figma-pick-path-main-row .explore-figma-pick-path-left-sticky {
+    position: sticky;
+    top: 24px;
+    align-self: flex-start;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+.explore-page--figma .explore-figma-about-features-cell {
+  grid-column: 3 / -1;
+  grid-row: 2;
+  min-width: 0;
+}
+
+.explore-page--figma .explore-figma-about-heading-cell .explore-figma-h2-green,
+.explore-page--figma .explore-figma-about-heading-cell .explore-figma-h2-orange {
+  margin-bottom: 0;
+  text-align: left;
+}
+
+.explore-page--figma .explore-figma-about-left-body .explore-figma-about-intro {
+  margin: 0;
+}
+
+/* Подзаголовок: semibold; кегль −3 шага от 30px → 21px; межстрочный 140% */
+.explore-page--figma .explore-figma-about-intro {
+  margin: 0;
+  font-weight: 600;
+  font-size: 21px;
+  line-height: 1.4;
+  color: var(--figma-title-dark);
+}
+
+.explore-page--figma .explore-figma-about-list--pricing {
+  margin: 60px 0 0;
+  padding: 0;
+  list-style: disc;
+  list-style-position: inside;
+  border: none;
+  box-sizing: border-box;
+}
+
+.explore-page--figma .explore-figma-about-list--pricing li {
+  font-weight: 600;
+  font-size: 21px;
+  line-height: 1.2;
+  color: var(--figma-title-dark);
+  margin: 0 0 0.28em;
+  padding-left: 0;
+}
+
+.explore-page--figma .explore-figma-about-list--pricing li::marker {
+  color: var(--figma-orange);
+}
+
+.explore-page--figma .explore-figma-about-list--pricing li:last-child {
+  margin-bottom: 0;
+}
+
+.explore-page--figma .explore-figma-about-price {
+  font-weight: 600;
+  color: var(--figma-orange);
+}
+
+/* --- Orange filled triangle: sidebars + section h2 rows (no stroke chevrons) --- */
+.explore-page--figma .explore-figma-marker {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.explore-page--figma .explore-figma-marker svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.explore-page--figma .explore-figma-span-2 > .explore-figma-marker:first-child {
+  margin-bottom: 12px;
+}
+
+.explore-page--figma .explore-figma-h2-with-marker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: var(--figma-after-heading);
+  box-sizing: border-box;
+}
+
+.explore-page--figma .explore-figma-h2-with-marker .explore-figma-marker {
+  width: clamp(18px, 2.2vw, 24px);
+  height: clamp(18px, 2.2vw, 24px);
+  align-self: flex-start;
+  margin-top: 0.22em;
+}
+
+.explore-page--figma .explore-figma-h2-with-marker .explore-figma-h2-green,
+.explore-page--figma .explore-figma-h2-with-marker .explore-figma-h2-orange {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+
+.explore-page--figma .explore-figma-h2-green {
+  margin: 0 0 var(--figma-after-heading);
+  font-family: var(--figma-font-heading);
+  font-weight: 600;
+  font-size: var(--figma-section-heading);
+  line-height: 1.05;
+  color: var(--figma-green);
+}
+
+.explore-page--figma .explore-figma-h2-orange {
+  margin: 0 0 var(--figma-after-heading);
+  font-family: var(--figma-font-heading);
+  font-weight: 600;
+  font-size: var(--figma-section-heading);
+  line-height: 1.05;
+  color: var(--figma-orange);
+}
+
+.explore-page--figma .explore-figma-h2-orange .explore-figma-h2-line,
+.explore-page--figma .explore-figma-h2-green .explore-figma-h2-line {
+  display: block;
+}
+
+.explore-page--figma .explore-figma-after-sublead {
+  margin-top: var(--figma-after-heading);
+}
+
+.explore-page--figma .explore-figma-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(20px, 2.5vw, 28px) var(--figma-gap);
+}
+
+/* Секция What about: всегда 2 колонки (см. @media 520px — общий грид схлопывается в 1) */
+.explore-page--figma .explore-figma-feature-grid--what-about {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.explore-page--figma .explore-figma-about-features-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Десктоп What about: €12-буллиты под подзаголовком (левая колонка) */
+.explore-page--figma .explore-figma-about-pricing-under-lead .explore-figma-about-list--pricing {
+  margin: var(--figma-heading-subgap) 0 0;
+}
+
+/* Мобилка: €12-буллиты под сеткой фич */
+.explore-page--figma .explore-figma-about-pricing-below-features .explore-figma-about-list--pricing {
+  margin: var(--figma-heading-subgap) 0 0;
+}
+
+.explore-page--figma .explore-figma-feature {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding-left: 16px;
+  border-left: 1px solid #000000;
+  box-sizing: border-box;
+}
+
+.explore-page--figma .explore-figma-feature-icon {
+  width: 62px;
+  height: 62px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.explore-page--figma .explore-figma-feature-icon img,
+.explore-page--figma .explore-figma-feature-icon svg {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  display: block;
+  color: var(--figma-body-brown);
+}
+
+.explore-page--figma .explore-figma-feature h3 {
+  margin: 0;
+  font-family: var(--figma-font);
+  font-weight: 700;
+  font-size: clamp(16px, 1.5vw, 25px);
+  line-height: 1.05;
+  color: var(--figma-title-dark);
+}
+
+.explore-page--figma .explore-figma-feature p {
+  margin: 0;
+  width: 80%;
+  max-width: 100%;
+  box-sizing: border-box;
+  font-weight: 400;
+  font-size: clamp(14px, 1.2vw, 20px);
+  line-height: 1.41;
+  color: var(--figma-body-brown);
+}
+
+/* What about: в 2 колонках на мобилке не сужать абзац до 80% ширины ячейки */
+.explore-page--figma .explore-figma-feature-grid--what-about .explore-figma-feature p {
+  width: 100%;
+  max-width: 100%;
+}
+
+.explore-page--figma .explore-figma-about-desktop {
+  display: block;
+}
+
+.explore-page--figma .explore-figma-about-mobile {
+  display: none;
+}
+
+.explore-page--figma .explore-figma-about-mobile .explore-figma-about-intro {
+  margin: 0;
+}
+
+.explore-page--figma .explore-figma-about-mobile-inner {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Мобильная сетка 4 колонки: ▲ col1, заголовок с col2; лид-текст легче */
+.explore-page--figma .explore-figma-about-mobile-heading-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: var(--figma-gap);
+  align-items: start;
+  margin-bottom: var(--figma-heading-subgap);
+  font-size: var(--figma-section-heading-mobile);
+  line-height: 1.05;
+}
+
+.explore-page--figma .explore-figma-about-mobile-marker-cell {
+  grid-column: 1;
+  display: flex;
+  align-items: center;
+  align-self: start;
+  justify-content: flex-start;
+  height: 1lh;
+}
+
+.explore-page--figma .explore-figma-about-mobile-marker-cell .explore-figma-marker {
+  margin-top: 0;
+}
+
+.explore-page--figma .explore-figma-about-mobile-section-title {
+  grid-column: 2 / -1;
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.explore-page--figma .explore-figma-about-intro.explore-figma-about-intro--mobile-lead {
+  font-weight: 400;
+}
+
+.explore-page--figma .explore-figma-about-features-stack--mobile {
+  margin-top: 50px;
+}
+
+/* Мобилка: список €12 на всю ширину экрана (full-bleed внутри секции) */
+.explore-page--figma .explore-figma-about-pricing-below-features--mobile-full {
+  width: 100vw;
+  max-width: none;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding-left: max(var(--figma-pad), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--figma-pad), env(safe-area-inset-right, 0px));
+  box-sizing: border-box;
+}
+
+/* --- Pick your path (no filter pills on /explore snapshot) --- */
+.explore-page--figma .explore-figma-pick-path {
+  margin: 0 0 var(--figma-section-gap);
+  container-type: inline-size;
+  container-name: pick-path;
+}
+
+/* Подзаголовок: 80% ширины двух колонок сетки 6 (2/6 × 0.8 ≈ 26.67% ширины секции) */
+@media (min-width: 901px) {
+  .explore-page--figma .explore-figma-pick-path .explore-figma-about-intro {
+    max-width: min(100%, 26.67cqw);
+  }
+
+  .explore-page--figma .explore-figma-pick-path .explore-figma-about-left-body-inner {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* See All Guides — заливка оранжевая, текст цвета фона страницы */
+.explore-page--figma .explore-figma-btn-pick-path-solid {
+  background: #f07720 !important;
+  color: var(--figma-bg) !important;
+  border: 2px solid #f07720 !important;
+}
+
+.explore-page--figma .explore-figma-btn-pick-path-solid:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+
+.explore-page--figma .explore-figma-btn-pick-path-solid:disabled {
+  opacity: 0.45;
+}
+
+/* Same as Pick your path: 50px from sublead to outline CTA (только десктоп — на мобилке кнопка внизу) */
+.explore-page--figma .explore-figma-about-left-body-inner .explore-figma-btn-outline--split-desktop-only {
+  margin-top: 50px;
+}
+
+/* Мобильная строка с CTA под превью / под инсайдерами — скрыта на десктопе */
+.explore-page--figma .explore-figma-about-cta-row--split-mobile-only {
+  display: none;
+}
+
+.explore-page--figma .explore-figma-sidebar-lead {
+  margin: 0 0 clamp(16px, 2vw, 24px);
+  font-weight: 600;
+  font-size: clamp(18px, 2vw, 30px);
+  line-height: 1.41;
+  color: var(--figma-title-dark);
+}
+
+.explore-page--figma .explore-figma-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: clamp(16px, 2vw, 24px);
+  border: 2px solid var(--figma-orange);
+  background: var(--figma-bg);
+  color: var(--figma-orange);
+  border-radius: var(--figma-radius);
+  height: clamp(48px, 5vw, 71px);
+  min-width: 200px;
+  padding: 0 24px;
+  font-family: Inter, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: clamp(16px, 1.3vw, 20px);
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.explore-page--figma .explore-figma-btn-outline:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (min-width: 901px) {
+  .explore-page--figma .explore-figma-btn-outline {
+    width: 212px;
+    height: 70px;
+    min-width: 212px;
+    min-height: 70px;
+    padding: 0 16px;
+    font-size: 16px;
+  }
+}
+
+/* Pills in figma */
+.explore-page--figma .explore-pills-shell {
+  max-width: none;
+  margin: 0 0 20px;
+  padding: 0;
+}
+
+.explore-page--figma .explore-pills-fade {
+  background: linear-gradient(90deg, rgba(254, 249, 239, 0) 0%, rgba(254, 249, 239, 0.85) 45%, rgba(254, 249, 239, 1) 100%);
+}
+
+.explore-page--figma .explore-pills-arrow {
+  background: var(--figma-bg);
+  border-color: var(--figma-green);
+  color: var(--figma-green);
+}
+
+.explore-page--figma .explore-pills-arrow-icon {
+  stroke: var(--figma-green);
+}
+
+.explore-page--figma .explore-pill {
+  border-color: var(--figma-green);
+  color: var(--figma-green);
+  background: var(--figma-bg);
+  font-family: var(--figma-font);
+}
+
+.explore-page--figma .explore-pill.active,
+.explore-page--figma .explore-pill.city-pill.active {
+  background: var(--figma-green);
+  color: var(--figma-cream);
+  border-color: var(--figma-green);
+}
+
+/* Tour cards — fixed media height, no tag row */
+.explore-page--figma .explore-tour-card {
+  border-radius: var(--figma-radius);
+  overflow: hidden;
+}
+
+.explore-page--figma .explore-tour-media {
+  border-radius: var(--figma-radius);
+  height: var(--figma-tour-media-h);
+  flex-shrink: 0;
+}
+
+.explore-page--figma .explore-tour-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--figma-radius);
+}
+
+.explore-page--figma .explore-tour-card-image-skeleton {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  aspect-ratio: unset;
+  border-radius: var(--figma-radius);
+}
+
+/* Сетка 6 колонок: заголовок и превью в cols 3–6; каждая карточка = 2 колонки (50% ячейки 3–6) */
+.explore-page--figma .explore-trips-section--figma {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.explore-page--figma .explore-trips-section--figma .explore-trips-columns {
+  width: 100%;
+  align-items: start;
+}
+
+/* Построчная сетка 2×N: пары туров выровнены по верху картинки, текст соседей не сдвигает ряд */
+.explore-page--figma .explore-trips-columns--pair-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--figma-tour-grid-gap-h);
+  row-gap: var(--figma-tour-grid-gap-v);
+  align-items: start;
+}
+
+.explore-page--figma .explore-trips-section--figma .explore-trips-column {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--figma-tour-grid-gap-v);
+}
+
+.explore-page--figma .explore-layout-item + .explore-layout-item {
+  margin-top: var(--figma-tour-grid-gap-v);
+}
+
+.explore-page--figma .explore-wide-tours {
+  display: flex;
+  flex-direction: column;
+  gap: var(--figma-tour-grid-gap-v);
+}
+
+.explore-page--figma .explore-tour-card.is-below {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.explore-page--figma .explore-creator-avatar,
+.explore-page--figma .explore-creator-avatar-placeholder {
+  border-radius: 50%;
+}
+
+.explore-page--figma .explore-city-pill {
+  box-sizing: border-box;
+  height: var(--figma-city-pill-h);
+  min-height: var(--figma-city-pill-h);
+  padding: 0 var(--figma-city-pill-pad-x);
+  border-radius: var(--figma-city-pill-radius);
+  font-size: var(--figma-city-pill-fs);
+  font-weight: 600;
+  line-height: 1;
+  border: none;
+}
+
+.explore-page--figma .explore-city-pill--overlay-stack {
+  background: var(--figma-cream);
+  color: var(--figma-orange);
+}
+
+.explore-page--figma .explore-tour-card-content--featured-wide {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  right: 16px;
+  bottom: 16px;
+  left: 16px;
+}
+
+.explore-page--figma .explore-tour-card-content--featured-wide h3 {
+  margin: 0;
+}
+
+.explore-page--figma .explore-tour-card-content--featured-wide p {
+  margin: 0;
+  max-width: none;
+}
+
+.explore-page--figma .explore-wide-tour-card .explore-tour-card-content--featured-wide p {
+  max-width: none;
+}
+
+.explore-page--figma .explore-skeleton-tags {
+  display: none;
+}
+
+.explore-page--figma .explore-city-pill-bottom {
+  background: var(--figma-cream);
+  color: var(--figma-orange);
+  font-family: Inter, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: var(--figma-city-pill-fs);
+  border-radius: var(--figma-city-pill-radius);
+  border: none;
+}
+
+/* Превью туров: TikTok Sans 28pt SemiExpanded optical; кегль и leading чуть плотнее */
+.explore-page--figma .explore-tour-card-body h3,
+.explore-page--figma .explore-tour-card.is-overlay .explore-tour-card-content h3 {
+  font-family: var(--figma-font-heading);
+  font-weight: 700;
+  font-size: clamp(16px, 1.35vw, 23px);
+  line-height: 1.1;
+}
+
+.explore-page--figma .explore-tour-card-body h3 {
+  color: var(--figma-green);
+}
+
+.explore-page--figma .explore-tour-card.is-overlay .explore-tour-card-content h3 {
+  color: var(--figma-cream);
+}
+
+.explore-page--figma .explore-tour-card-body p {
+  font-family: var(--figma-font);
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--figma-title-dark);
+}
+
+.explore-page--figma .explore-tag-pill-dark {
+  border-color: var(--figma-green);
+  color: var(--figma-green);
+}
+
+.explore-page--figma .more-trips-btn {
+  font-family: var(--figma-font);
+  color: var(--figma-orange);
+}
+
+.explore-page--figma .more-trips-row--figma .more-trips-btn {
+  text-decoration: none;
+  border: 2px solid var(--figma-orange);
+  background: var(--figma-bg);
+  color: var(--figma-orange);
+  border-radius: var(--figma-radius);
+  padding: clamp(14px, 2vw, 22px) clamp(24px, 3vw, 40px);
+  font-family: Inter, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: clamp(16px, 1.3vw, 20px);
+  text-transform: none;
+}
+
+/* Insiders — figma: горизонтальные отступы как у Pick your path (только через .explore-figma-max) */
+.explore-page--figma .explore-insiders--figma-split.explore-insiders {
+  margin-top: var(--figma-section-gap);
+  background: var(--figma-bg);
+  padding: 0 0 clamp(48px, 7vw, 80px);
+}
+
+.explore-page--figma .explore-insiders h2 {
+  text-transform: none;
+  white-space: normal;
+  text-align: left;
+}
+
+.explore-page--figma .explore-insiders--inner {
+  max-width: var(--figma-max);
+  margin: 0 auto;
+}
+
+.explore-page--figma .explore-figma-about-grid--insiders-split > .explore-figma-pick-path-main-row {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  align-items: start;
+}
+
+/* Треугольник — центр по высоте первой строки заголовка (1lh) */
+.explore-page--figma .explore-insiders--figma-split .explore-figma-about-marker-cell,
+.explore-page--figma .explore-figma-about-grid--testimonials .explore-figma-about-marker-cell {
+  display: flex;
+  align-items: center;
+  align-self: start;
+  height: 1lh;
+  font-size: var(--figma-section-heading);
+  line-height: 1.05;
+}
+
+.explore-page--figma .explore-insiders--figma-split .explore-figma-about-marker-cell .explore-figma-marker,
+.explore-page--figma .explore-figma-about-grid--testimonials .explore-figma-about-marker-cell .explore-figma-marker {
+  margin-top: 0;
+}
+
+.explore-page--figma .explore-insiders .insiders-grid {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.explore-page--figma .insider-card {
+  background: var(--figma-bg);
+  border: 2px solid var(--figma-green);
+  border-radius: var(--figma-radius);
+}
+
+/* Карточка: вертикальная «капсула» для фото, как в макете */
+.explore-page--figma .insider-card--figma {
+  flex-direction: column;
+  align-items: stretch;
+  min-width: min(476px, 88vw);
+  flex: 0 0 min(476px, 88vw);
+  max-width: 476px;
+  padding: clamp(20px, 2.5vw, 28px) clamp(20px, 2.5vw, 32px) clamp(24px, 3vw, 32px);
+  box-sizing: border-box;
+}
+
+.explore-page--figma .insider-card--figma .insider-left {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  flex: 0 0 auto;
+}
+
+.explore-page--figma .insider-card--figma .insider-avatar,
+.explore-page--figma .insider-card--figma .insider-avatar-placeholder {
+  width: min(188px, 52vw);
+  height: min(218px, 60vw);
+  border-radius: 60px;
+  object-fit: cover;
+}
+
+.explore-page--figma .insider-card--figma .insider-right {
+  margin-top: clamp(12px, 2vw, 20px);
+  width: 100%;
+  min-width: 0;
+}
+
+.explore-page--figma .insider-card--figma .insider-right h3 {
+  font-family: var(--figma-font);
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--figma-title-dark);
+  text-align: left;
+}
+
+.explore-page--figma .insider-card--figma .insider-meta--figma {
+  margin: 8px 0 0;
+  font-family: var(--figma-font);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--figma-title-dark);
+}
+
+.explore-page--figma .insider-card--figma .insider-bio-scroll {
+  margin-top: 12px;
+  max-height: 220px;
+}
+
+.explore-page--figma .insider-card--figma .insider-bio-scroll p {
+  font-family: var(--figma-font);
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--figma-title-dark);
+}
+
+.explore-page--figma .insider-skeleton-avatar--figma {
+  width: min(188px, 52vw);
+  height: min(218px, 60vw);
+  border-radius: 60px;
+  margin: 0 auto;
+  flex-shrink: 0;
+}
+
+.explore-page--figma .insider-card-skeleton.insider-card--figma {
+  flex-direction: column;
+  align-items: stretch;
+  min-width: min(476px, 88vw);
+  flex: 0 0 min(476px, 88vw);
+}
+
+.explore-page--figma .insider-card-skeleton.insider-card--figma .insider-skeleton-column {
+  width: 100%;
+  margin-top: 16px;
+}
+
+.explore-page--figma .explore-figma-insiders-features-cell {
+  overflow: visible;
+  min-width: 0;
+}
+
+@media (min-width: 901px) {
+  .explore-page--figma .explore-figma-insiders-cta-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 12px 18px;
+    margin-top: var(--figma-heading-subgap);
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .explore-page--figma .explore-figma-insiders-cta-row .explore-figma-nav-arrow--overlap-cards {
+    transform: translateX(28px);
+  }
+}
+
+.explore-page--figma .explore-figma-insider-arrows {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 0;
+  position: relative;
+  z-index: 3;
+  flex-shrink: 0;
+}
+
+.explore-page--figma .explore-figma-nav-arrow--overlap-cards {
+  transform: translateX(20px);
+}
+
+.explore-page--figma .explore-figma-nav-arrow--insiders {
+  padding: 6px 8px;
+  min-width: 52px;
+  min-height: 52px;
+}
+
+.explore-page--figma .explore-figma-nav-arrow--insiders .explore-figma-nav-arrow-icon,
+.explore-page--figma .explore-figma-nav-arrow--insiders .explore-figma-nav-arrow-img {
+  display: block;
+  flex-shrink: 0;
+}
+
+.explore-page--figma .explore-figma-nav-arrow--insiders .explore-figma-nav-arrow-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.explore-page--figma .explore-figma-nav-arrow {
+  width: auto;
+  min-width: 36px;
+  height: auto;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--figma-green);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Testimonials — figma (YES 1635:223: зелёный заголовок + подзаголовок 30px в одной колонке с макетом) */
+.explore-page--figma .explore-testimonials {
+  background: var(--figma-bg);
+  margin-top: var(--figma-section-gap);
+  padding: 0 var(--figma-pad) clamp(56px, 8vw, 96px);
+}
+
+.explore-page--figma .explore-testimonials h2 {
+  text-transform: none;
+  white-space: normal;
+  text-align: left;
+}
+
+.explore-page--figma .explore-testimonials-inner {
+  max-width: var(--figma-max);
+  margin: 0 auto;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.explore-page--figma .explore-figma-about-grid--testimonials .explore-figma-about-heading-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.explore-page--figma .explore-figma-testimonials-sublead {
+  margin: var(--figma-heading-subgap) 0 0;
+  max-width: 52ch;
+  font-family: var(--figma-font);
+  font-weight: 600;
+  font-size: clamp(22px, 2.2vw, 30px);
+  line-height: 1.41;
+  color: var(--figma-title-dark);
+}
+
+.explore-page--figma .explore-figma-about-grid--testimonials .explore-figma-about-features-cell {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.explore-page--figma .explore-testimonials--figma .explore-testimonial-stars {
+  display: none;
+}
+
+.explore-page--figma .explore-testimonials--figma .explore-testimonial-card--text {
+  display: flex;
+  flex-direction: column;
+  width: min(477px, 85vw);
+  height: auto;
+  min-height: 196px;
+  max-height: none;
+  padding: clamp(15px, 1.75vw, 20px) clamp(14px, 1.75vw, 18px) clamp(13px, 1.4vw, 17px);
+  background: var(--figma-testimonial-bg);
+  border: none;
+  border-radius: var(--figma-radius);
+}
+
+.explore-page--figma .explore-testimonials--figma .explore-testimonial-card-top {
+  align-items: center;
+}
+
+.explore-page--figma .explore-testimonials--figma .explore-testimonial-name {
+  font-family: var(--figma-font);
+  font-size: clamp(22px, 2.2vw, 30px);
+  font-weight: 600;
+}
+
+.explore-page--figma .explore-testimonials--figma .explore-testimonial-quote {
+  margin-top: clamp(8px, 1.05vw, 13px);
+  font-family: var(--figma-font);
+  font-size: clamp(14px, 1.2vw, 17px);
+  line-height: 1.45;
+}
+
+.explore-page--figma .explore-testimonials--figma .explore-testimonial-city {
+  margin-top: auto;
+  padding-top: 12px;
+  font-family: var(--figma-font);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #6b6864;
+}
+
+.explore-page--figma .explore-testimonials--figma .explore-testimonial-card--image {
+  width: min(477px, 85vw);
+  min-height: min(348px, 49vh);
+  height: auto;
+  border-radius: var(--figma-radius);
+  overflow: hidden;
+}
+
+.explore-page--figma .explore-testimonials--figma .explore-testimonial-card--image img {
+  width: 100%;
+  height: 100%;
+  min-height: min(348px, 49vh);
+  object-fit: cover;
+  display: block;
+}
+
+.explore-page--figma .explore-testimonial-card--text {
+  background: var(--figma-testimonial-bg);
+  border-radius: var(--figma-radius);
+}
+
+.explore-page--figma .explore-testimonial-card--image {
+  border-radius: var(--figma-radius);
+  overflow: hidden;
+}
+
+.explore-page--figma .explore-marquee-outer {
+  margin-top: clamp(16px, 2.5vw, 28px);
+}
+
+.explore-page--figma .explore-figma-about-features-cell > .explore-marquee-outer:first-child {
+  margin-top: 0;
+}
+
+/* Footer figma */
+.explore-page--figma .explore-footer {
+  background: var(--figma-footer);
+  color: var(--figma-cream);
+  padding: clamp(48px, 6vw, 72px) var(--figma-pad);
+  text-align: center;
+}
+
+.explore-page--figma .explore-footer-logo-link {
+  display: inline-block;
+  line-height: 0;
+  margin-bottom: clamp(24px, 3vw, 36px);
+}
+
+.explore-page--figma .explore-footer-logo-link picture {
+  display: block;
+}
+
+/* Тот же LogoV2 PNG/WebP, что в шапке — без filter, иначе цветной логотип превращался в белый силуэт */
+.explore-page--figma .explore-footer .explore-footer-logo.explore-logo--figma-v2 {
+  display: block;
+  width: 107px;
+  max-width: min(107px, 70vw);
+  height: auto;
+  object-fit: contain;
+}
+
+.explore-page--figma .explore-footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 2vw, 20px);
+  align-items: center;
+  margin-bottom: clamp(16px, 2vw, 24px);
+}
+
+.explore-page--figma .explore-footer-links a {
+  font-family: var(--figma-font);
+  font-weight: 400;
+  font-size: clamp(22px, 2.2vw, 30px);
+  line-height: 1.4;
+  color: var(--figma-cream);
+  text-decoration: none;
+}
+
+.explore-page--figma .explore-footer-email {
+  display: block;
+  font-family: var(--figma-font);
+  font-size: clamp(22px, 2.2vw, 30px);
+  color: var(--figma-orange);
+  text-decoration: underline;
+  margin-bottom: clamp(24px, 3vw, 36px);
+}
+
+.explore-page--figma .explore-footer-copy {
+  font-size: 14px;
+  color: #c7c0b2;
+}
+
+/* --- Mobile: 4-column mental model → single column stack + 2-col features --- */
+@media (max-width: 900px) {
+  .explore-page--figma .explore-figma-hero-topbar-wrap--desktop {
+    display: none !important;
+  }
+
+  .explore-page--figma .explore-figma-hero-mobile-bar {
+    display: grid;
+    grid-template-columns: 48px 1fr 48px;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 6;
+    padding: 12px 16px;
+    box-sizing: border-box;
+  }
+
+  .explore-page--figma .explore-figma-burger {
+    background: transparent;
+    border-radius: 0;
+  }
+
+  .explore-page--figma .explore-figma-hero {
+    padding-top: 0;
+  }
+
+  .explore-page--figma .explore-figma-hero-shell-outer {
+    margin-top: 0;
+    padding-left: 0;
+    padding-right: 0;
+    max-width: none;
+  }
+
+  .explore-page--figma .explore-figma-hero-shell {
+    border-radius: var(--figma-radius);
+    min-height: max(280px, 80vh);
+  }
+
+  /* Абсолютная шапка не занимает поток — отступ, чтобы заголовок не заезжал под логотип */
+  .explore-page--figma .explore-figma-hero-center {
+    padding-top: calc(72px + env(safe-area-inset-top, 0px));
+    min-height: max(280px, 80vh);
+  }
+
+  /* Равные flex-слоты сверху и снизу: текст — единый блок по вертикали по центру; кнопка — по центру зоны от подзаголовка до низа */
+  .explore-page--figma .explore-figma-hero-center::before {
+    content: '';
+    display: block;
+    flex: 1 1 0;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .explore-page--figma .explore-figma-hero-center .explore-figma-hero-headlines p {
+    font-weight: 400;
+  }
+
+  /* Секционные заголовки — на мобилке 40pt */
+  .explore-page--figma .explore-figma-h2-green,
+  .explore-page--figma .explore-figma-h2-orange {
+    font-size: var(--figma-section-heading-mobile);
+  }
+
+  /* Pick your path: TikTok Sans 28pt SemiExpanded masters, на ~2pt меньше прочих h2; плотнее межстрочный */
+  .explore-page--figma .explore-figma-about-grid--pick-path > .explore-figma-about-heading-cell .explore-figma-h2-pick-path {
+    font-family: var(--figma-font-heading);
+    font-weight: 600;
+    font-size: 38pt;
+    line-height: 0.88;
+  }
+
+  .explore-page--figma .explore-figma-about-desktop {
+    display: none;
+  }
+
+  .explore-page--figma .explore-figma-about-mobile {
+    display: block;
+  }
+
+  .explore-page--figma .explore-figma-grid-6,
+  .explore-page--figma .explore-figma-about-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .explore-page--figma .explore-figma-span-2,
+  .explore-page--figma .explore-figma-about-marker-cell,
+  .explore-page--figma .explore-figma-about-heading-cell,
+  .explore-page--figma .explore-figma-about-left-body,
+  .explore-page--figma .explore-figma-about-features-cell {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  /* Секции с ▲ + заголовок в одной строке: переопределяем после правила выше */
+  .explore-page--figma .explore-figma-about-grid--split > .explore-figma-about-marker-cell {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: var(--figma-section-heading-mobile);
+    line-height: 1.05;
+  }
+
+  .explore-page--figma .explore-figma-about-grid--split > .explore-figma-about-heading-cell {
+    grid-column: 2 / -1;
+    grid-row: 1;
+  }
+
+  .explore-page--figma .explore-figma-about-grid--split > .explore-figma-about-left-body {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .explore-page--figma .explore-figma-about-grid--split:not(.explore-figma-about-grid--testimonials) > .explore-figma-about-features-cell {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  /* Pick your path: один ряд грида = подзаголовк+превью; отступ 50px как у лида→сетка */
+  .explore-page--figma .explore-figma-about-grid--pick-path > .explore-figma-pick-path-main-row {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 50px;
+  }
+
+  .explore-page--figma .explore-figma-pick-path-main-row .explore-figma-pick-path-left-sticky {
+    position: static;
+  }
+
+  /* Insiders: мобилка — лид → стрелки по центру → карусель */
+  .explore-page--figma .explore-figma-about-grid--insiders-split > .explore-figma-pick-path-main-row.explore-figma-insiders-main-row {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 24px;
+  }
+
+  .explore-page--figma .explore-figma-insiders-main-row .explore-figma-about-left-body,
+  .explore-page--figma .explore-figma-insiders-main-row .explore-figma-about-left-body-inner,
+  .explore-page--figma .explore-figma-insiders-main-row .explore-figma-insiders-cta-row {
+    display: contents;
+  }
+
+  .explore-page--figma .explore-figma-insiders-main-row .explore-figma-about-intro {
+    order: 1;
+  }
+
+  .explore-page--figma .explore-figma-insiders-main-row .explore-figma-insider-arrows {
+    order: 2;
+    justify-content: center;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .explore-page--figma .explore-figma-insiders-main-row .explore-figma-nav-arrow--overlap-cards {
+    transform: none;
+  }
+
+  .explore-page--figma .explore-figma-insiders-main-row .explore-figma-about-features-cell {
+    order: 3;
+  }
+
+  /* Превью туров (мобилка): без описания, заголовок капсом */
+  .explore-page--figma .explore-tour-card-body p {
+    display: none;
+  }
+
+  .explore-page--figma .explore-tour-card-body h3 {
+    text-transform: uppercase;
+  }
+
+  .explore-page--figma .explore-tour-card.is-overlay .explore-tour-card-content p {
+    display: none;
+  }
+
+  .explore-page--figma .explore-tour-card.is-overlay .explore-tour-card-content h3 {
+    text-transform: uppercase;
+  }
+
+  /* Превью: квадратные изображения на мобилке */
+  .explore-page--figma .explore-tour-media {
+    height: auto;
+    aspect-ratio: 1 / 1;
+  }
+
+  .explore-page--figma .explore-tour-card-image {
+    height: 100%;
+    width: 100%;
+  }
+
+  .explore-page--figma .explore-tour-card-image-skeleton {
+    aspect-ratio: 1 / 1;
+    height: auto;
+    min-height: 0;
+  }
+
+  /* Кнопка под превью туров (ряд 3 — после main-row) / под инсайдерами (ряд 4) */
+  .explore-page--figma .explore-figma-about-grid--pick-path > .explore-figma-about-cta-row--split-mobile-only {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    grid-column: 1 / -1;
+    grid-row: 3;
+    margin-top: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .explore-page--figma .explore-figma-about-grid--pick-path > .explore-figma-about-cta-row--split-mobile-only .explore-figma-btn-outline {
+    margin-top: 0;
+  }
+
+  .explore-page--figma .explore-figma-btn-outline--split-desktop-only {
+    display: none !important;
+  }
+
+  .explore-page--figma .explore-figma-about-grid--testimonials > .explore-figma-about-marker-cell {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: var(--figma-section-heading-mobile);
+    line-height: 1.05;
+  }
+
+  .explore-page--figma .explore-figma-about-grid--testimonials > .explore-figma-about-heading-cell {
+    grid-column: 2 / -1;
+    grid-row: 1;
+  }
+
+  .explore-page--figma .explore-figma-about-grid--testimonials > .explore-figma-about-features-cell {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .explore-page--figma .explore-figma-span-4 {
+    grid-column: 1 / -1;
+  }
+
+  .explore-page--figma .explore-figma-feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 12px;
+  }
+
+  /* What about: 20px между рядами буллитов; 40px от сетки до €12 */
+  .explore-page--figma .explore-figma-feature-grid--what-about {
+    row-gap: 20px;
+  }
+
+  .explore-page--figma .explore-figma-about-pricing-below-features .explore-figma-about-list--pricing {
+    margin-top: 40px;
+  }
+
+  /* Подзаголовки как у лида «Each guide is…» (400, 21px, 1.4) — без h3 */
+  .explore-page--figma .explore-figma-about-intro,
+  .explore-page--figma .explore-figma-testimonials-sublead,
+  .explore-page--figma .explore-testimonials--figma .explore-testimonial-name,
+  .explore-page--figma .explore-figma-about-list--pricing li {
+    font-weight: 400;
+    font-size: 21px;
+    line-height: 1.4;
+  }
+
+  .explore-page--figma .explore-figma-feature h3,
+  .explore-page--figma .insider-card--figma .insider-right h3 {
+    font-family: var(--figma-font);
+    font-weight: 700;
+    font-size: 21px;
+    line-height: 1.15;
+  }
+
+  .explore-page--figma .explore-figma-about-list--pricing .explore-figma-about-price--per-guide {
+    font-weight: 700;
+  }
+
+  .explore-page--figma .explore-figma-feature p {
+    font-size: 14px;
+  }
+
+  .explore-page--figma .insider-card--figma .insider-avatar,
+  .explore-page--figma .insider-card--figma .insider-avatar-placeholder {
+    border-radius: 30px;
+  }
+
+  .explore-page--figma .insider-skeleton-avatar--figma {
+    border-radius: 30px;
+  }
+
+  .explore-page--figma .explore-figma-btn-outline {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .explore-page--figma .explore-figma-hero-center .explore-figma-btn-cta-solid {
+    width: auto;
+    max-width: calc(100% - 32px);
+  }
+
+  .explore-page--figma .explore-figma-hero-center p {
+    white-space: normal;
+  }
+
+  /* Иначе базовый ExplorePage.css даёт padding 20px и смещает превью относительно заголовка */
+  .explore-page--figma .explore-trips-section--figma {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .explore-page--figma .explore-figma-feature-grid:not(.explore-figma-feature-grid--what-about) {
+    grid-template-columns: 1fr;
+  }
+
+  .explore-page--figma .explore-figma-feature-grid--what-about {
+    row-gap: 20px;
+    column-gap: 10px;
+  }
+}
