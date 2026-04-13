@@ -1,0 +1,207 @@
+/* /trips — catalog from live API; layout per Figma (filters cols 1–2 sticky, grid cols 3–6) */
+
+.trips-page {
+  min-height: 100vh;
+  background: var(--figma-bg, #fef9ef);
+}
+
+/* Зазор «видео → контент»: 70px (вместо глобального margin hero + padding секции) */
+.trips-page .explore-figma-hero {
+  margin-bottom: 70px;
+}
+
+.trips-catalog {
+  padding: 0 0 clamp(48px, 8vw, 96px);
+}
+
+.trips-catalog-inner {
+  max-width: min(1470px, 100%);
+  margin: 0 auto;
+  padding: 0 var(--figma-pad, 20px);
+  box-sizing: border-box;
+}
+
+.trips-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--figma-gap, 20px);
+  align-items: start;
+}
+
+.trips-filters-wrap {
+  grid-column: 1 / 3;
+  min-width: 0;
+}
+
+.trips-filters-sticky {
+  position: sticky;
+  top: 24px;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(20px, 3vw, 28px);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.trips-page-title {
+  margin: 0;
+  font-family: var(--figma-font-heading);
+  font-weight: 600;
+  font-size: clamp(36px, 5vw, 50px);
+  line-height: 1.05;
+  color: var(--figma-green, #1c5127);
+  text-align: left;
+}
+
+.trips-filter-heading {
+  margin: 0 0 12px;
+  font-family: var(--figma-font-heading);
+  font-weight: 800;
+  font-size: 11.2px;
+  line-height: 1.41;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #040404;
+}
+
+.trips-filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 8px;
+}
+
+.trips-filter-pill {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 13px;
+  border: 1px solid var(--figma-orange, #f07720);
+  background: #fdfaef;
+  color: var(--figma-orange, #f07720);
+  font-family: var(--figma-font, Inter, system-ui, sans-serif);
+  font-weight: 600;
+  font-size: 11.2px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.trips-filter-pill:hover {
+  opacity: 0.92;
+}
+
+.trips-filter-pill.is-active {
+  background: var(--figma-green, #1c5127);
+  border-color: var(--figma-green, #1c5127);
+  color: #fef9ef;
+}
+
+.trips-results {
+  grid-column: 3 / -1;
+  min-width: 0;
+}
+
+/* /trips/paris — filters + tour grid use full 6-column width (not cols 3–6 only) */
+.trips-page--paris .trips-filters-wrap {
+  grid-column: 1 / -1;
+}
+
+.trips-page--paris .trips-results {
+  grid-column: 1 / -1;
+}
+
+.trips-page--paris .explore-figma-hero-media .explore-figma-hero-paris-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.trips-results .explore-trips-section {
+  margin: 0;
+  padding: 0;
+  max-width: none;
+}
+
+.trips-empty {
+  margin: 0;
+  padding: 24px 0;
+  font-family: var(--figma-font);
+  font-size: 18px;
+  color: var(--figma-body-brown, #3d3a34);
+}
+
+@media (max-width: 900px) {
+  .trips-catalog-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .trips-filters-wrap {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .trips-filters-sticky {
+    position: static;
+    top: auto;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .trips-results {
+    grid-column: 1 / -1;
+  }
+
+  .trips-catalog-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .trips-filters-block {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* City / interests: одна строка, скролл по горизонтали */
+  .trips-filter-pills {
+    display: flex;
+    flex-wrap: nowrap !important;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x;
+    scrollbar-width: thin;
+    padding-bottom: 6px;
+    margin-bottom: -4px;
+    gap: 7px;
+  }
+
+  .trips-page .trips-filter-pill {
+    flex: 0 0 auto;
+    flex-shrink: 0;
+    white-space: nowrap;
+    max-width: none;
+  }
+
+  .trips-filter-pills::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .trips-filter-pills::-webkit-scrollbar-thumb {
+    background: rgba(28, 81, 39, 0.25);
+    border-radius: 4px;
+  }
+}

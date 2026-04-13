@@ -1,10 +1,10 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import ProtectedRoute from './modules/auth/components/ProtectedRoute';
 import { Analytics } from '@vercel/analytics/react';
 import './index.css';
+import ExplorePage from './pages/ExplorePage.jsx';
 
-const ExplorePage = lazy(() => import('./pages/ExplorePage'));
 const HomePage = lazy(() => import('./pages/HomePage'));
 const PaymentPage = lazy(() => import('./pages/PaymentPage'));
 const PaymentSuccessPage = lazy(() => import('./pages/PaymentSuccessPage'));
@@ -28,6 +28,7 @@ const AdminToursPage = lazy(() => import('./modules/admin-dashboard/pages/AdminT
 const AdminUsersPage = lazy(() => import('./modules/admin-dashboard/pages/AdminUsersPage'));
 const AdminLoginPage = lazy(() => import('./modules/admin-dashboard/pages/AdminLoginPage'));
 const AdminRevenuePage = lazy(() => import('./modules/admin-dashboard/pages/AdminRevenuePage'));
+const TripsPage = lazy(() => import('./pages/TripsPage'));
 
 function RoutePageFallback() {
   return (
@@ -39,6 +40,12 @@ function RoutePageFallback() {
   );
 }
 
+/** /explore → / (главная = Explore); query string сохраняем */
+function RedirectExploreToHome() {
+  const { search } = useLocation();
+  return <Navigate to={{ pathname: '/', search }} replace />;
+}
+
 function App() {
   return (
     <Router>
@@ -47,12 +54,15 @@ function App() {
         <Suspense fallback={<RoutePageFallback />}>
           <Routes>
             {/* Public Routes */}
-            <Route path="/" element={<ExplorePage />} />
-            <Route path="/explore" element={<Navigate to="/" replace />} />
+            {/* Главная = Explore (snapshot); /explore редирект на / */}
+            <Route path="/" element={<ExplorePage exploreVariant="snapshot" key="explore-home" />} />
+            <Route path="/explore" element={<RedirectExploreToHome />} />
             {/* Legacy home kept for rollback/reference only. No links point here. */}
             <Route path="/_internal/legacy-home-2026" element={<HomePage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/trips" element={<TripsPage />} />
+            <Route path="/trips/paris" element={<TripsPage parisLanding />} />
             <Route path="/payment" element={<PaymentPage />} />
             <Route path="/payment-success" element={<PaymentSuccessPage />} />
             <Route path="/itinerary" element={<ItineraryPage />} />
